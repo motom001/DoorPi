@@ -1,0 +1,6 @@
+#!/bin/bash
+
+echo "* Install DoorPin service"
+sudo cp $HOME/DoorPi_1.0.1/service/doorpi /etc/init.d/
+sudo update-rc.d doorpi start 10 2 3 4 5
+sudo update-rc.d doorpi stop 10 0 1 6

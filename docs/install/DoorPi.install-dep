@@ -1,7 +1,7 @@
 #!/bin/bash
 
 echo "* Install dependencies"
-sudo apt-get install alsaplayer-alsa python2.7-dev python-daemon python-lockfile libv4l-dev libx264-dev libssl-dev libasound2-dev asterisk
+sudo apt-get install alsaplayer-alsa python2.7-dev python-daemon python-lockfile libv4l-dev libx264-dev libssl-dev libasound2-dev
 
 
 echo "* Download & Compile dependencies"

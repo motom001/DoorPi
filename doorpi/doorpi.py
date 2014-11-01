@@ -155,7 +155,7 @@ class DoorPi(object):
         logger.debug("use configfile: %s", configfile.name)
         config = ConfigParser.ConfigParser()
         config.read(configfile.name)
-        if config.sections():
+        if not config.sections():
             logger.info("founded empty configfile - start write_demo_configfile")
             configfile.close()
             os.remove(configfile.name)

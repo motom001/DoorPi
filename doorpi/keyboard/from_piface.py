@@ -27,6 +27,9 @@ class PiFace(keyboard):
 
     def destroy(self):
         logger.debug("destroy")
+        # shutdown all output-pins
+        for x in range(len(self.__OutputPins)):
+            self.set_output(self.__OutputPins[x], 0, 0, 0.0)
 
     def self_test(self):
         try:

@@ -187,9 +187,9 @@ class DoorPi(object):
 
         config.add_section('InputPins')
         config.add_comment('InputPins','singlecall_pin','call:[phonenumber] # make a call to this number')
-        config.set('InputPins', '0', 'call:5973922')
+        config.set('InputPins', '0', 'call:00493515555555')
         config.add_comment('InputPins','multicall_pin','[call:[phonenumber], call:[phonenumber]] # make a call to all this numbers, first answer wins')
-        config.set('InputPins', '1', 'call:01783558321')
+        config.set('InputPins', '1', 'call:00493515555555')
         config.add_comment('InputPins','break_pin','break # break watching inputkeys and stop doorpi')
         config.set('InputPins', '3', 'break')
 
@@ -203,11 +203,7 @@ class DoorPi(object):
         config.set('DoorPi', 'is_alive_led', '7')
 
         config.add_section('AdminNumbers')
-        config.set('AdminNumbers', '01783558321', 'active')
-        config.set('AdminNumbers', '+491783558321', 'active')
-        config.set('AdminNumbers', '5973922', 'active')
-        config.set('AdminNumbers', '035295973922', 'active')
-        config.set('AdminNumbers', '+4935295973922', 'active')
+        config.set('AdminNumbers', '00493515555555', 'active')
 
         #config.add_section('Log-File')
         #config.set('Log-File', 'Logfile', configfilename)

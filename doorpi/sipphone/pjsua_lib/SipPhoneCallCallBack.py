@@ -53,22 +53,24 @@ class SipPhoneCallCallBack(pj.CallCallback):
             self.Lib.conf_connect(call_slot, 0)
             self.Lib.conf_connect(0, call_slot)
             logger.debug("conneted Media to call_slot %s",str(call_slot))
+            DoorPi().get_sipphone().set_current_call(self.call)
 
         if self.call.info().state == pj.CallState.DISCONNECTED:
             call_slot = self.call.info().conf_slot
             self.Lib.conf_disconnect(call_slot, 0)
             self.Lib.conf_disconnect(0, call_slot)
             logger.debug("disconneted Media from call_slot %s",str(call_slot))
+            DoorPi().get_sipphone().set_current_call(None)
 
     def is_admin_number(self, remote_uri = None):
         logger.debug("is_admin_number (%s)",remote_uri)
 
-        if remote_uri == None:
+        if remote_uri is None:
             remote_uri = self.call.info().remote_uri
 
         possible_AdminNumbers = DoorPi().get_config().get_keys('AdminNumbers')
         for AdminNumber in possible_AdminNumbers:
-            if self.call.info().remote_uri.startswith(AdminNumber):
+            if remote_uri.startswith(AdminNumber):
                 return True
 
         return False
@@ -85,7 +87,7 @@ class SipPhoneCallCallBack(pj.CallCallback):
                 logger.debug("on_dtmf_digit: get DTMF-request (%s) for action %s", DTMF, self.inAction)
                 DoorPi().fire_action(
                     action = self.inAction,
-                    secure_source = self.is_admin_number()
+                    secure_source = DoorPi().get_sipphone().is_admin_number(self.call.info().remote_uri)
                 )
                 self.inAction = False
 

@@ -28,5 +28,6 @@ console.setFormatter(formatter)
 logger.addHandler(console)
 
 try:                        doorpi.DoorPi().run()
+except KeyboardInterrupt:   logger.info("KeyboardInterrupt -> DoorPi will shutdown")
 except Exception as ex:     logger.exception("Exception NameError: %s", ex)
 finally:                    doorpi.DoorPi().destroy()

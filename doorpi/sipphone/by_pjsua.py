@@ -23,7 +23,28 @@ class Pjsua:
     __PlayerID = None
 
     __current_call = None
+    def get_current_call(self):
+        return self.__current_call
+    def set_current_call(self, call):
+        if self.__current_call is call: return self.get_current_call()
+        if call is None: self.__current_call = None
+
+        if self.__current_call is not None:
+            logger.warning("replace current_call while current_call is not None")
+        self.__current_call = call
+        return self.get_current_call()
+
     __current_callcallback = None
+    def get_current_callback(self):
+        return self.__current_callcallback
+    def set_current_callback(self, callback):
+        if self.__current_callcallback is callback: return self.get_current_callback()
+        if callback is None: self.__current_callcallback = None
+
+        if self.__current_callcallback is not None:
+            logger.warning("replace current_callcallback while current_callcallback is not None")
+        self.__current_callcallback = callback
+        return self.get_current_callback()
 
     def __init__(self):
         logger.debug("__init__")
@@ -95,6 +116,11 @@ class Pjsua:
             self.__current_callcallback.destroy()
             self.__current_callcallback = None
             del self.__current_callcallback
+
+        if self.__current_call is not None:
+            self.__current_call.hangup()
+            self.__current_call = None
+            del self.__current_call
 
         if self.__Acc is not None:
             self.__Acc.delete()
@@ -223,3 +249,22 @@ class Pjsua:
             self.make_call(Number)
 
         return self.__current_call
+
+    def is_admin_number(self, remote_uri = None):
+        logger.debug("is_admin_number (%s)",remote_uri)
+
+        if remote_uri is None:
+            if self.__current_call is not None:
+                remote_uri = self.__current_call().info().remote_uri
+            else:
+                logger.debug("couldn't catch current call - no parameter and no current_call from doorpi itself")
+                return False
+
+        possible_AdminNumbers = DoorPi().get_config().get_keys('AdminNumbers')
+        for AdminNumber in possible_AdminNumbers:
+            if "sip:"+AdminNumber+"@" in remote_uri:
+                logger.debug("%s is an adminnumber", remote_uri)
+                return True
+
+        logger.debug("%s is not an adminnumber", remote_uri)
+        return False

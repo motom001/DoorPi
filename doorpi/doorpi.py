@@ -39,15 +39,6 @@ class DoorPi(object):
     def get_sipphone(self):
         return self.__sipphone
 
-    __current_call = None
-    def get_current_call(self):
-        return self.__current_call
-    def set_current_call(self, call):
-        if self.__current_call is not None:
-            logger.warning("replace current_call while current_call is not None")
-        self.__current_call = call
-        return self.get_current_call()
-
     def __init__(self):
         logger.debug("__init__")
         # for start as daemon - if start as app it will not matter to load this vars
@@ -132,7 +123,7 @@ class DoorPi(object):
 
                 if action.startswith('break'): break
                 if action.startswith('call:'):
-                    self.__current_call = self.__sipphone.make_call(action[len('call:'):])
+                    self.__sipphone.make_call(action[len('call:'):])
                 time.sleep(1) # for fat fingers
 
             if led is not '': self.is_alive_led(led)

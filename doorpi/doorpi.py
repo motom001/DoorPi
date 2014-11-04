@@ -5,12 +5,17 @@ import logging
 logger = logging.getLogger(__name__)
 logger.debug("%s loaded", __name__)
 
+import sys
+import argparse
+
 import keyboard.base
 import conf.config_object
 
 import time # used by: DoorPi.run
 import ConfigParser # used by: DoorPi.__init__
 import os # used by: DoorPi.load_config
+
+import metadata
 
 class Singleton(type):
     _instances = {}
@@ -45,19 +50,54 @@ class DoorPi(object):
 
     def __init__(self):
         logger.debug("__init__")
+        # for start as daemon - if start as app it will not matter to load this vars
+        self.stdin_path = '/dev/null'
+        self.stdout_path = '/dev/null'
+        self.stderr_path = '/dev/null'
+        self.pidfile_path =  '/var/run/doorpi.pid'
+        self.pidfile_timeout = 5
 
-    def prepare(self, configfile = None):
-        logger.debug("init")
+    def prepare(self):
+        logger.debug("prepare")
 
-        if not configfile and not self.__config:
+        parsed_arguments = self.parse_argv()
+        logger.debug("givven arguments argv: %s", parsed_arguments)
+
+        if not parsed_arguments.configfile and not self.__config:
             raise Exception("no config exists an no new given")
 
-        self.__config = self.load_config(configfile)
+        self.__config = self.load_config(parsed_arguments.configfile)
         self.__keyboard = self.detect_keyboard()
         #self.__keyboard.self_test()
         self.__sipphone = self.detect_sipphone()
         self.__sipphone.start()
         return self
+
+    def parse_argv(self):
+        logger.debug('parse_argv')
+
+        arg_parser = argparse.ArgumentParser(
+            prog=sys.argv[0],
+            formatter_class=argparse.RawDescriptionHelpFormatter,
+            description=metadata.description,
+            epilog = metadata.epilog)
+
+        arg_parser.add_argument(
+            '-V', '--version',
+            action='version',
+            version='{0} {1}'.format(metadata.project, metadata.version))
+
+        arg_parser.add_argument(
+            '--configfile',
+            help='configfile for DoorPi',
+            type=file,
+            dest='configfile',
+            required = True)
+
+        if  len(sys.argv) > 1 and sys.argv[1] in ['start', 'stop', 'restart', 'status']: # running as daemon? cut first argument
+            return  arg_parser.parse_args(args=sys.argv[2:])
+        else:
+            return  arg_parser.parse_args(args=sys.argv[1:])
 
     def __del__(self):
         self.destroy()
@@ -76,6 +116,8 @@ class DoorPi(object):
 
     def run(self):
         logger.debug("run")
+
+        self.prepare()
 
         led = self.__config.get_int('DoorPi', 'is_alive_led')
 
@@ -131,12 +173,12 @@ class DoorPi(object):
 
         if action == 'reboot' and secure_source:
             logger.debug("system going down for reboot")
-            # TODO: fill with content
+            system.os('echo sudo /etc/init.d/doorpi restart')
             return False
 
         if action == 'restart' and secure_source:
             logger.debug("restart doorpi service")
-            # TODO: fill with content
+            system.os('echo sudo reboot')
             return False
 
         logger.debug("couldn't find action or source was not set to secure")

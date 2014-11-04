@@ -14,7 +14,6 @@ from doorpi import DoorPi
 
 class SipPhoneCallCallBack(pj.CallCallback):
 
-    cb_openDoor = None
     PlayerID = None
     Lib = None
 
@@ -24,7 +23,6 @@ class SipPhoneCallCallBack(pj.CallCallback):
 
     def __init__(self, PlayerID = None, call = None):
         logger.debug("__init__")
-        self.cb_openDoor = DoorPi()
         self.PlayerID = PlayerID
         self.Lib = pj.Lib.instance()
         pj.CallCallback.__init__(self, call)
@@ -62,8 +60,21 @@ class SipPhoneCallCallBack(pj.CallCallback):
             self.Lib.conf_disconnect(0, call_slot)
             logger.debug("disconneted Media from call_slot %s",str(call_slot))
 
+    def is_admin_number(self, remote_uri = None):
+        logger.debug("is_admin_number (%s)",remote_uri)
+
+        if remote_uri == None:
+            remote_uri = self.call.info().remote_uri
+
+        possible_AdminNumbers = DoorPi().get_config().get_keys('AdminNumbers')
+        for AdminNumber in possible_AdminNumbers:
+            if self.call.info().remote_uri.startswith(AdminNumber):
+                return True
+
+        return False
+
     def on_dtmf_digit(self, digits):
-        logger.debug("on_dtmf_digit: %s",str(digits))
+        logger.debug("on_dtmf_digit (%s)",str(digits))
         self.__DTMF += str(digits)
 
         possible_DTMF = DoorPi().get_config().get_keys('DTMF')
@@ -72,7 +83,10 @@ class SipPhoneCallCallBack(pj.CallCallback):
             if self.__DTMF.endswith(DTMF[1:-1]):
                 self.inAction = DoorPi().get_config().get('DTMF', DTMF)
                 logger.debug("on_dtmf_digit: get DTMF-request (%s) for action %s", DTMF, self.inAction)
-                DoorPi().fire_action(self.inAction)
+                DoorPi().fire_action(
+                    action = self.inAction,
+                    secure_source = self.is_admin_number()
+                )
                 self.inAction = False
 
 

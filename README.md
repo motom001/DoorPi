@@ -52,7 +52,7 @@ Service:
 Gateway Input
 -	Connection to an existent intercom (3 push-buttons, microphone, speaker)
 -	Piloting the door opener (12V DC) by pressing a key at the phone (e.g. #)
--	
+
 Gateway Output:
 -	Communication via VoIP (AVM Fritz!Box 7490 as VoIP-Server)
 -	every push-button should dial a different phone number

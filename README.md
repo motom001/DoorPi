@@ -2,25 +2,25 @@
 
 [DE]
 ==========
-Da mein Englisch nicht immer das Beste ist, starte ich die Beschreibung in Deutsch und hoffe auf Hilfe bei der ‹bersetzung.
-Ziel des Projektes ist die Steuerung einer T¸rsprechanlage mittels einem Raspberry Pi (Model B) und PiFace. 
+Da mein Englisch nicht immer das Beste ist, starte ich die Beschreibung in Deutsch und hoffe auf Hilfe bei der √úbersetzung.
+Ziel des Projektes ist die Steuerung einer T√ºrsprechanlage mittels einem Raspberry Pi (Model B) und PiFace. 
 Dazu habe ich das Projekt "door-berry" von "mpodroid" auf github gefunden (https://github.com/mpodroid/door-berry). 
 Seit einiger Zeit findet dort aber keine Entwicklung mehr statt und es ist dort noch recht viel zu tun. Aber als Vorlage war es perfekt.
 
 
-Anforderungen an meine T¸rsprechanlage:
+Anforderungen an meine T√ºrsprechanlage:
 
 Betrieb:
 * 24/7 im Hausflur
 * stabil
 
 Schnittstellen Input:
-* Anschluss der vorhanden T¸rsprechanlage (3 Taster, Mikrofon, Lautsprecher)
-* Ansteuerung des T¸rˆffners (12V DC) per Tastendruck am Telefon (z.B. #)
+* Anschluss der vorhanden T√ºrsprechanlage (3 Taster, Mikrofon, Lautsprecher)
+* Ansteuerung des T√ºr√∂ffners (12V DC) per Tastendruck am Telefon (z.B. #)
 
 Schnittstellen Output:
 * Kommunikation mittels VoIP (VoIP-Server ist eine AVM FRITZ!BOS 7490)
-* pro Klingel-Taste soll eine andere Rufnummer gew‰hlt werden (kˆnnen)
+* pro Klingel-Taste soll eine andere Rufnummer gew√§hlt werden (k√∂nnen)
 
 
 Der Aufbau bei mir ist:
@@ -32,13 +32,42 @@ Der Aufbau bei mir ist:
 * im 1. OG: FRITZ!Powerline 546E Powerline-Adapter als WLAN-Access-Point (per Netzwerkkabel angeschlossen)
 * im EG: FRITZ!BOX 7270
 - als Netzwerk-Switch, DECT-Basis, WLAN-Access-Point
-- sowie als Stromversorger f¸r Raspberry Pi
-- Netzteil der FritzBox ersetzt gegen ein st‰rkeres (12 DC, 2,5A)
-- Netzkabel gesplittet - einmal f¸r die 7270, einmal an die Relais vom PiFace f¸r den T¸rˆffner sowie Beleuchtung T¸rsprechanalage
-* Raspberry PI (Model B) mit PiFace im groﬂz¸gigen Geh‰use
+- sowie als Stromversorger f√ºr Raspberry Pi
+- Netzteil der FritzBox ersetzt gegen ein st√§rkeres (12 DC, 2,5A)
+- Netzkabel gesplittet - einmal f√ºr die 7270, einmal an die Relais vom PiFace f√ºr den T√ºr√∂ffner sowie Beleuchtung T√ºrsprechanalage
+* Raspberry PI (Model B) mit PiFace im gro√üz√ºgigen Geh√§use
 * USB-Soundkarte EAN: 4016138697902 (http://www.conrad.de/ce/de/product/872300)
 
 [EN]
 ==========
 
-coming soon
+The aim of the project is to connect the intercom with a RaspberryPi (model B) and PiFace. On github I found something similar, the project ‚Äúdoor-berry‚Äù of ‚Äúmpodroid‚Äù (https://github.com/mpodroid/door-berry).
+
+Intercom Requirements:
+
+Service:
+-	24/7 at the hall
+-	stable
+-	
+Gateway Input
+-	Connection to an existent intercom (3 push-buttons, microphone, speaker)
+-	Piloting the door opener (12V DC) by pressing a key at the phone (e.g. #)
+-	
+Gateway Output:
+-	Communication via VoIP (AVM Fritz!Box 7490 as VoIP-Server)
+-	every push-button should dial a different phone number
+-	
+My composition:
+-	house with 3 floors ‚Äì a hirer per floor 
+-	all hirer share one internet and phone mainline
+-	Fritz!Box 7490 at second floor
+  o	Works as Router, Switch, DECT-base and Wi-Fi Access-Point
+  o	Even as VoIP-Server (http://en.avm.de/nc/service/fritzbox/fritzbox-7490/knowledge-base/publication/show/42/)
+-	First floor: Fritz!Powerline 546E Powerline-adapter as Wi-Fi Access-Point (connected by patch-cable)
+-	Ground: Fritz!Box 7270
+  o	Works as Switch, DECT-base, Wi-Fi Access-Point
+  o	Even as power-connection for the RaspberryPi
+  o	Replaced Fritz!Box power supply (12 DC, 2,5A)
+  o	Power cord split to 7270, relais of PiFace for door opener and lightning of intercom
+-	RaspberryPi (model B) with PiFace in a large case
+-	USB-soundcard (http://www.conrad.de/ce/de/product/872300)

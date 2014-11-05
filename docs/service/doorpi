@@ -18,12 +18,12 @@ case "$1" in
   start)
     echo "Starting server"
     # Start the daemon
-    python $DOORPI_PATH/doorpi/service start --configfile /home/pi/DoorPi_1.0.3/conf/doorpi.ini
+    python $DOORPI_PATH/doorpi/service.py start --configfile /home/pi/DoorPi/conf/doorpi.ini
     ;;
   stop)
     echo "Stopping server"
     # Stop the daemon
-    python $DOORPI_PATH/doorpi/service stop
+    python $DOORPI_PATH/doorpi/service.py stop
     ;;
   restart)
     echo "Restarting server"

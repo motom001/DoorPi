@@ -21,6 +21,8 @@ class Pjsua:
     __Acc = None
 
     __PlayerID = None
+    def get_player_id(self):
+        return self.__PlayerID
 
     __current_call = None
     def get_current_call(self):

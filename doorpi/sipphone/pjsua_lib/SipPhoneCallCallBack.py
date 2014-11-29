@@ -15,6 +15,9 @@ from doorpi import DoorPi
 class SipPhoneCallCallBack(pj.CallCallback):
 
     PlayerID = None
+    def get_player_id (self):
+        return DoorPi().get_sipphone().get_player_id()
+
     Lib = None
 
     inAction = False
@@ -48,8 +51,8 @@ class SipPhoneCallCallBack(pj.CallCallback):
         and self.call.info().media_state == pj.MediaState.ACTIVE:
             # Connect the call to sound device
             call_slot = self.call.info().conf_slot
-            if self.PlayerID is not None:
-                self.Lib.conf_disconnect(self.Lib.player_get_slot(self.PlayerID), 0)
+            if self.get_player_id() is not None:
+                self.Lib.conf_disconnect(self.Lib.player_get_slot(self.get_player_id()), 0)
             self.Lib.conf_connect(call_slot, 0)
             self.Lib.conf_connect(0, call_slot)
             logger.debug("conneted Media to call_slot %s",str(call_slot))

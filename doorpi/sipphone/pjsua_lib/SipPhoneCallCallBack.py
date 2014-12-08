@@ -14,10 +14,6 @@ from doorpi import DoorPi
 
 class SipPhoneCallCallBack(pj.CallCallback):
 
-    PlayerID = None
-    def get_player_id (self):
-        return DoorPi().get_sipphone().get_player_id()
-
     Lib = None
 
     inAction = False
@@ -49,10 +45,23 @@ class SipPhoneCallCallBack(pj.CallCallback):
 
         if self.call.info().state in [pj.CallState.CONNECTING, pj.CallState.CONFIRMED] \
         and self.call.info().media_state == pj.MediaState.ACTIVE:
-            # Connect the call to sound device
+            # disconnect player with dialtone
             call_slot = self.call.info().conf_slot
-            if self.get_player_id() is not None:
-                self.Lib.conf_disconnect(self.Lib.player_get_slot(self.get_player_id()), 0)
+            if DoorPi().get_sipphone().get_player_id() is not None:
+                self.Lib.conf_disconnect(self.Lib.player_get_slot(DoorPi().get_sipphone().get_player_id()), 0)
+
+            # connect to recorder
+            rec_slot = DoorPi().get_sipphone().get_recorder_slot()
+            record_while_dialing = DoorPi().get_sipphone().get_record_while_dialing()
+            recorder_filename = DoorPi().get_sipphone().get_parsed_recorder_filename()
+            if record_while_dialing is False and recorder_filename is not None:
+                DoorPi().get_sipphone().stop_recorder_if_exists()
+                rec_slot = DoorPi().get_sipphone().get_new_recorder_as_slot()
+                self.Lib.conf_connect(0, rec_slot) # connect doorstation to recorder, if not exists
+            if rec_slot is not None:
+                self.Lib.conf_connect(call_slot, rec_slot) # connect phone to existing recorder
+
+            # Connect the call to each side
             self.Lib.conf_connect(call_slot, 0)
             self.Lib.conf_connect(0, call_slot)
             logger.debug("conneted Media to call_slot %s",str(call_slot))
@@ -62,6 +71,7 @@ class SipPhoneCallCallBack(pj.CallCallback):
             call_slot = self.call.info().conf_slot
             self.Lib.conf_disconnect(call_slot, 0)
             self.Lib.conf_disconnect(0, call_slot)
+            DoorPi().get_sipphone().stop_recorder_if_exists()
             logger.debug("disconneted Media from call_slot %s",str(call_slot))
             DoorPi().get_sipphone().set_current_call(None)
 

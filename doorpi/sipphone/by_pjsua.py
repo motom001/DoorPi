@@ -5,16 +5,16 @@ import logging
 logger = logging.getLogger(__name__)
 logger.debug("%s loaded", __name__)
 
-#import threading
-#import datetime
-#import time
+import datetime # used by: get_new_recorder, start
+import os # used by: Pjsua.start
+
 import pjsua
+
 import pjsua_lib.SipPhoneAccountCallBack
 import pjsua_lib.SipPhoneCallCallBack
+
 from media.CreateDialTone import generate_dial_tone
 from doorpi import DoorPi
-
-import os # used by: Pjsua.start
 
 class Pjsua:
     __Lib = None
@@ -24,15 +24,66 @@ class Pjsua:
     def get_player_id(self):
         return self.__PlayerID
 
+    __record_while_dialing = None
+    def get_record_while_dialing(self):
+        return self.__record_while_dialing
+
+    __RecorderFilename = None
+    def get_parsed_recorder_filename(self):
+        if self.__RecorderFilename is None: return None
+
+        parsed_recorder_filename = self.__RecorderFilename.replace(
+            "%LastKey%",
+            str(DoorPi().get_keyboard().get_last_key())
+        )
+        parsed_recorder_filename = datetime.datetime.now().strftime(parsed_recorder_filename)
+        return parsed_recorder_filename
+
+    __RecorderID = None
+    def get_recorder_id(self):
+        return self.__RecorderID
+    def get_recorder_slot(self):
+        rec_id = self.get_recorder_id()
+        if rec_id is None:
+            return None
+        else:
+            return self.__Lib.recorder_get_slot(rec_id)
+    def get_new_recorder_as_id(self):
+        parsed_recorder_filename = self.get_parsed_recorder_filename()
+        if parsed_recorder_filename is None: return None
+
+        self.__RecorderID = self.__Lib.create_recorder(
+            filename = parsed_recorder_filename
+        )
+        logger.debug('created new recorder with filename %s', parsed_recorder_filename)
+        return self.get_recorder_id()
+    def get_new_recorder_as_slot(self):
+        self.get_new_recorder_as_id()
+        return self.get_recorder_slot()
+    def stop_recorder(self):
+        self.__Lib.recorder_destroy(self.get_recorder_id())
+        self.__RecorderID = None
+    def stop_recorder_if_exists(self):
+        rec_id = self.get_recorder_id()
+        if rec_id is None or rec_id is '':
+            return
+        self.stop_recorder()
+
     __current_call = None
     def get_current_call(self):
         return self.__current_call
     def set_current_call(self, call):
-        if self.__current_call is call: return self.get_current_call()
-        if call is None: self.__current_call = None
+        if call is None:
+            self.__current_call = None
+            return None
 
-        if self.__current_call is not None:
+        if call.info().remote_uri == self.get_current_call().info().remote_uri and \
+                        call.info().contact == self.get_current_call().info().contact:
+            return self.__current_call
+
+        if self.get_current_call() is not None:
             logger.warning("replace current_call while current_call is not None")
+
         self.__current_call = call
         return self.get_current_call()
 
@@ -80,22 +131,37 @@ class Pjsua:
             logger.debug("Listening on: %s",str(transport.info().host))
             logger.debug("Port: %s",str(transport.info().port))
 
-            wavefile = DoorPi().get_config().get("SIP-Phone", "dialtone")
-            if os.path.isfile(wavefile) and os.access(wavefile, os.R_OK):
-                logger.debug("wavefile '%s' exist and is readable", wavefile)
-            elif wavefile is not '':
-                logger.debug("wavefile is missing or not readable - create it now")
-                generate_dial_tone(wavefile, 100)
-                logger.debug("wavefile '%s' created", wavefile)
+            dialtone = DoorPi().get_config().get("DoorPi", "dialtone")
+            if os.path.isfile(dialtone) and os.access(dialtone, os.R_OK):
+                logger.debug("dialtone '%s' exist and is readable", dialtone)
+            elif dialtone is not '':
+                logger.debug("dialtone is missing or not readable - create it now")
+                generate_dial_tone(dialtone, 100)
+                logger.debug("dialtone '%s' created", dialtone)
             else:
-                logger.info("no wavefile for dialtone in configfile")
+                logger.info("no dialtone in configfile (Section [DoorPi], Parameter dialtone)")
 
-            if wavefile:
+            if dialtone:
                 self.__PlayerID = self.__Lib.create_player(
-                    filename = wavefile,
+                    filename = dialtone,
                     loop = True
                 )
-                logger.debug("create Player with wavefile for dialtone")
+                logger.debug("create Player with dialtone")
+
+            self.__RecorderFilename = DoorPi().get_config().get("DoorPi", "records")
+            if self.__RecorderFilename is None or self.__RecorderFilename is '':
+                logger.debug('no records in configfile (Section [DoorPi], Parameter records')
+            else:
+                logger.debug('use %s as recordfile', self.__RecorderFilename)
+                logger.debug(' for example at this moment: %s', datetime.datetime.now().strftime(self.__RecorderFilename))
+
+            self.__record_while_dialing = DoorPi().get_config().get("DoorPi", "record_while_dialing")
+            if self.__record_while_dialing == 'true':
+                logger.debug('record_while_dialing is true')
+                self.__record_while_dialing = True
+            else:
+                logger.debug('record_while_dialing is not true (it is %s)', self.__record_while_dialing)
+                self.__record_while_dialing = False
 
             logger.debug("start successfully")
 
@@ -130,9 +196,14 @@ class Pjsua:
             del self.__Acc
 
         if self.__PlayerID:
-            self.__Lib.player_destroy(self.PlayerID)
+            self.__Lib.player_destroy(self.__PlayerID)
             self.__PlayerID = None
             del self.__PlayerID
+
+        if self.__RecorderID:
+            self.__Lib.recorder_destroy(self.__RecorderID)
+            self.__RecorderID = None
+            del self.__RecorderID
 
         if self.__Lib is not None:
             self.__Lib.destroy()
@@ -229,6 +300,8 @@ class Pjsua:
 
             if self.__PlayerID is not None:
                 self.__Lib.conf_connect(self.__Lib.player_get_slot(self.__PlayerID), 0)
+            if self.get_parsed_recorder_filename() is not None and self.get_record_while_dialing() is True:
+                self.__Lib.conf_connect(0, self.get_new_recorder_as_slot())
 
         elif self.__current_call.info().remote_uri == "sip:"+Number+"@"+sip_server:
             if self.__current_call.info().total_time <= 1:
@@ -237,6 +310,8 @@ class Pjsua:
                 logger.debug("press twice with call duration > 1 second? Want to hangup current call? OK...")
                 if self.__PlayerID is not None:
                     self.__Lib.conf_disconnect(self.__Lib.player_get_slot(self.__PlayerID), 0)
+
+                self.stop_recorder_if_exists()
                 self.__current_call.hangup()
         else:
             logger.debug("new call needed? hangup old first...")
@@ -247,6 +322,8 @@ class Pjsua:
 
             if self.__PlayerID is not None:
                 self.Lib.conf_disconnect(self.Lib.player_get_slot(self.__PlayerID), 0)
+
+            self.stop_recorder_if_exists()
             del self.__current_call
             self.make_call(Number)
 

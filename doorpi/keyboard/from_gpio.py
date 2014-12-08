@@ -16,6 +16,10 @@ class GPIO(keyboard):
     __InputPins = [17, 22, 4]
     __OutputPins = [23]
 
+    __last_key = None
+    def get_last_key(self):
+        return self.__last_key
+
     def __init__(self, input_pins = [17, 22, 4], output_pins = [23]):
         logger.debug("GPIO.__init__(input_pins = %s, output_pins = %s)", input_pins, output_pins)
         self.__InputPins = input_pins
@@ -64,6 +68,7 @@ class GPIO(keyboard):
         for x in range(len(self.__InputPins)):
             if (RPiGPIO.input(self.__InputPins[x]) == True):
                 logger.debug("GPIO.is_key_pressed return "+str(x))
+                self.__last_key = x
                 return x
         return -1
 

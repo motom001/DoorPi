@@ -210,13 +210,12 @@ class DoorPi(object):
         config.set('SIP-Phone', 'username', '621')
         config.set('SIP-Phone', 'password', 'raspberry')
         config.set('SIP-Phone', 'realm', 'fritz.box')
-        config.set('SIP-Phone', 'dialtone', '/home/pi/DoorPi_1.0.3/doorpi/media/ShortDialTone.wav')
 
         config.add_section('DTMF')
         config.add_comment('DTMF', '"DTMF Signal"', 'out:[output_key],[start_value],[end_value],[timeout]')
         config.set('DTMF', '"#"', 'out:0,1,0,3')
-        config.set('DTMF', '"**1"', 'restart')
-        config.set('DTMF', '"**2"', 'reboot')
+        config.set('DTMF', '"**7378278*"', 'restart')
+        config.set('DTMF', '"**732668*"', 'reboot')
 
         config.add_section('InputPins')
         config.add_comment('InputPins','singlecall_pin','call:[phonenumber] # make a call to this number')
@@ -228,12 +227,14 @@ class DoorPi(object):
 
         config.add_section('OutputPins')
         config.set('OutputPins', '0', 'open_door 0')
-        config.set('OutputPins', '1', 'switch_light 0')
         config.set('OutputPins', '7', 'is_alive_led')
 
         config.add_section('DoorPi')
         config.add_comment('DoorPi','is_alive_led','blink led for "system is still working"')
         config.set('DoorPi', 'is_alive_led', '7')
+        config.set('DoorPi', 'dialtone', '/home/pi/DoorPi/doorpi/media/ShortDialTone.wav')
+        config.set('DoorPi', 'records', '/home/pi/DoorPi/records/%Y-%m-%d_%H-%M-%S.wav')
+        config.set('DoorPi', 'record_while_dialing', 'false')
 
         config.add_section('AdminNumbers')
         config.set('AdminNumbers', '00493515555555', 'active')

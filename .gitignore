@@ -56,3 +56,4 @@ target/
 # private config-file
 conf/doorpi.ini
 doorpi/media/*.wav
+records/

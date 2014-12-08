@@ -16,6 +16,10 @@ class PiFace(keyboard):
     __InputPins = [0,1,2,3,4,5,6,7]
     __OutputPins = [0,1,2,3,4,5,6,7]
 
+    __last_key = None
+    def get_last_key(self):
+        return self.__last_key
+
     def __init__(self, input_pins = [0,1,2,3,4,5,6,7], output_pins = [0,1,2,3,4,5,6,7]):
         logger.debug("__init__(input_pins = %s, output_pins = %s)", input_pins, output_pins)
         self.__InputPins = [int(i) for i in input_pins]
@@ -62,6 +66,7 @@ class PiFace(keyboard):
         for pin in self.__InputPins:
             if piface.pfio.digital_read(pin) == 1:
                 logger.debug("is_key_pressed return key %s",str(pin))
+                self.__last_key = pin
                 return pin
         return None
 

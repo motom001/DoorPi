@@ -9,6 +9,9 @@ if True: import piface.pfio
 
 class keyboard(object):
 
+    def get_last_key(self):
+        pass
+
     def destroy(self):
         pass
 

@@ -59,22 +59,36 @@ class PiFace(keyboard):
             if (piface.pfio.digital_read(self.__InputPins[x]) == 1):
                 return_list.append("Key: "+str(x)+" Pin: "+str(self.__InputPins[x]))
 
-        logger.debug("which_keys_are_pressed return "+str(pressed_keys))
+        logger.trace("which_keys_are_pressed return "+str(pressed_keys))
         return pressed_keys
 
     def is_key_pressed(self):
         for pin in self.__InputPins:
             if piface.pfio.digital_read(pin) == 1:
-                logger.debug("is_key_pressed return key %s",str(pin))
+                logger.trace("is_key_pressed return key %s",str(pin))
                 self.__last_key = pin
                 return pin
         return None
 
-    def set_output(self, pin, start_value = 1, end_value = 0, timeout = 0.5, log_output = True):
+    def set_output(self, pin, start_value = 1, end_value = 0, timeout = 0.5, stop_pin = None, log_output = True):
         if not pin in self.__OutputPins: return False
-        if log_output: logger.debug("set_output (pin = %s, start_value = %s, end_value = %s, timeout = %s)", pin, start_value, end_value, timeout)
+        if log_output:
+            logger.debug(
+                "set_output (pin = %s, start_value = %s, end_value = %s, timeout = %s, stop_pin = %s)",
+                pin, start_value, end_value, timeout, stop_pin
+            )
 
         piface.pfio.digital_write(pin, start_value)
-        sleep(timeout)
+        if timeout < 0.1:
+            sleep(timeout)
+        else:
+            total_time = 0
+            while total_time <= timeout:
+                total_time += 0.1
+                if stop_pin in self.__InputPins and piface.pfio.digital_read(stop_pin) == 1:
+                    logger.debug('stop pin pressed -> break action')
+                    break
+                sleep(0.1)
+
         piface.pfio.digital_write(pin, end_value)
         return True

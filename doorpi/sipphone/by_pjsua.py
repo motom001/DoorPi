@@ -31,13 +31,7 @@ class Pjsua:
     __RecorderFilename = None
     def get_parsed_recorder_filename(self):
         if self.__RecorderFilename is None: return None
-
-        parsed_recorder_filename = self.__RecorderFilename.replace(
-            "%LastKey%",
-            str(DoorPi().get_keyboard().get_last_key())
-        )
-        parsed_recorder_filename = datetime.datetime.now().strftime(parsed_recorder_filename)
-        return parsed_recorder_filename
+        return DoorPi().parse_string(self.__RecorderFilename)
 
     __RecorderID = None
     def get_recorder_id(self):
@@ -77,9 +71,13 @@ class Pjsua:
             self.__current_call = None
             return None
 
+        if self.get_current_call() is None:
+            self.__current_call = call
+            return self.get_current_call()
+
         if call.info().remote_uri == self.get_current_call().info().remote_uri and \
                         call.info().contact == self.get_current_call().info().contact:
-            return self.__current_call
+            return self.get_current_call()
 
         if self.get_current_call() is not None:
             logger.warning("replace current_call while current_call is not None")
@@ -153,7 +151,7 @@ class Pjsua:
                 logger.debug('no records in configfile (Section [DoorPi], Parameter records')
             else:
                 logger.debug('use %s as recordfile', self.__RecorderFilename)
-                logger.debug(' for example at this moment: %s', datetime.datetime.now().strftime(self.__RecorderFilename))
+                logger.debug(' for example at this moment: %s', self.get_parsed_recorder_filename())
 
             self.__record_while_dialing = DoorPi().get_config().get("DoorPi", "record_while_dialing")
             if self.__record_while_dialing == 'true':

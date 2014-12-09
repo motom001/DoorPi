@@ -14,6 +14,12 @@ import conf.config_object
 import time # used by: DoorPi.run
 import ConfigParser # used by: DoorPi.__init__
 import os # used by: DoorPi.load_config
+import smtplib # used by: fire_action_mail
+from email.mime.multipart import MIMEMultipart # used by: fire_action_mail
+from email.mime.text import MIMEText # used by: fire_action_mail
+from email.Utils import COMMASPACE # used by: fire_action_mail
+import datetime # used by: parse_string
+import cgi # used by: parse_string
 
 import metadata
 
@@ -38,6 +44,8 @@ class DoorPi(object):
     __sipphone = None
     def get_sipphone(self):
         return self.__sipphone
+
+    __additional_informations = {}
 
     def __init__(self):
         logger.debug("__init__")
@@ -95,6 +103,8 @@ class DoorPi(object):
 
     def destroy(self):
         logger.debug("destroy")
+        self.fire_event('OnShutdown')
+
         if self.__keyboard is not None:
             self.__keyboard.destroy()
             self.__keyboard = None
@@ -112,22 +122,26 @@ class DoorPi(object):
 
         led = self.__config.get_int('DoorPi', 'is_alive_led')
 
+        self.fire_event('OnStartup')
+
+        logger.info('DoorPi started successfully')
+
         while True:
             current_pin = self.__keyboard.is_key_pressed()
-
             if current_pin is not None:
+                self.fire_event('BeforeKeyPressed')
                 logger.info("DoorPi.run: Key %s is pressed", str(current_pin))
 
                 action = self.__config.get('InputPins', str(current_pin))
                 logger.debug("start action: %s",action)
 
                 if action.startswith('break'): break
-                if action.startswith('call:'):
-                    self.__sipphone.make_call(action[len('call:'):])
-                time.sleep(1) # for fat fingers
+
+                self.fire_action(action, True)
+
+                self.fire_event('AfterKeyPressed')
 
             if led is not '': self.is_alive_led(led)
-            time.sleep(0.1)
 
         return self
 
@@ -150,38 +164,122 @@ class DoorPi(object):
                 log_output = False
             )
 
+    def fire_event(self, event_name, additional_informations = {}, secure_source = True):
+        logger.trace('get event(event_name = %s, additional_informations = %s, secure_source = %s)', event_name, additional_informations, secure_source)
+        self.__additional_informations = additional_informations
+        for action in sorted(self.get_config().get_keys(event_name)):
+            logger.trace("fire action %s for event %s", action, event_name)
+            self.fire_action(self.get_config().get(event_name, action), secure_source)
+
+        self.__additional_informations = {}
+        return True
+
     def fire_action(self, action, secure_source = False):
-        logger.debug("fire_action (%s)", action)
+        logger.debug("fire_action (%s) and secure_source is %s", action, secure_source)
+
+        if action.startswith('recheck:'):
+            parameters = action[len('out:'):].split(',')
+            return self.fire_action_recheck()
+
+        if action.startswith('event:'):
+            return self.fire_event(action[len('event:'):])
+
+        if action.startswith('call:'):
+            return self.__sipphone.make_call(action[len('call:'):])
 
         if action.startswith('out:'):
             parameters = action[len('out:'):].split(',')
-            return self.fire_action_out(
-                pin = int(parameters[0]),
-                start_value = int(parameters[1]),
-                end_value = int(parameters[2]),
-                timeout = int(parameters[3])
+            if len(parameters) == 4:
+                return self.fire_action_out(
+                    pin = int(parameters[0]),
+                    start_value = int(parameters[1]),
+                    end_value = int(parameters[2]),
+                    timeout = int(parameters[3])
+                )
+            elif len(parameters) == 5:
+                return self.fire_action_out(
+                    pin = int(parameters[0]),
+                    start_value = int(parameters[1]),
+                    end_value = int(parameters[2]),
+                    timeout = int(parameters[3]),
+                    stop_pin = int(parameters[4])
+                )
+            else:
+                logger.error('worng parameterlength for action %s', action)
+                return True
+
+        if action.startswith('mailto:'):
+            parameters = action[len('mailto:'):].split(',')
+            return self.fire_action_mail(
+                smtp_to = parameters[0],
+                smtp_subject = parameters[1],
+                smtp_text = parameters[2]
             )
 
         if action == 'reboot' and secure_source:
             logger.debug("system going down for reboot")
-            system.os('echo sudo /etc/init.d/doorpi restart')
-            return False
+            system.os('sudo /etc/init.d/doorpi restart')
+            return True
 
         if action == 'restart' and secure_source:
             logger.debug("restart doorpi service")
-            system.os('echo sudo reboot')
-            return False
+            system.os('sudo reboot')
+            return True
+
+        if action.startswith('sleep:'):
+            try:
+                time.sleep(float(action[len('sleep:'):]))
+                return True
+            except:
+                logger.exception('exception while action "sleep"')
+                return False
 
         logger.debug("couldn't find action or source was not set to secure")
         return False
 
-    def fire_action_out(self, pin, start_value, end_value, timeout):
-        self.__keyboard.set_output(
+    def fire_action_watch(self, input_pin, total_time, interval = 0.5):
+        return True
+
+    def fire_action_out(self, pin, start_value, end_value, timeout, stop_pin = None):
+        return self.__keyboard.set_output(
             pin = pin,
             start_value = start_value,
             end_value = end_value,
             timeout = timeout,
+            stop_pin = stop_pin
         )
+
+    def fire_action_mail(self, smtp_to, smtp_subject, smtp_text):
+        try:
+            smtp_host = self.get_config().get('SMTP', 'server')
+            smtp_port = self.get_config().get_int('SMTP', 'port')
+            smtp_user = self.get_config().get('SMTP', 'username')
+            smtp_password = self.get_config().get('SMTP', 'password')
+            smtp_from = self.get_config().get('SMTP', 'from')
+
+            smtp_tolist = smtp_to.split()
+
+            server = smtplib.SMTP()
+            server.connect(smtp_host, smtp_port)
+            server.ehlo()
+            if self.get_config().get('SMTP', 'use_tls') == 'true':
+                server.starttls()
+
+            if self.get_config().get('SMTP', 'need_login') == 'true':
+                server.login(smtp_user, smtp_password)
+
+            msg = MIMEMultipart()
+            msg['From'] = smtp_from
+            msg['To'] = COMMASPACE.join(smtp_tolist)
+            msg['Subject'] = self.parse_string(smtp_subject)
+            msg.attach(MIMEText(self.parse_string(smtp_text), 'html'))
+            msg.attach(MIMEText('\nsent by:\n'+metadata.epilog, 'plain'))
+            server.sendmail(smtp_from, smtp_tolist, msg.as_string())
+            server.quit()
+        except:
+            logger.exception("couldn't send email")
+
+        return True
 
     def load_config(self, configfile):
         logger.debug("load_config (%s)",configfile)
@@ -284,3 +382,36 @@ class DoorPi(object):
             logger.debug("use keyboard 'GPIO'")
             return keyboard.from_gpio.GPIO()
 
+    def parse_string(self, input_string):
+        parsed_string = datetime.datetime.now().strftime(input_string)
+
+        self.__additional_informations['LastKey'] = str(self.get_keyboard().get_last_key())
+
+        parsed_string = parsed_string.replace(
+            "!INFOS_PLAIN!",
+            str(self.__additional_informations)
+        )
+
+        infos_as_html = '<table>'
+        for key in self.__additional_informations.keys():
+            infos_as_html += '<tr><td>'
+            infos_as_html += '<b>'+key+'</b>'
+            infos_as_html += '</td><td>'
+            infos_as_html += '<i>'+cgi.escape(
+                str(self.__additional_informations.get(key)).replace("\r\n", "<br />")
+            )+'</i>'
+            infos_as_html += '</td></tr>'
+        infos_as_html = '</table>'
+
+        parsed_string = parsed_string.replace(
+            "!INFOS!",
+            infos_as_html
+        )
+
+        for key in self.__additional_informations.keys():
+            parsed_string = parsed_string.replace(
+                "!"+key+"!",
+                str(self.__additional_informations[key])
+            )
+
+        return parsed_string

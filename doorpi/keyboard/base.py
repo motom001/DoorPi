@@ -24,6 +24,6 @@ class keyboard(object):
     def is_key_pressed(self):
         pass
 
-    def set_output(self, key, start_value = 1, end_value = 0, timeout = 0.1):
+    def set_output(self, key, start_value = 1, end_value = 0, timeout = 0.5, stop_pin = None, log_output = True):
         pass
 

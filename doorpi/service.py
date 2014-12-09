@@ -13,6 +13,13 @@ from daemon import runner
 # own lib
 import doorpi
 
+TRACE_LEVEL = 5
+logging.addLevelName(TRACE_LEVEL, "TRACE")
+def trace(self, message, *args, **kws):
+    # Yes, logger takes its '*args' as 'args'.
+    self._log(TRACE_LEVEL, message, args, **kws)
+logging.Logger.trace = trace
+
 LOG_FILENAME = '/var/log/doorpi/doorpi.log'
 
 logger = logging.getLogger('')
@@ -21,6 +28,7 @@ formatter = logging.Formatter('%(asctime)s [%(levelname)s]  \t[%(name)s] %(messa
 log_rotating = logging.handlers.RotatingFileHandler(
     LOG_FILENAME, maxBytes=10000, backupCount=5
 )
+#log_rotating.setLevel(logging.DEBUG)
 log_rotating.setFormatter(formatter)
 logger.addHandler(log_rotating)
 

@@ -67,13 +67,30 @@ class GPIO(keyboard):
     def is_key_pressed(self):
         for x in range(len(self.__InputPins)):
             if (RPiGPIO.input(self.__InputPins[x]) == True):
-                logger.debug("GPIO.is_key_pressed return "+str(x))
+                logger.trace("GPIO.is_key_pressed return "+str(x))
                 self.__last_key = x
                 return x
         return -1
 
-    def set_output(self, key, start_value = 1, end_value = 0, timeout = 0.5):
+    def set_output(self, key, start_value = 1, end_value = 0, timeout = 0.5, stop_pin = None, log_output = True):
+        if not pin in self.__OutputPins: return False
+        if log_output:
+            logger.debug(
+                "set_output (pin = %s, start_value = %s, end_value = %s, timeout = %s, stop_pin = %s)",
+                pin, start_value, end_value, timeout, stop_pin
+            )
+
         RPiGPIO.output(self.OutputPins[key], start_value)
-        time.sleep(timeout)
+        if timeout < 0.1:
+            sleep(timeout)
+        else:
+            total_time = 0
+            while total_time <= timeout:
+                total_time += 0.1
+                if stop_pin in self.__InputPins and RPiGPIO.input(self.__InputPins[stop_pin]) == 1:
+                    logger.debug('stop pin pressed -> break action')
+                    break
+                sleep(0.1)
+
         RPiGPIO.output(self.OutputPins[key], end_value)
         return True

@@ -20,17 +20,17 @@ class ConfigObject():
         return self.get_string(section, key, default)
 
     def get_string(self, section, key, default = ''):
-        logger.debug("get_string")
+        logger.trace("get_string")
         if section in self.__sections:
             if key in self.__sections[section]:
-                logger.debug("key '%s' exist in section '%s' with value '%s'", key, section, self.__sections[section][key])
+                logger.trace("key '%s' exist in section '%s' with value '%s'", key, section, self.__sections[section][key])
                 return self.__sections[section][key]
             else:
-                logger.debug("key '%s' doesn't exist in section '%s' ", key, section)
+                logger.trace("key '%s' doesn't exist in section '%s' ", key, section)
         else:
-            logger.debug("section '%s' doesn't exist", section)
+            logger.trace("section '%s' doesn't exist", section)
 
-        logger.debug("return default")
+        logger.log(5, "return default")
         return default
 
     def get_int(self, section, key, default = -1):
@@ -46,7 +46,7 @@ class ConfigObject():
 
     def get_keys(self, section):
         return_list = []
-        if not self.__sections[section]: return []
+        if section not in self.__sections: return []
         for key in self.__sections[section]:
             return_list.append(key)
         return return_list

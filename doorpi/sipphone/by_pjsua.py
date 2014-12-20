@@ -167,14 +167,6 @@ class Pjsua:
                 logger.debug('use %s as recordfile', self.__RecorderFilename)
                 logger.debug(' for example at this moment: %s', self.parsed_recorder_filename)
 
-            #self.__record_while_dialing = DoorPi().config.get("DoorPi", "record_while_dialing")
-            #if self.record_while_dialing == 'true':
-            #    logger.debug('record_while_dialing is true')
-            #    self.__record_while_dialing = True
-            #else:
-            #    logger.debug('record_while_dialing is not true (it is %s)', self.__record_while_dialing)
-            #    self.__record_while_dialing = False
-
             logger.debug("start successfully")
 
         except pjsua.Error, e:

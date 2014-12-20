@@ -40,16 +40,16 @@ class SipPhoneAccountCallBack(pj.AccountCallback):
         if DoorPi().sipphone.current_call is not None:
             logger.debug("Incoming call while another call is active")
             logger.debug("- incoming.remote_uri: %s", call.info().remote_uri)
-            logger.debug("- current.remote_uri : %s", DoorPi().sipphone.get_current_call().info().remote_uri)
+            logger.debug("- current.remote_uri : %s", DoorPi().sipphone.current_call.info().remote_uri)
 
-            if call.info().remote_uri == DoorPi().sipphone.get_current_call().info().remote_uri:
+            if call.info().remote_uri == DoorPi().sipphone.current_call.info().remote_uri:
                 logger.info("Current call is incoming call - quit current and connect to incoming. Maybe connection-Reset?")
                 DoorPi().fire_event('OnCallReconnect', {'remote_uri': call.info().remote_uri})
-                DoorPi().get_current_call().hangup()
+                DoorPi().current_call.hangup()
                 call.answer(code = 200)
                 DoorPi().sipphone.set_current_call(call)
                 DoorPi().sipphone.set_current_callback(SipPhoneCallCallBack.SipPhoneCallCallBack())
-                call.set_callback(DoorPi().sipphone.get_current_callback())
+                call.set_callback(DoorPi().sipphone.current_callback)
                 DoorPi().fire_event('AfterCallReconnect')
                 return
             else:

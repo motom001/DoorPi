@@ -8,7 +8,7 @@ logger.debug("%s loaded", __name__)
 import sys
 import argparse
 
-import keyboard.base
+from keyboard.KeyboardInterface import detect_keyboard
 import conf.config_object
 
 import time # used by: DoorPi.run
@@ -34,18 +34,21 @@ class DoorPi(object):
     __metaclass__ = Singleton
 
     __config = None
-    def get_config(self):
-        return self.__config
+    @property
+    def config(self): return self.__config
 
     __keyboard = None
-    def get_keyboard(self):
-        return self.__keyboard
+    @property
+    def keyboard(self): return self.__keyboard
+    #def get_keyboard(self): return self.__keyboard
 
     __sipphone = None
-    def get_sipphone(self):
-        return self.__sipphone
+    @property
+    def sipphone(self): return self.__sipphone
 
     __additional_informations = {}
+    @property
+    def additional_informations(self): return self.__additional_informations
 
     def __init__(self):
         logger.debug("__init__")
@@ -62,14 +65,14 @@ class DoorPi(object):
         parsed_arguments = self.parse_argv()
         logger.debug("givven arguments argv: %s", parsed_arguments)
 
-        if not parsed_arguments.configfile and not self.__config:
+        if not parsed_arguments.configfile and not self.config:
             raise Exception("no config exists an no new given")
 
         self.__config = self.load_config(parsed_arguments.configfile)
-        self.__keyboard = self.detect_keyboard()
-        #self.__keyboard.self_test()
+        self.__keyboard = detect_keyboard()
+        logger.debug('Keyboard is now %s', self.keyboard.name)
         self.__sipphone = self.detect_sipphone()
-        self.__sipphone.start()
+        self.sipphone.start()
         return self
 
     def parse_argv(self):
@@ -105,13 +108,13 @@ class DoorPi(object):
         logger.debug("destroy")
         self.fire_event('OnShutdown')
 
-        if self.__keyboard is not None:
-            self.__keyboard.destroy()
+        if self.keyboard is not None:
+            self.keyboard.destroy()
             self.__keyboard = None
             del self.__keyboard
 
-        if self.__sipphone is not None:
-            self.__sipphone.destroy()
+        if self.sipphone is not None:
+            self.sipphone.destroy()
             self.__sipphone = None
             del self.__sipphone
 
@@ -120,19 +123,19 @@ class DoorPi(object):
 
         self.prepare()
 
-        led = self.__config.get_int('DoorPi', 'is_alive_led')
+        led = self.config.get_int('DoorPi', 'is_alive_led')
 
         self.fire_event('OnStartup')
 
         logger.info('DoorPi started successfully')
 
         while True:
-            current_pin = self.__keyboard.is_key_pressed()
+            current_pin = self.keyboard.pressed_key
             if current_pin is not None:
                 self.fire_event('BeforeKeyPressed')
                 logger.info("DoorPi.run: Key %s is pressed", str(current_pin))
 
-                action = self.__config.get('InputPins', str(current_pin))
+                action = self.config.get('InputPins', str(current_pin))
                 logger.debug("start action: %s",action)
 
                 if action.startswith('break'): break
@@ -148,7 +151,7 @@ class DoorPi(object):
     def is_alive_led(self, led):
         # blink, status led, blink
         if int(round(time.time())) % 2:
-            self.__keyboard.set_output(
+            self.keyboard.set_output(
                 pin = led,
                 start_value = 1,
                 end_value = 1,
@@ -156,7 +159,7 @@ class DoorPi(object):
                 log_output = False
             )
         else:
-            self.__keyboard.set_output(
+            self.keyboard.set_output(
                 pin = led,
                 start_value = 0,
                 end_value = 0,
@@ -167,10 +170,10 @@ class DoorPi(object):
     def fire_event(self, event_name, additional_informations = {}, secure_source = True):
         logger.trace('get event(event_name = %s, additional_informations = %s, secure_source = %s)', event_name, additional_informations, secure_source)
         self.__additional_informations = additional_informations
-        if self.get_config() is not None:
-            for action in sorted(self.get_config().get_keys(event_name)):
+        if self.config is not None:
+            for action in sorted(self.config.get_keys(event_name)):
                 logger.trace("fire action %s for event %s", action, event_name)
-                self.fire_action(self.get_config().get(event_name, action), secure_source)
+                self.fire_action(self.config.get(event_name, action), secure_source)
         self.__additional_informations = {}
         return True
 
@@ -185,7 +188,7 @@ class DoorPi(object):
             return self.fire_event(action[len('event:'):])
 
         if action.startswith('call:'):
-            return self.__sipphone.make_call(action[len('call:'):])
+            return self.sipphone.make_call(action[len('call:'):])
 
         if action.startswith('out:'):
             parameters = action[len('out:'):].split(',')
@@ -241,7 +244,10 @@ class DoorPi(object):
         return True
 
     def fire_action_out(self, pin, start_value, end_value, timeout, stop_pin = None):
-        return self.__keyboard.set_output(
+        if self.keyboard is None:
+            logger.warning("couldn't fire_action_out - no keyboard present")
+            return
+        return self.keyboard.set_output(
             pin = pin,
             start_value = start_value,
             end_value = end_value,
@@ -251,21 +257,21 @@ class DoorPi(object):
 
     def fire_action_mail(self, smtp_to, smtp_subject, smtp_text):
         try:
-            smtp_host = self.get_config().get('SMTP', 'server')
-            smtp_port = self.get_config().get_int('SMTP', 'port')
-            smtp_user = self.get_config().get('SMTP', 'username')
-            smtp_password = self.get_config().get('SMTP', 'password')
-            smtp_from = self.get_config().get('SMTP', 'from')
+            smtp_host = self.config.get('SMTP', 'server')
+            smtp_port = self.config.get_int('SMTP', 'port')
+            smtp_user = self.config.get('SMTP', 'username')
+            smtp_password = self.config.get('SMTP', 'password')
+            smtp_from = self.config.get('SMTP', 'from')
 
             smtp_tolist = smtp_to.split()
 
             server = smtplib.SMTP()
             server.connect(smtp_host, smtp_port)
             server.ehlo()
-            if self.get_config().get('SMTP', 'use_tls') == 'true':
+            if self.config.get('SMTP', 'use_tls') == 'true':
                 server.starttls()
 
-            if self.get_config().get('SMTP', 'need_login') == 'true':
+            if self.config.get('SMTP', 'need_login') == 'true':
                 server.login(smtp_user, smtp_password)
 
             msg = MIMEMultipart()
@@ -315,8 +321,8 @@ class DoorPi(object):
         else:
             logger.debug("use keyboard 'PiFace'")
             return keyboard.from_piface.PiFace(
-                input_pins = self.__config.get_keys('InputPins'),
-                output_pins = self.__config.get_keys('OutputPins')
+                input_pins = self.config.get_keys('InputPins'),
+                output_pins = self.config.get_keys('OutputPins')
             )
 
         try:
@@ -333,7 +339,8 @@ class DoorPi(object):
     def parse_string(self, input_string):
         parsed_string = datetime.datetime.now().strftime(input_string)
 
-        self.__additional_informations['LastKey'] = str(self.get_keyboard().get_last_key())
+        if self.keyboard is not None:
+            self.additional_informations['LastKey'] = str(self.keyboard.last_key)
 
         parsed_string = parsed_string.replace(
             "!INFOS_PLAIN!",

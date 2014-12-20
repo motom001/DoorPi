@@ -5,13 +5,13 @@ import logging
 logger = logging.getLogger(__name__)
 logger.debug("%s loaded", __name__)
 
-from keyboard.base import AbstractBaseClassKeyboard
+from keyboard.AbstractBaseClass import KeyboardAbstractBaseClass
 
 import RPi.GPIO as RPiGPIO
 from time import sleep # used by: GPIO.set_output
 import sys # used by: GPIO.self_test to catch exception and show errormessage
 
-class GPIO(AbstractBaseClassKeyboard):
+class GPIO(KeyboardAbstractBaseClass):
 
     __InputPins = [17, 22, 4]
     __OutputPins = [23]

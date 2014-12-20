@@ -24,12 +24,14 @@ class Pjsua:
     def get_player_id(self):
         return self.__PlayerID
 
-    __record_while_dialing = None
-    def get_record_while_dialing(self):
+    __record_while_dialing = DoorPi().config.get_boolean("DoorPi", "record_while_dialing", False)
+    @property
+    def record_while_dialing(self):
         return self.__record_while_dialing
 
     __RecorderFilename = None
-    def get_parsed_recorder_filename(self):
+    @property
+    def parsed_recorder_filename(self):
         if self.__RecorderFilename is None: return None
         return DoorPi().parse_string(self.__RecorderFilename)
 
@@ -44,13 +46,14 @@ class Pjsua:
         else:
             return self.__Lib.recorder_get_slot(rec_id)
     def get_new_recorder_as_id(self):
-        parsed_recorder_filename = self.get_parsed_recorder_filename()
-        if parsed_recorder_filename is None: return None
+        if self.parsed_recorder_filename is None: return None
+        if not os.path.exists(os.path.dirname(self.parsed_recorder_filename)):
+            os.makedirs(os.path.dirname(self.parsed_recorder_filename))
 
         self.__RecorderID = self.__Lib.create_recorder(
-            filename = parsed_recorder_filename
+            filename = self.parsed_recorder_filename
         )
-        logger.debug('created new recorder with filename %s', parsed_recorder_filename)
+        logger.debug('created new recorder with filename %s', self.parsed_recorder_filename)
         return self.get_recorder_id()
     def get_new_recorder_as_slot(self):
         self.get_new_recorder_as_id()
@@ -65,38 +68,39 @@ class Pjsua:
         self.stop_recorder()
 
     __current_call = None
-    def get_current_call(self):
-        return self.__current_call
+    @property
+    def current_call(self): return self.__current_call
     def set_current_call(self, call):
         if call is None:
             self.__current_call = None
             return None
 
-        if self.get_current_call() is None:
+        if self.current_call is None:
             self.__current_call = call
-            return self.get_current_call()
+            return self.current_call
 
-        if call.info().remote_uri == self.get_current_call().info().remote_uri and \
-                        call.info().contact == self.get_current_call().info().contact:
-            return self.get_current_call()
+        if call.info().remote_uri == self.current_call.info().remote_uri and \
+                        call.info().contact == self.current_call.info().contact:
+            return self.current_call
 
-        if self.get_current_call() is not None:
+        if self.current_call is not None:
             logger.warning("replace current_call while current_call is not None")
 
         self.__current_call = call
-        return self.get_current_call()
+        return self.current_call
 
     __current_callcallback = None
-    def get_current_callback(self):
+    @property
+    def current_callback(self):
         return self.__current_callcallback
     def set_current_callback(self, callback):
-        if self.__current_callcallback is callback: return self.get_current_callback()
+        if self.__current_callcallback is callback: return self.current_callback
         if callback is None: self.__current_callcallback = None
 
         if self.__current_callcallback is not None:
             logger.warning("replace current_callcallback while current_callcallback is not None")
         self.__current_callcallback = callback
-        return self.get_current_callback()
+        return self.current_callback
 
     def __init__(self):
         logger.debug("__init__")
@@ -139,7 +143,7 @@ class Pjsua:
             logger.debug("Listening on: %s",str(transport.info().host))
             logger.debug("Port: %s",str(transport.info().port))
 
-            dialtone = DoorPi().get_config().get("DoorPi", "dialtone")
+            dialtone = DoorPi().config.get("DoorPi", "dialtone")
             if os.path.isfile(dialtone) and os.access(dialtone, os.R_OK):
                 logger.debug("dialtone '%s' exist and is readable", dialtone)
             elif dialtone is not '':
@@ -156,20 +160,20 @@ class Pjsua:
                 )
                 logger.debug("create Player with dialtone")
 
-            self.__RecorderFilename = DoorPi().get_config().get("DoorPi", "records")
+            self.__RecorderFilename = DoorPi().config.get("DoorPi", "records")
             if self.__RecorderFilename is None or self.__RecorderFilename is '':
                 logger.debug('no records in configfile (Section [DoorPi], Parameter records')
             else:
                 logger.debug('use %s as recordfile', self.__RecorderFilename)
-                logger.debug(' for example at this moment: %s', self.get_parsed_recorder_filename())
+                logger.debug(' for example at this moment: %s', self.parsed_recorder_filename)
 
-            self.__record_while_dialing = DoorPi().get_config().get("DoorPi", "record_while_dialing")
-            if self.__record_while_dialing == 'true':
-                logger.debug('record_while_dialing is true')
-                self.__record_while_dialing = True
-            else:
-                logger.debug('record_while_dialing is not true (it is %s)', self.__record_while_dialing)
-                self.__record_while_dialing = False
+            #self.__record_while_dialing = DoorPi().config.get("DoorPi", "record_while_dialing")
+            #if self.record_while_dialing == 'true':
+            #    logger.debug('record_while_dialing is true')
+            #    self.__record_while_dialing = True
+            #else:
+            #    logger.debug('record_while_dialing is not true (it is %s)', self.__record_while_dialing)
+            #    self.__record_while_dialing = False
 
             logger.debug("start successfully")
 
@@ -268,10 +272,10 @@ class Pjsua:
     def create_AccountConfig(self):
         logger.debug("CreateAccountConfig")
         # Doc: http://www.pjsip.org/python/pjsua.htm#AccountConfig
-        server = DoorPi().get_config().get("SIP-Phone", "server")
-        username = DoorPi().get_config().get("SIP-Phone", "username")
-        password = DoorPi().get_config().get("SIP-Phone", "password")
-        realm = DoorPi().get_config().get("SIP-Phone", "realm")
+        server = DoorPi().config.get("SIP-Phone", "server")
+        username = DoorPi().config.get("SIP-Phone", "username")
+        password = DoorPi().config.get("SIP-Phone", "password")
+        realm = DoorPi().config.get("SIP-Phone", "realm")
 
         logger.info("try to create AccountConfig")
         logger.debug("username:     %s", username)
@@ -301,20 +305,20 @@ class Pjsua:
     def make_call(self, Number):
         logger.debug("makeCall(%s)",str(Number))
 
-        sip_server = DoorPi().get_config().get("SIP-Phone", "server")
+        sip_server = DoorPi().config.get("SIP-Phone", "server")
 
-        if not self.__current_call or self.__current_call.is_valid() is 0:
+        if not self.current_call or self.current_call.is_valid() is 0:
             lck = self.__Lib.auto_lock()
-            self.__current_callcallback = pjsua_lib.SipPhoneCallCallBack.SipPhoneCallCallBack()
+            self.current_callcallback = pjsua_lib.SipPhoneCallCallBack.SipPhoneCallCallBack()
             self.__current_call = self.__Acc.make_call(
                 "sip:"+Number+"@"+sip_server,
-                self.__current_callcallback
+                self.current_callcallback
             )
             del lck
 
             if self.__PlayerID is not None:
                 self.__Lib.conf_connect(self.__Lib.player_get_slot(self.__PlayerID), 0)
-            if self.get_parsed_recorder_filename() is not None and self.get_record_while_dialing() is True:
+            if self.parsed_recorder_filename is not None and self.record_while_dialing is True:
                 self.__Lib.conf_connect(0, self.get_new_recorder_as_slot())
 
         elif self.__current_call.info().remote_uri == "sip:"+Number+"@"+sip_server:
@@ -353,7 +357,7 @@ class Pjsua:
                 logger.debug("couldn't catch current call - no parameter and no current_call from doorpi itself")
                 return False
 
-        possible_AdminNumbers = DoorPi().get_config().get_keys('AdminNumbers')
+        possible_AdminNumbers = DoorPi().config.get_keys('AdminNumbers')
         for AdminNumber in possible_AdminNumbers:
             if "sip:"+AdminNumber+"@" in remote_uri:
                 logger.debug("%s is an adminnumber", remote_uri)

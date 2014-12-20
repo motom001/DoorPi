@@ -7,7 +7,7 @@ logger.debug("%s loaded", __name__)
 
 import time
 
-class SingleActionBaseClass():
+class AbstractBaseClassSingleAction():
 
     __starttime = None
     __max_duration = 0

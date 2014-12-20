@@ -5,19 +5,21 @@ import logging
 logger = logging.getLogger(__name__)
 logger.debug("%s loaded", __name__)
 
-from keyboard.base import AbstractBaseClassKeyboard
+from keyboard.AbstractBaseClass import KeyboardAbstractBaseClass
 
 import piface.pfio # basic for PiFce control
 from time import sleep # used by: PiFace.set_output
 import sys # used by: PiFace.self_test to catch exception and show errormessage
 
-class PiFace(AbstractBaseClassKeyboard):
+class PiFace(KeyboardAbstractBaseClass):
+    name = 'PiFace Keyboard'
 
     __InputPins = [0,1,2,3,4,5,6,7]
     __OutputPins = [0,1,2,3,4,5,6,7]
-    __last_key = None
 
-    def get_last_key(self):
+    __last_key = None
+    @property
+    def last_key(self):
         return self.__last_key
 
     def __init__(self, input_pins = [0,1,2,3,4,5,6,7], output_pins = [0,1,2,3,4,5,6,7]):
@@ -52,17 +54,18 @@ class PiFace(AbstractBaseClassKeyboard):
         else:
             logger.info("self_test success")
             return True
-
-    def which_keys_are_pressed(self):
+    @property
+    def pressed_keys(self):
         pressed_keys = []
         for x in range(len(self.__InputPins)):
-            if (piface.pfio.digital_read(self.__InputPins[x]) == 1):
+            if piface.pfio.digital_read(self.__InputPins[x]) == 1:
                 return_list.append("Key: "+str(x)+" Pin: "+str(self.__InputPins[x]))
 
         logger.trace("which_keys_are_pressed return "+str(pressed_keys))
         return pressed_keys
 
-    def is_key_pressed(self):
+    @property
+    def pressed_key(self):
         for pin in self.__InputPins:
             if piface.pfio.digital_read(pin) == 1:
                 logger.trace("is_key_pressed return key %s",str(pin))
@@ -70,6 +73,7 @@ class PiFace(AbstractBaseClassKeyboard):
                 return pin
         return None
 
+    #TODO: ab zum Events und Action Handler
     def set_output(self, pin, start_value = 1, end_value = 0, timeout = 0.5, stop_pin = None, log_output = True):
         if not pin in self.__OutputPins: return False
         if log_output:

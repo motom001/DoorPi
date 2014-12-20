@@ -37,19 +37,19 @@ class SipPhoneAccountCallBack(pj.AccountCallback):
         logger.info("Incoming call from %s", str(call.info().remote_uri))
         DoorPi().fire_event('BeforeCallIncoming')
 
-        if DoorPi().get_sipphone().get_current_call() is not None:
+        if DoorPi().sipphone.current_call is not None:
             logger.debug("Incoming call while another call is active")
             logger.debug("- incoming.remote_uri: %s", call.info().remote_uri)
-            logger.debug("- current.remote_uri : %s", DoorPi().get_sipphone().get_current_call().info().remote_uri)
+            logger.debug("- current.remote_uri : %s", DoorPi().sipphone.get_current_call().info().remote_uri)
 
-            if call.info().remote_uri == DoorPi().get_sipphone().get_current_call().info().remote_uri:
+            if call.info().remote_uri == DoorPi().sipphone.get_current_call().info().remote_uri:
                 logger.info("Current call is incoming call - quit current and connect to incoming. Maybe connection-Reset?")
                 DoorPi().fire_event('OnCallReconnect', {'remote_uri': call.info().remote_uri})
                 DoorPi().get_current_call().hangup()
                 call.answer(code = 200)
-                DoorPi().get_sipphone().set_current_call(call)
-                DoorPi().get_sipphone().set_current_callback(SipPhoneCallCallBack.SipPhoneCallCallBack())
-                call.set_callback(DoorPi().get_sipphone().get_current_callback())
+                DoorPi().sipphone.set_current_call(call)
+                DoorPi().sipphone.set_current_callback(SipPhoneCallCallBack.SipPhoneCallCallBack())
+                call.set_callback(DoorPi().sipphone.get_current_callback())
                 DoorPi().fire_event('AfterCallReconnect')
                 return
             else:
@@ -59,12 +59,12 @@ class SipPhoneAccountCallBack(pj.AccountCallback):
                 DoorPi().fire_event('AfterCallBusy')
                 return
 
-        if DoorPi().get_sipphone().is_admin_number(call.info().remote_uri):
+        if DoorPi().sipphone.is_admin_number(call.info().remote_uri):
             logger.debug("Incoming Call from trusted admin number %s -> autoanswer", call.info().remote_uri)
             DoorPi().fire_event('OnCallIncomming', {'remote_uri': call.info().remote_uri})
             call.answer(code = 200)
             call.set_callback(SipPhoneCallCallBack.SipPhoneCallCallBack())
-            DoorPi().get_sipphone().set_current_call(call)
+            DoorPi().sipphone.set_current_call(call)
             DoorPi().fire_event('AfterCallIncomming')
             return
         else:

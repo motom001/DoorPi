@@ -16,6 +16,14 @@ class ConfigObject():
     def __del__(self):
         logger.debug("__del__")
 
+    def get_boolean(self, section, key, default = False):
+        value = self.get(section, key, str(default))
+        if value.lower() is 'true': return True
+        if value.lower() is 'yes': return True
+        if value.lower() is 'ja': return True
+        if value.lower() is '1': return True
+        return False
+
     def get(self, section, key, default = ''):
         logger.trace("get for key %s in section %s (default: %s)", key, section, default)
         return self.get_string(section, key, default)
@@ -24,17 +32,17 @@ class ConfigObject():
         logger.trace("get_string for key %s in section %s (default: %s)", key, section, default)
         if section in self.__sections:
             if key in self.__sections[section]:
-                if key is not 'password':
-                    logger.trace("key '%s' exist in section '%s' with value '%s'", key, section, self.__sections[section][key])
-                else:
+                if key is 'password':
                     logger.trace("key '%s' exist in section '%s' with value '%s'", key, section, '*******')
+                else:
+                    logger.trace("key '%s' exist in section '%s' with value '%s'", key, section, self.__sections[section][key])
                 return self.__sections[section][key]
             else:
                 logger.trace("key '%s' doesn't exist in section '%s' ", key, section)
         else:
             logger.trace("section '%s' doesn't exist", section)
 
-        logger.trace("return default")
+        logger.trace("return default '%s", default)
         return default
 
     def get_int(self, section, key, default = -1):

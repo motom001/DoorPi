@@ -94,10 +94,10 @@ class Pjsua:
     def current_callback(self):
         return self.__current_callcallback
     def set_current_callback(self, callback):
-        if self.__current_callcallback is callback: return self.current_callback
+        if self.current_callcallback is callback: return self.current_callback
         if callback is None: self.__current_callcallback = None
 
-        if self.__current_callcallback is not None:
+        if self.current_callcallback is not None:
             logger.warning("replace current_callcallback while current_callcallback is not None")
         self.__current_callcallback = callback
         return self.current_callback
@@ -184,13 +184,13 @@ class Pjsua:
 
     def destroy(self):
         logger.debug("destroy")
-        if self.__current_callcallback is not None:
-            self.__current_callcallback.destroy()
+        if self.current_callcallback is not None:
+            self.current_callcallback.destroy()
             self.__current_callcallback = None
             del self.__current_callcallback
 
-        if self.__current_call is not None:
-            self.__current_call.hangup()
+        if self.current_call is not None:
+            self.current_call.hangup()
             self.__current_call = None
             del self.__current_call
 
@@ -313,20 +313,20 @@ class Pjsua:
             if self.parsed_recorder_filename is not None and self.record_while_dialing is True:
                 self.__Lib.conf_connect(0, self.get_new_recorder_as_slot())
 
-        elif self.__current_call.info().remote_uri == "sip:"+Number+"@"+sip_server:
-            if self.__current_call.info().total_time <= 1:
-                logger.debug("same call again while call is running since %s seconds? -> skip", str(self.__current_call.info().total_time))
+        elif self.current_call.info().remote_uri == "sip:"+Number+"@"+sip_server:
+            if self.current_call.info().total_time <= 1:
+                logger.debug("same call again while call is running since %s seconds? -> skip", str(self.current_call.info().total_time))
             else:
                 logger.debug("press twice with call duration > 1 second? Want to hangup current call? OK...")
                 if self.__PlayerID is not None:
                     self.__Lib.conf_disconnect(self.__Lib.player_get_slot(self.__PlayerID), 0)
 
                 self.stop_recorder_if_exists()
-                self.__current_call.hangup()
+                self.current_call.hangup()
         else:
             logger.debug("new call needed? hangup old first...")
             try:
-                self.__current_call.hangup()
+                self.current_call.hangup()
             except pj.Error, e:
                 logger.exception("Exception: %s", str(e))
 
@@ -337,14 +337,14 @@ class Pjsua:
             del self.__current_call
             self.make_call(Number)
 
-        return self.__current_call
+        return self.current_call
 
     def is_admin_number(self, remote_uri = None):
         logger.debug("is_admin_number (%s)",remote_uri)
 
         if remote_uri is None:
-            if self.__current_call is not None:
-                remote_uri = self.__current_call().info().remote_uri
+            if self.current_call is not None:
+                remote_uri = self.current_call.info().remote_uri
             else:
                 logger.debug("couldn't catch current call - no parameter and no current_call from doorpi itself")
                 return False

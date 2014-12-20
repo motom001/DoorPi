@@ -8,14 +8,14 @@ Information describing the project.
 package = 'doorpi'
 project = "VoIP Door-Intercomstation with Raspberry Pi (optional PiFace)"
 project_no_spaces = project.replace(' ', '')
-version = '1.0.3'
+version = '1.1.0'
 description = 'provide intercomstation to the doorstation by VoIP'
 authors = ['Thomas Meissner']
 authors_string = ', '.join(authors)
 emails = ['thomas@meissner.me']
-license = 'open'
-copyright = '2014 ' + authors_string
-url = 'http://meissner.me/'
+license = 'CC BY-NC 2.0 DE'
+copyright = '2014-2015 ' + authors_string
+url = 'https://github.com/motom001/DoorPi'
 author_strings = []
 for name, email in zip(authors, emails):
     author_strings.append('Author: {0} <{1}>'.format(name, email))

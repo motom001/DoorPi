@@ -292,9 +292,9 @@ class Pjsua:
         # Doc: http://www.pjsip.org/python/pjsua.htm#TransportConfig
         # TransportConfig = pjsua.TransportConfig(0)
         TransportConfig = pjsua.TransportConfig(
-            port=5060,
-            bound_addr='192.168.178.30',
-            public_addr='192.168.178.30'
+            port=0,
+            bound_addr='',
+            public_addr=''
         )
         return TransportConfig
 

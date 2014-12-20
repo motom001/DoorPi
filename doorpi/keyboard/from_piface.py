@@ -5,18 +5,18 @@ import logging
 logger = logging.getLogger(__name__)
 logger.debug("%s loaded", __name__)
 
-from keyboard.base import keyboard
+from keyboard.base import AbstractBaseClassKeyboard
 
 import piface.pfio # basic for PiFce control
 from time import sleep # used by: PiFace.set_output
 import sys # used by: PiFace.self_test to catch exception and show errormessage
 
-class PiFace(keyboard):
+class PiFace(AbstractBaseClassKeyboard):
 
     __InputPins = [0,1,2,3,4,5,6,7]
     __OutputPins = [0,1,2,3,4,5,6,7]
-
     __last_key = None
+
     def get_last_key(self):
         return self.__last_key
 

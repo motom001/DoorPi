@@ -51,7 +51,7 @@ class SipPhoneCallCallBack(pj.CallCallback):
             while self.inAction is not False: time.sleep(0.1)
             logger.debug("action finished '%s'", self.inAction)
 
-        if self.call.info().state in [pj.CallState.CONNECTING, pj.CallState.CONFIRMED] \
+        if self.call.info().state in [pj.CallState.CONFIRMED] \
         and self.call.info().media_state == pj.MediaState.ACTIVE:
             DoorPi().fire_event('OnCallStateConnect', {
                 'remote_uri': self.call.info().remote_uri
@@ -110,6 +110,11 @@ class SipPhoneCallCallBack(pj.CallCallback):
 
     def on_dtmf_digit(self, digits):
         logger.debug("on_dtmf_digit (%s)",str(digits))
+
+        if self.inAction is not False:
+            logger.warning('still in action %s -> skip DTMF this time', self.inAction)
+            return
+
         self.__DTMF += str(digits)
 
         possible_DTMF = DoorPi().get_config().get_keys('DTMF')
@@ -120,7 +125,7 @@ class SipPhoneCallCallBack(pj.CallCallback):
                 logger.debug("on_dtmf_digit: get DTMF-request (%s) for action %s", DTMF, self.inAction)
                 DoorPi().fire_event('OnDTMFAction', {
                     'remote_uri': self.call.info().remote_uri,
-                    'action': inAction
+                    'action': self.inAction
                 })
                 DoorPi().fire_action(
                     action = self.inAction,

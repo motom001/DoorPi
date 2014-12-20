@@ -51,8 +51,8 @@ class DoorPi(object):
         logger.debug("__init__")
         # for start as daemon - if start as app it will not matter to load this vars
         self.stdin_path = '/dev/null'
-        self.stdout_path = '/dev/null'
-        self.stderr_path = '/dev/null'
+        self.stdout_path = '/var/log/doorpi/stdout.log'
+        self.stderr_path = '/var/log/doorpi/stderr.log'
         self.pidfile_path =  '/var/run/doorpi.pid'
         self.pidfile_timeout = 5
 
@@ -167,10 +167,10 @@ class DoorPi(object):
     def fire_event(self, event_name, additional_informations = {}, secure_source = True):
         logger.trace('get event(event_name = %s, additional_informations = %s, secure_source = %s)', event_name, additional_informations, secure_source)
         self.__additional_informations = additional_informations
-        for action in sorted(self.get_config().get_keys(event_name)):
-            logger.trace("fire action %s for event %s", action, event_name)
-            self.fire_action(self.get_config().get(event_name, action), secure_source)
-
+        if self.get_config() is not None:
+            for action in sorted(self.get_config().get_keys(event_name)):
+                logger.trace("fire action %s for event %s", action, event_name)
+                self.fire_action(self.get_config().get(event_name, action), secure_source)
         self.__additional_informations = {}
         return True
 
@@ -289,61 +289,9 @@ class DoorPi(object):
         if not config.sections():
             logger.info("founded empty configfile - start write_demo_configfile")
             configfile.close()
-            os.remove(configfile.name)
-            config = self.write_demo_configfile(configfile.name)
+            raise Exception("No valid configfile found at "+configfile)
 
         return conf.config_object.ConfigObject(config)
-
-    def write_demo_configfile(self, config_filename):
-        logger.debug("write_demo_configfile (%s)",config_filename)
-
-        # http://stackoverflow.com/questions/8533797/adding-comment-with-configparser
-        ConfigParser.ConfigParser.add_comment = lambda self, section, option, value: self.set(section, '; '+option, value)
-
-        config = ConfigParser.ConfigParser()
-
-        config.add_section('SIP-Phone')
-        config.set('SIP-Phone', 'sipphonetyp', 'pjsua')
-        config.set('SIP-Phone', 'server', '192.168.178.1')
-        config.set('SIP-Phone', 'username', '621')
-        config.set('SIP-Phone', 'password', 'raspberry')
-        config.set('SIP-Phone', 'realm', 'fritz.box')
-
-        config.add_section('DTMF')
-        config.add_comment('DTMF', '"DTMF Signal"', 'out:[output_key],[start_value],[end_value],[timeout]')
-        config.set('DTMF', '"#"', 'out:0,1,0,3')
-        config.set('DTMF', '"**7378278*"', 'restart')
-        config.set('DTMF', '"**732668*"', 'reboot')
-
-        config.add_section('InputPins')
-        config.add_comment('InputPins','singlecall_pin','call:[phonenumber] # make a call to this number')
-        config.set('InputPins', '0', 'call:00493515555555')
-        config.add_comment('InputPins','multicall_pin','[call:[phonenumber], call:[phonenumber]] # make a call to all this numbers, first answer wins')
-        config.set('InputPins', '1', 'call:00493515555555')
-        config.add_comment('InputPins','break_pin','break # break watching inputkeys and stop doorpi')
-        config.set('InputPins', '3', 'break')
-
-        config.add_section('OutputPins')
-        config.set('OutputPins', '0', 'open_door 0')
-        config.set('OutputPins', '7', 'is_alive_led')
-
-        config.add_section('DoorPi')
-        config.add_comment('DoorPi','is_alive_led','blink led for "system is still working"')
-        config.set('DoorPi', 'is_alive_led', '7')
-        config.set('DoorPi', 'dialtone', '/home/pi/DoorPi/doorpi/media/ShortDialTone.wav')
-        config.set('DoorPi', 'records', '/home/pi/DoorPi/records/%Y-%m-%d_%H-%M-%S.wav')
-        config.set('DoorPi', 'record_while_dialing', 'false')
-
-        config.add_section('AdminNumbers')
-        config.set('AdminNumbers', '00493515555555', 'active')
-
-        #config.add_section('Log-File')
-        #config.set('Log-File', 'Logfile', configfilename)
-        #config.set('Log-File', 'Loglevel', 'DEBUG')
-
-        with open(config_filename, 'wb') as configfile:
-            config.write(configfile)
-        return config
 
     def detect_sipphone(self):
         # find installed keyboards by import of libraries

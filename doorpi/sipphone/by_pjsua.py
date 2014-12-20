@@ -36,6 +36,7 @@ class Pjsua:
     __RecorderID = None
     def get_recorder_id(self):
         return self.__RecorderID
+
     def get_recorder_slot(self):
         rec_id = self.get_recorder_id()
         if rec_id is None:
@@ -110,6 +111,15 @@ class Pjsua:
                 log_cfg     = self.create_LogConfig()
             )
 
+            logger.debug('Sounddevices:')
+            for single_snd_dev in self.__Lib.enum_snd_dev():
+                logger.debug('-- %s --', single_snd_dev.name)
+
+            logger.debug('Codecs:')
+            for single_codec in self.__Lib.enum_codecs():
+                logger.debug('-- %s --', single_codec.name)
+                #logger.debug('priority')
+
             logger.debug("init transport")
             transport = self.__Lib.create_transport(
                 type        = pjsua.TransportType.UDP,
@@ -134,7 +144,7 @@ class Pjsua:
                 logger.debug("dialtone '%s' exist and is readable", dialtone)
             elif dialtone is not '':
                 logger.debug("dialtone is missing or not readable - create it now")
-                generate_dial_tone(dialtone, 100)
+                generate_dial_tone(dialtone, 75)
                 logger.debug("dialtone '%s' created", dialtone)
             else:
                 logger.info("no dialtone in configfile (Section [DoorPi], Parameter dialtone)")
@@ -238,9 +248,10 @@ class Pjsua:
         # Doc: http://www.pjsip.org/python/pjsua.htm#MediaConfig
         # TODO: -> configfile
         MediaConfig = pjsua.MediaConfig()
-        #MediaConfig.no_vad = False
+        #MediaConfig.no_vad = True
         #MediaConfig.ec_tail_len = 800
-        MediaConfig.clock_rate = 8000
+        #MediaConfig.clock_rate = 8000
+        MediaConfig.quality = 10
         return MediaConfig
 
     def create_LogConfig(self):
@@ -249,8 +260,8 @@ class Pjsua:
         # TODO: -> configfile
         LogConfig = pjsua.LogConfig(
             callback = self.pj_log,
-            level = 0,
-            console_level = 5
+            level = 1,
+            console_level = 1
         )
         return LogConfig
 
@@ -279,7 +290,12 @@ class Pjsua:
     def create_TransportConfig(self):
         logger.debug("CreateTransportConfig")
         # Doc: http://www.pjsip.org/python/pjsua.htm#TransportConfig
-        TransportConfig = pjsua.TransportConfig(0)
+        # TransportConfig = pjsua.TransportConfig(0)
+        TransportConfig = pjsua.TransportConfig(
+            port=5060,
+            bound_addr='192.168.178.30',
+            public_addr='192.168.178.30'
+        )
         return TransportConfig
 
     def make_call(self, Number):
@@ -316,10 +332,10 @@ class Pjsua:
             try:
                 self.__current_call.hangup()
             except pj.Error, e:
-                logger.critical("Exception: %s", str(e))
+                logger.exception("Exception: %s", str(e))
 
             if self.__PlayerID is not None:
-                self.Lib.conf_disconnect(self.Lib.player_get_slot(self.__PlayerID), 0)
+                self.__Lib.conf_disconnect(self.__Lib.player_get_slot(self.__PlayerID), 0)
 
             self.stop_recorder_if_exists()
             del self.__current_call

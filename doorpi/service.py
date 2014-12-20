@@ -26,7 +26,7 @@ logger = logging.getLogger('')
 logger.setLevel(logging.DEBUG)
 formatter = logging.Formatter('%(asctime)s [%(levelname)s]  \t[%(name)s] %(message)s')
 log_rotating = logging.handlers.RotatingFileHandler(
-    LOG_FILENAME, maxBytes=10000, backupCount=5
+    LOG_FILENAME, maxBytes=25000, backupCount=5
 )
 #log_rotating.setLevel(logging.DEBUG)
 log_rotating.setFormatter(formatter)

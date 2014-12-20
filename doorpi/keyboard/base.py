@@ -5,9 +5,7 @@ import logging
 logger = logging.getLogger(__name__)
 logger.debug("%s loaded", __name__)
 
-if True: import piface.pfio
-
-class keyboard(object):
+class AbstractBaseClassKeyboard(object):
 
     def get_last_key(self):
         pass

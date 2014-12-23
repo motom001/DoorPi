@@ -91,16 +91,16 @@ class Pjsua:
 
     __current_callcallback = None
     @property
-    def current_callback(self):
+    def current_callcallback(self):
         return self.__current_callcallback
-    def set_current_callback(self, callback):
-        if self.current_callcallback is callback: return self.current_callback
+    def set_current_callcallback(self, callback):
+        if self.current_callcallback is callback: return self.current_callcallback
         if callback is None: self.__current_callcallback = None
 
         if self.current_callcallback is not None:
             logger.warning("replace current_callcallback while current_callcallback is not None")
         self.__current_callcallback = callback
-        return self.current_callback
+        return self.current_callcallback
 
     def __init__(self):
         logger.debug("__init__")

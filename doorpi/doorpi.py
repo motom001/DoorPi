@@ -339,7 +339,9 @@ class DoorPi(object):
     def parse_string(self, input_string):
         parsed_string = datetime.datetime.now().strftime(input_string)
 
-        if self.keyboard is not None:
+        if self.keyboard is None or self.keyboard.last_key is None:
+            self.additional_informations['LastKey'] = "NotSetYet"
+        else:
             self.additional_informations['LastKey'] = str(self.keyboard.last_key)
 
         parsed_string = parsed_string.replace(

@@ -22,8 +22,8 @@ class GPIO(KeyboardAbstractBaseClass):
 
     def __init__(self, input_pins = [17, 22, 4], output_pins = [23]):
         logger.debug("GPIO.__init__(input_pins = %s, output_pins = %s)", input_pins, output_pins)
-        self.__InputPins = input_pins
-        self.__OutputPins = output_pins
+        self.__InputPins = map(int, input_pins)
+        self.__OutputPins = map(int, output_pins)
         RPiGPIO.cleanup()
         RPiGPIO.setmode(RPiGPIO.BCM)
         for x in range(len(self.__InputPins)):

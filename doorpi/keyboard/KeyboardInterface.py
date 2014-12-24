@@ -34,10 +34,10 @@ def detect_keyboard():
 def autodetect(input_pins, output_pins):
     logger.trace('autodetect')
     try: return load_piface(input_pins, output_pins)
-    except ImportError: logger.exception('could not load keyboard piface')
+    except ImportError: logger.info('could not load keyboard piface')
 
     try: return load_gpio(input_pins, output_pins)
-    except ImportError: logger.exception('could not load keyboard gpio')
+    except ImportError: logger.info('could not load keyboard gpio')
 
     raise Exception('keyboard autodetect failed')
 

@@ -27,10 +27,10 @@ class GPIO(KeyboardAbstractBaseClass):
         RPiGPIO.cleanup()
         RPiGPIO.setmode(RPiGPIO.BCM)
         for x in range(len(self.__InputPins)):
-            RPiGPIO.setup(self.__InputPins[x], GPIO.IN)
+            RPiGPIO.setup(self.__InputPins[x], RPiGPIO.IN)
 
         for x in range(len(self.__OutputPins)):
-            RPiGPIO.setup(self.__OutputPins[x], GPIO.OUT)
+            RPiGPIO.setup(self.__OutputPins[x], RPiGPIO.OUT)
 
     def __del__(self):
         self.destroy()

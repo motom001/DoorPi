@@ -12,6 +12,7 @@ from time import sleep # used by: GPIO.set_output
 import sys # used by: GPIO.self_test to catch exception and show errormessage
 
 class GPIO(KeyboardAbstractBaseClass):
+    name = 'GPIO Keyboard'
 
     __InputPins = [17, 22, 4]
     __OutputPins = [23]

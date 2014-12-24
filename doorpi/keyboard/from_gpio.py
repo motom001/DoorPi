@@ -25,7 +25,7 @@ class GPIO(KeyboardAbstractBaseClass):
         self.__InputPins = input_pins
         self.__OutputPins = output_pins
         RPiGPIO.cleanup()
-        RPiGPIO.setmode(GPIO.BCM)
+        RPiGPIO.setmode(RPiGPIO.BCM)
         for x in range(len(self.__InputPins)):
             RPiGPIO.setup(self.__InputPins[x], GPIO.IN)
 

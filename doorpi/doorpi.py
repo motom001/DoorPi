@@ -145,6 +145,7 @@ class DoorPi(object):
                 self.fire_event('AfterKeyPressed')
 
             if led is not '': self.is_alive_led(led)
+            time.sleep(0.1)
 
         return self
 

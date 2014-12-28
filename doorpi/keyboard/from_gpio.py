@@ -73,7 +73,7 @@ class GPIO(KeyboardAbstractBaseClass):
                 return x
         return -1
 
-    def set_output(self, key, start_value = 1, end_value = 0, timeout = 0.5, stop_pin = None, log_output = True):
+    def set_output(self, pin, start_value = 1, end_value = 0, timeout = 0.5, stop_pin = None, log_output = True):
         if not pin in self.__OutputPins: return False
         if log_output:
             logger.debug(
@@ -81,7 +81,7 @@ class GPIO(KeyboardAbstractBaseClass):
                 pin, start_value, end_value, timeout, stop_pin
             )
 
-        RPiGPIO.output(self.OutputPins[key], start_value)
+        RPiGPIO.output(self.OutputPins[pin], start_value)
         if timeout < 0.1:
             sleep(timeout)
         else:
@@ -93,5 +93,5 @@ class GPIO(KeyboardAbstractBaseClass):
                     break
                 sleep(0.1)
 
-        RPiGPIO.output(self.OutputPins[key], end_value)
+        RPiGPIO.output(self.OutputPins[pin], end_value)
         return True

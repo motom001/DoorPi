@@ -14,24 +14,23 @@ import sys # used by: GPIO.self_test to catch exception and show errormessage
 class GPIO(KeyboardAbstractBaseClass):
     name = 'GPIO Keyboard'
 
-    __InputPins = [17, 22, 4]
-    __OutputPins = [23]
+    __InputPins = [11]
+    __OutputPins = [16]
 
     __last_key = None
     def get_last_key(self):
         return self.__last_key
 
-    def __init__(self, input_pins = [17, 22, 4], output_pins = [23]):
+    def __init__(self, input_pins = [11], output_pins = [16]):
         logger.debug("GPIO.__init__(input_pins = %s, output_pins = %s)", input_pins, output_pins)
         self.__InputPins = map(int, input_pins)
         self.__OutputPins = map(int, output_pins)
-        RPiGPIO.cleanup()
         RPiGPIO.setmode(RPiGPIO.BCM)
-        for x in range(len(self.__InputPins)):
-            RPiGPIO.setup(self.__InputPins[x], RPiGPIO.IN)
+        for x in self.__InputPins:
+            RPiGPIO.setup(x, RPiGPIO.IN)
 
-        for x in range(len(self.__OutputPins)):
-            RPiGPIO.setup(self.__OutputPins[x], RPiGPIO.OUT)
+        for x in self.__OutputPins:
+            RPiGPIO.setup(x, RPiGPIO.OUT)
 
     def __del__(self):
         self.destroy()
@@ -49,8 +48,8 @@ class GPIO(KeyboardAbstractBaseClass):
                 logger.warning("Key(s) pressed while init -> why? -- \r\n %s", '-- \r\n'.join(pressed_keys))
 
             logger.info("Check OutputPins: %s", self.__OutputPins)
-            for x in range(len(self.__OutputPins)):
-                self.set_output(self.__OutputPins[x], 1, 0, 0.1)
+            for x in self.__OutputPins:
+                self.set_output(x, 1, 0, 0.1)
         except:
             logger.critical("Unexpected error: %s",str(sys.exc_info()[0]))
             return False
@@ -60,18 +59,18 @@ class GPIO(KeyboardAbstractBaseClass):
 
     def which_keys_are_pressed(self):
         pressed_keys = []
-        for x in range(len(self.__InputPins)):
-            if (RPiGPIO.input(self.__InputPins[x]) == True):
+        for x in self.__InputPins:
+            if RPiGPIO.input(x):
                 return_list.append("Key: "+str(x)+" Pin: "+str(self.__InputPins[x]))
         return pressed_keys
 
     def is_key_pressed(self):
-        for x in range(len(self.__InputPins)):
-            if (RPiGPIO.input(self.__InputPins[x]) == True):
+        for x in self.__InputPins:
+            if RPiGPIO.input(x):
                 logger.trace("GPIO.is_key_pressed return "+str(x))
                 self.__last_key = x
                 return x
-        return -1
+        return None
 
     def set_output(self, pin, start_value = 1, end_value = 0, timeout = 0.5, stop_pin = None, log_output = True):
         if not pin in self.__OutputPins: return False
@@ -81,7 +80,7 @@ class GPIO(KeyboardAbstractBaseClass):
                 pin, start_value, end_value, timeout, stop_pin
             )
 
-        RPiGPIO.output(self.OutputPins[pin], start_value)
+        RPiGPIO.output(pin, start_value)
         if timeout < 0.1:
             sleep(timeout)
         else:
@@ -93,5 +92,5 @@ class GPIO(KeyboardAbstractBaseClass):
                     break
                 sleep(0.1)
 
-        RPiGPIO.output(self.OutputPins[pin], end_value)
+        RPiGPIO.output(pin, end_value)
         return True

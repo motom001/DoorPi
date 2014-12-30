@@ -33,6 +33,8 @@ class Singleton(type):
 class DoorPi(object):
     __metaclass__ = Singleton
 
+    __prepared = False
+
     __config = None
     @property
     def config(self): return self.__config
@@ -50,8 +52,10 @@ class DoorPi(object):
     @property
     def additional_informations(self): return self.__additional_informations
 
-    def __init__(self):
+    def __init__(self, parsed_arguments = None):
         logger.debug("__init__")
+
+        self.__parsed_arguments = parsed_arguments
         # for start as daemon - if start as app it will not matter to load this vars
         self.stdin_path = '/dev/null'
         self.stdout_path = '/var/log/doorpi/stdout.log'
@@ -59,10 +63,8 @@ class DoorPi(object):
         self.pidfile_path =  '/var/run/doorpi.pid'
         self.pidfile_timeout = 5
 
-    def prepare(self):
+    def prepare(self, parsed_arguments):
         logger.debug("prepare")
-
-        parsed_arguments = self.parse_argv()
         logger.debug("givven arguments argv: %s", parsed_arguments)
 
         if not parsed_arguments.configfile and not self.config:
@@ -73,33 +75,9 @@ class DoorPi(object):
         logger.debug('Keyboard is now %s', self.keyboard.name)
         self.__sipphone = self.detect_sipphone()
         self.sipphone.start()
+
+        self.__prepared = True
         return self
-
-    def parse_argv(self):
-        logger.debug('parse_argv')
-
-        arg_parser = argparse.ArgumentParser(
-            prog=sys.argv[0],
-            formatter_class=argparse.RawDescriptionHelpFormatter,
-            description=metadata.description,
-            epilog = metadata.epilog)
-
-        arg_parser.add_argument(
-            '-V', '--version',
-            action='version',
-            version='{0} {1}'.format(metadata.project, metadata.version))
-
-        arg_parser.add_argument(
-            '--configfile',
-            help='configfile for DoorPi',
-            type=file,
-            dest='configfile',
-            required = True)
-
-        if  len(sys.argv) > 1 and sys.argv[1] in ['start', 'stop', 'restart', 'status']: # running as daemon? cut first argument
-            return  arg_parser.parse_args(args=sys.argv[2:])
-        else:
-            return  arg_parser.parse_args(args=sys.argv[1:])
 
     def __del__(self):
         self.destroy()
@@ -120,15 +98,11 @@ class DoorPi(object):
 
     def run(self):
         logger.debug("run")
-
-        self.prepare()
+        if not self.__prepared: self.prepare(self.__parsed_arguments)
 
         led = self.config.get_int('DoorPi', 'is_alive_led')
-
         self.fire_event('OnStartup')
-
         logger.info('DoorPi started successfully')
-
         while True:
             current_pin = self.keyboard.pressed_key
             if current_pin is not None:
@@ -373,3 +347,6 @@ class DoorPi(object):
             )
 
         return parsed_string
+
+if __name__ == '__main__':
+    raise Exception('use main.py')

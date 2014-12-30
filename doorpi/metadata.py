@@ -8,7 +8,7 @@ Information describing the project.
 package = 'doorpi'
 project = "VoIP Door-Intercomstation with Raspberry Pi (optional PiFace)"
 project_no_spaces = project.replace(' ', '')
-version = '1.1.0'
+version = '1.1.1 #34'
 description = 'provide intercomstation to the doorstation by VoIP'
 authors = ['Thomas Meissner']
 authors_string = ', '.join(authors)

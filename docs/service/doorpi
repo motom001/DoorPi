@@ -30,9 +30,14 @@ case "$1" in
     $0 stop
     $0 start
     ;;
+  status)
+    echo "Query Status:"
+    # query status from doorpi
+    python $DOORPI_PATH/doorpi/service.py status
+    ;;
   *)
     # Refuse to do other stuff
-    echo "Usage: /etc/init.d/doorpi.sh {start|stop|restart}"
+    echo "Usage: /etc/init.d/doorpi.sh {start|stop|restart|status}"
     exit 1
     ;; esac
 exit 0

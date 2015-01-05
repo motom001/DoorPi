@@ -136,21 +136,24 @@ class DoorPi(object):
     def destroy(self):
         logger.debug("destroy")
         self.__shutdown = True
-        self.event_handler.fire_event_synchron('OnShutdown', __name__)
-        self.event_handler.unregister_source(__name__, True)
-        self.event_handler.destroy()
+        if self.event_handler is not None:
+            self.event_handler.fire_event_synchron('OnShutdown', __name__)
+            self.event_handler.unregister_source(__name__, True)
+            self.event_handler.destroy()
+
         if self.sipphone is not None: self.sipphone.destroy()
 
-        timeout = 2
-        if not self.event_handler.idle:
-            logger.warning('wait for event_handler with runnig theards %s', self.event_handler.threads[1:])
-        while not self.event_handler.idle and timeout > 0:
-            logger.info('wait %s seconds for theards %s', timeout, self.event_handler.threads[1:])
-            time.sleep(0.5)
-            timeout -= 0.5
+        if self.event_handler is not None:
+            timeout = 2
+            if not self.event_handler.idle:
+                logger.warning('wait for event_handler with runnig theards %s', self.event_handler.threads[1:])
+            while not self.event_handler.idle and timeout > 0:
+                logger.info('wait %s seconds for theards %s', timeout, self.event_handler.threads[1:])
+                time.sleep(0.5)
+                timeout -= 0.5
 
-        if timeout <= 0:
-            logger.error("waiting for theards timed out - there are still theards: %s", self.event_handler.threads[1:])
+            if timeout <= 0:
+                logger.error("waiting for theards timed out - there are still theards: %s", self.event_handler.threads[1:])
 
         if self.keyboard is not None:
             self.keyboard.destroy()

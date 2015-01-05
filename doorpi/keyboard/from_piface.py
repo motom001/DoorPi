@@ -63,7 +63,7 @@ class PiFace(KeyboardAbstractBaseClass):
         doorpi.DoorPi().event_handler.unregister_source(__name__, True)
 
     def event_detect(self, event):
-        pin = event.pin_number
+        pin = event.pin_num
         logger.trace('event_detect for %s', pin)
         self.__last_key = pin
         doorpi.DoorPi().event_handler('OnKeyPressed', __name__, {'pin': pin, 'event': event})

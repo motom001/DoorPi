@@ -16,14 +16,26 @@ class SipPhoneCallCallBack(pj.CallCallback):
 
     Lib = None
 
-    inAction = False
-
     __DTMF = ''
+    __possible_DTMF = []
 
     def __init__(self, PlayerID = None, call = None):
         logger.debug("__init__")
         self.PlayerID = PlayerID
         self.Lib = pj.Lib.instance()
+
+        DoorPi().event_handler.register_event('OnCallMediaStateChange', __name__)
+        DoorPi().event_handler.register_event('OnCallStateChange', __name__)
+        DoorPi().event_handler.register_event('OnCallStateConnect', __name__)
+        DoorPi().event_handler.register_event('AfterCallStateConnect', __name__)
+        DoorPi().event_handler.register_event('OnCallStateDisconnect', __name__)
+        DoorPi().event_handler.register_event('AfterCallStateDisconnect', __name__)
+        DoorPi().event_handler.register_event('OnDTMF', __name__)
+
+        self.__possible_DTMF = DoorPi().config.get_keys('DTMF')
+        for DTMF in self.__possible_DTMF:
+            DoorPi().event_handler.register_event('OnDTMF_'+DTMF, __name__)
+
         pj.CallCallback.__init__(self, call)
 
     def __del__(self):
@@ -31,29 +43,25 @@ class SipPhoneCallCallBack(pj.CallCallback):
 
     def destroy(self):
         logger.debug("destroy")
+        DoorPi().event_handler.unregister_source(__name__, True)
 
     def on_media_state(self):
         logger.debug("on_media_state (%s)",str(self.call.info().media_state))
-        DoorPi().fire_event('OnCallMediaStateChange', {
+        DoorPi().event_handler('OnCallMediaStateChange', __name__, {
             'remote_uri': self.call.info().remote_uri,
             'media_state': str(self.call.info().media_state)
         })
 
     def on_state(self):
         logger.debug("on_state (%s)", self.call.info().state_text)
-        DoorPi().fire_event('OnCallStateChange', {
+        DoorPi().event_handler('OnCallStateChange', __name__, {
             'remote_uri': self.call.info().remote_uri,
             'state': self.call.info().state_text
         })
 
-        if self.inAction is not False:
-            logger.debug("wait for finished action '%s'", self.inAction)
-            while self.inAction is not False: time.sleep(0.1)
-            logger.debug("action finished '%s'", self.inAction)
-
         if self.call.info().state in [pj.CallState.CONFIRMED] \
         and self.call.info().media_state == pj.MediaState.ACTIVE:
-            DoorPi().fire_event('OnCallStateConnect', {
+            DoorPi().event_handler('OnCallStateConnect', __name__, {
                 'remote_uri': self.call.info().remote_uri
             })
             # disconnect player with dialtone
@@ -78,12 +86,12 @@ class SipPhoneCallCallBack(pj.CallCallback):
             self.Lib.conf_connect(0, call_slot)
             logger.debug("conneted Media to call_slot %s",str(call_slot))
             DoorPi().sipphone.set_current_call(self.call)
-            DoorPi().fire_event('AfterCallStateConnect', {
+            DoorPi().event_handler('AfterCallStateConnect', __name__, {
                 'remote_uri': self.call.info().remote_uri
             })
 
         if self.call.info().state == pj.CallState.DISCONNECTED:
-            DoorPi().fire_event('OnCallStateDisconnect', {
+            DoorPi().event_handler('OnCallStateDisconnect', __name__, {
                 'remote_uri': self.call.info().remote_uri
             })
             call_slot = self.call.info().conf_slot
@@ -92,47 +100,17 @@ class SipPhoneCallCallBack(pj.CallCallback):
             DoorPi().sipphone.stop_recorder_if_exists()
             logger.debug("disconneted Media from call_slot %s",str(call_slot))
             DoorPi().sipphone.set_current_call(None)
-            DoorPi().fire_event('AfterCallStateDisconnect', {
+            DoorPi().event_handler('AfterCallStateDisconnect', __name__, {
                 'remote_uri': self.call.info().remote_uri
             })
-
-    def is_admin_number(self, remote_uri = None):
-        logger.debug("is_admin_number (%s)",remote_uri)
-
-        if remote_uri is None:
-            remote_uri = self.call.info().remote_uri
-
-        possible_AdminNumbers = DoorPi().get_config().get_keys('AdminNumbers')
-        for AdminNumber in possible_AdminNumbers:
-            if remote_uri.startswith(AdminNumber):
-                return True
-
-        return False
 
     def on_dtmf_digit(self, digits):
         logger.debug("on_dtmf_digit (%s)",str(digits))
 
-        if self.inAction is not False:
-            logger.warning('still in action %s -> skip DTMF this time', self.inAction)
-            return
-
         self.__DTMF += str(digits)
-
-        possible_DTMF = DoorPi().config.get_keys('DTMF')
-
-        for DTMF in possible_DTMF:
+        for DTMF in self.__possible_DTMF:
             if self.__DTMF.endswith(DTMF[1:-1]):
-                self.inAction = DoorPi().config.get('DTMF', DTMF)
-                logger.debug("on_dtmf_digit: get DTMF-request (%s) for action %s", DTMF, self.inAction)
-                DoorPi().fire_event('OnDTMFAction', {
+                DoorPi().event_handler('OnDTMF_'+DTMF+'', __name__, {
                     'remote_uri': self.call.info().remote_uri,
-                    'action': self.inAction
+                    'DTMF': self.__DTMF
                 })
-                DoorPi().fire_action(
-                    action = self.inAction,
-                    secure_source = DoorPi().sipphone.is_admin_number(self.call.info().remote_uri)
-                )
-                logger.debug('action %s finished', self.inAction)
-                self.inAction = False
-
-

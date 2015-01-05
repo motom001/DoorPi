@@ -18,6 +18,15 @@ class SipPhoneAccountCallBack(pj.AccountCallback):
     def __init__(self, account = None):
         logger.debug("__init__")
         pj.AccountCallback.__init__(self, account)
+        DoorPi().event_handler.register_event('BeforeCallIncoming', __name__)
+        DoorPi().event_handler.register_event('OnCallReconnect', __name__)
+        DoorPi().event_handler.register_event('AfterCallReconnect', __name__)
+        DoorPi().event_handler.register_event('OnCallBusy', __name__)
+        DoorPi().event_handler.register_event('AfterCallBusy', __name__)
+        DoorPi().event_handler.register_event('OnCallIncomming', __name__)
+        DoorPi().event_handler.register_event('AfterCallIncomming', __name__)
+        DoorPi().event_handler.register_event('OnCallReject', __name__)
+        DoorPi().event_handler.register_event('AfterCallReject', __name__)
 
     def __del__(self):
         self.destroy()
@@ -25,6 +34,7 @@ class SipPhoneAccountCallBack(pj.AccountCallback):
 
     def destroy(self):
         logger.debug("destroy")
+        DoorPi().event_handler.unregister_source(__name__, True)
 
     def on_incoming_call(self, call):
         # SIP-Status-Codes: http://de.wikipedia.org/wiki/SIP-Status-Codes
@@ -35,7 +45,7 @@ class SipPhoneAccountCallBack(pj.AccountCallback):
         # 494 = Security Agreement Required
         logger.debug("on_incoming_call")
         logger.info("Incoming call from %s", str(call.info().remote_uri))
-        DoorPi().fire_event('BeforeCallIncoming')
+        DoorPi().event_handler('BeforeCallIncoming', __name__)
 
         if DoorPi().sipphone.current_call is not None:
             logger.debug("Incoming call while another call is active")
@@ -44,32 +54,32 @@ class SipPhoneAccountCallBack(pj.AccountCallback):
 
             if call.info().remote_uri == DoorPi().sipphone.current_call.info().remote_uri:
                 logger.info("Current call is incoming call - quit current and connect to incoming. Maybe connection-Reset?")
-                DoorPi().fire_event('OnCallReconnect', {'remote_uri': call.info().remote_uri})
+                DoorPi().event_handler('OnCallReconnect', __name__, {'remote_uri': call.info().remote_uri})
                 DoorPi().current_call.hangup()
                 call.answer(code = 200)
                 DoorPi().sipphone.set_current_call(call)
                 DoorPi().sipphone.set_current_callback(SipPhoneCallCallBack.SipPhoneCallCallBack())
                 call.set_callback(DoorPi().sipphone.current_callback)
-                DoorPi().fire_event('AfterCallReconnect')
+                DoorPi().event_handler('AfterCallReconnect', __name__)
                 return
             else:
                 logger.info("incoming and current call are different - send busy signal to incoming call")
-                DoorPi().fire_event('OnCallBusy', {'remote_uri': call.info().remote_uri})
+                DoorPi().event_handler('OnCallBusy', __name__, {'remote_uri': call.info().remote_uri})
                 call.answer(code = 494, reason = "Security Agreement Required")
-                DoorPi().fire_event('AfterCallBusy')
+                DoorPi().event_handler('AfterCallBusy', __name__)
                 return
 
         if DoorPi().sipphone.is_admin_number(call.info().remote_uri):
             logger.debug("Incoming Call from trusted admin number %s -> autoanswer", call.info().remote_uri)
-            DoorPi().fire_event('OnCallIncomming', {'remote_uri': call.info().remote_uri})
+            DoorPi().event_handler('OnCallIncomming', __name__, {'remote_uri': call.info().remote_uri})
             call.answer(code = 200)
             call.set_callback(SipPhoneCallCallBack.SipPhoneCallCallBack())
             DoorPi().sipphone.set_current_call(call)
-            DoorPi().fire_event('AfterCallIncomming')
+            DoorPi().event_handler('AfterCallIncomming', __name__)
             return
         else:
             logger.debug("Incoming Call ist not from a trusted admin number %s -> send busy signal", call.info().remote_uri)
-            DoorPi().fire_event('OnCallReject', {'remote_uri': call.info().remote_uri})
+            DoorPi().event_handler('OnCallReject', __name__, {'remote_uri': call.info().remote_uri})
             call.answer(code = 494, reason = "Security Agreement Required")
-            DoorPi().fire_event('AfterCallReject')
+            DoorPi().event_handler('AfterCallReject', __name__)
             return

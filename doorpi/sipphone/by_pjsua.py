@@ -17,7 +17,11 @@ from media.CreateDialTone import generate_dial_tone
 from doorpi import DoorPi
 
 class Pjsua:
+    name = 'pjsua'
+
     __Lib = None
+    @property
+    def lib(self): return self.__Lib
     __Acc = None
 
     __PlayerID = None
@@ -46,20 +50,28 @@ class Pjsua:
         else:
             return self.__Lib.recorder_get_slot(rec_id)
     def get_new_recorder_as_id(self):
-        if self.parsed_recorder_filename is None: return None
-        if not os.path.exists(os.path.dirname(self.parsed_recorder_filename)):
-            os.makedirs(os.path.dirname(self.parsed_recorder_filename))
+        recorder_filename = self.parsed_recorder_filename
+        if recorder_filename is None: return None
+        if not os.path.exists(os.path.dirname(recorder_filename)):
+            os.makedirs(os.path.dirname(recorder_filename))
 
         self.__RecorderID = self.__Lib.create_recorder(
-            filename = self.parsed_recorder_filename
+            filename = recorder_filename
         )
-        logger.debug('created new recorder with filename %s', self.parsed_recorder_filename)
+        logger.debug('created new recorder with filename %s', recorder_filename)
+        DoorPi().event_handler('OnSipPhoneRecorderCreate', __name__, {
+            'rec_id': self.__RecorderID,
+            'parsed_recorder_filename': recorder_filename
+        })
         return self.get_recorder_id()
     def get_new_recorder_as_slot(self):
         self.get_new_recorder_as_id()
         return self.get_recorder_slot()
     def stop_recorder(self):
         self.__Lib.recorder_destroy(self.get_recorder_id())
+        DoorPi().event_handler('OnSipPhoneRecorderDestroy', __name__, {
+            'rec_id': self.__RecorderID
+        })
         self.__RecorderID = None
     def stop_recorder_if_exists(self):
         rec_id = self.get_recorder_id()
@@ -104,9 +116,23 @@ class Pjsua:
 
     def __init__(self):
         logger.debug("__init__")
+        DoorPi().event_handler.register_event('OnSipPhoneCreate', __name__)
+        DoorPi().event_handler.register_event('OnSipPhoneStart', __name__)
+        DoorPi().event_handler.register_event('OnSipPhoneDestroy', __name__)
+
+        DoorPi().event_handler.register_event('OnSipPhoneRecorderCreate', __name__)
+        DoorPi().event_handler.register_event('OnSipPhoneRecorderDestroy', __name__)
+
+        DoorPi().event_handler.register_event('OnSipPhoneMakeCall', __name__)
+
+        DoorPi().event_handler.register_action('AfterCallStateDisconnect', 'sleep:0.5')
+        DoorPi().event_handler.register_action('AfterCallStateDisconnect', self.cleanup_after_call)
+        #DoorPi().event_handler.register_action('OnTimeSecond', 'pjsip_handle_events:1')
 
     def start(self):
-        self.__Lib = pjsua.Lib()
+        DoorPi().event_handler('OnSipPhoneCreate', __name__)
+        self.__Lib = pjsua.Lib.instance()
+        if self.__Lib is None: self.__Lib = pjsua.Lib()
         try:
             logger.debug("init Lib")
             self.__Lib.init(
@@ -114,15 +140,6 @@ class Pjsua:
                 media_cfg   = self.create_MediaConfig(),
                 log_cfg     = self.create_LogConfig()
             )
-
-            logger.debug('Sounddevices:')
-            for single_snd_dev in self.__Lib.enum_snd_dev():
-                logger.debug('-- %s --', single_snd_dev.name)
-
-            logger.debug('Codecs:')
-            for single_codec in self.__Lib.enum_codecs():
-                logger.debug('-- %s --', single_codec.name)
-                #logger.debug('priority')
 
             logger.debug("init transport")
             transport = self.__Lib.create_transport(
@@ -167,10 +184,11 @@ class Pjsua:
                 logger.debug('use %s as recordfile', self.__RecorderFilename)
                 logger.debug(' for example at this moment: %s', self.parsed_recorder_filename)
 
+            DoorPi().event_handler('OnSipPhoneStart', __name__)
             logger.debug("start successfully")
 
         except pjsua.Error, e:
-            logger.critical("Exception: %s", str(e))
+            logger.exception("Exception: %s", str(e))
             self.__Lib.destroy()
             self.__Lib = None
             raise Exception("error while init sipphone with pjsua.Error: %s", str(e))
@@ -184,6 +202,8 @@ class Pjsua:
 
     def destroy(self):
         logger.debug("destroy")
+        DoorPi().event_handler('OnDestroySipPhone', __name__)
+
         if self.current_callcallback is not None:
             self.current_callcallback.destroy()
             self.__current_callcallback = None
@@ -213,6 +233,8 @@ class Pjsua:
             self.__Lib.destroy()
             self.__Lib = None
             del self.__Lib
+
+        DoorPi().event_handler.unregister_source(__name__, True)
 
     def selftest(self):
         logger.debug("selftest")
@@ -296,12 +318,13 @@ class Pjsua:
 
     def make_call(self, Number):
         logger.debug("makeCall(%s)",str(Number))
+        DoorPi().event_handler('OnSipPhoneMakeCall', __name__)
 
         sip_server = DoorPi().config.get("SIP-Phone", "server")
 
         if not self.current_call or self.current_call.is_valid() is 0:
             lck = self.__Lib.auto_lock()
-            self.current_callcallback = pjsua_lib.SipPhoneCallCallBack.SipPhoneCallCallBack()
+            self.__current_callcallback = pjsua_lib.SipPhoneCallCallBack.SipPhoneCallCallBack()
             self.__current_call = self.__Acc.make_call(
                 "sip:"+Number+"@"+sip_server,
                 self.current_callcallback
@@ -338,6 +361,20 @@ class Pjsua:
             self.make_call(Number)
 
         return self.current_call
+
+    def cleanup_after_call(self):
+        if self.current_callcallback is not None:
+            self.current_callcallback.destroy()
+            self.__current_callcallback = None
+            del self.__current_callcallback
+
+        if self.current_call is not None:
+            self.current_call.hangup()
+            self.__current_call = None
+            del self.__current_call
+
+        if self.__Acc is not None:
+            logger.debug('Account.is_valid: %s', self.__Acc.is_valid())
 
     def is_admin_number(self, remote_uri = None):
         logger.debug("is_admin_number (%s)",remote_uri)

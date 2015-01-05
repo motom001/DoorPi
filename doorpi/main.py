@@ -72,15 +72,24 @@ def parse_arguments(argv):
     else:
         return  arg_parser.parse_args(args=sys.argv[1:])
 
+def get_status_from_doorpi(argv):
+    try:
+        print "called: %s" % argv
+        import urllib2
+        print urllib2.urlopen("http://127.0.0.1:8080/status?json&output=all").read()
+    except Exception as ex:
+        print ex
+        return 1
+    return 0
+
 def main_as_daemon(argv):
-    if sys.argv[1] in ['status']:
-        print 'Status: '
-        return 0
-    if sys.argv[1] is 'reload':
+    if argv[1] is 'reload':
         print 'not implemeted now - use restart instead'
         return 1
-
-    parsed_arguments = parse_arguments(argv)
+    if argv[1] in ['stop']:
+        parsed_arguments = None
+    else:
+        parsed_arguments = parse_arguments(argv)
 
     logger.info(metadata.epilog)
     logger.debug('loaded with arguments: %s', str(argv))
@@ -111,7 +120,9 @@ def main_as_application(argv):
 
 def entry_point():
     """Zero-argument entry point for use with setuptools/distribute."""
-    if  len(sys.argv) > 1 and sys.argv[1] in ['start', 'stop', 'restart', 'status', 'reload']:
+    if len(sys.argv) > 1 and sys.argv[1] in ['status']:
+        raise SystemExit(get_status_from_doorpi(sys.argv))
+    elif len(sys.argv) > 1 and sys.argv[1] in ['start', 'stop', 'restart', 'reload']:
         raise SystemExit(main_as_daemon(sys.argv))
     else:
         raise SystemExit(main_as_application(sys.argv))

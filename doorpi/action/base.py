@@ -5,26 +5,62 @@ import logging
 logger = logging.getLogger(__name__)
 logger.debug("%s loaded", __name__)
 
-import time
+from time import sleep
+import importlib
 
-class AbstractBaseClassSingleAction():
+class SingleAction:
+    action_name = None
 
-    __starttime = None
-    __max_duration = 0
+    @property
+    def name(self):
+        return "%s with args %s and kwargs %s" % (
+            self.action_name,
+            self.__args,
+            self.__kwargs
+        )
 
-    def __init__(self):
-        logger.debug("__init__")
-        self.__starttime = time.time()
+    def __init__(self, callback, *args, **kwargs):
+        self.__callback = callback
+        self.__args = args
+        self.__kwargs = kwargs
+        if len(self.__class__.__bases__) is 0:
+            self.action_name = str(callback)
+        else:
+            self.action_name = self.__class__.__name__
 
-    def __del__(self):
-        logger.debug("__del__")
+    def __str__(self):
+        return self.name
 
-    def is_valid(self):
-        if self.__starttime is None: return False
-        if self.__max_duration is 0: return False
-        if self.__max_duration is -1: return True
-        if self.__starttime + self.__max_duration <= time.time(): return False
-        return False
+    def run(self, silent_mode = False):
+        if not silent_mode:
+            logger.trace('run %s with args %s and kwargs %s',
+                         self.__class__.__name__,
+                         self.__args,
+                         self.__kwargs
+            )
+        try:
+            if len(self.__args) is not 0 and len(self.__kwargs) is not 0:
+                #print "args and kwargs"
+                return self.__callback(*self.__args, **self.__kwargs)
+            elif len(self.__args) is 0 and len(self.__kwargs) is not 0:
+                #print "no args but kwargs"
+                return self.__callback(**self.__kwargs)
+            elif len(self.__args) is not 0 and len(self.__kwargs) is 0:
+                #print "args and no kwargs"
+                return self.__callback(*self.__args)
+            else:
+                #print "no args and no kwargs"
+                return self.__callback()
+        except TypeError as ex:
+            print ex
 
-    def fire(self):
-        pass
+    @staticmethod
+    def from_string(config_string):
+        #try:
+            action_name = config_string.split(':', 1)[0]
+            return importlib.import_module('action.SingleActions.'+action_name).get(
+                config_string.split(':', 1)[1]
+            )
+        #except:
+        #    logger.exception('error while creating SingleAction from config string: %s',config_string)
+        #    return None

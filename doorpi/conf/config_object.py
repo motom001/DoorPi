@@ -5,24 +5,40 @@ import logging
 logger = logging.getLogger(__name__)
 logger.debug("%s loaded", __name__)
 
+import ConfigParser
+
 class ConfigObject():
 
     __sections = {}
+    @property
+    def all(self): return self.__sections
 
     def __init__(self, config):
         logger.debug("__init__")
         self.get_from_config(config)
 
     def __del__(self):
+        return self.destroy()
+
+    def destroy(self):
         logger.debug("__del__")
+        #DoorPi().event_handler.unregister_source(__name__, True)
+        return True
+
+    @staticmethod
+    def load_config(configfile):
+        logger.debug("load_config (%s)",configfile)
+        logger.debug("use configfile: %s", configfile.name)
+        config = ConfigParser.ConfigParser()
+        config.read(configfile.name)
+        if not config.sections():
+            configfile.close()
+            raise Exception("No valid configfile found at "+configfile)
+        return ConfigObject(config)
 
     def get_boolean(self, section, key, default = False):
         value = self.get(section, key, str(default))
-        if value.lower() is 'true': return True
-        if value.lower() is 'yes': return True
-        if value.lower() is 'ja': return True
-        if value.lower() is '1': return True
-        return False
+        return value.lower() in ['true', 'yes', 'ja', '1']
 
     def get(self, section, key, default = ''):
         logger.trace("get for key %s in section %s (default: %s)", key, section, default)
@@ -51,19 +67,19 @@ class ConfigObject():
         if value is not '': return int(value)
         else: return default
 
-    def get_sections(self):
+    def get_sections(self, filter = ''):
         logger.trace("get_sections")
         return_list = []
         for section in self.__sections:
-            return_list.append(section)
+            if filter in section: return_list.append(section)
         return return_list
 
-    def get_keys(self, section):
+    def get_keys(self, section, filter = ''):
         logger.trace("get_keys for section %s", section)
         return_list = []
         if section not in self.__sections: return []
         for key in self.__sections[section]:
-            return_list.append(key)
+            if filter in key: return_list.append(key)
         return return_list
 
     def get_from_config(self, config):

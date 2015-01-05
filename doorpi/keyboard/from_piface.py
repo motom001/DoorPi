@@ -5,28 +5,51 @@ import logging
 logger = logging.getLogger(__name__)
 logger.debug("%s loaded", __name__)
 
-from keyboard.AbstractBaseClass import KeyboardAbstractBaseClass
+import pifacedigitalio as p # basic for PiFce control
 
-import piface.pfio # basic for PiFce control
-from time import sleep # used by: PiFace.set_output
-import sys # used by: PiFace.self_test to catch exception and show errormessage
+from keyboard.AbstractBaseClass import KeyboardAbstractBaseClass
+import doorpi
 
 class PiFace(KeyboardAbstractBaseClass):
     name = 'PiFace Keyboard'
 
-    __InputPins = [0,1,2,3,4,5,6,7]
-    __OutputPins = [0,1,2,3,4,5,6,7]
+    __InputPins = []
+    @property
+    def input_pins(self): return self.__InputPins
+    __OutputPins = []
+    @property
+    def output_pins(self): return self.__OutputPins
+
+    __OutputStatus = {}
+    @property
+    def output_status(self): return self.__OutputStatus
 
     __last_key = None
     @property
     def last_key(self):
         return self.__last_key
 
+    __listener = None
+
     def __init__(self, input_pins = [0,1,2,3,4,5,6,7], output_pins = [0,1,2,3,4,5,6,7]):
         logger.debug("__init__(input_pins = %s, output_pins = %s)", input_pins, output_pins)
-        self.__InputPins = [int(i) for i in input_pins]
-        self.__OutputPins = [int(i) for i in output_pins]
-        piface.pfio.init()
+        self.__InputPins = map(int, input_pins)
+        self.__OutputPins = map(int, output_pins)
+
+        doorpi.DoorPi().event_handler.register_event('OnKeyPressed', __name__)
+
+        p.init()
+
+        self.__listener = p.InputEventListener()
+        for input_pin in self.__InputPins:
+            self.__listener.register(input_pin, p.IODIR_ON, self.event_detect)
+            doorpi.DoorPi().event_handler.register_event('OnKeyPressed_'+str(input_pin), __name__)
+        self.__listener.activate()
+
+        # use set_output to register status @ dict self.__OutputStatus
+        for output_pin in self.__OutputPins:
+            self.set_output(output_pin, 0, False)
+
 
     def __del__(self):
         self.destroy()
@@ -34,65 +57,57 @@ class PiFace(KeyboardAbstractBaseClass):
     def destroy(self):
         logger.debug("destroy")
         # shutdown all output-pins
-        for x in range(len(self.__OutputPins)):
-            self.set_output(self.__OutputPins[x], 0, 0, 0.0)
+        for output_pin in self.__OutputPins:
+            self.set_output(output_pin, 0, False)
+        p.deinit()
+        doorpi.DoorPi().event_handler.unregister_source(__name__, True)
+
+    def event_detect(self, event):
+        pin = event.pin_number
+        logger.trace('event_detect for %s', pin)
+        self.__last_key = pin
+        doorpi.DoorPi().event_handler('OnKeyPressed', __name__, {'pin': pin, 'event': event})
+        doorpi.DoorPi().event_handler('OnKeyPressed_'+str(pin), __name__, {'pin': pin, 'event': event})
 
     def self_test(self):
-        try:
-            logger.debug("self_test()")
-            logger.info("Check InputPins: %s", self.__InputPins)
-            pressed_keys = self.which_keys_are_pressed()
-            if pressed_keys:
-                logger.warning("Key(s) pressed while init -> why? -- \r\n %s", '-- \r\n'.join(pressed_keys))
+        pass
 
-            logger.info("Check OutputPins: %s", self.__OutputPins)
-            for x in range(len(self.__OutputPins)):
-                self.set_output(self.__OutputPins[x], 1, 0, 0.1)
-        except:
-            logger.critical("Unexpected error: %s",str(sys.exc_info()[0]))
-            return False
-        else:
-            logger.info("self_test success")
-            return True
     @property
     def pressed_keys(self):
         pressed_keys = []
-        for x in range(len(self.__InputPins)):
-            if piface.pfio.digital_read(self.__InputPins[x]) == 1:
-                return_list.append("Key: "+str(x)+" Pin: "+str(self.__InputPins[x]))
-
-        logger.trace("which_keys_are_pressed return "+str(pressed_keys))
+        for input_pin in self.__InputPins:
+            if self.status_inputpin(input_pin):
+                return_list.append(str(input_pin))
+        logger.trace("pressed_keys are %s" % pressed_keys)
         return pressed_keys
 
     @property
     def pressed_key(self):
-        for pin in self.__InputPins:
-            if piface.pfio.digital_read(pin) == 1:
-                logger.trace("is_key_pressed return key %s",str(pin))
-                self.__last_key = pin
-                return pin
+        for input_pin in self.__InputPins:
+            if self.status_inputpin(input_pin):
+                logger.trace("pressed_key return key %s",str(input_pin))
+                return input_pin
         return None
 
-    #TODO: ab zum Events und Action Handler
-    def set_output(self, pin, start_value = 1, end_value = 0, timeout = 0.5, stop_pin = None, log_output = True):
+    def status_inputpin(self, pin):
+        return p.digital_read(pin) == 1
+
+    def status_output(self, pin):
+        pin = int(pin)
+        if not pin in self.__OutputPins: return None
+        return self.__OutputStatus[pin]
+
+    def set_output(self, pin, value, log_output = True):
+        pin = int(pin)
+        value = str(value).lower() in ['1', 'high', 'on']
+        log_output = str(log_output).lower() in ['true', 'log', '1', 'on']
+
         if not pin in self.__OutputPins: return False
-        if log_output:
-            logger.debug(
-                "set_output (pin = %s, start_value = %s, end_value = %s, timeout = %s, stop_pin = %s)",
-                pin, start_value, end_value, timeout, stop_pin
-            )
+        if log_output: logger.debug("out(pin = %s, value = %s, log_output = %s)", pin, value, log_output)
 
-        piface.pfio.digital_write(pin, start_value)
-        if timeout < 0.1:
-            sleep(timeout)
-        else:
-            total_time = 0
-            while total_time <= timeout:
-                total_time += 0.1
-                if stop_pin in self.__InputPins and piface.pfio.digital_read(stop_pin) == 1:
-                    logger.debug('stop pin pressed -> break action')
-                    break
-                sleep(0.1)
-
-        piface.pfio.digital_write(pin, end_value)
+        p.digital_write(pin, value)
+        self.__OutputStatus[pin] = value
         return True
+
+    get_input = status_inputpin
+    get_output = status_output

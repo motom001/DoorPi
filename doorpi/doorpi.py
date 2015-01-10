@@ -89,6 +89,8 @@ class DoorPi(object):
         self.pidfile_path =  '/var/run/doorpi.pid'
         self.pidfile_timeout = 5
 
+        logger.debug("finished __init__")
+
     def prepare(self, parsed_arguments):
         logger.debug("prepare")
         logger.debug("givven arguments argv: %s", parsed_arguments)

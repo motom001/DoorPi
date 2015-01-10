@@ -8,6 +8,8 @@ import logging.handlers
 #----------
 import metadata
 import doorpi
+import os
+from resource import getrlimit, RLIMIT_NOFILE
 
 TRACE_LEVEL = 5
 LOG_FORMAT = '%(asctime)s [%(levelname)s]  \t[%(name)s] %(message)s'
@@ -23,27 +25,14 @@ def add_trace_level():
 def init_logger():
     add_trace_level()
     logging.basicConfig(
-        filename = DEFAULT_LOG_FILENAME,
         level = TRACE_LEVEL,
         format = LOG_FORMAT
     #    datefmt = '%m/%d/%Y %I:%M:%S %p'
     )
-    # define a Handler which writes INFO messages or higher to the sys.stderr
-    console = logging.StreamHandler()
-    console.setLevel(TRACE_LEVEL)
-    console.setFormatter(logging.Formatter(LOG_FORMAT))
-
-    logrotating = logging.handlers.RotatingFileHandler(
-          DEFAULT_LOG_FILENAME,
-          maxBytes=25000,
-          backupCount=5
-    )
-
-    # add the handler to the root logger
-    logging.getLogger('').addHandler(console)
-    logging.getLogger('').addHandler(logrotating)
 
     return logging.getLogger(__name__)
+
+
 
 def parse_arguments(argv):
     arg_parser = argparse.ArgumentParser(
@@ -72,6 +61,24 @@ def parse_arguments(argv):
     else:
         return  arg_parser.parse_args(args=sys.argv[1:])
 
+def files_preserve_by_path(*paths):
+    wanted=[]
+    for path in paths:
+        fd = os.open(path, os.O_RDONLY)
+        try:
+            wanted.append(os.fstat(fd)[1:3])
+        finally:
+            os.close(fd)
+
+    def fd_wanted(fd):
+        try:
+            return os.fstat(fd)[1:3] in wanted
+        except OSError:
+            return False
+
+    fd_max = getrlimit(RLIMIT_NOFILE)[1]
+    return [ fd for fd in xrange(fd_max) if fd_wanted(fd) ]
+
 def get_status_from_doorpi(argv):
     try:
         print "called: %s" % argv
@@ -91,16 +98,42 @@ def main_as_daemon(argv):
     else:
         parsed_arguments = parse_arguments(argv)
 
-    logger.info(metadata.epilog)
-    logger.debug('loaded with arguments: %s', str(argv))
+    logrotating = logging.handlers.RotatingFileHandler(
+          DEFAULT_LOG_FILENAME,
+          maxBytes=25000,
+          backupCount=5
+    )
+    logrotating.setLevel(TRACE_LEVEL)
+    logrotating.setFormatter(logging.Formatter(LOG_FORMAT))
+    logrotating.doRollover()
+
+    logging.getLogger('').addHandler(logrotating)
+    add_trace_level()
+    logger = logging.getLogger(__name__)
+
+    print metadata.epilog
 
     from daemon import runner
+    from daemon.runner import DaemonRunnerInvalidActionError
+    from daemon.runner import DaemonRunnerStartFailureError
+    from daemon.runner import DaemonRunnerStopFailureError
+
     daemon_runner = runner.DaemonRunner(doorpi.DoorPi(parsed_arguments))
     #This ensures that the logger file handle does not get closed during daemonization
-    #daemon_runner.daemon_context.files_preserve=[log_rotating.stream]
-    try:                        daemon_runner.do_action()
-    except Exception as ex:     logger.exception("Exception NameError: %s", ex)
-    finally:                    doorpi.DoorPi().destroy()
+    daemon_runner.daemon_context.files_preserve = files_preserve_by_path(DEFAULT_LOG_FILENAME)
+    try:
+        logger.info('loaded with arguments: %s', str(argv))
+        daemon_runner.do_action()
+    except DaemonRunnerStopFailureError as ex:
+        print "can't stop DoorPi daemon - maybe not running? (Message: %s)" % ex
+        return 1
+    except DaemonRunnerStopFailureError as ex:
+        print "can't start DoorPi daemon - maybe is running already? (Message: %s)" % ex
+        return 1
+    except Exception as ex:
+        print "Exception NameError: %s" % ex
+    finally:
+        doorpi.DoorPi().destroy()
 
     return 0
 
@@ -108,6 +141,13 @@ def main_as_application(argv):
 
     parsed_arguments = parse_arguments(argv)
 
+    console = logging.StreamHandler()
+    console.setLevel(TRACE_LEVEL)
+    console.setFormatter(logging.Formatter(LOG_FORMAT))
+    logging.getLogger('').addHandler(console)
+
+    add_trace_level()
+    logger = logging.getLogger(__name__)
     logger.info(metadata.epilog)
     logger.debug('loaded with arguments: %s', str(argv))
 
@@ -128,5 +168,4 @@ def entry_point():
         raise SystemExit(main_as_application(sys.argv))
 
 if __name__ == '__main__':
-    logger = init_logger()
     entry_point()

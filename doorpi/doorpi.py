@@ -227,7 +227,7 @@ class DoorPi(object):
                 str(self.additional_informations.get(key)).replace("\r\n", "<br />")
             )+'</i>'
             infos_as_html += '</td></tr>'
-        infos_as_html = '</table>'
+        infos_as_html += '</table>'
 
         parsed_string = parsed_string.replace(
             "!INFOS!",

@@ -75,6 +75,9 @@ class DoorPi(object):
     @property
     def shutdown(self): return self.__shutdown
 
+    @property
+    def base_path(self): return metadata.base_path
+
     def __init__(self, parsed_arguments = None):
         logger.debug("__init__")
 
@@ -185,6 +188,7 @@ class DoorPi(object):
         #self.event_handler.fire_event_asynchron_daemon('StartWebserverDaemon', __name__)
 
         logger.info('DoorPi started successfully')
+        logger.info('BasePath is %s', self.base_path)
         server_address = ('', 8080)
         httpd = BaseHTTPServer.HTTPServer(server_address, WebService)
         try: httpd.serve_forever()
@@ -232,6 +236,11 @@ class DoorPi(object):
         parsed_string = parsed_string.replace(
             "!INFOS!",
             infos_as_html
+        )
+
+        parsed_string = parsed_string.replace(
+            "!BASEPATH!",
+            self.base_path
         )
 
         for key in self.additional_informations.keys():

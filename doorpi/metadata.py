@@ -3,6 +3,7 @@
 
 Information describing the project.
 """
+import os
 
 # The package name, which is also the "UNIX name" for the project.
 package = 'doorpi'
@@ -29,3 +30,5 @@ URL: <{url}>
         version=version,
         authors='\n'.join(author_strings),
         url=url)
+
+base_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))

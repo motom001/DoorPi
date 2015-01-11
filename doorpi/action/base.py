@@ -10,6 +10,7 @@ import importlib
 
 class SingleAction:
     action_name = None
+    single_fire_action = False
 
     @property
     def name(self):
@@ -56,11 +57,11 @@ class SingleAction:
 
     @staticmethod
     def from_string(config_string):
-        #try:
+        try:
             action_name = config_string.split(':', 1)[0]
             return importlib.import_module('action.SingleActions.'+action_name).get(
                 config_string.split(':', 1)[1]
             )
-        #except:
-        #    logger.exception('error while creating SingleAction from config string: %s',config_string)
-        #    return None
+        except:
+            logger.exception('error while creating SingleAction from config string: %s',config_string)
+            return None

@@ -40,18 +40,18 @@ def time_tick(time_unit):
         if datetime_now.hour % 2 is 0: doorpi.DoorPi().event_handler('OnTimeHourEvenNumber', __name__)
         else: doorpi.DoorPi().event_handler('OnTimeHourUnevenNumber', __name__)
 
-    for hour in HOUR_RANGE:
-        if hour is datetime_now.hour: doorpi.DoorPi().event_handler('OnTimeHour%s'%hour, __name__)
+        for hour in HOUR_RANGE:
+            if hour is datetime_now.hour: doorpi.DoorPi().event_handler('OnTimeHour%s'%hour, __name__)
 
     if datetime_now.minute != datetime_past.minute:
         doorpi.DoorPi().event_handler('OnTimeMinute', __name__)
         if datetime_now.minute % 2 is 0: doorpi.DoorPi().event_handler('OnTimeMinuteEvenNumber', __name__)
         else: doorpi.DoorPi().event_handler('OnTimeMinuteUnevenNumber', __name__)
 
-    for minute in MINUTE_RANGE:
-        if minute is datetime_now.minute: doorpi.DoorPi().event_handler('OnTimeMinute%s'%minute, __name__)
+        for minute in MINUTE_RANGE:
+            if minute is datetime_now.minute: doorpi.DoorPi().event_handler('OnTimeMinute%s'%minute, __name__)
 
-    if datetime_now.minute % 5 is 0: doorpi.DoorPi().event_handler('OnTimeMinuteEvery5', __name__)
+        if datetime_now.minute % 5 is 0: doorpi.DoorPi().event_handler('OnTimeMinuteEvery5', __name__)
 
     if datetime_now.second % 2 is 0: doorpi.DoorPi().event_handler('OnTimeSecondEvenNumber', __name__)
     else: doorpi.DoorPi().event_handler('OnTimeSecondUnevenNumber', __name__)

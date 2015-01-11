@@ -23,6 +23,8 @@ class EnumWaitSignalsClass():
     asyncron = False
 EnumWaitSignals = EnumWaitSignalsClass()
 
+ONTIME = 'OnTime'
+
 class EventHandler:
 
     __Sources = [] # Auflistung Sources
@@ -60,32 +62,31 @@ class EventHandler:
         self.__destroy = True
 
     def register_source(self, event_source):
-        logger.trace("register Eventsource %s ",event_source)
         if event_source not in self.__Sources:
             self.__Sources.append(event_source)
             logger.debug("event_source %s was added", event_source)
-        else:
-            logger.debug("event_source %s was allready known", event_source)
 
     def register_event(self, event_name, event_source):
-        logger.trace("register Event %s from %s ", event_name, event_source)
+        silent = ONTIME in event_name
+        if not silent: logger.trace("register Event %s from %s ", event_name, event_source)
         self.register_source(event_source)
         if event_name not in self.__Events:
             self.__Events[event_name] = [event_source]
-            logger.trace("added event_name %s an register source %s", event_name, event_source)
+            if not silent: logger.trace("added event_name %s an register source %s", event_name, event_source)
         elif event_source not in self.__Events[event_name]:
             self.__Events[event_name].append(event_source)
-            logger.trace("added event_source %s to existing event %s", event_source, event_name)
-        else: logger.trace("nothing to do - event %s from source %s is allready known", event_name, event_source)
+            if not silent: logger.trace("added event_source %s to existing event %s", event_source, event_name)
+        else:
+            if not silent: logger.trace("nothing to do - event %s from source %s is allready known", event_name, event_source)
 
     def fire_event(self, event_name, event_source, syncron = False, kwargs = None):
-        if syncron: return self.fire_event_synchron(event_name, event_source, kwargs)
-        else: return self.fire_event_asynchron(event_name, event_source, kwargs)
+        if syncron is False: return self.fire_event_asynchron(event_name, event_source, kwargs)
+        else: return self.fire_event_synchron(event_name, event_source, kwargs)
 
     def fire_event_asynchron(self, event_name, event_source, kwargs = None):
-        silent = 'OnTime' in event_name
+        silent = ONTIME in event_name
         if not silent: logger.trace("fire Event %s from %s asyncron", event_name, event_source)
-        threading.Thread(
+        return threading.Thread(
             target = self.fire_event_synchron,
             args = (event_name, event_source, kwargs),
             name = "%s from %s" % (event_name, event_source)
@@ -103,7 +104,7 @@ class EventHandler:
 
     def fire_event_synchron(self, event_name, event_source, kwargs = None):
         if self.__destroy: return False
-        silent = 'OnTime' in event_name
+        silent = ONTIME in event_name
 
         if event_source not in self.__Sources:
             logger.warning('source %s unknown - skip fire_event %s', event_source, event_name)
@@ -131,8 +132,11 @@ class EventHandler:
         if not silent: logger.debug("fire for event %s this actions %s ", event_name, self.__Actions[event_name])
         for action in self.__Actions[event_name]:
             if not silent: logger.trace("try to fire action %s", action)
-            try: action.run(silent)
-            except: logger.exception("error while fire action %s for event_name %s", action, event_name)
+            try:
+                action.run(silent)
+                if action.single_fire_action is True: del action
+            except:
+                logger.exception("error while fire action %s for event_name %s", action, event_name)
         if not silent: logger.trace("finished fire_event for event_name %s", event_name)
         self.__additional_informations[event_name]['last_finished'] = str(time.time())
         return True
@@ -175,6 +179,10 @@ class EventHandler:
             logger.error('action_object is None')
             return False
 
+        if 'single_fire_action' in kwargs.keys() and kwargs['single_fire_action'] is True:
+            action_object.single_fire_action = True
+            del kwargs['single_fire_action']
+
         if event_name in self.__Actions:
             self.__Actions[event_name].append(action_object)
             logger.trace("action %s was added to event %s", action_object, event_name)
@@ -182,4 +190,4 @@ class EventHandler:
             self.__Actions[event_name] = [action_object]
             logger.trace("action %s was added to new evententry %s", action_object, event_name)
 
-    __call__ = fire_event
+    __call__ = fire_event_asynchron

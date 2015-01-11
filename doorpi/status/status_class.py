@@ -89,7 +89,27 @@ class DoorPiStatus(object):
             status['current_call'] = sipphone.current_call.dump_status().split('\n')
             status['level_incoming'] = sipphone.lib.conf_get_signal_level(0)[0] # tx_level
             status['level_outgoing'] = sipphone.lib.conf_get_signal_level(0)[1] # rx_level
+
+            call_info = sipphone.current_call.info()
+            status['CallInfo'] = {}
+            status['CallInfo']['account'] = str(call_info.account)
+            status['CallInfo']['call_time'] = call_info.call_time
+            status['CallInfo']['conf_slot'] = call_info.conf_slot
+            status['CallInfo']['contact'] = call_info.contact
+            status['CallInfo']['last_code'] = call_info.last_code
+            status['CallInfo']['last_reason'] = call_info.last_reason
+            status['CallInfo']['media_dir'] = call_info.media_dir
+            status['CallInfo']['media_state'] = call_info.media_state
+            status['CallInfo']['remote_contact'] = call_info.remote_contact
+            status['CallInfo']['remote_uri'] = call_info.remote_uri
+            status['CallInfo']['role'] = call_info.role
+            status['CallInfo']['sip_call_id'] = call_info.sip_call_id
+            status['CallInfo']['state'] = call_info.state
+            status['CallInfo']['state_text'] = call_info.state_text
+            status['CallInfo']['total_time'] = call_info.total_time
+            status['CallInfo']['uri'] = call_info.uri
         else:
+            status['CallInfo'] = {}
             status['current_call'] = None
             status['level_incoming'] = None
             status['level_outgoing'] = None

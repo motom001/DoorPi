@@ -85,7 +85,7 @@ def get_status_from_doorpi(argv):
         import urllib2
         print urllib2.urlopen("http://127.0.0.1:8080/status?json&output=all").read()
     except Exception as ex:
-        print ex
+        print "couln't get Status (Message: %s)" % ex
         return 1
     return 0
 
@@ -105,7 +105,6 @@ def main_as_daemon(argv):
     )
     logrotating.setLevel(TRACE_LEVEL)
     logrotating.setFormatter(logging.Formatter(LOG_FORMAT))
-    logrotating.doRollover()
 
     logging.getLogger('').addHandler(logrotating)
     add_trace_level()

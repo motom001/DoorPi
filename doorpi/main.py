@@ -15,6 +15,8 @@ TRACE_LEVEL = 5
 LOG_FORMAT = '%(asctime)s [%(levelname)s]  \t[%(name)s] %(message)s'
 DEFAULT_LOG_FILENAME = '/var/log/doorpi/doorpi.log'
 
+logger = logging.getLogger(__name__)
+
 def add_trace_level():
     logging.addLevelName(TRACE_LEVEL, "TRACE")
     def trace(self, message, *args, **kws):
@@ -107,8 +109,6 @@ def main_as_daemon(argv):
     logrotating.setFormatter(logging.Formatter(LOG_FORMAT))
 
     logging.getLogger('').addHandler(logrotating)
-    add_trace_level()
-    logger = logging.getLogger(__name__)
 
     print metadata.epilog
 
@@ -139,14 +139,6 @@ def main_as_daemon(argv):
 def main_as_application(argv):
 
     parsed_arguments = parse_arguments(argv)
-
-    console = logging.StreamHandler()
-    console.setLevel(TRACE_LEVEL)
-    console.setFormatter(logging.Formatter(LOG_FORMAT))
-    logging.getLogger('').addHandler(console)
-
-    add_trace_level()
-    logger = logging.getLogger(__name__)
     logger.info(metadata.epilog)
     logger.debug('loaded with arguments: %s', str(argv))
 
@@ -167,4 +159,5 @@ def entry_point():
         raise SystemExit(main_as_application(sys.argv))
 
 if __name__ == '__main__':
+    init_logger()
     entry_point()

@@ -79,17 +79,13 @@ class DoorPi(object):
     def base_path(self): return metadata.base_path
 
     def __init__(self, parsed_arguments = None):
-        logger.debug("__init__")
-
         self.__parsed_arguments = parsed_arguments
         # for start as daemon - if start as app it will not matter to load this vars
         self.stdin_path = '/dev/null'
-        self.stdout_path = '/var/log/doorpi/stdout.log'
-        self.stderr_path = '/var/log/doorpi/stderr.log'
+        self.stdout_path = '/dev/null'
+        self.stderr_path = '/dev/null'
         self.pidfile_path =  '/var/run/doorpi.pid'
         self.pidfile_timeout = 5
-
-        logger.debug("finished __init__")
 
     def prepare(self, parsed_arguments):
         logger.debug("prepare")
@@ -136,10 +132,11 @@ class DoorPi(object):
         return self
 
     def __del__(self):
-        self.destroy()
+        return self.destroy()
 
     def destroy(self):
-        logger.debug("destroy")
+        if self.__prepared is not True: return False
+        logger.debug('destroy')
         self.__shutdown = True
         if self.event_handler is not None:
             self.event_handler.fire_event_synchron('OnShutdown', __name__)
@@ -178,20 +175,24 @@ class DoorPi(object):
         logger.debug("run")
         if not self.__prepared: self.prepare(self.__parsed_arguments)
 
-        self.event_handler.fire_event_synchron('OnStartup', __name__)
-
         self.event_handler.register_event('OnTimeSecond', __name__)
         self.event_handler.register_action('OnTimeSecond', 'sleep:1')
         self.event_handler.register_action('OnTimeSecond', 'time_tick:second')
         self.event_handler.fire_event_asynchron('OnTimeSecond', __name__)
 
-        #self.event_handler.register_event('StartWebserverDaemon', __name__)
-        #self.event_handler.register_action('StartWebserverDaemon', SingleAction(run_webservice))
-        #self.event_handler.fire_event_asynchron_daemon('StartWebserverDaemon', __name__)
+        self.event_handler.fire_event_synchron('OnStartup', __name__)
 
         logger.info('DoorPi started successfully')
         logger.info('BasePath is %s', self.base_path)
-        server_address = ('', 8080)
+
+        webserver_server = self.config.get('Webserver', 'Server', '')
+        webserver_port = self.config.get_int('Webserver', 'Port', 8080)
+
+        logger.info('start now webserver')
+        server_address = (
+            webserver_server,
+            webserver_port
+        )
         httpd = BaseHTTPServer.HTTPServer(server_address, WebService)
         try: httpd.serve_forever()
         except: httpd.socket.close()

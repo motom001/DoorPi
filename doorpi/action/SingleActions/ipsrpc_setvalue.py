@@ -37,24 +37,19 @@ def ips_rpc_fire(method, config, *parameters):
 def ips_rpc_check_variable_exists(key, config = None):
     if config is None: config = ips_rpc_create_config()
     response = ips_rpc_fire('IPS_VariableExists', config, key)
-    logger.debug('ips_rpc_check_variable_exists: %s', response.json)
-    return response.json.result.lower() in ['true']
+    return response.json['result']
 
 def ips_rpc_get_variable_type(key, config = None):
     if config is None: config = ips_rpc_create_config()
     response = ips_rpc_fire('IPS_GetVariable', config, key)
-    logger.debug('ips_rpc_get_variable_type: %s', response.json)
-    try:
-        return response.json.VariableValue.ValueType
-    except:
-        return None
+    return response.json['result']['VariableValue']['ValueType']
 
 def ips_rpc_set_value(key, value, config = None):
     try:
         if config is None: config = ips_rpc_create_config()
-        if ips_rpc_check_variable_exists(key, config) is not True: return False
+        if ips_rpc_check_variable_exists(key, config) is not True: raise Exception("var %s doesn't exist", key)
         type = ips_rpc_get_variable_type(key, config)
-        if type is None: return False
+        if type is None: raise Exception("type of var %s couldn't find", key)
         # http://www.ip-symcon.de/service/dokumentation/befehlsreferenz/variablenverwaltung/ips-getvariable/
         # Variablentyp (0: Boolean, 1: Integer, 2: Float, 3: String)
         elif type == 0:
@@ -64,8 +59,7 @@ def ips_rpc_set_value(key, value, config = None):
         elif type == 2: value = float(value)
         elif type == 3: value = str(value)
         else: value = str(value)
-        response = ips_rpc_fire('SetValue', config, key, value)
-        logger.debug('ips_rpc_set_value: %s', response.json)
+        ips_rpc_fire('SetValue', config, key, value)
     except Exception as ex:
         logger.exception("couldn't send IpsRpc (%s)", ex)
         return False

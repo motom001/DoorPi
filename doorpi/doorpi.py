@@ -209,7 +209,6 @@ class DoorPi(object):
             logger.info("Error: failed to import settings module ({})".format(exc))
             return None
         else:
-            logger.debug("use keyboard 'PiFace'")
             return sipphone.by_pjsua.Pjsua()
 
     def parse_string(self, input_string):

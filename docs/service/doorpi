@@ -12,13 +12,13 @@
 # Description: VoIP Intercom Service DoorPi
 ### END INIT INFO
 
-DOORPI_PATH=/home/pi/doorpi
+DOORPI_PATH=/home/doorpi
 
 case "$1" in
   start)
     echo "Starting server"
     # Start the daemon
-    python $DOORPI_PATH/doorpi/main.py start --configfile /home/pi/doorpi/conf/doorpi.cfg
+    python $DOORPI_PATH/doorpi/main.py start --configfile $DOORPI_PATH/conf/doorpi.cfg
     ;;
   stop)
     echo "Stopping server"
@@ -37,7 +37,7 @@ case "$1" in
     ;;
   *)
     # Refuse to do other stuff
-    echo "Usage: /etc/init.d/doorpi.sh {start|stop|restart|status}"
+    echo "Usage: $0 {start|stop|restart|status}"
     exit 1
     ;; esac
 exit 0

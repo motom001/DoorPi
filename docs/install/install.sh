@@ -5,9 +5,9 @@
 
 ### CONFIG - START
 InstallTo=/home/DoorPI
-NeedPacks="wget git-core alsaplayer-alsa python2.7-dev python-daemon python-lockfile python-pifacedigitalio python-simplejson python-requests libv4l-dev libx264-dev libssl-dev libasound2-dev"
-pjsip="http://www.pjsip.org/release/2.1/pjproject-2.1.tar.bz2"
-VER='0.4'
+NeedPacks="wget git-core python2.7-dev python-daemon python-pifacedigitalio libv4l-dev libx264-dev libssl-dev libasound2-dev"
+pjsip="http://www.pjsip.org/release/2.3/pjproject-2.3.tar.bz2"
+VER='0.4.1'
 ### CONFIG - END
 
 # internal variables

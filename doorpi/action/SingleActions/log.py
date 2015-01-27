@@ -6,21 +6,17 @@ logger = logging.getLogger(__name__)
 logger.debug("%s loaded", __name__)
 
 from action.base import SingleAction
-import doorpi
 
-
-def call(Number):
-    import pjsua
-    doorpi.DoorPi().sipphone.lib.thread_register('call_theard')
-    doorpi.DoorPi().sipphone.call(Number)
+def log(message):
+    logger.debug(message)
 
 def get(parameters):
     parameter_list = parameters.split(',')
     if len(parameter_list) is not 1: return None
 
-    number = parameter_list[0]
+    message = parameter_list[0]
 
-    return CallAction(call, Number = number)
+    return LogAction(log, message)
 
-class CallAction(SingleAction):
+class LogAction(SingleAction):
     pass

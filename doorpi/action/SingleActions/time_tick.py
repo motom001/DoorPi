@@ -13,9 +13,11 @@ import doorpi
 MINUTE_RANGE = range(0, 60)
 HOUR_RANGE = range(0, 23)
 
-def time_tick(time_unit):
+last_time_tick_second = 0
+
+def time_tick(last_tick):
     timestamp_now = time.time()
-    timestamp_past = timestamp_now - 1
+    timestamp_past = last_time_tick_second
 
     datetime_now = datetime.datetime.fromtimestamp(timestamp_now)
     datetime_past = datetime.datetime.fromtimestamp(timestamp_past)
@@ -53,10 +55,14 @@ def time_tick(time_unit):
 
         if datetime_now.minute % 5 is 0: doorpi.DoorPi().event_handler('OnTimeMinuteEvery5', __name__)
 
-    if datetime_now.second % 2 is 0: doorpi.DoorPi().event_handler('OnTimeSecondEvenNumber', __name__)
-    else: doorpi.DoorPi().event_handler('OnTimeSecondUnevenNumber', __name__)
+    if datetime_now.second != datetime_past.second:
+        doorpi.DoorPi().event_handler('OnTimeSecond', __name__)
+        if datetime_now.second % 2 is 0: doorpi.DoorPi().event_handler('OnTimeSecondEvenNumber', __name__)
+        else: doorpi.DoorPi().event_handler('OnTimeSecondUnevenNumber', __name__)
 
-    doorpi.DoorPi().event_handler('OnTimeSecond', __name__)
+    global last_time_tick_second
+    last_time_tick_second = timestamp_now
+    #doorpi.DoorPi().event_handler('OnTimeTick', __name__)
 
     return True
 
@@ -64,7 +70,7 @@ def get(parameters):
     parameter_list = parameters.split(',')
     if len(parameter_list) is not 1: return None
 
-    time_unit = parameter_list[0]
+    last_tick = parameter_list[0]
 
     # register timebased_events
     doorpi.DoorPi().event_handler.register_event('OnTimeSecond', __name__)
@@ -100,7 +106,7 @@ def get(parameters):
     doorpi.DoorPi().event_handler.register_event('OnTimeYearEvenNumber', __name__)
     doorpi.DoorPi().event_handler.register_event('OnTimeYearUnevenNumber', __name__)
 
-    return TimeTickAction(time_tick, time_unit)
+    return TimeTickAction(time_tick, last_tick)
 
 class TimeTickAction(SingleAction):
     pass

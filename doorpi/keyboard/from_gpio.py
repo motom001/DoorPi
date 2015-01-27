@@ -81,7 +81,7 @@ class GPIO(KeyboardAbstractBaseClass):
         for input_pin in self.__InputPins:
             if self.status_inputpin(input_pin):
                 pressed_keys.append(input_pin)
-        logger.trace("pressed_keys are %s" % pressed_keys)
+        #logger.trace("pressed_keys are %s" % pressed_keys)
         return pressed_keys
 
     @property

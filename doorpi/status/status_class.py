@@ -53,7 +53,7 @@ class DoorPiStatus(object):
         return status
 
     def collect_status_from_sipphone(self, sipphone):
-        if sipphone.name is 'pjsua': return self.collect_status_from_sipphone_pjsua(sipphone)
+        if sipphone.name is 'PJSUA wrapper': return self.collect_status_from_sipphone_pjsua(sipphone)
         else: return {'sipphone': 'not detected'}
 
     def collect_status_from_sipphone_pjsua(self, sipphone):

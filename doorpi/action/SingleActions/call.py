@@ -11,7 +11,6 @@ import doorpi
 
 def call(Number):
     import pjsua
-    doorpi.DoorPi().sipphone.lib.thread_register('call_theard')
     doorpi.DoorPi().sipphone.call(Number)
 
 def get(parameters):

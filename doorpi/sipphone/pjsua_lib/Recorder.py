@@ -5,6 +5,8 @@ import logging
 logger = logging.getLogger(__name__)
 logger.debug("%s loaded", __name__)
 
+import os
+
 from doorpi import DoorPi
 
 class PjsuaRecorder:
@@ -45,6 +47,10 @@ class PjsuaRecorder:
 
         if self.__record_filename is not '':
             self.__last_record_filename = DoorPi().parse_string(self.__record_filename)
+            if not os.path.exists(os.path.dirname(self.__last_record_filename)):
+                logger.info('Path %s not exists - create it now', os.path.dirname(self.__last_record_filename))
+                os.makedirs(os.path.dirname(self.__last_record_filename))
+
             logger.debug('start record to %s', self.__last_record_filename)
             self.__rec_id = DoorPi().sipphone.lib.create_recorder(self.__last_record_filename)
             self.__slot_id = DoorPi().sipphone.lib.recorder_get_slot(self.__rec_id)

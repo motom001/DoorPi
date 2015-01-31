@@ -2,8 +2,7 @@
 
 [DE]
 ==========
-Da mein Englisch nicht immer das Beste ist, starte ich die Beschreibung in Deutsch und hoffe auf Hilfe bei der Übersetzung.
-Ziel des Projektes ist die Steuerung einer Türsprechanlage mittels einem Raspberry Pi (Model B) und PiFace. 
+Ziel des Projektes ist die Steuerung einer Türsprechanlage mittels einem Minicomputer wie dem Raspberry Pi und optional PiFace. 
 Dazu habe ich das Projekt "door-berry" von "mpodroid" auf github gefunden (https://github.com/mpodroid/door-berry). 
 Seit einiger Zeit findet dort aber keine Entwicklung mehr statt und es ist dort noch recht viel zu tun. Aber als Vorlage war es perfekt.
 

@@ -30,19 +30,21 @@ class SipPhoneCallCallBack(pj.CallCallback):
         DoorPi().event_handler.register_event('AfterCallStateConnect', __name__)
         DoorPi().event_handler.register_event('OnCallStateDisconnect', __name__)
         DoorPi().event_handler.register_event('AfterCallStateDisconnect', __name__)
+        DoorPi().event_handler.register_event('OnCallStart', __name__)
         DoorPi().event_handler.register_event('OnDTMF', __name__)
 
         self.__possible_DTMF = DoorPi().config.get_keys('DTMF')
         for DTMF in self.__possible_DTMF:
             DoorPi().event_handler.register_event('OnDTMF_'+DTMF, __name__)
 
-        pj.CallCallback.__init__(self, call)
+        DoorPi().event_handler('OnCallStart', __name__)
 
     def __del__(self):
         self.destroy()
 
     def destroy(self):
         logger.debug("destroy")
+        self.call.hang_up()
         DoorPi().event_handler.unregister_source(__name__, True)
 
     def on_media_state(self):
@@ -66,26 +68,12 @@ class SipPhoneCallCallBack(pj.CallCallback):
             })
             # disconnect player with dialtone
             call_slot = self.call.info().conf_slot
-            if DoorPi().sipphone.get_player_id() is not None:
-                logger.trace('disconnect player')
-                self.Lib.conf_disconnect(self.Lib.player_get_slot(DoorPi().sipphone.get_player_id()), 0)
-
-            # connect to recorder
-            rec_slot = DoorPi().sipphone.get_recorder_slot()
-            record_while_dialing = DoorPi().sipphone.record_while_dialing
-            recorder_filename = DoorPi().sipphone.parsed_recorder_filename
-            if record_while_dialing is False and recorder_filename is not None:
-                DoorPi().sipphone.stop_recorder_if_exists()
-                rec_slot = DoorPi().sipphone.get_new_recorder_as_slot()
-                self.Lib.conf_connect(0, rec_slot) # connect doorstation to recorder, if not exists
-            if rec_slot is not None:
-                self.Lib.conf_connect(call_slot, rec_slot) # connect phone to existing recorder
 
             # Connect the call to each side
             self.Lib.conf_connect(call_slot, 0)
             self.Lib.conf_connect(0, call_slot)
             logger.debug("conneted Media to call_slot %s",str(call_slot))
-            DoorPi().sipphone.set_current_call(self.call)
+
             DoorPi().event_handler('AfterCallStateConnect', __name__, {
                 'remote_uri': self.call.info().remote_uri
             })
@@ -97,9 +85,7 @@ class SipPhoneCallCallBack(pj.CallCallback):
             call_slot = self.call.info().conf_slot
             self.Lib.conf_disconnect(call_slot, 0)
             self.Lib.conf_disconnect(0, call_slot)
-            DoorPi().sipphone.stop_recorder_if_exists()
             logger.debug("disconneted Media from call_slot %s",str(call_slot))
-            DoorPi().sipphone.set_current_call(None)
             DoorPi().event_handler('AfterCallStateDisconnect', __name__, {
                 'remote_uri': self.call.info().remote_uri
             })
@@ -110,7 +96,9 @@ class SipPhoneCallCallBack(pj.CallCallback):
         self.__DTMF += str(digits)
         for DTMF in self.__possible_DTMF:
             if self.__DTMF.endswith(DTMF[1:-1]):
+                print '------------------------------------ davor ------------------------------------'
                 DoorPi().event_handler('OnDTMF_'+DTMF+'', __name__, {
-                    'remote_uri': self.call.info().remote_uri,
-                    'DTMF': self.__DTMF
+                    'remote_uri': str(self.call.info().remote_uri),
+                    'DTMF': str(self.__DTMF)
                 })
+                print '------------------------------------ danach ------------------------------------'

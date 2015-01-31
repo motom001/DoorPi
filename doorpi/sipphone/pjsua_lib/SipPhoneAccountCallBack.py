@@ -15,6 +15,8 @@ import SipPhoneCallCallBack
 
 class SipPhoneAccountCallBack(pj.AccountCallback):
 
+    ready = False
+
     def __init__(self, account = None):
         logger.debug("__init__")
         pj.AccountCallback.__init__(self, account)
@@ -27,14 +29,18 @@ class SipPhoneAccountCallBack(pj.AccountCallback):
         DoorPi().event_handler.register_event('AfterCallIncomming', __name__)
         DoorPi().event_handler.register_event('OnCallReject', __name__)
         DoorPi().event_handler.register_event('AfterCallReject', __name__)
+        DoorPi().event_handler.register_event('AfterAccountRegState', __name__)
 
     def __del__(self):
         self.destroy()
-        pj.AccountCallback.__del__(self)
 
     def destroy(self):
         logger.debug("destroy")
         DoorPi().event_handler.unregister_source(__name__, True)
+
+    def on_reg_state(self):
+        DoorPi().event_handler('AfterAccountRegState', __name__)
+        #logger.debug(self.account.info.reg_status)
 
     def on_incoming_call(self, call):
         # SIP-Status-Codes: http://de.wikipedia.org/wiki/SIP-Status-Codes

@@ -120,14 +120,18 @@ class EventHandler:
             return "no actions for this event"
 
         if kwargs is None: kwargs = {}
+        start_time = time.time()
         kwargs.update({
-            'last_fired': str(time.time()),
+            'last_fired': str(start_time),
             'last_fired_from': event_source
         })
 
         self.__additional_informations[event_name] = kwargs
         if 'last_finished' not in self.__additional_informations[event_name]:
             self.__additional_informations[event_name]['last_finished'] = None
+
+        if 'last_duration' not in self.__additional_informations[event_name]:
+            self.__additional_informations[event_name]['last_duration'] = None
 
         if not silent: logger.debug("fire for event %s this actions %s ", event_name, self.__Actions[event_name])
         for action in self.__Actions[event_name]:
@@ -139,6 +143,7 @@ class EventHandler:
                 logger.exception("error while fire action %s for event_name %s", action, event_name)
         if not silent: logger.trace("finished fire_event for event_name %s", event_name)
         self.__additional_informations[event_name]['last_finished'] = str(time.time())
+        self.__additional_informations[event_name]['last_duration'] = str(time.time() - start_time)
         return True
 
     def unregister_event(self, event_name, event_source, delete_source_when_empty = True):

@@ -36,14 +36,6 @@ class ConfigObject():
             raise Exception("No valid configfile found at "+configfile)
         return ConfigObject(config)
 
-    def get_boolean(self, section, key, default = False):
-        value = self.get(section, key, str(default))
-        return value.lower() in ['true', 'yes', 'ja', '1']
-
-    def get(self, section, key, default = ''):
-        logger.trace("get for key %s in section %s (default: %s)", key, section, default)
-        return self.get_string(section, key, default)
-
     def get_string(self, section, key, default = ''):
         logger.trace("get_string for key %s in section %s (default: %s)", key, section, default)
         if section in self.__sections:
@@ -61,11 +53,26 @@ class ConfigObject():
         logger.trace("return default '%s", default)
         return default
 
-    def get_int(self, section, key, default = -1):
-        logger.trace("get_int for key %s in section %s (default: %s)", key, section, default)
+    def get_float(self, section, key, default = -1):
+        logger.trace("get_float for key %s in section %s (default: %s)", key, section, default)
+        value = self.get_string(section, key)
+        if value is not '': return float(value)
+        else: return default
+
+    def get_integer(self, section, key, default = -1):
+        logger.trace("get_integer for key %s in section %s (default: %s)", key, section, default)
         value = self.get_string(section, key)
         if value is not '': return int(value)
         else: return default
+
+    def get_boolean(self, section, key, default = False):
+        value = self.get(section, key, str(default))
+        return value.lower() in ['true', 'yes', 'ja', '1']
+
+    def get_list(self, section, key, default = False):
+        value = self.get(section, key, default)
+        #TODO: value to list und Abfrage ob List leer - dann default
+        return default
 
     def get_sections(self, filter = ''):
         logger.trace("get_sections")
@@ -89,3 +96,7 @@ class ConfigObject():
             for key, value in config.items(section):
                 if key.startswith(';') or key.startswith('#'): continue
                 self.__sections[section][str(key)] = str(value)
+
+    get = get_string
+    get_bool = get_boolean
+    get_int = get_integer

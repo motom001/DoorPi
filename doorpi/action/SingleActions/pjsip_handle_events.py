@@ -9,7 +9,7 @@ from action.base import SingleAction
 import doorpi
 
 
-def make_call(timeout):
+def pjsip_handle_events(timeout):
     import pjsua
     doorpi.DoorPi().sipphone.lib.thread_register('pjsip_handle_events')
     doorpi.DoorPi().sipphone.lib.handle_events(timeout)
@@ -20,7 +20,7 @@ def get(parameters):
 
     timeout = int(parameter_list[0])
 
-    return MakeCallAction(make_call, timeout = timeout)
+    return PjsipHandleEventsAction(pjsip_handle_events, timeout = timeout)
 
-class MakeCallAction(SingleAction):
+class PjsipHandleEventsAction(SingleAction):
     pass

@@ -11,6 +11,8 @@ import argparse
 import time # used by: DoorPi.run
 import os # used by: DoorPi.load_config
 
+#from math import abs
+
 import datetime # used by: parse_string
 import cgi # used by: parse_string
 import threading
@@ -18,6 +20,7 @@ import BaseHTTPServer
 
 import metadata
 from keyboard.KeyboardInterface import load_keyboard
+from sipphone.SipphoneInterface import load_sipphone
 from conf.config_object import ConfigObject
 from action.handler import EventHandler
 from status.status_class import DoorPiStatus
@@ -87,6 +90,8 @@ class DoorPi(object):
         self.pidfile_path =  '/var/run/doorpi.pid'
         self.pidfile_timeout = 5
 
+        self.__last_tick = time.time()
+
     def prepare(self, parsed_arguments):
         logger.debug("prepare")
         logger.debug("givven arguments argv: %s", parsed_arguments)
@@ -99,7 +104,7 @@ class DoorPi(object):
         self.__config = ConfigObject.load_config(parsed_arguments.configfile)
         self.__keyboard = load_keyboard()
         logger.debug('Keyboard is now %s', self.keyboard.name)
-        self.__sipphone = self.detect_sipphone()
+        self.__sipphone = load_sipphone()
         self.sipphone.start()
 
         #register own events
@@ -135,81 +140,67 @@ class DoorPi(object):
         return self.destroy()
 
     def destroy(self):
-        if self.__prepared is not True: return False
-        logger.debug('destroy')
-        self.__shutdown = True
-        if self.event_handler is not None:
-            self.event_handler.fire_event_synchron('OnShutdown', __name__)
-            self.event_handler.unregister_source(__name__, True)
-            self.event_handler.destroy()
+        try:
+            if self.__prepared is not True: return False
+            logger.debug('destroy')
+            self.__shutdown = True
+            if self.event_handler is not None:
+                self.event_handler.fire_event_synchron('OnShutdown', __name__)
 
-        if self.sipphone is not None: self.sipphone.destroy()
+            if self.keyboard is not None:
+                self.keyboard.destroy()
 
-        if self.event_handler is not None:
-            timeout = 2
-            if not self.event_handler.idle:
-                logger.warning('wait for event_handler with runnig theards %s', self.event_handler.threads[1:])
-            while not self.event_handler.idle and timeout > 0:
-                logger.info('wait %s seconds for theards %s', timeout, self.event_handler.threads[1:])
-                time.sleep(0.5)
-                timeout -= 0.5
+            if self.sipphone is not None:
+                self.sipphone.destroy()
 
-            if timeout <= 0:
-                logger.error("waiting for theards timed out - there are still theards: %s", self.event_handler.threads[1:])
+            if self.event_handler is not None:
+                timeout = 2
+                if not self.event_handler.idle:
+                    logger.warning('wait for event_handler with runnig theards %s', self.event_handler.threads[1:])
+                while not self.event_handler.idle and timeout > 0:
+                    logger.info('wait %s seconds for theards %s', timeout, self.event_handler.threads[1:])
+                    time.sleep(0.5)
+                    timeout -= 0.5
 
-        if self.keyboard is not None:
-            self.keyboard.destroy()
+                if timeout <= 0:
+                    logger.error("waiting for theards timed out - there are still theards: %s", self.event_handler.threads[1:])
+
+            if self.event_handler is not None:
+                self.event_handler.unregister_source(__name__, True)
+                self.event_handler.destroy()
+                self.__event_handler = None
+                del self.__event_handler
+
             self.__keyboard = None
             del self.__keyboard
 
-        if self.sipphone is not None:
-            self.sipphone.destroy()
             self.__sipphone = None
             del self.__sipphone
 
-        if self.event_handler is not None:
-            self.__event_handler = None
-            del self.__event_handler
+        except Exception as ex:
+            logger.exception(ex)
+
 
     def run(self):
         logger.debug("run")
         if not self.__prepared: self.prepare(self.__parsed_arguments)
 
-        self.event_handler.register_event('OnTimeSecond', __name__)
-        self.event_handler.register_action('OnTimeSecond', 'sleep:1')
-        self.event_handler.register_action('OnTimeSecond', 'time_tick:second')
-        self.event_handler.fire_event_asynchron('OnTimeSecond', __name__)
+        self.event_handler.register_event('OnTimeTick', __name__)
+        #self.event_handler.register_action('OnTimeTick', 'sleep:0.1')
+        self.event_handler.register_action('OnTimeTick', 'time_tick:!last_tick!')
+        self.event_handler.fire_event_asynchron('OnTimeTick', __name__)
 
         self.event_handler.fire_event_synchron('OnStartup', __name__)
 
         logger.info('DoorPi started successfully')
         logger.info('BasePath is %s', self.base_path)
 
-        webserver_server = self.config.get('Webserver', 'Server', '')
-        webserver_port = self.config.get_int('Webserver', 'Port', 8080)
-
-        logger.info('start now webserver')
-        server_address = (
-            webserver_server,
-            webserver_port
-        )
-        httpd = BaseHTTPServer.HTTPServer(server_address, WebService)
-        try: httpd.serve_forever()
-        except: httpd.socket.close()
+        while True:
+            self.__last_tick = time.time()
+            self.__event_handler.fire_event_synchron('OnTimeTick', __name__)
+            time.sleep(0.4)
 
         return self
-
-    #TODO: wie keyboard auslagern!
-    def detect_sipphone(self):
-        # find installed keyboards by import of libraries
-        try:
-            import pjsua
-            import sipphone.by_pjsua
-        except ImportError as exc:
-            logger.info("Error: failed to import settings module ({})".format(exc))
-            return None
-        else:
-            return sipphone.by_pjsua.Pjsua()
 
     def parse_string(self, input_string):
         parsed_string = datetime.datetime.now().strftime(input_string)
@@ -218,11 +209,6 @@ class DoorPi(object):
             self.additional_informations['LastKey'] = "NotSetYet"
         else:
             self.additional_informations['LastKey'] = str(self.keyboard.last_key)
-
-        parsed_string = parsed_string.replace(
-            "!INFOS_PLAIN!",
-            str(self.additional_informations)
-        )
 
         infos_as_html = '<table>'
         for key in self.additional_informations.keys():
@@ -235,15 +221,18 @@ class DoorPi(object):
             infos_as_html += '</td></tr>'
         infos_as_html += '</table>'
 
-        parsed_string = parsed_string.replace(
-            "!INFOS!",
-            infos_as_html
-        )
+        mapping_table = {
+            'INFOS_PLAIN':      str(self.additional_informations),
+            'INFOS':            infos_as_html,
+            'BASEPATH':         self.base_path,
+            'last_tick':        str(self.__last_tick)
+        }
 
-        parsed_string = parsed_string.replace(
-            "!BASEPATH!",
-            self.base_path
-        )
+        for key in mapping_table.keys():
+            parsed_string = parsed_string.replace(
+                "!"+key+"!",
+                mapping_table[key]
+            )
 
         for key in self.additional_informations.keys():
             parsed_string = parsed_string.replace(

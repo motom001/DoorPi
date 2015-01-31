@@ -12,7 +12,7 @@
 # Description: VoIP Intercom Service DoorPi
 ### END INIT INFO
 
-DOORPI_PATH=/home/doorpi
+DOORPI_PATH=/home/DoorPI
 
 case "$1" in
   start)

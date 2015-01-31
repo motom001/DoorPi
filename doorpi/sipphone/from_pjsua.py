@@ -136,6 +136,7 @@ class Pjsua(SipphoneAbstractBaseClass):
 
         logger.debug("call(%s)",str(number))
         DoorPi().event_handler('OnSipPhoneMakeCall', __name__)
+        self.lib.thread_register('call_theard')
 
         sip_server = DoorPi().config.get("sipphone", "server")
 

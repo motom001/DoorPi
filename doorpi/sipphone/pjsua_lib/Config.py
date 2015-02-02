@@ -8,10 +8,19 @@ logger.debug("%s loaded", __name__)
 import doorpi
 import pjsua as pj
 
-SIPPHONE_SECTION = 'sipphone'
+SIPPHONE_SECTION = 'SIP-Phone'
 conf = doorpi.DoorPi().config
 
-def pj_log(self, level, msg, length):
+def call_timeout():
+    return conf.get_int(SIPPHONE_SECTION, 'call_timeout', 30)
+
+def max_call_time():
+    return conf.get_int(SIPPHONE_SECTION, 'max_call_time', 120)
+
+def sipphone_server():
+    return conf.get(SIPPHONE_SECTION, 'server')
+
+def pj_log(level, msg, length):
     # beautify output - remove date / time an line break
     length_date_and_time = len('15:22:35.695 ')
     length_linebreak = len('\n')

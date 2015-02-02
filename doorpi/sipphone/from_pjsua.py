@@ -29,9 +29,6 @@ class Pjsua(SipphoneAbstractBaseClass):
     def lib(self): return self.__Lib
 
     @property
-    def current_call(self): return self.__current_call
-
-    @property
     def recorder(self): return self.__recorder
 
     @property
@@ -52,10 +49,13 @@ class Pjsua(SipphoneAbstractBaseClass):
 
         self.__Lib = None
         self.__account = None
-        self.__current_call = None
-        self.__current_callcallback = None
+        self.current_call = None
+        self.current_callcallback = None
+        self.current_account_callback = None
         self.__recorder = None
         self.__player = None
+
+        self.call_timeout = 30
 
     def start(self):
         DoorPi().event_handler('OnSipPhoneCreate', __name__)
@@ -82,16 +82,19 @@ class Pjsua(SipphoneAbstractBaseClass):
 
         DoorPi().event_handler.register_action(
             event_name      = 'OnTimeTick',
-            action_object   = 'pjsip_handle_events:50',
-            timeout         = 50
+            action_object   = 'pjsip_handle_events:50'
         )
 
         logger.debug("init Acc")
+        self.current_account_callback = pjsua_lib.SipPhoneAccountCallBack.SipPhoneAccountCallBack()
         self.__account = self.__Lib.create_account(
             acc_config  = pjsua_lib.Config.create_AccountConfig(),
             set_default = True,
-            cb          = pjsua_lib.SipPhoneAccountCallBack.SipPhoneAccountCallBack()
+            cb          = self.current_account_callback
         )
+
+        self.call_timeout = pjsua_lib.Config.call_timeout()
+        self.max_call_time = pjsua_lib.Config.max_call_time()
 
         DoorPi().event_handler('OnSipPhoneStart', __name__)
 
@@ -131,6 +134,29 @@ class Pjsua(SipphoneAbstractBaseClass):
             DoorPi().event_handler.unregister_source(__name__, True)
             return
 
+    def self_check(self, timeout):
+        self.lib.thread_register('pjsip_handle_events')
+
+        self.lib.handle_events(timeout)
+
+        if self.current_call is not None:
+            if self.current_call.is_valid() is 0:
+                del self.current_callcallback
+                self.current_callcallback = None
+                del self.current_call
+                self.current_call = None
+
+            try:
+                if self.current_call.info().call_time == 0 \
+                and self.current_call.info().total_time > self.call_timeout:
+                    logger.info("call timeout - hangup current call after %s seconds", self.call_timeout)
+                    self.current_call.hangup()
+
+                if self.current_call.info().call_time > self.max_call_time:
+                    logger.info("max call time reached - hangup current call after %s seconds", self.max_call_time)
+                    self.current_call.hangup()
+            except:
+                pass
 
     def call(self, number):
 
@@ -138,18 +164,25 @@ class Pjsua(SipphoneAbstractBaseClass):
         DoorPi().event_handler('OnSipPhoneMakeCall', __name__)
         self.lib.thread_register('call_theard')
 
-        sip_server = DoorPi().config.get("sipphone", "server")
+        sip_server = pjsua_lib.Config.sipphone_server()
+        sip_uri = "sip:"+str(number)+"@"+str(sip_server)
+
+        if self.lib.verify_sip_url(sip_uri) is not 0:
+            logger.warning("SIP-URI %s is not valid (Errorcode: %s)", sip_uri, self.lib.verify_sip_url(sip_uri))
+            return false
+        else:
+            logger.debug("SIP-URI %s is valid", sip_uri)
 
         if not self.current_call or self.current_call.is_valid() is 0:
             lck = self.lib.auto_lock()
-            self.__current_callcallback = pjsua_lib.SipPhoneCallCallBack.SipPhoneCallCallBack()
-            self.__current_call = self.__account.make_call(
-                "sip:"+number+"@"+sip_server,
-                self.__current_callcallback
+            self.current_callcallback = pjsua_lib.SipPhoneCallCallBack.SipPhoneCallCallBack()
+            self.current_call = self.__account.make_call(
+                sip_uri,
+                self.current_callcallback
             )
             del lck
 
-        elif self.current_call.info().remote_uri == "sip:"+number+"@"+sip_server:
+        elif self.current_call.info().remote_uri == sip_uri:
             if self.current_call.info().total_time <= 1:
                 logger.debug("same call again while call is running since %s seconds? -> skip", str(self.current_call.info().total_time))
             else:

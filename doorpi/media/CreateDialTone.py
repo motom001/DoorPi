@@ -12,6 +12,7 @@ def generate_dial_tone(filename = 'dialtone.wav', volume = 75):
     freq = 440 # of cycles per second (Hz) (frequency of the sine waves)
     data = array.array('h') # signed short integer (-32768 to 32767) data
     sampleRate = 44100 # of samples per second (standard)
+    #sampleRate = 2048 # of samples per second (standard)
     numChan = 1 # of channels (1: mono, 2: stereo)
     dataSize = 2 # 2 bytes because of using signed short integers => bit depth = 16
     numSamplesPerCyc = int(sampleRate / freq)

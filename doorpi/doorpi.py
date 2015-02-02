@@ -113,8 +113,10 @@ class DoorPi(object):
 
         # register eventbased actions from configfile
         for event_section in self.config.get_sections('EVENT_'):
+            logger.info("founded EVENT_ section '%s' in configfile", event_section)
             event_name = event_section[len('EVENT_'):]
             for action in sorted(self.config.get_keys(event_section)):
+                logger.info("register action '%s' for event '%s'", action, event_name)
                 self.event_handler.register_action(event_name, self.config.get(event_section, action))
 
         # register actions for inputpins
@@ -128,8 +130,8 @@ class DoorPi(object):
             self.event_handler.register_action('OnDTMF_'+DTMF, self.config.get(section_name, DTMF))
 
         # register keep_alive_led
-        is_alive_led = self.config.get('DoorPi', 'is_alive_led', None)
-        if is_alive_led is not None:
+        is_alive_led = self.config.get('DoorPi', 'is_alive_led', '')
+        if is_alive_led is not '':
             self.event_handler.register_action('OnTimeSecondEvenNumber', 'out:%s,HIGH,False'%is_alive_led)
             self.event_handler.register_action('OnTimeSecondUnevenNumber', 'out:%s,LOW,False'%is_alive_led)
 
@@ -203,7 +205,7 @@ class DoorPi(object):
         return self
 
     def parse_string(self, input_string):
-        parsed_string = datetime.datetime.now().strftime(input_string)
+        parsed_string = datetime.datetime.now().strftime(str(input_string))
 
         if self.keyboard is None or self.keyboard.last_key is None:
             self.additional_informations['LastKey'] = "NotSetYet"
@@ -227,6 +229,9 @@ class DoorPi(object):
             'BASEPATH':         self.base_path,
             'last_tick':        str(self.__last_tick)
         }
+
+        for output_pin in self.config.get_keys('OutputPins', log = False):
+            mapping_table[self.config.get('OutputPins', output_pin, log = False)] = output_pin
 
         for key in mapping_table.keys():
             parsed_string = parsed_string.replace(

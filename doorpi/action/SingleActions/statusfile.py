@@ -7,11 +7,24 @@ logger.debug("%s loaded", __name__)
 
 from action.base import SingleAction
 import doorpi
+from status.status_class import DoorPiStatus
 
 def write_statusfile(filename, filecontent):
     try:
         filename = doorpi.DoorPi().parse_string(filename)
         filecontent = doorpi.DoorPi().parse_string(filecontent)
+
+        try:
+            doorpi_status = DoorPiStatus(doorpi.DoorPi())
+            doorpi_status_json_beautified = doorpi_status.json_beautified
+            doorpi_status_json = doorpi_status.json
+
+            filecontent = filecontent.replace('!DOORPI_STATUS.json_beautified!', doorpi_status_json_beautified)
+            filecontent = filecontent.replace('!DOORPI_STATUS.json!', doorpi_status_json)
+
+        except:
+            logger.exception("error while crete status")
+
     except:
         logger.warning("while action statusfile - error to get DoorPi().parse_string")
         return False

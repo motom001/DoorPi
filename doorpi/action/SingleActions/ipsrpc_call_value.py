@@ -60,8 +60,9 @@ def ips_rpc_call_phonenumber_from_variable(key, config = None):
         elif type is not 3: raise Exception("phonenumber from var %s is not a string", key)
 
         phonenumber = ips_rpc_get_variable_value(key, config)
-        from doorpi.actions.SingleActions.call import make_call
-        make_call(phonenumber)
+        logger.debug("fire now sipphone.call for this number: %s", phonenumber)
+        doorpi.DoorPi().sipphone.call(phonenumber)
+        logger.debug("finished sipphone.call for this number: %s", phonenumber)
 
     except Exception as ex:
         logger.exception("couldn't get phonenumber from IpsRpc (%s)", ex)

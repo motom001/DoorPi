@@ -101,6 +101,10 @@ class GPIO(KeyboardAbstractBaseClass):
         return self.__OutputStatus[pin]
 
     def set_output(self, pin, value, log_output = True):
+        parsed_pin = doorpi.DoorPi().parse_string("!"+str(pin)+"!")
+        if parsed_pin != "!"+str(pin)+"!":
+            pin = parsed_pin
+
         pin = int(pin)
         value = str(value).lower() in ['1', 'high', 'on']
         log_output = str(log_output).lower() in ['true', 'log', '1', 'on']

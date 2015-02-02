@@ -53,13 +53,18 @@ class DoorPiStatus(object):
         return status
 
     def collect_status_from_sipphone(self, sipphone):
-        if sipphone.name is 'PJSUA wrapper': return self.collect_status_from_sipphone_pjsua(sipphone)
+        if sipphone.name == 'PJSUA wrapper': return self.collect_status_from_sipphone_pjsua(sipphone)
         else: return {'sipphone': 'not detected'}
 
     def collect_status_from_sipphone_pjsua(self, sipphone):
         status = {}
 
-        status['parsed_recorder_filename'] = sipphone.parsed_recorder_filename
+        sipphone.lib.thread_register('status_thread')
+
+        status['record_filename'] = sipphone.recorder.record_filename
+        status['last_recorder_filename'] = sipphone.recorder.last_record_filename
+
+        status['player_filename'] = sipphone.player.player_filename
 
         codecs = {}
         for codec in sipphone.lib.enum_codecs():

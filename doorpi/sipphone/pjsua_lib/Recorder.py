@@ -8,8 +8,9 @@ logger.debug("%s loaded", __name__)
 import os
 
 from doorpi import DoorPi
+from sipphone.AbstractBaseClass import RecorderAbstractBaseClass
 
-class PjsuaRecorder:
+class PjsuaRecorder(RecorderAbstractBaseClass):
 
     __rec_id = None
     __slot_id = None
@@ -25,11 +26,15 @@ class PjsuaRecorder:
 
     def __init__(self):
         self.__record_filename = DoorPi().config.get('DoorPi', 'records', '')
+        if self.__record_filename is '':
+            logger.debug('no recorder found in config at section DoorPi and key records')
+            return
+
         DoorPi().event_handler.register_event('OnRecorderStarted', __name__)
         DoorPi().event_handler.register_event('OnRecorderStopped', __name__)
         DoorPi().event_handler.register_event('OnRecorderCreated', __name__)
 
-        if DoorPi().config.get_bool('DoorPi', 'records', 'True') is True:
+        if DoorPi().config.get_bool('DoorPi', 'record_while_dialing', 'False') is True:
             DoorPi().event_handler.register_action('OnSipPhoneMakeCall', self.start)
         else:
             DoorPi().event_handler.register_action('OnCallStateConnect', self.start)
@@ -39,6 +44,9 @@ class PjsuaRecorder:
         DoorPi().event_handler('OnRecorderCreated', __name__)
 
     def start(self):
+        if self.__record_filename is '':
+            return
+
         if self.__rec_id is not None:
             logger.trace('recorder allready created as rec_id %s and record to %s', self.__rec_id, self.last_record_filename)
             return

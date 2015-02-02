@@ -11,11 +11,11 @@ import time
 import os
 import pjsua as pj
 from doorpi import DoorPi
-import SipPhoneCallCallBack
+from SipPhoneCallCallBack import SipPhoneCallCallBack as CallCallback
 
 class SipPhoneAccountCallBack(pj.AccountCallback):
 
-    ready = False
+    sem = None
 
     def __init__(self, account = None):
         logger.debug("__init__")
@@ -38,9 +38,23 @@ class SipPhoneAccountCallBack(pj.AccountCallback):
         logger.debug("destroy")
         DoorPi().event_handler.unregister_source(__name__, True)
 
+    def wait(self):
+        self.sem = threading.Semaphore(0)
+        self.sem.acquire()
+
     def on_reg_state(self):
+        if self.sem:
+            if self.account.info().reg_status >= 200:
+                self.sem.release()
+
         DoorPi().event_handler('AfterAccountRegState', __name__)
         #logger.debug(self.account.info.reg_status)
+
+    def answer_call(self, call):
+        DoorPi().sipphone.current_callcallback = CallCallback()
+        call.set_callback(DoorPi().sipphone.current_callcallback)
+        DoorPi().sipphone.current_call = call
+        DoorPi().sipphone.current_call.answer(code = 200)
 
     def on_incoming_call(self, call):
         # SIP-Status-Codes: http://de.wikipedia.org/wiki/SIP-Status-Codes
@@ -53,7 +67,9 @@ class SipPhoneAccountCallBack(pj.AccountCallback):
         logger.info("Incoming call from %s", str(call.info().remote_uri))
         DoorPi().event_handler('BeforeCallIncoming', __name__)
 
-        if DoorPi().sipphone.current_call is not None:
+        call.answer(180)
+
+        if DoorPi().sipphone.current_call is not None and DoorPi().sipphone.current_call.is_valid():
             logger.debug("Incoming call while another call is active")
             logger.debug("- incoming.remote_uri: %s", call.info().remote_uri)
             logger.debug("- current.remote_uri : %s", DoorPi().sipphone.current_call.info().remote_uri)
@@ -62,10 +78,7 @@ class SipPhoneAccountCallBack(pj.AccountCallback):
                 logger.info("Current call is incoming call - quit current and connect to incoming. Maybe connection-Reset?")
                 DoorPi().event_handler('OnCallReconnect', __name__, {'remote_uri': call.info().remote_uri})
                 DoorPi().current_call.hangup()
-                call.answer(code = 200)
-                DoorPi().sipphone.set_current_call(call)
-                DoorPi().sipphone.set_current_callback(SipPhoneCallCallBack.SipPhoneCallCallBack())
-                call.set_callback(DoorPi().sipphone.current_callback)
+                self.answer_call(call)
                 DoorPi().event_handler('AfterCallReconnect', __name__)
                 return
             else:
@@ -78,9 +91,7 @@ class SipPhoneAccountCallBack(pj.AccountCallback):
         if DoorPi().sipphone.is_admin_number(call.info().remote_uri):
             logger.debug("Incoming Call from trusted admin number %s -> autoanswer", call.info().remote_uri)
             DoorPi().event_handler('OnCallIncomming', __name__, {'remote_uri': call.info().remote_uri})
-            call.answer(code = 200)
-            call.set_callback(SipPhoneCallCallBack.SipPhoneCallCallBack())
-            DoorPi().sipphone.set_current_call(call)
+            self.answer_call(call)
             DoorPi().event_handler('AfterCallIncomming', __name__)
             return
         else:

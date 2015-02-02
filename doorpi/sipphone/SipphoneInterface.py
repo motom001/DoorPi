@@ -16,10 +16,8 @@ def get_sipphones():
 
 def load_sipphone():
     sipphones = get_sipphones()
-    config_value = doorpi.DoorPi().config.get('sipphone', 'typ', 'none')
-    if config_value is "none":
-        logger.warning('section SIP-Phone is deprecated. Use sipphone instead.')
-        config_value = doorpi.DoorPi().config.get('SIP-Phone', 'sipphonetyp', 'autodetect')
+    config_value = doorpi.DoorPi().config.get('SIP-Phone', 'sipphonetyp', 'autodetect')
+
     if config_value not in sipphones.keys():
         raise Exception(
             'Sipphone {0} in configfile is unknown. - possible values are {1}'.format(

@@ -44,7 +44,6 @@ class SipPhoneCallCallBack(pj.CallCallback):
 
     def destroy(self):
         logger.debug("destroy")
-        self.call.hang_up()
         DoorPi().event_handler.unregister_source(__name__, True)
 
     def on_media_state(self):
@@ -66,9 +65,7 @@ class SipPhoneCallCallBack(pj.CallCallback):
             DoorPi().event_handler('OnCallStateConnect', __name__, {
                 'remote_uri': self.call.info().remote_uri
             })
-            # disconnect player with dialtone
             call_slot = self.call.info().conf_slot
-
             # Connect the call to each side
             self.Lib.conf_connect(call_slot, 0)
             self.Lib.conf_connect(0, call_slot)

@@ -8,11 +8,8 @@ logger.debug("%s loaded", __name__)
 from action.base import SingleAction
 import doorpi
 
-
 def pjsip_handle_events(timeout):
-    import pjsua
-    doorpi.DoorPi().sipphone.lib.thread_register('pjsip_handle_events')
-    doorpi.DoorPi().sipphone.lib.handle_events(timeout)
+    doorpi.DoorPi().sipphone.self_check(timeout)
 
 def get(parameters):
     parameter_list = parameters.split(',')

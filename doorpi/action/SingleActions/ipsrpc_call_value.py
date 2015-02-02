@@ -46,7 +46,7 @@ def ips_rpc_get_variable_type(key, config = None):
 
 def ips_rpc_get_variable_value(key, config = None):
     if config is None: config = ips_rpc_create_config()
-    response = ips_rpc_fire('GetValue', key, config)
+    response = ips_rpc_fire('GetValue', config, key)
     return response.json['result']
 
 def ips_rpc_call_phonenumber_from_variable(key, config = None):

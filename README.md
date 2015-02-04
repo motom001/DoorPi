@@ -1,5 +1,3 @@
-
-
 [DE]
 ==========
 Ziel des Projektes ist die Steuerung einer Türsprechanlage mittels einem Minicomputer wie dem Raspberry Pi und optional PiFace / GPIO.
@@ -29,33 +27,27 @@ Weiter Informationen zur Installation und Konfiguration von DoorPi sind im Wiki 
 [EN]
 ==========
 
-The aim of the project is to connect the intercom with a RaspberryPi (model B) and PiFace. On github I found something similar, the project “door-berry” of “mpodroid” (https://github.com/mpodroid/door-berry).
+The aim of the project is to connect the intercom with mini-computer and a optional PiFace or GPIO with a relais. 
+On github I found something similar, the project “door-berry” of “mpodroid” (https://github.com/mpodroid/door-berry).
+There isn't any development since a long time and there was still a lot to do, but it was perfect as template.
 
-Intercom Requirements:
+DoorPi should be a cheap alternative to install a doorcom, instead of expensive commercial products.
+With DoorPi all phones should ring if someone rings the bell and you can communicate with the people outside.
 
-Service:
--	24/7 at the hall
--	stable
+Requirements:
+* Raspberry Pi with installed Raspbian OS
+* optional PiFace
+* Soundcard
+* SD card
 
-Gateway Input
--	Connection to an existent intercom (3 push-buttons, microphone, speaker)
--	Piloting the door opener (12V DC) by pressing a key at the phone (e.g. #)
+Possibilities with DoorPi
+* Connection to an existing intercom (e.g. 3 push-buttons, microphone, speaker)
+* Triggering diffent actos  (like door opener, light) by pushing a button on the phone (e.g. #)
+* Kommunikation mittels VoIP mit einem VoIP Server (z.B. FritzBox, Asterix)
+* every push-button should dial a different phone number
 
-Gateway Output:
--	Communication via VoIP (AVM Fritz!Box 7490 as VoIP-Server)
--	every push-button should dial a different phone number
+The connection to the different actors should be realised by PiFace or a relais connected to the GPIOs.
 
-My composition:
--	house with 3 floors – a hirer per floor 
--	all hirer share one internet and phone mainline
--	Fritz!Box 7490 at second floor
-  o	Works as Router, Switch, DECT-base and Wi-Fi Access-Point
-  o	Even as VoIP-Server (http://en.avm.de/nc/service/fritzbox/fritzbox-7490/knowledge-base/publication/show/42/)
--	First floor: Fritz!Powerline 546E Powerline-adapter as Wi-Fi Access-Point (connected by patch-cable)
--	Ground: Fritz!Box 7270
-  o	Works as Switch, DECT-base, Wi-Fi Access-Point
-  o	Even as power-connection for the RaspberryPi
-  o	Replaced Fritz!Box power supply (12 DC, 2,5A)
-  o	Power cord split to 7270, relais of PiFace for door opener and lightning of intercom
--	RaspberryPi (model B) with PiFace in a large case
--	USB-soundcard (http://www.conrad.de/ce/de/product/872300)
+You can install the project with the DoorPi.sh script (http://raspberrypi.roxxs.org/EPSPi/packs/DoorPI.sh)
+
+You can find further information for installation and cnofiguration in the DoorPi wiki: https://github.com/motom001/DoorPi/wiki

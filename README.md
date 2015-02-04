@@ -26,10 +26,11 @@ Weiter Informationen zur Installation und Konfiguration von DoorPi sind im Wiki 
 
 *Link zu Foren mit DoorPi Threads:*
 
-http://www.forum-raspberrypi.de/Thread-haussteuerung-doorpi-voip-wechselsprechanlage-tuersprechanlage
-http://www.ip-symcon.de/forum/threads/26739-DoorPI-VoIP-Door-Intercomstation-with-Raspberry-Pi
-http://raspberrycenter.de/forum/doorpi-voip-wechselsprechanlage-tuersprechanlage
-http://forum.lemaker.org/thread-11817-1-1-_pass_doorpi_voip_door_intercomstation_with_bananapi.html
+* http://www.forum-raspberrypi.de/Thread-haussteuerung-doorpi-voip-wechselsprechanlage-tuersprechanlage
+* http://www.ip-symcon.de/forum/threads/26739-DoorPI-VoIP-Door-Intercomstation-with-Raspberry-Pi
+* http://raspberrycenter.de/forum/doorpi-voip-wechselsprechanlage-tuersprechanlage
+* http://forum.lemaker.org/thread-11817-1-1-_pass_doorpi_voip_door_intercomstation_with_bananapi.html
+
 
 [EN]
 ==========

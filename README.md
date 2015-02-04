@@ -29,7 +29,9 @@ Weiter Informationen zur Installation und Konfiguration von DoorPi sind im Wiki 
 [EN]
 ==========
 
-The aim of the project is to connect the intercom with a RaspberryPi (model B) and PiFace. On github I found something similar, the project “door-berry” of “mpodroid” (https://github.com/mpodroid/door-berry).
+The aim of the project is to connect the intercom with mini-computer and a optional PiFace or GPIO with a relais. 
+On github I found something similar, the project “door-berry” of “mpodroid” (https://github.com/mpodroid/door-berry).
+There isn't any development since a long time and there was still a lot to do, but it was perfect as template.
 
 Intercom Requirements:
 

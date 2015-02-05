@@ -51,7 +51,7 @@ Requirements:
 Possibilities with DoorPi
 * Connection to an existing intercom (e.g. 3 push-buttons, microphone, speaker)
 * Triggering diffent actos  (like door opener, light) by pushing a button on the phone (e.g. #)
-* Kommunikation mittels VoIP mit einem VoIP Server (z.B. FritzBox, Asterix)
+* Communication with an existing VoIP-server (e.g. FritzBox, Asterix)
 * every push-button should dial a different phone number
 
 The connection to the different actors should be realised by PiFace or a relais connected to the GPIOs.

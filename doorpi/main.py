@@ -17,6 +17,8 @@ DEFAULT_LOG_FILENAME = '/var/log/doorpi/doorpi.log'
 
 logger = logging.getLogger(__name__)
 
+log_level = logging.INFO
+
 def add_trace_level():
     logging.addLevelName(TRACE_LEVEL, "TRACE")
     def trace(self, message, *args, **kws):
@@ -24,10 +26,20 @@ def add_trace_level():
         self._log(TRACE_LEVEL, message, args, **kws)
     logging.Logger.trace = trace
 
-def init_logger():
+def init_logger(arguments):
     add_trace_level()
+
+    global log_level
+    print "Hier Info"
+    if '--debug' in arguments:
+        print "HIER Debug"
+        log_level = logging.DEBUG
+    if '--trace' in arguments:
+        print "HIER Trace"
+        log_level = TRACE_LEVEL
+
     logging.basicConfig(
-        level = TRACE_LEVEL,
+        level = log_level,
         format = LOG_FORMAT
     #    datefmt = '%m/%d/%Y %I:%M:%S %p'
     )
@@ -49,7 +61,8 @@ def parse_arguments(argv):
         action='version',
         version='{0} {1}'.format(metadata.project, metadata.version)
     )
-
+    arg_parser.add_argument('--debug', action="store_true")
+    arg_parser.add_argument('--trace', action="store_true")
     arg_parser.add_argument(
         '--configfile',
         help='configfile for DoorPi - https://github.com/motom001/DoorPi/wiki for more help',
@@ -110,7 +123,8 @@ def main_as_daemon(argv):
           maxBytes=25000,
           backupCount=5
     )
-    logrotating.setLevel(TRACE_LEVEL)
+    global log_level
+    logrotating.setLevel(log_level)
     logrotating.setFormatter(logging.Formatter(LOG_FORMAT))
 
     logging.getLogger('').addHandler(logrotating)
@@ -168,5 +182,5 @@ def entry_point():
         raise SystemExit(main_as_application(sys.argv))
 
 if __name__ == '__main__':
-    init_logger()
+    init_logger(sys.argv)
     entry_point()

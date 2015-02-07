@@ -52,16 +52,21 @@ def parse_arguments(argv):
 
     arg_parser.add_argument(
         '--configfile',
-        help='configfile for DoorPi',
+        help='configfile for DoorPi - https://github.com/motom001/DoorPi/wiki for more help',
         type=file,
         dest='configfile',
         required = True
     )
-
-    if  len(sys.argv) > 1 and sys.argv[1] in ['start', 'stop', 'restart', 'status']: # running as daemon? cut first argument
-        return  arg_parser.parse_args(args=sys.argv[2:])
-    else:
-        return  arg_parser.parse_args(args=sys.argv[1:])
+    try:
+        if  len(sys.argv) > 1 and sys.argv[1] in ['start', 'stop', 'restart', 'status']: # running as daemon? cut first argument
+            return  arg_parser.parse_args(args=sys.argv[2:])
+        else:
+            return  arg_parser.parse_args(args=sys.argv[1:])
+    except IOError:
+        print "EXCEPTION: configfile does not exists or is not readable"
+        print "please refer to the DoorPi wiki for more information "
+        print "<https://github.com/motom001/DoorPi/wiki>"
+        raise SystemExit(1)
 
 def files_preserve_by_path(*paths):
     wanted=[]
@@ -150,6 +155,10 @@ def main_as_application(argv):
     return 0
 
 def entry_point():
+    if os.geteuid() != 0:
+        print "DoorPi must run with sudo rights"
+        raise SystemExit(1)
+
     """Zero-argument entry point for use with setuptools/distribute."""
     if len(sys.argv) > 1 and sys.argv[1] in ['status']:
         raise SystemExit(get_status_from_doorpi(sys.argv))

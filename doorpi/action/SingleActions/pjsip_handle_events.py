@@ -9,7 +9,11 @@ from action.base import SingleAction
 import doorpi
 
 def pjsip_handle_events(timeout):
-    doorpi.DoorPi().sipphone.self_check(timeout)
+    try:
+        doorpi.DoorPi().sipphone.self_check(timeout)
+    except KeyboardInterrupt:
+        logger.info("Detected KeyboardInterrupt and shutdown DoorPi")
+        doorpi.DoorPi().destroy()
 
 def get(parameters):
     parameter_list = parameters.split(',')

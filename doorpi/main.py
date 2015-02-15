@@ -30,13 +30,8 @@ def init_logger(arguments):
     add_trace_level()
 
     global log_level
-    print "Hier Info"
-    if '--debug' in arguments:
-        print "HIER Debug"
-        log_level = logging.DEBUG
-    if '--trace' in arguments:
-        print "HIER Trace"
-        log_level = TRACE_LEVEL
+    if '--debug' in arguments: log_level = logging.DEBUG
+    if '--trace' in arguments: log_level = TRACE_LEVEL
 
     logging.basicConfig(
         level = log_level,

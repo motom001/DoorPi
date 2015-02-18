@@ -1,1 +1,0 @@
-here you can found the DoorPi-Installer

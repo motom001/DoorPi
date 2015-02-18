@@ -26,6 +26,7 @@ def add_trace_level():
         self._log(TRACE_LEVEL, message, args, **kws)
     logging.Logger.trace = trace
 
+
 def init_logger(arguments):
     add_trace_level()
 
@@ -140,7 +141,7 @@ def main_as_daemon(argv):
     except DaemonRunnerStopFailureError as ex:
         print "can't stop DoorPi daemon - maybe not running? (Message: %s)" % ex
         return 1
-    except DaemonRunnerStopFailureError as ex:
+    except DaemonRunnerStartFailureError as ex:
         print "can't start DoorPi daemon - maybe is running already? (Message: %s)" % ex
         return 1
     except Exception as ex:

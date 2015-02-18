@@ -125,10 +125,12 @@ class DoorPiStatus(object):
         status = {}
         status['name'] = keyboard.name
 
-        inputpins = {}
+        input_status = {}
         for input_pin in keyboard.input_pins:
-            inputpins[input_pin] = keyboard.status_inputpin(input_pin)
-        status['inputpins'] = inputpins
+            input_status[input_pin] = keyboard.status_input(input_pin)
+        status['input_status'] = input_status
+
+        status['output_status'] = keyboard.output_status
 
         #TODO: Status vom Output abfragen und übersichtlich darstellen als dict
         #outputpins = {}

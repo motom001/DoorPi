@@ -74,18 +74,20 @@ class ConfigObject():
         return default
 
     def get_sections(self, filter = '', log = True):
-        if log: logger.trace("get_sections")
         return_list = []
         for section in self.__sections:
             if filter in section: return_list.append(section)
+        if log: logger.trace("get_sections returns %s", return_list)
         return return_list
 
     def get_keys(self, section, filter = '', log = True):
-        if log: logger.trace("get_keys for section %s", section)
         return_list = []
-        if section not in self.__sections: return []
-        for key in self.__sections[section]:
-            if filter in key: return_list.append(key)
+        if section not in self.__sections:
+            logging.warning("section %s not found in configfile", section)
+        else:
+            for key in self.__sections[section]:
+                if filter in key: return_list.append(key)
+        if log: logger.trace("get_keys for section %s returns %s", section, return_list)
         return return_list
 
     def get_from_config(self, config, log = True):

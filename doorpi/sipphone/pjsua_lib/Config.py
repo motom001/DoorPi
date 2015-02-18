@@ -29,7 +29,7 @@ def pj_log(level, msg, length):
     if level == 4: logger.trace("PJ: %s",msg)
     if level == 3: logger.debug("PJ: %s",msg)
     if level == 2: logger.info("PJ: %s",msg)
-    if level == 1: logger.waring("PJ: %s",msg)
+    if level == 1: logger.warning("PJ: %s",msg)
     if level == 0: logger.error("PJ: %s",msg)
 
 def create_UAConfig():

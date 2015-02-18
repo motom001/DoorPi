@@ -9,7 +9,7 @@ import os
 package = 'doorpi'
 project = "VoIP Door-Intercomstation with Raspberry Pi"
 project_no_spaces = project.replace(' ', '')
-version = '2.0 RC2 #56'
+version = '2.0 #57'
 description = 'provide intercomstation to the doorstation by VoIP'
 
 authors = ['Thomas Meissner']

@@ -7,95 +7,57 @@ logger.debug("%s loaded", __name__)
 
 import pifacedigitalio as p # basic for PiFce control
 
-from keyboard.AbstractBaseClass import KeyboardAbstractBaseClass
+from keyboard.AbstractBaseClass import KeyboardAbstractBaseClass, HIGH_LEVEL, LOW_LEVEL
 import doorpi
 
+def get(**kwargs): return PiFace(**kwargs)
 class PiFace(KeyboardAbstractBaseClass):
-    name = 'PiFace Keyboard'
 
-    __InputPins = []
-    @property
-    def input_pins(self): return self.__InputPins
-    __OutputPins = []
-    @property
-    def output_pins(self): return self.__OutputPins
-
-    __OutputStatus = {}
-    @property
-    def output_status(self): return self.__OutputStatus
-
-    __last_key = None
-    @property
-    def last_key(self):
-        return self.__last_key
-
-    __listener = None
-
-    def __init__(self, input_pins = [0,1,2,3,4,5,6,7], output_pins = [0,1,2,3,4,5,6,7]):
-        logger.debug("__init__(input_pins = %s, output_pins = %s)", input_pins, output_pins)
-        self.__InputPins = map(int, input_pins)
-        self.__OutputPins = map(int, output_pins)
-
-        doorpi.DoorPi().event_handler.register_event('OnKeyPressed', __name__)
+    def __init__(self, input_pins, output_pins, keyboard_name, bouncetime, polarity = 0, *args, **kwargs):
+        logger.debug("__init__(input_pins = %s, output_pins = %s, polarity = %s)",
+                     input_pins, output_pins, polarity)
+        self.keyboard_name = keyboard_name
+        self._polarity = polarity
+        self._InputPins = map(int, input_pins)
+        self._OutputPins = map(int, output_pins)
 
         p.init()
 
         self.__listener = p.InputEventListener()
-        for input_pin in self.__InputPins:
-            self.__listener.register(input_pin, p.IODIR_ON, self.event_detect)
-            doorpi.DoorPi().event_handler.register_event('OnKeyPressed_'+str(input_pin), __name__)
+        for input_pin in self._InputPins:
+            self.__listener.register(
+                pin_num = input_pin,
+                direction  = p.IODIR_BOTH,
+                callback  = self.event_detect,
+                settle_time = bouncetime
+            )
+            self._register_EVENTS_for_pin(input_pin, __name__)
         self.__listener.activate()
 
         # use set_output to register status @ dict self.__OutputStatus
-        for output_pin in self.__OutputPins:
+        for output_pin in self._OutputPins:
             self.set_output(output_pin, 0, False)
-
-
-    def __del__(self):
-        self.destroy()
 
     def destroy(self):
         logger.debug("destroy")
         # shutdown all output-pins
-        for output_pin in self.__OutputPins:
+        for output_pin in self._OutputPins:
             self.set_output(output_pin, 0, False)
         p.deinit()
         doorpi.DoorPi().event_handler.unregister_source(__name__, True)
 
     def event_detect(self, event):
-        pin = event.pin_num
-        logger.trace('event_detect for %s', pin)
-        self.__last_key = pin
-        doorpi.DoorPi().event_handler('OnKeyPressed', __name__, {'pin': pin, 'event': event})
-        doorpi.DoorPi().event_handler('OnKeyPressed_'+str(pin), __name__, {'pin': pin, 'event': event})
+        if self.status_input(event.pin_num):
+            self._fire_OnKeyDown(event.pin_num, __name__)
+            self._fire_OnKeyPressed(event.pin_num, __name__)
+        else:
+            self._fire_OnKeyUp(event.pin_num, __name__)
 
-    def self_test(self):
-        pass
-
-    @property
-    def pressed_keys(self):
-        pressed_keys = []
-        for input_pin in self.__InputPins:
-            if self.status_inputpin(input_pin):
-                return_list.append(str(input_pin))
-        logger.trace("pressed_keys are %s" % pressed_keys)
-        return pressed_keys
-
-    @property
-    def pressed_key(self):
-        for input_pin in self.__InputPins:
-            if self.status_inputpin(input_pin):
-                logger.trace("pressed_key return key %s",str(input_pin))
-                return input_pin
-        return None
-
-    def status_inputpin(self, pin):
-        return p.digital_read(pin) == 1
-
-    def status_output(self, pin):
-        pin = int(pin)
-        if not pin in self.__OutputPins: return None
-        return self.__OutputStatus[pin]
+    def status_input(self, pin):
+        if self._polarity is 0:
+            return str(p.digital_read(int(pin))).lower() in HIGH_LEVEL
+        else:
+            return str(p.digital_read(int(pin))).lower() in LOW_LEVEL
 
     def set_output(self, pin, value, log_output = True):
         parsed_pin = doorpi.DoorPi().parse_string("!"+str(pin)+"!")
@@ -103,15 +65,13 @@ class PiFace(KeyboardAbstractBaseClass):
             pin = parsed_pin
 
         pin = int(pin)
-        value = str(value).lower() in ['1', 'high', 'on']
-        log_output = str(log_output).lower() in ['true', 'log', '1', 'on']
+        value = str(value).lower() in HIGH_LEVEL
+        if self._polarity is 1: value = not value
+        log_output = str(log_output).lower() in HIGH_LEVEL
 
-        if not pin in self.__OutputPins: return False
+        if not pin in self._OutputPins: return False
         if log_output: logger.debug("out(pin = %s, value = %s, log_output = %s)", pin, value, log_output)
 
         p.digital_write(pin, value)
-        self.__OutputStatus[pin] = value
+        self._OutputStatus[pin] = value
         return True
-
-    get_input = status_inputpin
-    get_output = status_output

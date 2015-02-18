@@ -103,8 +103,9 @@ class DoorPi(object):
 
         self.__config = ConfigObject.load_config(parsed_arguments.configfile)
         self.__keyboard = load_keyboard()
-        logger.debug('Keyboard is now %s', self.keyboard.name)
+        logger.info('Keyboard is now %s', self.keyboard.name)
         self.__sipphone = load_sipphone()
+        logger.info('Sipphone is now %s', self.sipphone.name)
         self.sipphone.start()
 
         #register own events
@@ -120,9 +121,18 @@ class DoorPi(object):
                 self.event_handler.register_action(event_name, self.config.get(event_section, action))
 
         # register actions for inputpins
-        section_name = 'InputPins'
-        for input_pin in sorted(self.config.get_keys(section_name)):
-            self.event_handler.register_action('OnKeyPressed_'+input_pin, self.config.get(section_name, input_pin))
+        if 'KeyboardHandler' not in self.keyboard.name:
+            section_name = 'InputPins'
+            for input_pin in sorted(self.config.get_keys(section_name)):
+                self.event_handler.register_action('OnKeyPressed_'+input_pin, self.config.get(section_name, input_pin))
+        else:
+            for keyboard_name in self.keyboard.loaded_keyboards:
+                section_name = keyboard_name+'_InputPins'
+                for input_pin in self.config.get_keys(section_name, log = False):
+                    self.event_handler.register_action(
+                        'OnKeyPressed_'+keyboard_name+'.'+input_pin,
+                        self.config.get(section_name, input_pin)
+                    )
 
         # register actions for DTMF
         section_name = 'DTMF'
@@ -230,8 +240,14 @@ class DoorPi(object):
             'last_tick':        str(self.__last_tick)
         }
 
-        for output_pin in self.config.get_keys('OutputPins', log = False):
-            mapping_table[self.config.get('OutputPins', output_pin, log = False)] = output_pin
+
+        if self.keyboard and 'KeyboardHandler' not in self.keyboard.name:
+            for output_pin in self.config.get_keys('OutputPins', log = False):
+                mapping_table[self.config.get('OutputPins', output_pin, log = False)] = output_pin
+        elif self.keyboard and 'KeyboardHandler' in self.keyboard.name:
+            for outputpin_section in self.config.get_sections('_OutputPins', False):
+                for output_pin in self.config.get_keys(outputpin_section, log = False):
+                    mapping_table[self.config.get(outputpin_section, output_pin, log = False)] = output_pin
 
         for key in mapping_table.keys():
             parsed_string = parsed_string.replace(

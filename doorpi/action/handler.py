@@ -10,6 +10,7 @@ import time # used by: fire_event_synchron
 from inspect import isfunction, ismethod # used by: register_action
 
 from base import SingleAction
+import doorpi
 
 class EnumWaitSignalsClass():
     WaitToFinish = True
@@ -139,6 +140,12 @@ class EventHandler:
             try:
                 action.run(silent)
                 if action.single_fire_action is True: del action
+            except SystemExit as exp:
+                logger.info('Detected SystemExit and shutdown DoorPi (Message: %s)', exp)
+                doorpi.DoorPi().destroy()
+            except KeyboardInterrupt as exp:
+                logger.info("Detected KeyboardInterrupt and shutdown DoorPi (Message: %s)", exp)
+                doorpi.DoorPi().destroy()
             except:
                 logger.exception("error while fire action %s for event_name %s", action, event_name)
         if not silent: logger.trace("finished fire_event for event_name %s", event_name)

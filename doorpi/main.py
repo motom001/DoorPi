@@ -116,8 +116,8 @@ def main_as_daemon(argv):
 
     logrotating = logging.handlers.RotatingFileHandler(
           DEFAULT_LOG_FILENAME,
-          maxBytes=25000,
-          backupCount=5
+          maxBytes=50000,
+          backupCount=10
     )
     global log_level
     logrotating.setLevel(log_level)

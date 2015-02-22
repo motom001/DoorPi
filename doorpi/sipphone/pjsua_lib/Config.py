@@ -50,8 +50,8 @@ def create_MediaConfig():
     MediaConfig.audio_frame_ptime = conf.get_int(SIPPHONE_SECTION, 'media.audio_frame_ptime', 20)
     MediaConfig.channel_count = conf.get_int(SIPPHONE_SECTION, 'media.channel_count', 1)
     MediaConfig.clock_rate = conf.get_int(SIPPHONE_SECTION, 'media.clock_rate', 8000)
-    MediaConfig.ec_options = conf.get_int(SIPPHONE_SECTION, 'media.ec_options', 1)
-    MediaConfig.ec_tail_len = conf.get_int(SIPPHONE_SECTION, 'media.ec_tail_len', 512)
+    MediaConfig.ec_options = conf.get_int(SIPPHONE_SECTION, 'media.ec_options', 0)
+    MediaConfig.ec_tail_len = conf.get_int(SIPPHONE_SECTION, 'media.ec_tail_len', 1024)
     MediaConfig.enable_ice = conf.get_bool(SIPPHONE_SECTION, 'media.enable_ice', True)
     MediaConfig.enable_turn = conf.get_bool(SIPPHONE_SECTION, 'media.enable_turn', False)
     MediaConfig.ilbc_mode = conf.get_int(SIPPHONE_SECTION, 'media.ilbc_mode', 30)
@@ -94,7 +94,7 @@ def create_AccountConfig():
     AccountConfig.reg_uri = "sip:" + server
     AccountConfig.auth_cred = [ pj.AuthCred(realm, username, password) ]
     AccountConfig.allow_contact_rewrite = conf.get_bool(SIPPHONE_SECTION, 'account.allow_contact_rewrite', 0)
-    AccountConfig.reg_timeout = conf.get_int(SIPPHONE_SECTION, 'account.reg_timeout', 1)
+    AccountConfig.reg_timeout = conf.get_int(SIPPHONE_SECTION, 'account.reg_timeout', 10)
 
     return AccountConfig
 

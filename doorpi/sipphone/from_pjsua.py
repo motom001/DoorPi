@@ -116,7 +116,7 @@ class Pjsua(SipphoneAbstractBaseClass):
 
     def destroy(self):
         logger.debug("destroy")
-        DoorPi().event_handler('OnDestroySipPhone', __name__)
+        DoorPi().event_handler('OnSipPhoneDestroy', __name__)
 
         if self.lib is not None:
             self.lib.handle_events()

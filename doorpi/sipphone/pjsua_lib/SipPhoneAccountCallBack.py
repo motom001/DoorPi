@@ -29,7 +29,7 @@ class SipPhoneAccountCallBack(pj.AccountCallback):
         DoorPi().event_handler.register_event('AfterCallIncomming', __name__)
         DoorPi().event_handler.register_event('OnCallReject', __name__)
         DoorPi().event_handler.register_event('AfterCallReject', __name__)
-        DoorPi().event_handler.register_event('AfterAccountRegState', __name__)
+        #DoorPi().event_handler.register_event('AfterAccountRegState', __name__)
 
     def __del__(self):
         self.destroy()
@@ -47,7 +47,7 @@ class SipPhoneAccountCallBack(pj.AccountCallback):
             if self.account.info().reg_status >= 200:
                 self.sem.release()
 
-        DoorPi().event_handler('AfterAccountRegState', __name__)
+        #DoorPi().event_handler('AfterAccountRegState', __name__)
         #logger.debug(self.account.info.reg_status)
 
     def answer_call(self, call):

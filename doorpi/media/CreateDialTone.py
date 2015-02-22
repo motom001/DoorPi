@@ -4,7 +4,7 @@
 # Stolen from this source - thx to FB36:
 # http://code.activestate.com/recipes/578168-sound-generator-using-wav-file/
 
-def generate_dial_tone(filename = 'dialtone.wav', volume = 75):
+def generate_dial_tone(filename = 'dialtone.wav', volume = 50):
     # generate wav file containing sine waves
     # FB36 - 20120617
     import math, wave, array

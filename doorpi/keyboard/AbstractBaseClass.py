@@ -26,7 +26,7 @@ class KeyboardAbstractBaseClass(object):
     @property
     def name(self):
         if self.keyboard_name is '': return '%s Keyboard' % self.keyboard_typ
-        else: return '%s (Typ: %s) Keyboard', self.keyboard_name, self.keyboard_typ
+        else: return '%s (Typ: %s) Keyboard' % (self.keyboard_name, self.keyboard_typ)
 
     _InputPins = []
     @property

@@ -15,14 +15,14 @@ class UnknownOutputPin(Exception): pass
 
 def load_keyboard():
     config_keyboards = doorpi.DoorPi().config.get_keys(section = 'keyboards')
-    if len(config_keyboards) > 1:
-        logging.info("using multi-keyboard mode (keyboards: %s)", ', '.join(config_keyboards))
+    if len(config_keyboards) > 0:
+        logger.info("using multi-keyboard mode (keyboards: %s)", ', '.join(config_keyboards))
         return KeyboardHandler(config_keyboards)
     elif len(config_keyboards) is 1:
-        logging.info("using single-keyboard mode by keyboards first and only key %s", config_keyboards[0])
+        logger.info("using single-keyboard mode by keyboards first and only key %s", config_keyboards[0])
         return load_single_keyboard(config_keyboards[0])
     else:
-        logging.info("using single-keyboard mode")
+        logger.info("using single-keyboard mode")
         return load_single_keyboard()
 
 def load_single_keyboard(keyboard_name = ''):
@@ -51,7 +51,7 @@ def load_single_keyboard(keyboard_name = ''):
             conf_post = conf_post
         )
     except ImportError as exp:
-        logging.exception('keyboard %s not found @ keyboard.from_%s (msg: %s)', keyboard_name, keyboard_type, exp)
+        logger.exception('keyboard %s not found @ keyboard.from_%s (msg: %s)', keyboard_name, keyboard_type, exp)
         return None
 
     return keyboard
@@ -83,9 +83,7 @@ class KeyboardHandler(KeyboardAbstractBaseClass):
     def output_status(self):
         return_dict = {}
         for Keyboard in self.__keyboards:
-            logging.debug('keyboard %s retuns %s', Keyboard, self.__keyboards[Keyboard].output_status)
             return_dict[Keyboard] = self.__keyboards[Keyboard].output_status
-        logging.debug("return_dict: %s", return_dict)
         return return_dict
 
     @property
@@ -99,7 +97,7 @@ class KeyboardHandler(KeyboardAbstractBaseClass):
         self.__OutputMappingTable = {}
         self.__keyboards = {}
         for keyboard_name in config_keyboards:
-            logging.info("try to add keyboard '%s' to handler", keyboard_name)
+            logger.info("try to add keyboard '%s' to handler", keyboard_name)
             self.__keyboards[keyboard_name] = load_single_keyboard(keyboard_name)
             if self.__keyboards[keyboard_name] is None:
                 logger.error("couldn't load keyboard %s", keyboard_name)
@@ -125,7 +123,7 @@ class KeyboardHandler(KeyboardAbstractBaseClass):
 
     def set_output(self, pin, value, log_output = True):
         if pin not in self.__OutputMappingTable:
-            raise UnknownOutputPin('outputpin with name %s is unknown')
+            raise UnknownOutputPin('outputpin with name %s is unknown %s' % (pin, self.__OutputMappingTable))
         self.__keyboards[self.__OutputMappingTable[pin]].set_output(pin, value, log_output)
 
     def status_input(self, pin):

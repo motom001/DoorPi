@@ -83,91 +83,95 @@ import time
 from keyboard.AbstractBaseClass import KeyboardAbstractBaseClass, HIGH_LEVEL, LOW_LEVEL
 import doorpi
 
+START_FLAG = '\x02'
+STOP_FLAG = '\x03'
+MAX_LENGTH = 14
+
 def get(**kwargs): return RDM6300(**kwargs)
 class RDM6300(KeyboardAbstractBaseClass):
     name = 'RFID Reader RDM6300'
+
+    @staticmethod
+    def calculate_checksum(string):
+        checkSum = 0
+        for I in range(1, 10, 2):
+            checkSum = checkSum ^ ((int(string[I], 16)) << 4) + int(string[I+1], 16)
+        return checkSum
+
+    @staticmethod
+    def check_checksum(string):
+        given_checksum = (int(string[11], 16) << 4) + int(string[12], 16)
+        return given_checksum == RDM6300.calculate_checksum(string)
 
     def readUART(self):
         # initialize UART
         # make sure that terminal via UART is disabled
         # see http://kampis-elektroecke.de/?page_id=3248 for details
-        self._UART = serial.Serial("/dev/ttyAMA0", 9600)
+        self._UART = serial.Serial(self.__port, self.__baudrate)
         self._UART.timeout = 1
         self._UART.close()
         self._UART.open()
-        
-        startFlagOccured = False
-        chars = ""
-        lastReadTag = 0
-        lastReadTime = 0
-        
-        while(not(self._shutdown)):
-            nextChar = self._UART.read() # blocks for max. 1 second
-            if nextChar != "" and startFlagOccured:
-                if nextChar == '\x03':
-                    startFlagOccured = False
-                    # check the data received
-                    # first, check the length
-                    logger.debug("checking the received message %s", chars)
-                    if len(chars)!=12:
-                        logger.debug("dismiss code, as length is not 12 chars")
-                    else:
-                        # calculate checksum
-                        checkSum = 0;
-                        for I in range(0, 9, 2):
-                            checkSum = checkSum ^ ((int(chars[I], 16)) << 4) + int(chars[I+1], 16)
-                        readCheckSum = (int(chars[10], 16) << 4) + int(chars[11], 16)
-                        if checkSum != readCheckSum:
-                            logger.debug("dismiss code, as calculated checksum %s is not identical to read checksum %s", checkSum, readCheckSum)
-                        else:
-                            # convert data to number
-                            readTag = int(chars[4:10], 16)
-                            ignoreThisTag = False
-                            if lastReadTag==readTag:
-                                now = time.time()
-                                if (now-lastReadTime)<5:
-                                    logger.debug("dismiss code, same tag within 5 seconds")
-                                    ignoreThisTag = True
-                            if not(ignoreThisTag):
-                                logger.debug("valid RFID tag read '%s', firing events", readTag);
-                                self._fire_OnKeyDown(readTag, __name__)
-                                self._currentTag = readTag;
-                                self._fire_OnKeyPressed(readTag, __name__)
-                                time.sleep(3)
-                                self._fire_OnKeyUp(readTag, __name__)
-                                self._currentTag = 0;
-                                lastReadTag = readTag
-                                lastReadTime = time.time()
-                    chars = ""                              
-                else:
-                    chars = chars + str(nextChar)
-                    if len(chars)>12:
-                        logger.debug("dismissing code %s, as length is greater than 12 chars", chars)
-                        startFlagOccured = False
-                        chars = ""
-            elif nextChar == '\x02':
-                startFlagOccured = True
-                chars = ""
+        try:
+            chars = ""
 
-        # shutdown the UART
-        self._UART.close();
-        self._UART = None;
-        logger.debug("readUART thread ended")
+            while not self._shutdown:
+                # char aus buffer holen
+                newChar = self._UART.read()
+                if newChar != "":
+                    logger.debug("new char %s read", newChar)
+                    chars += str(newChar)
+
+                    # aktuelles Ergebnis kontrollieren
+                    if newChar == STOP_FLAG and chars[0] == START_FLAG and len(chars) == MAX_LENGTH and RDM6300.check_checksum(chars):
+                        logger.debug("found tag, checking dismisstime")
+                        # alles okay... nur noch schauen, ob das nicht eine Erkennungs-Wiederholung ist
+                        now = time.time()
+                        if now - self.last_key_time > self.__dismisstime:
+                            self.last_key = int(chars[5:-3], 16)
+                            self.last_key_time = now
+                            logger.debug("key is %s", self.last_key)
+                            for input_pin in self._InputPins:
+                                logger.debug("checking %s is %s", input_pin, self.last_key)
+                                if input_pin == self.last_key:
+                                    logger.debug("yes")
+                                    self._fire_OnKeyDown(input_pin, __name__)
+                                    self._fire_OnKeyPressed(input_pin, __name__)
+                                    self._fire_OnKeyUp(input_pin, __name__)
+
+                    # ggf. l�schen
+                    if newChar == STOP_FLAG or len(chars) > MAX_LENGTH:
+                        chars = ""
+
+        except Exception as ex:
+            logger.exception(ex)
+        finally:
+            # shutdown the UART
+            self._UART.close()
+            self._UART = None
+            logger.debug("readUART thread ended")
+
         
-    def __init__(self, input_pins, keyboard_name, *args, **kwargs):
-        logger.debug("__init__(input_pins = %s)", input_pins)
+    def __init__(self, input_pins, keyboard_name, conf_pre, conf_post, *args, **kwargs):
+        logger.debug("__init__ (input_pins = %s)", input_pins)
         self.keyboard_name = keyboard_name
         self._InputPins = map(int, input_pins)
-        self._currentTag = 0;
-        
+
+        self.last_key = ""
+        self.last_key_time = 0
+
+        # somit wirds aus der Config-Datei geladen, falls dort vorhanden.
+        section_name = conf_pre+'keyboard'+conf_post
+        self.__port = doorpi.DoorPi().config.get(section_name, 'port', "/dev/ttyAMA0")
+        self.__baudrate = doorpi.DoorPi().config.get_int(section_name, 'baudrate', 9600)
+        self.__dismisstime = doorpi.DoorPi().config.get_int(section_name, 'dismisstime', 5)
+
         for input_pin in self._InputPins:
             self._register_EVENTS_for_pin(input_pin, __name__)
 
-
         self._shutdown = False
-        self._thread = threading.Thread(target=self.readUART)
+        self._thread = threading.Thread(target = self.readUART)
+        self._thread.daemon = True
         self._thread.start()
-
 
     def destroy(self):
         logger.debug("destroy")
@@ -176,7 +180,7 @@ class RDM6300(KeyboardAbstractBaseClass):
 
     def status_input(self, tag):
         logger.debug("status_input for tag %s", tag)
-        if tag==self._currentTag:
+        if tag == self.last_key:
             return True
         else:
             return False

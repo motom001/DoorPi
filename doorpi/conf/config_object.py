@@ -37,7 +37,7 @@ class ConfigObject():
         return ConfigObject(config)
 
     def get_string(self, section, key, default = '', log = True):
-        value = ""
+        value = default
         if section in self.__sections:
             if key in self.__sections[section]:
                 value = self.__sections[section][key]

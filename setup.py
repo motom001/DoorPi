@@ -9,7 +9,7 @@ import json
 
 import metadata
 
-SETUP_VERSION = 0.1
+SETUP_VERSION = 0.2
 NEEDED_PACKEGES_APTGET = ['python-pip']
 NEEDED_PACKEGES_PIP = []
 
@@ -28,6 +28,18 @@ linphone4raspberry
 '''
 class Entry:
     pass
+
+class bcolors:
+    HEADER = '\033[95m'
+    OKBLUE = '\033[94m'
+    OKGREEN = '\033[92m'
+    WARNING = '\033[93m'
+    FAIL = '\033[91m'
+    ENDC = '\033[0m'
+    BOLD = '\033[1m'
+    UNDERLINE = '\033[4m'
+
+HR = bcolors.UNDERLINE+"                                                                                  "+bcolors.ENDC
 
 class Environment:
     @property
@@ -96,6 +108,7 @@ class Environment:
         self.system.aptget = Entry()
         self.system.aptget.missing = NEEDED_PACKEGES_APTGET
         self.system.aptget.installed = []
+        self.system.aptget.installed_with_version = []
         for Package in self.system.aptget.missing:
             version = subprocess.Popen(
                 "dpkg -l | grep '"+Package+"' | grep 'ii' | awk {'print $3'}",
@@ -103,12 +116,16 @@ class Environment:
                 stdout = subprocess.PIPE
             ).stdout.read()
             if version:
-                self.system.aptget.installed.append(Package+' in version '+version[:-1])
+                self.system.aptget.installed.append(Package)
+                self.system.aptget.installed_with_version.append(Package+' in version '+version[:-1])
                 self.system.aptget.missing.remove(Package)
 
         self.system.pip = Entry()
         self.system.pip.missing = NEEDED_PACKEGES_PIP
         self.system.pip.installed = []
+        self.system.pip.installed_manuelly = []
+        self.system.pip.installed_repository = []
+        self.system.pip.installed_with_version = []
         for Package in self.system.pip.missing:
             version = subprocess.Popen(
                 "pip freeze | grep '"+Package+"'",
@@ -117,17 +134,21 @@ class Environment:
             ).stdout.read()
             if version:
                 if "===" in version:
-                    self.system.pip.installed.append(Package+' in version '+version[version.find('===')+3:-1]+" installed manuelly")
+                    self.system.pip.installed.append(Package)
+                    self.system.pip.installed_manuelly.append(Package)
+                    self.system.pip.installed_with_version.append(Package+' in version '+version[version.find('===')+3:-1]+" installed manuelly")
                 elif "==" in version:
-                    self.system.pip.installed.append(Package+' in version '+version[version.find('==')+2:-2]+" installed with repository")
+                    self.system.pip.installed.append(Package)
+                    self.system.pip.installed_repository.append(Package)
+                    self.system.pip.installed_with_version.append(Package+' in version '+version[version.find('==')+2:-2]+" installed with repository")
                 self.system.pip.missing.remove(Package)
-
-
 
     def collect_status_setup(self):
         self.setup.url = self.remote_version_file['setup_script_url']
         self.setup.version_local = SETUP_VERSION
-        self.setup.version_remote = self.remote_version_file['setup_script_version']
+        self.setup.version_remote = 0.0
+        if self.remote_version_file:
+            self.setup.version_remote = self.remote_version_file['setup_script_version']
 
     def collect_status_keyboard(self):
         pass
@@ -147,6 +168,10 @@ class Environment:
             self.sipphone.linphone.installed = False
             self.sipphone.linphone.version = ""
 
+        self.sipphone.linphone.newest_version = 0.0
+        self.sipphone.linphone.newest_version_url = ""
+        self.sipphone.linphone.is_latest = False
+
         self.sipphone.pjsua = Entry()
         result = subprocess.Popen(
             "find /usr/local/lib -name 'pjsua-*.egg-info'",
@@ -160,6 +185,19 @@ class Environment:
         else:
             self.sipphone.pjsua.installed = False
             self.sipphone.pjsua.version = ""
+
+        self.sipphone.pjsua.newest_version = 0.0
+        self.sipphone.pjsua.newest_version_url = ""
+        self.sipphone.linphone.pjsua = False
+
+        if self.remote_version_file:
+            self.sipphone.linphone.newest_version = self.remote_version_file['linphone_version']
+            self.sipphone.linphone.newest_version_url = self.remote_version_file['linphone_url']
+            self.sipphone.linphone.is_latest = self.sipphone.linphone.newest_version is self.sipphone.linphone.version
+
+            self.sipphone.pjsua.newest_version = self.remote_version_file['pjsua_version']
+            self.sipphone.pjsua.newest_version_url = self.remote_version_file['pjsua_url']
+            self.sipphone.pjsua.is_latest = self.sipphone.pjsua.newest_version is self.sipphone.pjsua.version
 
     def collect_status_doorpi(self):
         pass
@@ -207,9 +245,8 @@ os.chmod(setup_file, 0o777)
                 self.do_self_update()
                 raise SystemExit(1)
             else:
-                self.last_message = "Das Setup-Script ist veraltet und sollte aktuallisiert werden!"
+                self.last_message = "Das Setup-Script ist veraltet und sollte aktuallisiert werden!\n"
 
-        self.last_message += "\nInstaller befindet sich im Beta-Status und ist nicht funktionsfähig!"
         while self.exit == -1:
             try:
                 self.main_menu()
@@ -237,15 +274,16 @@ os.chmod(setup_file, 0o777)
 
     def base_menu(self, header = ""):
         self.clear_screen()
-        print(metadata.epilog)
+        print(bcolors.OKBLUE + metadata.epilog + bcolors.ENDC)
         print("")
+        if self.last_message[-1:] == '\n': self.last_message = self.last_message[:-1]
         if len(self.last_message):
-            print("==================================================================================")
-            print(self.last_message)
+            print(HR)
+            print bcolors.FAIL + self.last_message + bcolors.ENDC
         if len(header):
-            print("==================================================================================")
-            print(header)
-        print("==================================================================================")
+            print(HR)
+            print bcolors.WARNING + header + bcolors.ENDC
+        print(HR)
 
     def folgemenu(self, *args, **kwargs):
         print "tu es"
@@ -272,7 +310,7 @@ os.chmod(setup_file, 0o777)
         print("| 40) DoorPi                                      %s"%self.doorpi_check())
         print("|")
         print("| 0) Exit")
-        print("==================================================================================")
+        print(HR)
         choice = raw_input("Auswahl [0]: ") or "0"
         while self.exit == -1:
             menue_structure[choice]()
@@ -281,14 +319,14 @@ os.chmod(setup_file, 0o777)
     def ask_menu(self, info, question):
         self.base_menu()
         print(info)
-        print("==================================================================================")
+        print(HR)
         choice = raw_input(question+" [y]: ") or "y"
         return choice in ['y', 'Y', 'j', 'J', '1']
 
     def execute_with_live_preview_and_menu(self, header, cmd):
         self.base_menu()
         print("| "+header)
-        print("==================================================================================")
+        print(HR)
         self.execute_with_live_preview(cmd)
 
     @staticmethod
@@ -309,26 +347,32 @@ os.chmod(setup_file, 0o777)
         self.environment.refresh_status()
 
     def keyboards_check(self):
-        return "[linphone]"
+        return "[TODO]"
 
     def doorpi_check(self):
         return "[Update nötig (von 2.1 auf 2.45)]"
 
     def sipphones_check(self, part):
         return_string = []
+
         if not self.environment.sipphone.linphone.installed and not self.environment.sipphone.pjsua.installed:
-            return_string.append('kein sipphone installiert')
-        else:
-            if part == "linphone":
-                if self.environment.sipphone.linphone.installed:
-                    return_string.append('installiert')
-                else:
-                    return_string.append('nicht installiert')
-            elif part == "pjsua":
-                if self.environment.sipphone.pjsua.installed:
-                    return_string.append('installiert')
-                else:
-                    return_string.append('nicht installiert')
+            return_string.append('nicht installiert')
+        elif part == "*" and self.environment.sipphone.linphone.installed and not self.environment.sipphone.linphone.is_latest:
+            return_string.append('linphone nicht aktuell')
+        elif part == "*" and self.environment.sipphone.pjsua.installed and not self.environment.sipphone.pjsua.is_latest:
+            return_string.append('pjsua nicht aktuell')
+        elif part == "linphone":
+            if not self.environment.sipphone.linphone.installed:
+                return_string.append('nicht installiert')
+            elif self.environment.sipphone.linphone.is_latest:
+                return_string.append('installiert und aktuell')
+            else:
+                return_string.append('installiert aber nicht aktuell')
+        elif part == "pjsua":
+            if self.environment.sipphone.pjsua.installed:
+                return_string.append('installiert')
+            else:
+                return_string.append('nicht installiert')
 
         if part == "*":
             return "[check]" if len(return_string) == 0 else "[%s Fehler]"%len(return_string)
@@ -336,19 +380,47 @@ os.chmod(setup_file, 0o777)
             return "[check]" if len(return_string) == 0 else "%s"%return_string
 
     def sipphones_do(self, part):
-        if part == "linphone":
+        if part == "linphone" or part == "1":
             if self.environment.sipphone.linphone.installed:
-                self.last_message = "linphone ist bereits installiert"
-                return False
+                if self.environment.sipphone.pjsua.is_latest:
+                    self.last_message = "linphone ist bereits installiert"
+                    sleep(5)
+                    return False
+                else:
+                    info = "Update von linphone4raspberry:\n"
+                    info += "installierte Version: "+self.environment.sipphone.linphone.version+"\n"
+                    info += "aktuellste Version:   "+self.environment.sipphone.linphone.newest_version+"\n"
+                    question = "Soll ein Update durchgeführt werden?"
+                    if self.ask_menu(info, question) is not True:
+                        self.last_message = "Update von linphone abgebrochen"
+                        return False
 
-        if part == "pjsua":
-            return False
+                    if not "python-pip" in self.environment.system.aptget.installed or \
+                    not "wheel" in self.environment.system.pip.installed:
+                        if "python-pip" not in NEEDED_PACKEGES_APTGET: NEEDED_PACKEGES_APTGET.append("python-pip")
+                        if "wheel" not in NEEDED_PACKEGES_PIP: NEEDED_PACKEGES_PIP.append("wheel")
+                        self.refresh_environment()
+                        self.last_message = "Bitte diesmal zuerst Voraussetzungen apt-get und pip durchlaufen\n"
+                        self.last_message += "danach kann linphone4raspberry installiert werden.\n"
+                        self.last_message += "- python-pip "+"ist installiert\n" if "python-pip" in self.environment.system.aptget.installed else "fehlt\n"
+                        self.last_message += "- wheel "+"ist installiert\n" if "wheel" in self.environment.system.pip.installed else "fehlt\n"
+                        return False
+            else:
+                info = "Installation von linphone4raspberry:\n"
+                info += "aktuellste Version:   "+self.environment.sipphone.linphone.newest_version+"\n"
+                question = "Soll die Installation durchgeführt werden?"
+                self.ask_menu(info, question)
+
+        if part == "pjsua" or part == "2":
+            if self.environment.sipphone.pjsua.installed:
+                self.last_message = "pjsua ist bereits installiert"
+                return False
 
         self.refresh_environment()
         return True
 
     def sipphones_menu(self):
-        self.base_menu("bitte mindestens ein Sip-Phone auswählen")
+        self.base_menu()
         menue_structure = {
             "0": self.back_last_menu,
             "1": self.sipphones_do,
@@ -358,7 +430,7 @@ os.chmod(setup_file, 0o777)
         print("| 2) pjsua installieren                          %s"%self.sipphones_check('pjsua'))
         print("|")
         print("| 0) zurück")
-        print("==================================================================================")
+        print(HR)
         choice = raw_input("Auswahl [0]: ") or "0"
         menue_structure[choice](choice)
 
@@ -519,10 +591,20 @@ os.chmod(setup_file, 0o777)
         print("| 30) Systemumgebung erneut einlesen             ")
         print("|")
         print("| 0) zurück")
-        print("==================================================================================")
+        print(HR)
         choice = raw_input("Auswahl [0]: ") or "0"
         menue_structure[choice](choice)
 
 if __name__ == '__main__':
+    print "Farbenkunde: "
+    print bcolors.WARNING + "WARNING" + bcolors.ENDC
+    print bcolors.FAIL + "FAIL" + bcolors.ENDC
+    print bcolors.BOLD + "BOLD" + bcolors.ENDC
+    print bcolors.HEADER + "HEADER" + bcolors.ENDC
+    print bcolors.OKGREEN + "OKGREEN" + bcolors.ENDC
+    print bcolors.OKBLUE + "OKBLUE" + bcolors.ENDC
+    print bcolors.UNDERLINE + "UNDERLINE                                                 " + bcolors.ENDC
+    print ":)"
+
     setup_object = SetupClass()
     setup_object.run()

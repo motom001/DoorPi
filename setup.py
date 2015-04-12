@@ -4,6 +4,8 @@
 import os, sys
 from time import sleep
 import subprocess
+import urllib2
+import json
 
 import metadata
 
@@ -13,6 +15,8 @@ NEEDED_PACKEGES_PIP = []
 
 NEEDED_TMPFS_PATH = "/var/DoorPi"
 NEEDED_TMPFS_SIZE = "16M"
+
+BASE_PATH = os.path.dirname(os.path.abspath(__file__))
 
 '''
 watchdog
@@ -45,6 +49,12 @@ class Environment:
         self.sipphone = Entry()
 
         self.doorpi = Entry()
+
+        try:
+            response = urllib2.urlopen('https://raw.githubusercontent.com/motom001/DoorPi/Installer/.version').read()
+            self.remote_version_file = json.loads(response)
+        except:
+            self.remote_version_file = None
 
     def refresh_status(self):
         self.collect_status_system()
@@ -115,9 +125,9 @@ class Environment:
 
 
     def collect_status_setup(self):
-        self.setup.url = ""
-        self.setup.version_local = 0.0
-        self.setup.version_remote = 0.0
+        self.setup.url = self.remote_version_file['setup_script_url']
+        self.setup.version_local = SETUP_VERSION
+        self.setup.version_remote = self.remote_version_file['setup_script_version']
 
     def collect_status_keyboard(self):
         pass
@@ -162,10 +172,44 @@ class SetupClass:
         self.exit = -1
         self.last_message = ""
 
+    def do_self_update(self):
+        update_file = BASE_PATH+"/setup_update.py"
+        fo = open(update_file, "w")
+        fo.write(
+            '''#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+import subprocess, urllib2, os, sys
+setup_file = "{base_path}/setup2.py"
+response = urllib2.urlopen('{setup_script_url}').read()
+fo = open(setup_file, "w")
+fo.write(response)
+fo.close()
+os.chmod(setup_file, 0o777)
+#os.execv(setup_file, sys.argv)'''.format(
+                setup_script_url = self.environment.setup.url,
+                base_path = BASE_PATH
+            )
+        )
+        fo.close()
+        os.chmod(update_file, 0o777)
+        os.execv(update_file, sys.argv)
+
     def run(self):
         self.refresh_environment()
         if self.environment.is_unix: self.check_root()
-        self.last_message = "Installer befindet sich im Beta-Status und ist nicht funktionsfähig!"
+
+        if self.environment.setup.version_remote > self.environment.setup.version_local:
+            info = "Das Setup-Script ist veraltet und sollte aktuallisiert werden!\n"
+            info += "Soll dieses Update jetzt automatisch durchgeführt werden?\n"
+            info += "neuste Version %s - lokale Version %s"%(self.environment.setup.version_remote, self.environment.setup.version_local)
+            question = "Ja, bitte durchführen"
+            if self.ask_menu(info, question) is True:
+                self.do_self_update()
+                raise SystemExit(1)
+            else:
+                self.last_message = "Das Setup-Script ist veraltet und sollte aktuallisiert werden!"
+
+        self.last_message += "\nInstaller befindet sich im Beta-Status und ist nicht funktionsfähig!"
         while self.exit == -1:
             try:
                 self.main_menu()

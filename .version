@@ -1,8 +1,9 @@
 {
-    "setup_script": 0.0,
-    "pjsua_url": "http://www.pjsip.org/release/2.3/pjproject-2.3.tar.bz2",
+    "setup_script_version": 0.0,
+    "setup_script_url": "https://raw.githubusercontent.com/motom001/DoorPi/Installer/setup.py",
     "pjsua_version": "2.3",
-    "linphone_url": "http://linphone.org/snapshots/linphone-python-raspberry/linphone4raspberry-3.8.1_31_g3611dcf-cp27-none-any.whl",
+    "pjsua_url": "http://www.pjsip.org/release/2.3/pjproject-2.3.tar.bz2",
     "linphone_version": "3.8.1_31_g3611dcf-cp27",
-    "linphone_version_full": "3.8.1_31_g3611dcf-cp27"
+    "linphone_version_full": "3.8.1_31_g3611dcf-cp27",
+    "linphone_url": "http://linphone.org/snapshots/linphone-python-raspberry/linphone4raspberry-3.8.1_31_g3611dcf-cp27-none-any.whl"
 }

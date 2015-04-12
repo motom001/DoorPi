@@ -1,5 +1,5 @@
 {
-    "setup_script_version": 0.1,
+    "setup_script_version": 0.2,
     "setup_script_url": "https://raw.githubusercontent.com/motom001/DoorPi/Installer/setup.py",
     "pjsua_version": "2.3",
     "pjsua_url": "http://www.pjsip.org/release/2.3/pjproject-2.3.tar.bz2",

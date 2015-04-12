@@ -9,7 +9,7 @@ import json
 
 import metadata
 
-SETUP_VERSION = 0.0
+SETUP_VERSION = 0.1
 NEEDED_PACKEGES_APTGET = ['python-pip']
 NEEDED_PACKEGES_PIP = []
 

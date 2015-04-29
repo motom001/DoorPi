@@ -40,6 +40,10 @@ class PiFace(KeyboardAbstractBaseClass):
 
     def destroy(self):
         logger.debug("destroy")
+        
+        # shutdown listener
+        self.__listener.deactivate()
+        
         # shutdown all output-pins
         for output_pin in self._OutputPins:
             self.set_output(output_pin, 0, False)

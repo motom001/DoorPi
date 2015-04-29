@@ -30,6 +30,7 @@ class SipPhoneCallCallBack(pj.CallCallback):
         DoorPi().event_handler.register_event('AfterCallStateConnect', __name__)
         DoorPi().event_handler.register_event('OnCallStateDisconnect', __name__)
         DoorPi().event_handler.register_event('AfterCallStateDisconnect', __name__)
+        DoorPi().event_handler.register_event('OnCallStateDismissed', __name__)
         DoorPi().event_handler.register_event('OnCallStart', __name__)
         DoorPi().event_handler.register_event('OnDTMF', __name__)
 
@@ -76,16 +77,24 @@ class SipPhoneCallCallBack(pj.CallCallback):
             })
 
         if self.call.info().state == pj.CallState.DISCONNECTED:
-            DoorPi().event_handler('OnCallStateDisconnect', __name__, {
-                'remote_uri': self.call.info().remote_uri
-            })
             call_slot = self.call.info().conf_slot
-            self.Lib.conf_disconnect(call_slot, 0)
-            self.Lib.conf_disconnect(0, call_slot)
-            logger.debug("disconneted Media from call_slot %s",str(call_slot))
-            DoorPi().event_handler('AfterCallStateDisconnect', __name__, {
-                'remote_uri': self.call.info().remote_uri
-            })
+
+            # If conf_slot is not greater than -1, the call has not yet been accepted
+            if call_slot > -1:
+                DoorPi().event_handler('OnCallStateDisconnect', __name__, {
+                    'remote_uri': self.call.info().remote_uri
+                })
+                self.Lib.conf_disconnect(call_slot, 0)
+                self.Lib.conf_disconnect(0, call_slot)
+                logger.debug("disconneted Media from call_slot %s",str(call_slot))
+                DoorPi().event_handler('AfterCallStateDisconnect', __name__, {
+                    'remote_uri': self.call.info().remote_uri
+                })
+            else:
+                DoorPi().event_handler('OnCallStateDismissed', __name__, {
+                    'remote_uri': self.call.info().remote_uri
+                })
+
 
     def on_dtmf_digit(self, digits):
         logger.debug("on_dtmf_digit (%s)",str(digits))

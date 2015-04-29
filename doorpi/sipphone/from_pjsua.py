@@ -46,6 +46,9 @@ class Pjsua(SipphoneAbstractBaseClass):
 
         DoorPi().event_handler.register_event('OnSipPhoneMakeCall', __name__)
         DoorPi().event_handler.register_event('AfterSipPhoneMakeCall', __name__)
+        
+        DoorPi().event_handler.register_event('OnSipPhoneCallTimeoutNoResponse', __name__)
+        DoorPi().event_handler.register_event('OnSipPhoneCallTimeoutMaxCalltime', __name__)
 
         self.__Lib = None
         self.__account = None
@@ -151,10 +154,12 @@ class Pjsua(SipphoneAbstractBaseClass):
                 and self.current_call.info().total_time > self.call_timeout:
                     logger.info("call timeout - hangup current call after %s seconds", self.call_timeout)
                     self.current_call.hangup()
+                    DoorPi().event_handler('OnSipPhoneCallTimeoutNoResponse', __name__)
 
                 if self.current_call.info().call_time > self.max_call_time:
                     logger.info("max call time reached - hangup current call after %s seconds", self.max_call_time)
                     self.current_call.hangup()
+                    DoorPi().event_handler('OnSipPhoneCallTimeoutMaxCalltime', __name__)
             except:
                 pass
 

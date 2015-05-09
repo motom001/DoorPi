@@ -14,7 +14,7 @@ class KeyboardAbstractBaseClass(object):
 
     ############## methods to implement ##############
     def __init__(self): raise NotImplementedError("Subclasses should implement this!")
-    def destroy(self): raise NotImplementedError("Subclasses should implement this!")
+    #def destroy(self): pass #logger.warning("Subclasses should implement this!")
     def self_test(self): pass # optional - raise NotImplementedError("Subclasses should implement this!")
     def status_input(self, pin): raise NotImplementedError("Subclasses should implement this!")
     def set_output(self, pin, value, log_output = True): raise NotImplementedError("Subclasses should implement this!")
@@ -87,4 +87,4 @@ class KeyboardAbstractBaseClass(object):
     get_output = status_output
     get_last_key = last_key
     which_keys_are_pressed = pressed_keys
-    __del__ = destroy
+    #__del__ = destroy

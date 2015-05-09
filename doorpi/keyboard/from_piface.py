@@ -29,7 +29,7 @@ class PiFace(KeyboardAbstractBaseClass):
                 pin_num = input_pin,
                 direction  = p.IODIR_BOTH,
                 callback  = self.event_detect,
-                settle_time = bouncetime
+                settle_time = bouncetime / 1000 # from milliseconds to seconds
             )
             self._register_EVENTS_for_pin(input_pin, __name__)
         self.__listener.activate()
@@ -53,9 +53,9 @@ class PiFace(KeyboardAbstractBaseClass):
     def event_detect(self, event):
         if self.status_input(event.pin_num):
             self._fire_OnKeyDown(event.pin_num, __name__)
-            self._fire_OnKeyPressed(event.pin_num, __name__)
         else:
             self._fire_OnKeyUp(event.pin_num, __name__)
+            self._fire_OnKeyPressed(event.pin_num, __name__)
 
     def status_input(self, pin):
         if self._polarity is 0:

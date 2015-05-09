@@ -9,9 +9,8 @@ from action.base import SingleAction
 import doorpi
 
 
-def call(Number):
-    import pjsua
-    doorpi.DoorPi().sipphone.call(Number)
+def call(number):
+    doorpi.DoorPi().sipphone.call(number)
 
 def get(parameters):
     parameter_list = parameters.split(',')
@@ -19,7 +18,7 @@ def get(parameters):
 
     number = parameter_list[0]
 
-    return CallAction(call, Number = number)
+    return CallAction(call, number = number)
 
 class CallAction(SingleAction):
     pass

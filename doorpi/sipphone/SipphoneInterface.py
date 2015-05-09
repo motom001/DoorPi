@@ -5,38 +5,24 @@ import logging
 logger = logging.getLogger(__name__)
 logger.debug("%s loaded", __name__)
 
+import importlib
 import doorpi
 
-def get_sipphones():
-    return dict(
-        autodetect = autodetect,
-        pjsua = load_pjsua,
-        pjsip = load_pjsua
-    )
+class SipphoneNotExists(Exception): pass
 
 def load_sipphone():
-    sipphones = get_sipphones()
-    config_value = doorpi.DoorPi().config.get('SIP-Phone', 'sipphonetyp', 'autodetect')
+    conf_pre = ''
+    conf_post = ''
 
-    if config_value not in sipphones.keys():
-        raise Exception(
-            'Sipphone {0} in configfile is unknown. - possible values are {1}'.format(
-            config_value, keyboards.keys())
+    sipphone_name = doorpi.DoorPi().config.get('SIP-Phone', 'sipphonetyp', 'autodetect')
+    try:
+        sipphone = importlib.import_module('sipphone.from_'+sipphone_name).get(
+            sipphone_name = sipphone_name,
+            conf_pre = conf_pre,
+            conf_post = conf_post
         )
-    return sipphones[config_value]()
+    except ImportError as exp:
+        logger.exception('sipphone %s not found @ sipphone.from_%s', sipphone_name, sipphone_name)
+        raise SipphoneNotExists('sipphone %s not found (%s)'%(sipphone_name, str(exp)))
 
-def load_pjsua():
-    logger.trace('load_pjsua')
-    import from_pjsua
-    return from_pjsua.Pjsua()
-
-def autodetect():
-    sipphones = get_sipphones()
-    for sipphone in sipphones.keys():
-        if sipphone is not "autodetect":
-            logger.trace('try to load %s', sipphone)
-            try: return sipphones[sipphone]()
-            except ImportError: logger.info('could not load sipphone %s', sipphone)
-            except Exception as ex: logger.exception('undefined error while loading sipphone %s (%s)', sipphone, ex)
-
-    raise Exception('no valid sipphone found')
+    return sipphone

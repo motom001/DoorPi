@@ -36,8 +36,8 @@ class FileSystem(KeyboardAbstractBaseClass, FileSystemEventHandler):
 
         section_name = conf_pre+'keyboard'+conf_post
         self.__reset_input = doorpi.DoorPi().config.get_bool(section_name, 'reset_input', True)
-        self.__base_path_input = doorpi.DoorPi().config.get(section_name, 'base_path_input')
-        self.__base_path_output = doorpi.DoorPi().config.get(section_name, 'base_path_output')
+        self.__base_path_input = doorpi.DoorPi().config.get_string_parsed(section_name, 'base_path_input')
+        self.__base_path_output = doorpi.DoorPi().config.get_string_parsed(section_name, 'base_path_output')
 
         if self.__base_path_input == '': raise MissingMandatoryParameter('base_path_input in %s '%section_name)
         if self.__base_path_output == '': raise MissingMandatoryParameter('base_path_output in %s '%section_name)

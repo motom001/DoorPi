@@ -5,10 +5,9 @@ import argparse
 import sys
 import logging
 import logging.handlers
-#----------
+import os
 import metadata
 import doorpi
-import os
 from resource import getrlimit, RLIMIT_NOFILE
 
 TRACE_LEVEL = 5

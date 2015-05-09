@@ -20,6 +20,7 @@ from AbstractBaseClass import SipphoneAbstractBaseClass
 
 from doorpi import DoorPi
 
+def get(*args, **kwargs): return Pjsua()
 class Pjsua(SipphoneAbstractBaseClass):
 
     @property
@@ -34,7 +35,7 @@ class Pjsua(SipphoneAbstractBaseClass):
     @property
     def player(self): return self.__player
 
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
         logger.debug("__init__")
 
         DoorPi().event_handler.register_event('OnSipPhoneCreate', __name__)

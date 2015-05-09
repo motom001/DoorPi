@@ -37,7 +37,7 @@ def load_single_keyboard(keyboard_name = ''):
 
     input_pins = doorpi.DoorPi().config.get_keys(conf_pre+'InputPins'+conf_post)
     output_pins = doorpi.DoorPi().config.get_keys(conf_pre+'OutputPins'+conf_post)
-    bouncetime = doorpi.DoorPi().config.get_int(conf_pre+'keyboard'+conf_post, 'bouncetime', 2000)
+    bouncetime = doorpi.DoorPi().config.get_float(conf_pre+'keyboard'+conf_post, 'bouncetime', 2000)
     polarity = doorpi.DoorPi().config.get_int(conf_pre+'keyboard'+conf_post, 'polarity', 0)
     try:
         keyboard = importlib.import_module('keyboard.from_'+keyboard_type).get(
@@ -118,8 +118,10 @@ class KeyboardHandler(KeyboardAbstractBaseClass):
 
 
     def destroy(self):
-        for Keyboard in self.__keyboards:
-            self.__keyboards[Keyboard].destroy()
+        try:
+            for Keyboard in self.__keyboards:
+                self.__keyboards[Keyboard].destroy()
+        except: pass
 
     def set_output(self, pin, value, log_output = True):
         if pin not in self.__OutputMappingTable:

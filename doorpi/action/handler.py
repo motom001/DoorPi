@@ -8,6 +8,7 @@ logger.debug("%s loaded", __name__)
 import threading
 import time # used by: fire_event_synchron
 from inspect import isfunction, ismethod # used by: register_action
+import string, random # used by event_id
 
 from base import SingleAction
 import doorpi
@@ -25,6 +26,9 @@ class EnumWaitSignalsClass():
 EnumWaitSignals = EnumWaitSignalsClass()
 
 ONTIME = 'OnTime'
+
+def id_generator(size = 6, chars = string.ascii_uppercase + string.digits):
+    return ''.join(random.choice(chars) for _ in range(size))
 
 class EventHandler:
 
@@ -86,6 +90,7 @@ class EventHandler:
 
     def fire_event_asynchron(self, event_name, event_source, kwargs = None):
         silent = ONTIME in event_name
+        if self.__destroy and not silent: return False
         if not silent: logger.trace("fire Event %s from %s asyncron", event_name, event_source)
         return threading.Thread(
             target = self.fire_event_synchron,
@@ -104,8 +109,10 @@ class EventHandler:
         t.start()
 
     def fire_event_synchron(self, event_name, event_source, kwargs = None):
-        if self.__destroy: return False
         silent = ONTIME in event_name
+        if self.__destroy and not silent: return False
+
+        event_fire_id = id_generator()
 
         if event_source not in self.__Sources:
             logger.warning('source %s unknown - skip fire_event %s', event_source, event_name)
@@ -114,7 +121,7 @@ class EventHandler:
             logger.warning('event %s unknown - skip fire_event %s from %s', event_name, event_name, event_source)
             return "event unknown"
         if event_source not in self.__Events[event_name]:
-            logger.warning('event %s for this event - skip fire_event %s from %s', event_name, event_name, event_source)
+            logger.warning('source %s unknown for this event - skip fire_event %s from %s', event_name, event_name, event_source)
             return "source unknown for this event"
         if event_name not in self.__Actions:
             if not silent: logger.debug('no actions for event %s - skip fire_event %s from %s', event_name, event_name, event_source)
@@ -124,7 +131,8 @@ class EventHandler:
         start_time = time.time()
         kwargs.update({
             'last_fired': str(start_time),
-            'last_fired_from': event_source
+            'last_fired_from': event_source,
+            'event_fire_id': event_fire_id
         })
 
         self.__additional_informations[event_name] = kwargs
@@ -134,21 +142,21 @@ class EventHandler:
         if 'last_duration' not in self.__additional_informations[event_name]:
             self.__additional_informations[event_name]['last_duration'] = None
 
-        if not silent: logger.debug("fire for event %s this actions %s ", event_name, self.__Actions[event_name])
+        if not silent: logger.debug("[%s] fire for event %s this actions %s ", event_fire_id, event_name, self.__Actions[event_name])
         for action in self.__Actions[event_name]:
-            if not silent: logger.trace("try to fire action %s", action)
+            if not silent: logger.trace("[%s] try to fire action %s", event_fire_id, action)
             try:
                 action.run(silent)
                 if action.single_fire_action is True: del action
             except SystemExit as exp:
-                logger.info('Detected SystemExit and shutdown DoorPi (Message: %s)', exp)
+                logger.info('[%s] Detected SystemExit and shutdown DoorPi (Message: %s)', event_fire_id, exp)
                 doorpi.DoorPi().destroy()
             except KeyboardInterrupt as exp:
-                logger.info("Detected KeyboardInterrupt and shutdown DoorPi (Message: %s)", exp)
+                logger.info("[%s] Detected KeyboardInterrupt and shutdown DoorPi (Message: %s)", event_fire_id, exp)
                 doorpi.DoorPi().destroy()
             except:
-                logger.exception("error while fire action %s for event_name %s", action, event_name)
-        if not silent: logger.trace("finished fire_event for event_name %s", event_name)
+                logger.exception("[%s] error while fire action %s for event_name %s", event_fire_id, action, event_name)
+        if not silent: logger.trace("[%s] finished fire_event for event_name %s", event_fire_id, event_name)
         self.__additional_informations[event_name]['last_finished'] = str(time.time())
         self.__additional_informations[event_name]['last_duration'] = str(time.time() - start_time)
         return True

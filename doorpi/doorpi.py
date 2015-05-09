@@ -102,8 +102,10 @@ class DoorPi(object):
         self.__event_handler = EventHandler()
 
         self.__config = ConfigObject.load_config(parsed_arguments.configfile)
+
         self.__keyboard = load_keyboard()
         logger.info('Keyboard is now %s', self.keyboard.name)
+
         self.__sipphone = load_sipphone()
         logger.info('Sipphone is now %s', self.sipphone.name)
         self.sipphone.start()
@@ -153,7 +155,7 @@ class DoorPi(object):
 
     def destroy(self):
         try:
-            if self.__prepared is not True: return False
+            #if self.__prepared is not True: return False
             logger.debug('destroy')
             self.__shutdown = True
             if self.event_handler is not None:
@@ -161,9 +163,13 @@ class DoorPi(object):
 
             if self.keyboard is not None:
                 self.keyboard.destroy()
+                self.__keyboard = None
+                del self.__keyboard
 
             if self.sipphone is not None:
                 self.sipphone.destroy()
+                self.__sipphone = None
+                del self.__sipphone
 
             if self.event_handler is not None:
                 timeout = 2
@@ -183,22 +189,21 @@ class DoorPi(object):
                 self.__event_handler = None
                 del self.__event_handler
 
-            self.__keyboard = None
-            del self.__keyboard
+            #self.__keyboard = None
+            #del self.__keyboard
 
-            self.__sipphone = None
-            del self.__sipphone
+            #self.__sipphone = None
+            #del self.__sipphone
 
         except Exception as ex:
             logger.exception(ex)
-
 
     def run(self):
         logger.debug("run")
         if not self.__prepared: self.prepare(self.__parsed_arguments)
 
         self.event_handler.register_event('OnTimeTick', __name__)
-        #self.event_handler.register_action('OnTimeTick', 'sleep:0.1')
+        self.event_handler.register_event('OnTimeTickRealtime', __name__)
         self.event_handler.register_action('OnTimeTick', 'time_tick:!last_tick!')
         self.event_handler.fire_event_asynchron('OnTimeTick', __name__)
 
@@ -207,11 +212,16 @@ class DoorPi(object):
         logger.info('DoorPi started successfully')
         logger.info('BasePath is %s', self.base_path)
 
-        while True:
-            self.__last_tick = time.time()
-            self.__event_handler.fire_event_synchron('OnTimeTick', __name__)
-            time.sleep(0.4)
+        time_ticks = 0
 
+        while True and not self.__shutdown:
+            time_ticks += 0.05
+            if self.sipphone: self.sipphone.self_check()
+            if time_ticks > 0.5:
+                self.__last_tick = time.time()
+                self.__event_handler.fire_event_asynchron('OnTimeTick', __name__)
+                time_ticks = 0
+            time.sleep(0.05)
         return self
 
     def parse_string(self, input_string):

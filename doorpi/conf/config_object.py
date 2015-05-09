@@ -6,6 +6,7 @@ logger = logging.getLogger(__name__)
 logger.debug("%s loaded", __name__)
 
 import ConfigParser
+import doorpi
 
 class ConfigObject():
 
@@ -35,6 +36,12 @@ class ConfigObject():
             configfile.close()
             raise Exception("No valid configfile found at "+configfile)
         return ConfigObject(config)
+
+    def get_string_parsed(self, section, key, default = '', log = True):
+        raw_string = self.get_string(section, key, default, log)
+        parsed_string = doorpi.DoorPi().parse_string(raw_string)
+        logger.debug('parse string "%s" to "%s"', raw_string, parsed_string)
+        return parsed_string
 
     def get_string(self, section, key, default = '', log = True):
         value = default

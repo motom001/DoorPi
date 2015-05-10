@@ -31,7 +31,7 @@ class GPIO(KeyboardAbstractBaseClass):
                 input_pin,
                 RPiGPIO.BOTH ,
                 callback = self.event_detect,
-                bouncetime = bouncetime
+                bouncetime = int(bouncetime)
             )
             self._register_EVENTS_for_pin(input_pin, __name__)
 

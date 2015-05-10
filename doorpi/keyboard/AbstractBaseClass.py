@@ -60,6 +60,10 @@ class KeyboardAbstractBaseClass(object):
         if len(pressed_keys) > 0: return pressed_keys[0]
         else: return None
 
+    @property
+    def is_destroyed(self): return self.__destroyed
+    __destroyed = False
+
     def status_output(self, pin):
         return self._OutputStatus[pin]
 

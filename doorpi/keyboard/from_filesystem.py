@@ -62,7 +62,10 @@ class FileSystem(KeyboardAbstractBaseClass, FileSystemEventHandler):
         for output_pin in self._OutputPins:
             self.set_output(output_pin, 0, False)
 
+        doorpi.DoorPi().event_handler.register_action('OnShutdown', self.destroy)
+
     def destroy(self):
+        if self.is_destroyed: return
         logger.debug("destroy")
 
         self.__observer.stop()
@@ -74,6 +77,7 @@ class FileSystem(KeyboardAbstractBaseClass, FileSystemEventHandler):
             os.remove(os.path.join(self.__base_path_output, output_pin))
 
         doorpi.DoorPi().event_handler.unregister_source(__name__, True)
+        self.__destroyed = True
 
     def status_input(self, pin):
         f = open(os.path.join(self.__base_path_input, pin), 'r')

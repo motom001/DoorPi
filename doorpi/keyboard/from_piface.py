@@ -38,7 +38,10 @@ class PiFace(KeyboardAbstractBaseClass):
         for output_pin in self._OutputPins:
             self.set_output(output_pin, 0, False)
 
+        doorpi.DoorPi().event_handler.register_action('OnShutdown', self.destroy)
+
     def destroy(self):
+        if self.is_destroyed: return
         logger.debug("destroy")
         
         # shutdown listener
@@ -49,6 +52,7 @@ class PiFace(KeyboardAbstractBaseClass):
             self.set_output(output_pin, 0, False)
         p.deinit()
         doorpi.DoorPi().event_handler.unregister_source(__name__, True)
+        self.__destroyed = True
 
     def event_detect(self, event):
         if self.status_input(event.pin_num):

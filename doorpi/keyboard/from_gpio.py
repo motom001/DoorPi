@@ -41,15 +41,18 @@ class GPIO(KeyboardAbstractBaseClass):
         for output_pin in self._OutputPins:
             self.set_output(output_pin, 0, False)
 
-    def destroy(self):
-        logger.debug("destroy")
+        doorpi.DoorPi().event_handler.register_action('OnShutdown', self.destroy)
 
+    def destroy(self):
+        if self.is_destroyed: return
+
+        logger.debug("destroy")
         # shutdown all output-pins
         for output_pin in self._OutputPins:
             self.set_output(output_pin, 0, False)
-
         RPiGPIO.cleanup()
         doorpi.DoorPi().event_handler.unregister_source(__name__, True)
+        self.__destroyed = True
 
     def event_detect(self, pin):
         if self.status_input(pin):

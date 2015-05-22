@@ -35,6 +35,47 @@ class Pjsua(SipphoneAbstractBaseClass):
     @property
     def player(self): return self.__player
 
+    @property
+    def sound_devices(self):
+        try:
+            all_devices = []
+            for sound_device in self.lib.enum_snd_dev():
+                all_devices.append({
+                  'name':       sound_device,
+                  'capture':    True if sound_device.input_channels > 0 else False,
+                  'record':     True if sound_device.output_channels > 0 else False
+                })
+            return all_devices
+        except: return []
+
+    @property
+    def sound_codecs(self):
+        try:
+            all_codecs = []
+            for codec in self.lib.enum_codecs():
+                all_codecs.append({
+                    'name':         codec.name,
+                    'channels':     codec.channel_count,
+                    'bitrate':      codec.avg_bps
+                })
+        except: return []
+
+    @property
+    def current_call_dump(self):
+        try:
+            return {
+                'direction':        'incoming' if self.current_call.info().role == 0 else 'outgoing',
+                'remote_uri':       self.current_call.info().remote_uri,
+                'total_time':       self.current_call.info().call_time,
+                'level_incoming':   self.lib.conf_get_signal_level(0)[0],
+                'level_outgoing':   self.lib.conf_get_signal_level(0)[1],
+                'camera':           False
+            }
+        except:
+            return {}
+
+    def thread_register(self, name): return self.lib.thread_register(name)
+
     def __init__(self, *args, **kwargs):
         logger.debug("__init__")
 

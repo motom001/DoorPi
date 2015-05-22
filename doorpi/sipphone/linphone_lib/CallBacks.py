@@ -59,6 +59,8 @@ class LinphoneCallbacks:
     def __init__(self):
         logger.debug("__init__")
 
+        DoorPi().event_handler.register_action('OnSipPhoneDestroy', self.destroy)
+
         DoorPi().event_handler.register_event('OnCallMediaStateChange', __name__)
         DoorPi().event_handler.register_event('OnCallStateChange', __name__)
         DoorPi().event_handler.register_event('OnCallStateConnect', __name__)

@@ -26,7 +26,8 @@ def log_handler(level, msg):
     if ": keep alive sent to [" in msg: return
     method = getattr(logger, level)
     method(msg)
-#lin.set_log_handler(log_handler)
+
+if logger.getEffectiveLevel() < 5: lin.set_log_handler(log_handler)
 
 def get(*args, **kwargs): return LinPhone(*args, **kwargs)
 class LinPhone(SipphoneAbstractBaseClass):
@@ -51,10 +52,75 @@ class LinPhone(SipphoneAbstractBaseClass):
     def current_call(self): return self.core.current_call
 
     @property
+    def video_devices(self):
+        try:
+            all_devices = []
+            for video_device in self.core.video_devices:
+                all_devices.append({
+                  'name':       video_device
+                })
+            return all_devices
+        except:
+            return []
+
+    @property
+    def sound_devices(self):
+        try:
+            all_devices = []
+            for sound_device in self.core.sound_devices:
+                all_devices.append({
+                  'name':       sound_device,
+                  'capture':    self.core.sound_device_can_capture(sound_device),
+                  'record':     self.core.sound_device_can_playback(sound_device)
+                })
+            return all_devices
+        except Exception as exp:
+            logger.exception(exp)
+            return []
+
+    def _create_payload_enum(self, payloads):
+
+        try:
+            all_codecs = []
+            for codec in payloads:
+                all_codecs.append({
+                    'name':         codec.mime_type,
+                    'channels':     codec.channels,
+                    'bitrate':      codec.normal_bitrate,
+                    'enable':       self.core.payload_type_enabled(codec)
+                })
+            return all_codecs
+        except Exception as exp:
+            logger.exception(exp)
+            return []
+
+    @property
+    def video_codecs(self):
+        return self._create_payload_enum(self.core.video_codecs)
+
+    @property
+    def sound_codecs(self):
+        return self._create_payload_enum(self.core.audio_codecs)
+
+    @property
     def current_call_duration(self):
         if not self.current_call: return 0
         diff_start_and_now = datetime.datetime.utcnow() - self.__current_call_start_datetime
         return diff_start_and_now.total_seconds()
+
+    @property
+    def current_call_dump(self):
+        try:
+            return {
+                'direction':        'incoming' if self.current_call.dir == 0 else 'outgoing',
+                'remote_uri':       self.current_call.remote_address_as_string,
+                'total_time':       self.current_call_duration,
+                'level_incoming':   self.current_call.record_volume,
+                'level_outgoing':   self.current_call.play_volume,
+                'camera':           self.current_call.camera_enabled
+            }
+        except:
+            return {}
 
     #TODO: Datetime from linphone CallLog.start_date is more then 30 sec different to python datetime.utcnow()?
     __current_call_start_datetime = datetime.datetime.utcnow()
@@ -72,6 +138,8 @@ class LinPhone(SipphoneAbstractBaseClass):
 
     def __init__(self, whitelist = [], *args, **kwargs):
         logger.debug("__init__")
+
+        DoorPi().event_handler.register_action('OnShutdown', self.destroy)
 
         DoorPi().event_handler.register_event('OnSipPhoneCreate', __name__)
         DoorPi().event_handler.register_event('OnSipPhoneStart', __name__)
@@ -196,7 +264,8 @@ class LinPhone(SipphoneAbstractBaseClass):
     def destroy(self):
         logger.debug("destroy")
         self.core.terminate_all_calls()
-        DoorPi().event_handler('OnSipPhoneDestroy', __name__)
+        DoorPi().event_handler.fire_event_synchron('OnSipPhoneDestroy', __name__)
+        DoorPi().event_handler.unregister_source(__name__, True)
         return
 
     def self_check(self, *args, **kwargs):
@@ -219,13 +288,13 @@ class LinPhone(SipphoneAbstractBaseClass):
 
     def call(self, number):
         logger.debug("call (%s)",str(number))
-        DoorPi().event_handler('OnSipPhoneMakeCall', __name__)
         if not self.current_call:
             logger.debug('no current call -> start new call')
             self.reset_call_start_datetime()
             self.core.invite_with_params(number, self.base_config)
+            DoorPi().event_handler('OnSipPhoneMakeCall', __name__, {'number':number})
         elif number in self.current_call.remote_address.as_string_uri_only():
-            if self.current_call_duration <= 1:
+            if self.current_call_duration <= 2:
                 logger.debug("same call %s again while call is running since %s seconds? -> skip",
                              self.core.current_call.remote_address.as_string_uri_only(),
                              self.current_call_duration
@@ -238,7 +307,7 @@ class LinPhone(SipphoneAbstractBaseClass):
             self.core.terminate_all_calls()
             self.call(number)
 
-        DoorPi().event_handler('AfterSipPhoneMakeCall', __name__)
+        DoorPi().event_handler('AfterSipPhoneMakeCall', __name__, {'number':number})
         return self.current_call
 
     def is_admin_number(self, remote_uri):

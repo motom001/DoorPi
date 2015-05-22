@@ -27,6 +27,8 @@ class LinphonePlayer(PlayerAbstractBaseClass):
             logger.debug('no player found in config at section DoorPi and key dialtone')
             return
 
+        doorpi.DoorPi().event_handler.register_action('OnSipPhoneDestroy', self.destroy)
+
         self.__player_filename = doorpi.DoorPi().parse_string(self.__player_filename)
         if not os.path.exists(os.path.dirname(self.__player_filename)):
             logger.info('Path %s not exists - create it now', os.path.dirname(self.__player_filename))
@@ -48,4 +50,6 @@ class LinphonePlayer(PlayerAbstractBaseClass):
 
     def start(self): doorpi.DoorPi().event_handler('OnPlayerStarted', __name__)
     def stop(self):  doorpi.DoorPi().event_handler('OnPlayerStopped', __name__)
-    def destroy(self): pass
+    def destroy(self):
+        self.stop()
+        doorpi.DoorPi().event_handler.unregister_source(__name__, True)

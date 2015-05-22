@@ -22,6 +22,9 @@ class PjsuaRecorder(RecorderAbstractBaseClass):
     def record_filename(self): return self.__record_filename
 
     @property
+    def parsed_record_filename(self): return DoorPi().parse_string(self.__record_filename)
+
+    @property
     def last_record_filename(self): return self.__last_record_filename
 
     def __init__(self):

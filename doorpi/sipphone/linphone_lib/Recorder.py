@@ -30,6 +30,8 @@ class LinphoneRecorder(RecorderAbstractBaseClass):
             logger.debug('no recorder found in config at section DoorPi and key records')
             return
 
+        DoorPi().event_handler.register_action('OnSipPhoneDestroy', self.destroy)
+
         DoorPi().event_handler.register_event('OnRecorderStarted', __name__)
         DoorPi().event_handler.register_event('OnRecorderStopped', __name__)
         DoorPi().event_handler.register_event('OnRecorderCreated', __name__)
@@ -67,4 +69,7 @@ class LinphoneRecorder(RecorderAbstractBaseClass):
             'last_record_filename': self.__last_record_filename
         })
 
-    def destroy(self): pass
+    def destroy(self):
+        try: self.stop()
+        except: pass
+        DoorPi().event_handler.unregister_source(__name__, True)

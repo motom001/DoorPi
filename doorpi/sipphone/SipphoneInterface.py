@@ -14,7 +14,7 @@ def load_sipphone():
     conf_pre = ''
     conf_post = ''
 
-    sipphone_name = doorpi.DoorPi().config.get('SIP-Phone', 'sipphonetyp', 'autodetect')
+    sipphone_name = doorpi.DoorPi().config.get('SIP-Phone', 'sipphonetyp', 'dummy')
     try:
         sipphone = importlib.import_module('sipphone.from_'+sipphone_name).get(
             sipphone_name = sipphone_name,

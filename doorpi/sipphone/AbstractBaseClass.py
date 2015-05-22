@@ -7,6 +7,29 @@ logger.debug("%s loaded", __name__)
 
 class SipphoneAbstractBaseClass(object):
 
+    def thread_register(self, name): pass
+
+    @property
+    def name(self): return 'SipphoneAbstractBaseClass'
+
+    @property
+    def sound_codecs(self): return []
+
+    @property
+    def sound_devices(self): return []
+
+    @property
+    def current_call(self): return None
+
+    @property
+    def video_codecs(self): return []
+
+    @property
+    def video_devices(self): return []
+
+    @property
+    def current_call_dump(self): return {}
+
     def __init__(self): raise NotImplementedError("Subclass %s should implement this!"%self.__class__.__name__)
     def config(self, **kwargs): raise NotImplementedError("Subclass %s should implement this!"%self.__class__.__name__)
     def start(self): raise NotImplementedError("Subclass %s should implement this!"%self.__class__.__name__)

@@ -63,7 +63,7 @@ def parse_arguments(argv):
         help='configfile for DoorPi - https://github.com/motom001/DoorPi/wiki for more help',
         type=file,
         dest='configfile',
-        required = True
+        required = False
     )
     try:
         if  len(sys.argv) > 1 and sys.argv[1] in ['start', 'stop', 'restart', 'status']: # running as daemon? cut first argument

@@ -312,3 +312,10 @@ class LinPhone(SipphoneAbstractBaseClass):
 
     def is_admin_number(self, remote_uri):
         return self.callback.is_admin_number(remote_uri)
+
+    def hangup(self):
+        if self.current_call:
+            logger.debug("Received hangup request, cancelling current call")
+            self.core.terminate_call(self.current_call)
+        else:
+            logger.debug("Ignoring hangup request as there is no ongoing call")

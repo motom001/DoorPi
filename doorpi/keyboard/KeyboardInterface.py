@@ -66,24 +66,26 @@ class KeyboardHandler(KeyboardAbstractBaseClass):
 
     @property
     def input_pins(self):
-        return_dict = []
+        return_list = []
         for Keyboard in self.__keyboards:
             for input_pin in self.__keyboards[Keyboard].input_pins:
-                return_dict.append(Keyboard+'.'+str(input_pin))
-        return return_dict
+                return_list.append(Keyboard+'.'+str(input_pin))
+        return return_list
 
     @property
     def output_pins(self):
-        return_dict = {}
+        return_list = []
         for Keyboard in self.__keyboards:
-            return_dict[Keyboard] = self.__keyboards[Keyboard].output_pins
-        return return_dict
+            for pin in self.__keyboards[Keyboard].output_pins:
+                return_list.append(Keyboard+'.'+str(pin))
+        return return_list
 
     @property
     def output_status(self):
         return_dict = {}
         for Keyboard in self.__keyboards:
-            return_dict[Keyboard] = self.__keyboards[Keyboard].output_status
+            for pin in self.__keyboards[Keyboard].output_pins:
+                return_dict[Keyboard+'.'+str(pin)] = self.__keyboards[Keyboard].status_output(pin)
         return return_dict
 
     @property
@@ -132,6 +134,12 @@ class KeyboardHandler(KeyboardAbstractBaseClass):
         for keyboard in self.__keyboards:
             if pin.startswith(keyboard+'.'):
                 return self.__keyboards[keyboard].status_input(pin[len(keyboard+'.'):])
+        return None
+
+    def status_output(self, pin):
+        for keyboard in self.__keyboards:
+            if pin.startswith(keyboard+'.'):
+                return self.__keyboards[keyboard].status_output(pin[len(keyboard+'.'):])
         return None
 
     __del__ = destroy

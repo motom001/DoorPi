@@ -59,8 +59,10 @@ class SingleAction:
     def from_string(config_string):
         try:
             action_name = config_string.split(':', 1)[0]
+            try: parameters = config_string.split(':', 1)[1]
+            except: parameters = ""
             return importlib.import_module('action.SingleActions.'+action_name).get(
-                config_string.split(':', 1)[1]
+                parameters
             )
         except:
             logger.exception('error while creating SingleAction from config string: %s',config_string)

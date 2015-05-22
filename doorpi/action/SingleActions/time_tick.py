@@ -15,6 +15,9 @@ HOUR_RANGE = range(0, 23)
 
 last_time_tick_second = 0
 
+def destroy_time_tick():
+    doorpi.DoorPi().event_handler.unregister_source(__name__, True)
+
 def time_tick(last_tick):
 
     timestamp_now = time.time()
@@ -107,7 +110,9 @@ def get(parameters):
     doorpi.DoorPi().event_handler.register_event('OnTimeYearEvenNumber', __name__)
     doorpi.DoorPi().event_handler.register_event('OnTimeYearUnevenNumber', __name__)
 
+    doorpi.DoorPi().event_handler.register_action('OnShutdown', TimeTickDestroyAction(destroy_time_tick))
+
     return TimeTickAction(time_tick, last_tick)
 
-class TimeTickAction(SingleAction):
-    pass
+class TimeTickAction(SingleAction): pass
+class TimeTickDestroyAction(SingleAction): pass

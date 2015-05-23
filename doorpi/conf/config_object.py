@@ -69,7 +69,7 @@ class ConfigObject():
         logger.info("use configfile: %s", configfile_name)
 
         config.read(configfile_name)
-        return ConfigObject(config, config_file)
+        return ConfigObject(config, configfile_name)
 
     def get_string_parsed(self, section, key, default = '', log = True):
         raw_string = self.get_string(section, key, default, log)

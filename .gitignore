@@ -56,5 +56,8 @@ target/
 # private config-file
 conf/doorpi.ini
 conf/doorpi.cfg
+
 doorpi/media/*.wav
 records/
+conf/eventlog.db
+conf/eventlog.db-journal

@@ -88,6 +88,7 @@ class DoorPiWeb(ThreadingMixIn, HTTPServer):
     loginfile = None
     base_url = None
     area_public_name = None
+    online_fallback = None
 
     @property
     def sessions(self):
@@ -108,6 +109,7 @@ class DoorPiWeb(ThreadingMixIn, HTTPServer):
         self.indexfile = doorpi.DoorPi().config.get_string_parsed(DOORPIWEB_SECTION, 'indexfile', 'index.html')
         self.loginfile = doorpi.DoorPi().config.get_string_parsed(DOORPIWEB_SECTION, 'loginfile', 'login.html')
         self.area_public_name = doorpi.DoorPi().config.get_string_parsed(DOORPIWEB_SECTION, 'public', 'AREA_public')
+        self.online_fallback = doorpi.DoorPi().config.get_string_parsed(DOORPIWEB_SECTION, 'online_fallback', 'https://raw.githubusercontent.com/motom001/DoorPiWeb/master/')
         check_config(self.config)
 
         doorpi.DoorPi().event_handler.register_action('OnWebServerStart', WebServerStartupAction(self.handle_while_not_shutdown))
@@ -133,4 +135,3 @@ class DoorPiWeb(ThreadingMixIn, HTTPServer):
         DoorPiWebRequestHandler.destroy()
         self.fake_request()
         doorpi.DoorPi().event_handler.unregister_source(__name__, True)
-

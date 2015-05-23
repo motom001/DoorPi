@@ -81,10 +81,7 @@ class ConfigObject():
         if section not in self.__sections.keys():
             self.__sections[section] = {}
 
-        if key is 'password' or password:
-            password_friendly_value = "*******"
-        else:
-            password_friendly_value = value
+        password_friendly_value = "*******" if key is 'password' or password else value
 
         if key not in self.__sections[section].keys():
             if log: logger.debug("create new key %s in section %s with value '%s'",

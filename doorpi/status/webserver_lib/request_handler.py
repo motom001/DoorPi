@@ -12,7 +12,7 @@ import cgi # for parsing POST
 from urlparse import urlparse, parse_qs # parsing parameters and url
 import re # regex for area
 import json # for virtual resources
-
+from urllib2 import urlopen as load_online_fallback
 
 from action.base import SingleAction
 import doorpi
@@ -50,8 +50,8 @@ class DoorPiWebRequestHandler(BaseHTTPRequestHandler):
         if not self.server.keep_running: return
 
         parsed_path = urlparse(self.path)
-        doorpi.DoorPi().event_handler('OnWebServerRequest', __name__, {'header': self.headers.items(), 'path': parsed_path})
-        doorpi.DoorPi().event_handler('OnWebServerRequestGet', __name__, {'header': self.headers.items(), 'path': parsed_path})
+        #doorpi.DoorPi().event_handler('OnWebServerRequest', __name__, {'header': self.headers.items(), 'path': parsed_path})
+        #doorpi.DoorPi().event_handler('OnWebServerRequestGet', __name__, {'header': self.headers.items(), 'path': parsed_path})
         if parsed_path.path in VIRTUELL_RESOURCES: return self.create_virtual_resource(parsed_path, parse_qs(urlparse(self.path).query))
         else: return self.real_resource(parsed_path.path)
 
@@ -62,7 +62,7 @@ class DoorPiWebRequestHandler(BaseHTTPRequestHandler):
         pass
 
     def create_virtual_resource(self, path, raw_parameters):
-        doorpi.DoorPi().event_handler('OnWebServerVirtualResource', __name__, {'path': path})
+        #doorpi.DoorPi().event_handler('OnWebServerVirtualResource', __name__, {'path': path})
 
         if 'module' not in raw_parameters.keys(): raw_parameters['module'] = []
         if 'name' not in raw_parameters.keys(): raw_parameters['name'] = []
@@ -105,10 +105,15 @@ class DoorPiWebRequestHandler(BaseHTTPRequestHandler):
         pass
 
     def real_resource(self, path):
-        doorpi.DoorPi().event_handler('OnWebServerRealResource', __name__, {'path': path})
+        #doorpi.DoorPi().event_handler('OnWebServerRealResource', __name__, {'path': path})
         if os.path.isdir(self.server.www + path): return self.list_directory(self.server.www + path)
         try:                                      return self.return_file_content(self.server.www, path[1:])
-        except IOError as exp:                    return self.send_error(404, str(exp))
+        except IOError as exp:                    return self.real_resource_fallback(path, exp)
+        except Exception as exp:                  return self.send_error(500, str(exp))
+
+    def real_resource_fallback(self, path, previous_exception):
+        try:                                      return self.return_fallback_content(self.server.online_fallback, path[1:])
+        except IOError:                           return self.send_error(404, str(previous_exception))
         except Exception as exp:                  return self.send_error(500, str(exp))
 
     def list_directory(self, path):
@@ -138,17 +143,41 @@ class DoorPiWebRequestHandler(BaseHTTPRequestHandler):
         self.send_error(error_code, error_message)
         raise Exception('sending error '+str(error_code)+' - '+str(error_message))
 
+    @staticmethod
+    def get_mime_typ(filename):
+        return guess_type(filename)[0] or ""
+
+    @staticmethod
+    def is_file_parsable(filename):
+        mime_type = DoorPiWebRequestHandler.get_mime_typ(filename)
+        return mime_type in ['text/html']
+
     def read_from_file(self, basepath, *filename_parts):
         filename = os.path.join(basepath, *filename_parts)
-        with open(filename, "rb") as file:
-            bytes_read = file.read()
-        return bytes_read
+        read_mode = "r" if self.is_file_parsable(filename) else "rb"
+        with open(filename, read_mode) as file:
+            file_content = file.read()
+        if self.is_file_parsable(filename):
+            return self.parse_content(file_content)
+        else:
+            return file_content
+
+    def return_fallback_content(self, basepath, *filename_parts):
+        for filename_part in filename_parts:
+            basepath += filename_part
+
+        response = load_online_fallback(basepath, timeout = 1)
+        return self.return_message(
+            response.read(),
+            self.get_mime_typ(basepath)
+        )
 
     def return_file_content(self, basepath, *filename_parts):
         filename = os.path.join(basepath, *filename_parts)
-        mime_type = guess_type(filename)[0] or ""
-        bytes_read = self.read_from_file(filename)
-        return self.return_message(bytes_read, mime_type)
+        return self.return_message(
+            self.read_from_file(filename),
+            self.get_mime_typ(filename)
+        )
 
     def return_message(self, message = "", content_type = 'text/plain; charset=utf-8', http_code = 200, login_form = False):
         try:
@@ -178,7 +207,7 @@ class DoorPiWebRequestHandler(BaseHTTPRequestHandler):
                 <p>Error code explanation: 401 = Unauthorized.
                 </body>
             '''
-            #self.read_from_file(self.server.www, self.server.loginfile)
+            login_form_content = self.read_from_file(self.server.www, self.server.loginfile)
             self.return_message(
                 message = login_form_content ,
                 content_type = 'text/html; charset=utf-8',
@@ -256,3 +285,43 @@ class DoorPiWebRequestHandler(BaseHTTPRequestHandler):
         message_parts.append('')
         message = '\r\n'.join(message_parts)
         return message
+
+    def parse_content(self, content):
+        try:
+            matches = re.findall(r"{([^}]*)}", content)
+            if not matches: return content
+            #http://stackoverflow.com/questions/12897374/get-unique-values-from-a-list-in-python/12897491#12897491
+            matches = list(set(matches))
+
+            mapping_table = {
+                'DOORPI': doorpi.DoorPi().name_and_version,
+                'SERVER': self.server.server_name,
+                'PORT': str(self.server.server_port),
+                'BASE_URL': "http://%s:%s"%(self.headers['host'], self.server.server_port)
+                            if 'host' in self.headers.keys() else
+                            "http://%s:%s"%(self.server.server_name, self.server.server_port)
+            }
+
+            mapping_templates = {
+                'TEMPLATE:HTML_HEADER':         'html.header.html',
+                'TEMPLATE:HTML_FOOTER':         'html.footer.html',
+                'TEMPLATE:NAVIGATION':          'navigation.html'
+            }
+
+            for match in matches:
+                if match not in mapping_table.keys(): continue
+                content = content.replace('{'+match+'}', mapping_table[match])
+
+            for match in matches:
+                if match not in mapping_templates.keys(): continue
+                try: replace_with = self.read_from_file(self.server.www, 'dashboard/parts/', mapping_templates[match])
+                except: replace_with = ""
+                content = content.replace(
+                    '{'+match+'}',
+                    replace_with
+                )
+
+        except Exception as exp:
+            logger.exception(exp)
+        finally:
+            return content

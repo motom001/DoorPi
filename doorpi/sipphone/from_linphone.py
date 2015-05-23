@@ -202,6 +202,7 @@ class LinPhone(SipphoneAbstractBaseClass):
         if len(camera):
             self.core.video_capture_enabled = True
             self.core.video_device = camera
+            self.core.preferred_video_size_by_name = conf.get(SIPPHONE_SECTION, 'video_size', '')
         else:
             self.core.video_capture_enabled = False
 

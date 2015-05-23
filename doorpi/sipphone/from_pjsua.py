@@ -94,7 +94,6 @@ class Pjsua(SipphoneAbstractBaseClass):
 
         self.__Lib = None
         self.__account = None
-        self.current_call = None
         self.current_callcallback = None
         self.current_account_callback = None
         self.__recorder = None

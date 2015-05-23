@@ -58,6 +58,8 @@ class DummyPhone(SipphoneAbstractBaseClass):
         DoorPi().event_handler('OnSipPhoneMakeCall', __name__)
     def is_admin_number(self, remote_uri):
         return False
+    def hangup(self):
+        pass
 
 class DummyRecorder(RecorderAbstractBaseClass):
     @property

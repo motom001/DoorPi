@@ -240,6 +240,7 @@ class LinPhone(SipphoneAbstractBaseClass):
 
             self.core.video_capture_enabled = True
             self.core.video_device = config_camera
+            self.core.preferred_video_size_by_name = conf.get(SIPPHONE_SECTION, 'video_size', '')
             logger.debug("used video_device: %s", self.core.video_device)
 
         # Only enable VP8 video codec

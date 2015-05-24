@@ -27,7 +27,7 @@ def log_handler(level, msg):
     method = getattr(logger, level)
     method(msg)
 
-if logger.getEffectiveLevel() < 5: lin.set_log_handler(log_handler)
+if logger.getEffectiveLevel() <= 5: lin.set_log_handler(log_handler)
 
 def get(*args, **kwargs): return LinPhone(*args, **kwargs)
 class LinPhone(SipphoneAbstractBaseClass):
@@ -60,7 +60,7 @@ class LinPhone(SipphoneAbstractBaseClass):
                   'name':       video_device
                 })
             return all_devices
-        except:
+        except Exception:
             return []
 
     @property
@@ -119,7 +119,7 @@ class LinPhone(SipphoneAbstractBaseClass):
                 'level_outgoing':   self.current_call.play_volume,
                 'camera':           self.current_call.camera_enabled
             }
-        except:
+        except Exception:
             return {}
 
     #TODO: Datetime from linphone CallLog.start_date is more then 30 sec different to python datetime.utcnow()?
@@ -129,6 +129,7 @@ class LinPhone(SipphoneAbstractBaseClass):
     def base_config(self):
         params = self.core.create_call_params(None)
         params.record_file = self.recorder.parsed_record_filename
+        params.video_enabled = True
         return params
 
     def reset_call_start_datetime(self):
@@ -136,7 +137,7 @@ class LinPhone(SipphoneAbstractBaseClass):
         logger.debug('reset current call start datetime to %s', self.__current_call_start_datetime)
         return self.__current_call_start_datetime
 
-    def __init__(self, whitelist = [], *args, **kwargs):
+    def __init__(self, whitelist = list(), *args, **kwargs):
         logger.debug("__init__")
 
         DoorPi().event_handler.register_action('OnShutdown', self.destroy)
@@ -187,36 +188,68 @@ class LinPhone(SipphoneAbstractBaseClass):
         self.core.in_call_timeout = conf.get_int(SIPPHONE_SECTION, 'max_call_time', 120)
         #http://pythonhosted.org/linphone/api_reference.html#linphone.Core.inc_timeout
         #If an incoming call isn’t answered for this timeout period, it is automatically declined.
-        self.core.inc_timeout = conf.get_int(SIPPHONE_SECTION, 'call_timeout', 45)
-
-        self.core.capture_device = conf.get(SIPPHONE_SECTION, 'capture_device', '')
-        self.core.playback_device = conf.get(SIPPHONE_SECTION, 'playback_device', '')
+        self.core.inc_timeout = conf.get_int(SIPPHONE_SECTION, 'call_timeout', 15)
 
         self.__player = LinphonePlayer()
         self.core.ringback = self.player.player_filename
-
         self.__recorder = LinphoneRecorder()
 
-        # e.g. 'V4L2: /dev/video0'
-        camera = conf.get(SIPPHONE_SECTION, 'video_device', '')
-        if len(camera):
-            self.core.video_capture_enabled = True
-            self.core.video_device = camera
+        self.core.capture_device = conf.get(SIPPHONE_SECTION, 'capture_device', '')
+        self.core.playback_device = conf.get(SIPPHONE_SECTION, 'playback_device', '')
+        if len(self.core.sound_devices) == 0:
+            logger.warning('no audio devices available')
         else:
-            self.core.video_capture_enabled = False
+            logger.info("founded %s possible sounddevices:", len(self.core.sound_devices))
+            logger.debug("|rec|play| name")
+            logger.debug("------------------------------------")
+            for sound_device in self.core.sound_devices:
+                logger.debug("| %s | %s  | %s",
+                    'X' if self.core.sound_device_can_capture(sound_device) else 'O',
+                    'X' if self.core.sound_device_can_playback(sound_device) else 'O',
+                    sound_device
+                )
+            logger.debug("------------------------------------")
+            logger.debug("used capture_device: %s", self.core.capture_device)
+            logger.debug("used playback_device: %s", self.core.playback_device)
 
-        # Only enable PCMU and PCMA audio codecs
+        # Only enable PCMU and PCMA audio codecs by default
+        config_audio_codecs = conf.get_list(SIPPHONE_SECTION, 'audio_codecs', 'PCMA,PCMU')
         for codec in self.core.audio_codecs:
-            if codec.mime_type == "PCMA" or codec.mime_type == "PCMU":
+            if codec.mime_type in config_audio_codecs:
+                logger.debug('enable audio codec %s', codec.mime_type)
                 self.core.enable_payload_type(codec, True)
             else:
+                logger.debug('disable audio codec %s', codec.mime_type)
                 self.core.enable_payload_type(codec, False)
 
+        config_camera = conf.get(SIPPHONE_SECTION, 'video_device', '')
+        if len(self.core.video_devices) == 0:
+            self.core.video_capture_enabled = False
+            logger.warning('no video devices available')
+        else:
+            logger.info("founded %s possible videodevices:", len(self.core.video_devices))
+            logger.debug("| name")
+            logger.debug("------------------------------------")
+            for video_device in self.core.video_devices:
+                logger.debug("| %s ", video_device)
+            logger.debug("------------------------------------")
+            if config_camera not in self.core.video_devices:
+                logger.warning('camera "%s" from config does not exists in possible video devices.', config_camera)
+                logger.debug('switch to first possible video device "%s"', self.core.video_devices[0])
+                config_camera = self.core.video_devices[0]
+
+            self.core.video_capture_enabled = True
+            self.core.video_device = config_camera
+            logger.debug("used video_device: %s", self.core.video_device)
+
         # Only enable VP8 video codec
+        config_video_codecs = conf.get_list(SIPPHONE_SECTION, 'video_codecs', 'VP8')
         for codec in self.core.video_codecs:
-            if codec.mime_type == "VP8" and len(camera):
+            if codec.mime_type in config_video_codecs and self.core.video_capture_enabled:
+                logger.debug('enable video codec %s', codec.mime_type)
                 self.core.enable_payload_type(codec, True)
             else:
+                logger.debug('disable video codec %s', codec.mime_type)
                 self.core.enable_payload_type(codec, False)
 
         # Configure the SIP account
@@ -248,18 +281,6 @@ class LinPhone(SipphoneAbstractBaseClass):
         )
 
         logger.debug("start successfully")
-        logger.debug("founded %s possible sounddevices:", len(self.core.sound_devices))
-        logger.debug("|rec|play| name")
-        logger.debug("------------------------------------")
-        for sound_device in self.core.sound_devices:
-            logger.debug("| %s | %s  | %s",
-                'X' if self.core.sound_device_can_capture(sound_device) else 'O',
-                'X' if self.core.sound_device_can_playback(sound_device) else 'O',
-                sound_device
-            )
-        logger.debug("------------------------------------")
-        logger.debug("used capture_device: %s", self.core.capture_device)
-        logger.debug("used playback_device: %s", self.core.playback_device)
 
     def destroy(self):
         logger.debug("destroy")

@@ -19,9 +19,6 @@ class SipphoneAbstractBaseClass(object):
     def sound_devices(self): return []
 
     @property
-    def current_call(self): return None
-
-    @property
     def video_codecs(self): return []
 
     @property

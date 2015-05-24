@@ -276,11 +276,6 @@ class LinPhone(SipphoneAbstractBaseClass):
             self.core.default_proxy_config = proxy_cfg
             logger.debug('%s',self.core.proxy_config_list)
 
-        DoorPi().event_handler.register_action(
-            event_name      = 'OnTimeTickRealtime',
-            action_object   = 'pjsip_handle_events:50'
-        )
-
         logger.debug("start successfully")
 
     def destroy(self):

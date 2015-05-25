@@ -130,9 +130,10 @@ class ConfigObject():
         if log: logger.trace("get_boolean for key %s in section %s (default: %s) returns %s", key, section, default, value)
         return value
 
-    def get_list(self, section, key, default = '', separator = ',', log = True):
-        value = self.get(section, key, default, log = False)
-        value = value.split(separator)
+    def get_list(self, section, key, default = [], separator = ',', log = True):
+        value = self.get(section, key, log = False)
+        if value is not '': value = value.split(separator)
+        else: value = default
         if log: logger.trace("get_list for key %s in section %s (default: %s) returns %s", key, section, default, value)
         return value
 

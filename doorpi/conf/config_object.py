@@ -100,7 +100,7 @@ class ConfigObject():
                 value = self.__sections[section][key]
 
         if value is None:
-            logger.trace('no value found - use default')
+            #logger.trace('no value found - use default')
             value = default
             if store_if_not_exists: self.set_value(section, key, default, log, password)
 
@@ -130,7 +130,7 @@ class ConfigObject():
         if log: logger.trace("get_boolean for key %s in section %s (default: %s) returns %s", key, section, default, value)
         return value
 
-    def get_list(self, section, key, default = False, separator = ',', log = True):
+    def get_list(self, section, key, default = '', separator = ',', log = True):
         value = self.get(section, key, default, log = False)
         value = value.split(separator)
         if log: logger.trace("get_list for key %s in section %s (default: %s) returns %s", key, section, default, value)

@@ -107,8 +107,6 @@ class LinphoneCallbacks:
             'state': message
         })
 
-
-
         if call_state == linphone.CallState.Idle:
             pass
         elif call_state == linphone.CallState.IncomingReceived:
@@ -153,7 +151,10 @@ class LinphoneCallbacks:
                 DoorPi().event_handler('AfterCallReject', __name__)
                 return
         elif call_state == linphone.CallState.OutgoingInit:
-            pass
+            DoorPi().event_handler.register_action(
+                event_name      = 'OnTimeSecond',
+                action_object   = 'check_call_duration'
+            )
         elif call_state == linphone.CallState.OutgoingProgress:
             pass
         elif call_state == linphone.CallState.OutgoingRinging:
@@ -161,6 +162,10 @@ class LinphoneCallbacks:
         elif call_state == linphone.CallState.OutgoingEarlyMedia:
             DoorPi().event_handler('OnCallMediaStateChange', __name__)
         elif call_state == linphone.CallState.Connected:
+            DoorPi().event_handler.register_action(
+                event_name      = 'OnTimeSecond',
+                action_object   = 'check_call_duration'
+            )
             DoorPi().event_handler('OnCallStateConnect', __name__)
         elif call_state == linphone.CallState.StreamsRunning:
             DoorPi().event_handler('AfterCallStateConnect', __name__)
@@ -179,6 +184,10 @@ class LinphoneCallbacks:
         elif call_state == linphone.CallState.End:
             if message == "Call declined.": DoorPi().event_handler('OnCallStateReject', __name__)
             DoorPi().event_handler('OnCallStateDisconnect', __name__)
+            DoorPi().event_handler.unregister_action(
+                event_name      = 'OnTimeSecond',
+                action_object   = 'check_call_duration'
+            )
         elif call_state == linphone.CallState.PausedByRemote:
             pass
         elif call_state == linphone.CallState.UpdatedByRemote:

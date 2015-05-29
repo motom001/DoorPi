@@ -61,6 +61,12 @@ class SipPhoneCallCallBack(pj.CallCallback):
             'state': self.call.info().state_text
         })
 
+        if self.call.info().state in [pj.CallState.CALLING, pj.CallState.CONFIRMED]:
+            DoorPi().event_handler.register_action(
+                event_name      = 'OnTimeSecond',
+                action_object   = 'check_call_duration'
+            )
+
         if self.call.info().state in [pj.CallState.CONFIRMED] \
         and self.call.info().media_state == pj.MediaState.ACTIVE:
             DoorPi().event_handler('OnCallStateConnect', __name__, {
@@ -95,6 +101,10 @@ class SipPhoneCallCallBack(pj.CallCallback):
                     'remote_uri': self.call.info().remote_uri
                 })
 
+            DoorPi().event_handler.unregister_action(
+                event_name      = 'OnTimeSecond',
+                action_object   = 'check_call_duration'
+            )
 
     def on_dtmf_digit(self, digits):
         logger.debug("on_dtmf_digit (%s)",str(digits))

@@ -174,7 +174,7 @@ class EventHandler:
                     events_by_source[source] = [event]
         return events_by_source
     @property
-    def actions(self): return self.__Actions
+    def actions(self): return self.__Actions.values()
     @property
     def threads(self): return threading.enumerate()
     @property
@@ -270,7 +270,7 @@ class EventHandler:
             self.__additional_informations[event_name]['last_duration'] = None
 
         if not silent: logger.debug("[%s] fire for event %s this actions %s ", event_fire_id, event_name, self.__Actions[event_name])
-        for action in self.__Actions[event_name]:
+        for action in self.__Actions[event_name].values():
             if not silent: logger.trace("[%s] try to fire action %s", event_fire_id, action)
             try:
                 result = action.run(silent)
@@ -324,6 +324,7 @@ class EventHandler:
             return False
 
     def register_action(self, event_name, action_object, *args, **kwargs):
+        action_name = str(action_object)
         if ismethod(action_object) and callable(action_object):
             action_object = SingleAction(action_object, *args, **kwargs)
         elif isfunction(action_object) and callable(action_object):
@@ -339,13 +340,28 @@ class EventHandler:
             action_object.single_fire_action = True
             del kwargs['single_fire_action']
 
-        if event_name in self.__Actions:
-            self.__Actions[event_name].append(action_object)
+        if event_name in self.__Actions.keys():
+            self.__Actions[event_name][action_name] = action_object
             logger.trace("action %s was added to event %s", action_object, event_name)
         else:
-            self.__Actions[event_name] = [action_object]
+            self.__Actions[event_name] = { action_name: action_object }
             logger.trace("action %s was added to new evententry %s", action_object, event_name)
 
         return action_object
+
+    def unregister_action(self, event_name, action_object, *args, **kwards):
+        logger.trace("unregistering action %s from event %s", action_object, event_name)
+        if event_name not in self.__Actions:
+            logger.error("failed to unregister action %s from event %s: event not found", action_object, event_name)
+            return False
+        if action_object not in self.__Actions[event_name].keys():
+            logger.error("failed to unregister action %s from event %s: action not known for this event", action_object, event_name)
+            return False
+        del self.__Actions[event_name][action_object]
+        if len(self.__Actions[event_name]) is 0:
+            del self.__Actions[event_name]
+            logger.debug("no more actions for event %s - remove actions list too", event_name)
+        logger.trace("action %s was removed for event %s", action_object, event_name)
+        return True
 
     __call__ = fire_event_asynchron

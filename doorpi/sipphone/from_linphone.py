@@ -287,9 +287,10 @@ class LinPhone(SipphoneAbstractBaseClass):
 
     def self_check(self, *args, **kwargs):
         if not self.core: return
-
         self.core.iterate()
 
+    def check_call_duration(self):
+        logger.debug("CHECK CALL DURATION")
         if not self.current_call: return
 
         if self.current_call.state < lin.CallState.Connected:

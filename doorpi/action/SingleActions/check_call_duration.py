@@ -8,11 +8,11 @@ logger.debug("%s loaded", __name__)
 from action.base import SingleAction
 import doorpi
 
-def pjsip_handle_events():
-    doorpi.DoorPi().sipphone.self_check()
+def check_call_duration():
+    doorpi.DoorPi().sipphone.check_call_duration()
 
 def get():
-    return PjsipHandleEventsAction(pjsip_handle_events)
+    return CheckCallDurationAction(check_call_duration)
 
-class PjsipHandleEventsAction(SingleAction):
+class CheckCallDurationAction(SingleAction):
     pass

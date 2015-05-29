@@ -6,6 +6,7 @@ logger = logging.getLogger(__name__)
 logger.debug("%s loaded", __name__)
 
 import pjsua as pj
+import thread
 
 import AbstractBaseClass
 
@@ -74,8 +75,6 @@ class Pjsua(SipphoneAbstractBaseClass):
         except:
             return {}
 
-    def thread_register(self, name): return self.lib.thread_register(name)
-
     def __init__(self, *args, **kwargs):
         logger.debug("__init__")
 
@@ -100,8 +99,6 @@ class Pjsua(SipphoneAbstractBaseClass):
         self.__recorder = None
         self.__player = None
 
-        self.call_timeout = 30
-
     def start(self):
         DoorPi().event_handler('OnSipPhoneCreate', __name__)
         self.__Lib = pj.Lib.instance()
@@ -123,12 +120,7 @@ class Pjsua(SipphoneAbstractBaseClass):
         logger.debug("Port: %s",str(transport.info().port))
 
         logger.debug("Lib.start()")
-        self.lib.start(0)
-
-        DoorPi().event_handler.register_action(
-            event_name      = 'OnTimeTick',
-            action_object   = 'pjsip_handle_events'
-        )
+        self.lib.start()
 
         logger.debug("init Acc")
         self.current_account_callback = pjsua_lib.SipPhoneAccountCallBack.SipPhoneAccountCallBack()
@@ -164,27 +156,21 @@ class Pjsua(SipphoneAbstractBaseClass):
         DoorPi().event_handler('OnSipPhoneDestroy', __name__)
 
         if self.lib is not None:
-            self.lib.handle_events()
             self.__Lib.destroy()
-            self.lib.handle_events()
 
         try:
             timeout = 0
             while timeout < 5 and self.__Lib is not None:
                 sleep(0.1)
                 timeout += 0.1
-                self.lib.handle_events()
 
         except:
             DoorPi().event_handler.unregister_source(__name__, True)
             return
 
-    def self_check(self):
-        self.lib.thread_register('pjsip_handle_events')
-
-        self.lib.handle_events()
-
+    def check_call_duration(self):
         if self.current_call is not None:
+            self.lib.thread_register('check_duration')
             if self.current_call.is_valid() is 0:
                 del self.current_callcallback
                 self.current_callcallback = None
@@ -209,7 +195,8 @@ class Pjsua(SipphoneAbstractBaseClass):
 
         logger.debug("call(%s)",str(number))
         DoorPi().event_handler('OnSipPhoneMakeCall', __name__)
-        self.lib.thread_register('call_theard')
+
+        self.lib.thread_register('call thread')
 
         sip_server = pjsua_lib.Config.sipphone_server()
         sip_uri = "sip:"+str(number)+"@"+str(sip_server)

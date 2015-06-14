@@ -82,8 +82,8 @@ class LinphoneCallbacks:
         DoorPi().event_handler.register_event('AfterCallReconnect', __name__)
         DoorPi().event_handler.register_event('OnCallBusy', __name__)
         DoorPi().event_handler.register_event('AfterCallBusy', __name__)
-        DoorPi().event_handler.register_event('OnCallIncomming', __name__)
-        DoorPi().event_handler.register_event('AfterCallIncomming', __name__)
+        DoorPi().event_handler.register_event('OnCallIncoming', __name__)
+        DoorPi().event_handler.register_event('AfterCallIncoming', __name__)
         DoorPi().event_handler.register_event('OnCallReject', __name__)
         DoorPi().event_handler.register_event('AfterCallReject', __name__)
         #DoorPi().event_handler.register_event('AfterAccountRegState', __name__)
@@ -119,7 +119,7 @@ class LinphoneCallbacks:
                 logger.debug("- current.remote_uri : %s", core.current_call)
 
                 if core.current_call.remote_address.as_string_uri_only() == remote_uri:
-                    logger.info("Current call is incoming call - quit current and connect to incoming. Maybe connection-Reset?")
+                    logger.info("Current call is incoming call - quitting current and connecting to incoming. Maybe connection reset?")
                     DoorPi().event_handler('OnCallReconnect', __name__, {'remote_uri': remote_uri})
                     core.terminate_call(core.current_call)
                     DoorPi().sipphone.reset_call_start_datetime()
@@ -128,24 +128,24 @@ class LinphoneCallbacks:
                     return
                 else:
                     if self.is_admin_number(remote_uri):
-                        logger.info("incoming and current call are different - incoming is adminnumber, so hang up current call")
-                        DoorPi().event_handler('OnCallIncomming', __name__, {'remote_uri': remote_uri})
+                        logger.info("Incoming and current call are different - incoming is AdminNumber, so hanging up current call")
+                        DoorPi().event_handler('OnCallIncoming', __name__, {'remote_uri': remote_uri})
                         core.terminate_call(core.current_call)
                         DoorPi().sipphone.reset_call_start_datetime()
                         core.accept_call_with_params(call, DoorPi().sipphone.base_config)
-                        DoorPi().event_handler('AfterCallIncomming', __name__, {'remote_uri': remote_uri})
+                        DoorPi().event_handler('AfterCallIncoming', __name__, {'remote_uri': remote_uri})
                         return
                     else:
-                        logger.info("incoming and current call are different - send busy signal to incoming call")
+                        logger.info("Incoming and current call are different - sending busy signal to incoming call")
                         DoorPi().event_handler('OnCallBusy', __name__, {'remote_uri': remote_uri})
                         core.decline_call(call, linphone.Reason.Busy)
                         DoorPi().event_handler('AfterCallBusy', __name__)
                         return
             if self.is_admin_number(remote_uri):
-                DoorPi().event_handler('OnCallIncomming', __name__, {'remote_uri': remote_uri})
+                DoorPi().event_handler('OnCallIncoming', __name__, {'remote_uri': remote_uri})
                 DoorPi().sipphone.reset_call_start_datetime()
                 core.accept_call_with_params(call, DoorPi().sipphone.base_config)
-                DoorPi().event_handler('AfterCallIncomming', __name__, {'remote_uri': remote_uri})
+                DoorPi().event_handler('AfterCallIncoming', __name__, {'remote_uri': remote_uri})
                 return
             else:
                 DoorPi().event_handler('OnCallReject', __name__)

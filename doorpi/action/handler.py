@@ -203,12 +203,12 @@ class EventHandler:
         self.register_source(event_source)
         if event_name not in self.__Events:
             self.__Events[event_name] = [event_source]
-            if not silent: logger.trace("added event_name %s an register source %s", event_name, event_source)
+            if not silent: logger.trace("added event_name %s and registered source %s", event_name, event_source)
         elif event_source not in self.__Events[event_name]:
             self.__Events[event_name].append(event_source)
             if not silent: logger.trace("added event_source %s to existing event %s", event_source, event_name)
         else:
-            if not silent: logger.trace("nothing to do - event %s from source %s is allready known", event_name, event_source)
+            if not silent: logger.trace("nothing to do - event %s from source %s is already known", event_name, event_source)
 
     def fire_event(self, event_name, event_source, syncron = False, kwargs = None):
         if syncron is False: return self.fire_event_asynchron(event_name, event_source, kwargs)

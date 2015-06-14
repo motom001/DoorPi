@@ -13,7 +13,7 @@ def call_phonenumber_from_file(filename):
         with open(doorpi.DoorPi().parse_string(filename), 'r') as f:
             phonenumber = f.readline().strip(' \t\n\r')
 
-        logger.debug("fire now sipphone.call for this number: %s", phonenumber)
+        logger.debug("firing sipphone.call for this number: %s", phonenumber)
         doorpi.DoorPi().sipphone.call(phonenumber)
         logger.debug("finished sipphone.call for this number: %s", phonenumber)
 

@@ -199,7 +199,7 @@ class LinPhone(SipphoneAbstractBaseClass):
         if len(self.core.sound_devices) == 0:
             logger.warning('no audio devices available')
         else:
-            logger.info("founded %s possible sounddevices:", len(self.core.sound_devices))
+            logger.info("found %s possible sounddevices:", len(self.core.sound_devices))
             logger.debug("|rec|play| name")
             logger.debug("------------------------------------")
             for sound_device in self.core.sound_devices:
@@ -209,8 +209,8 @@ class LinPhone(SipphoneAbstractBaseClass):
                     sound_device
                 )
             logger.debug("------------------------------------")
-            logger.debug("used capture_device: %s", self.core.capture_device)
-            logger.debug("used playback_device: %s", self.core.playback_device)
+            logger.debug("using capture_device: %s", self.core.capture_device)
+            logger.debug("using playback_device: %s", self.core.playback_device)
 
         # Only enable PCMU and PCMA audio codecs by default
         config_audio_codecs = conf.get_list(SIPPHONE_SECTION, 'audio_codecs', 'PCMA,PCMU')
@@ -227,21 +227,21 @@ class LinPhone(SipphoneAbstractBaseClass):
             self.core.video_capture_enabled = False
             logger.warning('no video devices available')
         else:
-            logger.info("founded %s possible videodevices:", len(self.core.video_devices))
+            logger.info("found %s possible videodevices:", len(self.core.video_devices))
             logger.debug("| name")
             logger.debug("------------------------------------")
             for video_device in self.core.video_devices:
                 logger.debug("| %s ", video_device)
             logger.debug("------------------------------------")
             if config_camera not in self.core.video_devices:
-                logger.warning('camera "%s" from config does not exists in possible video devices.', config_camera)
-                logger.debug('switch to first possible video device "%s"', self.core.video_devices[0])
+                logger.warning('camera "%s" from config does not exist in possible video devices.', config_camera)
+                logger.debug('switching to first possible video device "%s"', self.core.video_devices[0])
                 config_camera = self.core.video_devices[0]
 
             self.core.video_capture_enabled = True
             self.core.video_device = config_camera
             self.core.preferred_video_size_by_name = conf.get(SIPPHONE_SECTION, 'video_size', '')
-            logger.debug("used video_device: %s", self.core.video_device)
+            logger.debug("using video_device: %s", self.core.video_device)
 
         # Only enable VP8 video codec
         config_video_codecs = conf.get_list(SIPPHONE_SECTION, 'video_codecs', 'VP8')

@@ -29,11 +29,11 @@ class PjsuaPlayer(PlayerAbstractBaseClass):
 
         self.__player_filename = doorpi.DoorPi().parse_string(self.__player_filename)
         if not os.path.exists(os.path.dirname(self.__player_filename)):
-            logger.info('Path %s not exists - create it now', os.path.dirname(self.__player_filename))
+            logger.info('Path %s does not exist - creating it now', os.path.dirname(self.__player_filename))
             os.makedirs(os.path.dirname(self.__player_filename))
         dialtone_renew_every_start = doorpi.DoorPi().config.get_bool('DoorPi', 'dialtone_renew_every_start', False)
         if not os.path.isfile(self.__player_filename) or dialtone_renew_every_start:
-            logger.info('DialTone %s not exists - create it now', self.__player_filename)
+            logger.info('DialTone %s does not exist - creating it now', self.__player_filename)
             dialtone_volume = doorpi.DoorPi().config.get_int('DoorPi', 'dialtone_volume', 35)
             generate_dial_tone(self.__player_filename, dialtone_volume)
         doorpi.DoorPi().event_handler.register_event('OnPlayerStarted', __name__)
@@ -48,13 +48,13 @@ class PjsuaPlayer(PlayerAbstractBaseClass):
 
     def start(self):
         if self.__player_id is not None:
-            logger.trace('player allready created as player_id %s and play %s', self.__player_id, self.player_filename)
+            logger.trace('player already created as player_id %s and playing %s', self.__player_id, self.player_filename)
             return
 
         doorpi.DoorPi().sipphone.lib.thread_register('PjsuaPlayer_start_thread')
 
         self.__player_filename = doorpi.DoorPi().parse_string(self.__player_filename)
-        logger.debug('start player from %s', self.__player_filename)
+        logger.debug('starting player from %s', self.__player_filename)
         self.__player_id = doorpi.DoorPi().sipphone.lib.create_player(self.__player_filename, True)
         doorpi.DoorPi().sipphone.lib.player_set_pos(self.__player_id, 0)
         self.__slot_id = doorpi.DoorPi().sipphone.lib.player_get_slot(self.__player_id)
@@ -64,7 +64,7 @@ class PjsuaPlayer(PlayerAbstractBaseClass):
     def stop(self):
         if self.__player_id is not None:
             doorpi.DoorPi().sipphone.lib.thread_register('PjsuaPlayer_stop_thread')
-            logger.debug('stop player from %s', self.__player_filename)
+            logger.debug('stopping player from %s', self.__player_filename)
             doorpi.DoorPi().sipphone.lib.conf_disconnect(0, self.__slot_id)
             doorpi.DoorPi().sipphone.lib.player_destroy(self.__player_id)
             self.__player_id = None

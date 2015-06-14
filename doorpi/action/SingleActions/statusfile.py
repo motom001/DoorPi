@@ -23,7 +23,7 @@ def write_statusfile(filename, filecontent):
             filecontent = filecontent.replace('!DOORPI_STATUS.json!', doorpi_status_json)
 
         except:
-            logger.exception("error while crete status")
+            logger.exception("error while creating status")
 
     except:
         logger.warning("while action statusfile - error to get DoorPi().parse_string")

@@ -132,10 +132,10 @@ class DoorPi(object):
 
         # register eventbased actions from configfile
         for event_section in self.config.get_sections('EVENT_'):
-            logger.info("founded EVENT_ section '%s' in configfile", event_section)
+            logger.info("found EVENT_ section '%s' in configfile", event_section)
             event_name = event_section[len('EVENT_'):]
             for action in sorted(self.config.get_keys(event_section)):
-                logger.info("register action '%s' for event '%s'", action, event_name)
+                logger.info("registering action '%s' for event '%s'", action, event_name)
                 self.event_handler.register_action(event_name, self.config.get(event_section, action))
 
         # register actions for inputpins
@@ -181,7 +181,7 @@ class DoorPi(object):
         #if self.__prepared is not True:
         #    raise DoorPiDoesntExist("don't try to stop, when not prepared")
 
-        logger.debug("Theards before start to shutdown %s", self.event_handler.threads)
+        logger.debug("Threads before starting shutdown: %s", self.event_handler.threads)
 
         self.event_handler.fire_event('BeforeShutdown', __name__)
         self.event_handler.fire_event_synchron('OnShutdown', __name__)
@@ -192,15 +192,15 @@ class DoorPi(object):
         time.sleep(waiting_between_checks)
         while timeout > 0 and self.modules_destroyed != True:
         #while not self.event_handler.idle and timeout > 0 and len(self.event_handler.sources) > 1:
-            logger.debug('wait %s seconds for theards %s and %s event',
+            logger.debug('wait %s seconds for threads %s and %s event',
                          timeout, len(self.event_handler.threads[1:]), len(self.event_handler.sources))
-            logger.trace('still existing theards:       %s', self.event_handler.threads[1:])
+            logger.trace('still existing threads:       %s', self.event_handler.threads[1:])
             logger.trace('still existing event sources: %s', self.event_handler.sources)
             time.sleep(waiting_between_checks)
             timeout -= waiting_between_checks
 
         if timeout <= 0:
-            logger.warning("waiting for theards timed out - there are still theards: %s", self.event_handler.threads[1:])
+            logger.warning("waiting for threads to time out - there are still threads: %s", self.event_handler.threads[1:])
 
         logger.info('======== DoorPi successfully shutdown ========')
         return True

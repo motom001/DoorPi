@@ -51,7 +51,7 @@ class PjsuaRecorder(RecorderAbstractBaseClass):
             return
 
         if self.__rec_id is not None:
-            logger.trace('recorder allready created as rec_id %s and record to %s', self.__rec_id, self.last_record_filename)
+            logger.trace('recorder already created as rec_id %s and record to %s', self.__rec_id, self.last_record_filename)
             return
 
         DoorPi().sipphone.lib.thread_register('PjsuaPlayer_start_thread')
@@ -62,7 +62,7 @@ class PjsuaRecorder(RecorderAbstractBaseClass):
                 logger.info('Path %s not exists - create it now', os.path.dirname(self.__last_record_filename))
                 os.makedirs(os.path.dirname(self.__last_record_filename))
 
-            logger.debug('start record to %s', self.__last_record_filename)
+            logger.debug('starting recording to %s', self.__last_record_filename)
             self.__rec_id = DoorPi().sipphone.lib.create_recorder(self.__last_record_filename)
             self.__slot_id = DoorPi().sipphone.lib.recorder_get_slot(self.__rec_id)
             DoorPi().sipphone.lib.conf_connect(0, self.__slot_id)
@@ -71,7 +71,7 @@ class PjsuaRecorder(RecorderAbstractBaseClass):
     def stop(self):
         if self.__rec_id is not None:
             DoorPi().sipphone.lib.thread_register('PjsuaPlayer_start_thread')
-            logger.debug('stop record to %s', self.__last_record_filename)
+            logger.debug('stopping recording to %s', self.__last_record_filename)
             DoorPi().sipphone.lib.conf_disconnect(0, self.__slot_id)
             DoorPi().sipphone.lib.recorder_destroy(self.__rec_id)
             self.__rec_id = None

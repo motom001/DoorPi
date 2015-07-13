@@ -52,10 +52,10 @@ class LinphoneRecorder(RecorderAbstractBaseClass):
         if self.__record_filename is not '':
             self.__last_record_filename = self.parsed_record_filename
             if not os.path.exists(os.path.dirname(self.__last_record_filename)):
-                logger.info('Path %s not exists - create it now', os.path.dirname(self.__last_record_filename))
+                logger.info('Path %s does not exist - creating it now', os.path.dirname(self.__last_record_filename))
                 os.makedirs(os.path.dirname(self.__last_record_filename))
 
-            logger.debug('start record to %s', self.__last_record_filename)
+            logger.debug('starting recording to %s', self.__last_record_filename)
             DoorPi().sipphone.current_call.start_recording()
             DoorPi().event_handler('OnRecorderStarted', __name__, {
                 'last_record_filename': self.__last_record_filename
@@ -63,7 +63,7 @@ class LinphoneRecorder(RecorderAbstractBaseClass):
 
     def stop(self):
         if not DoorPi().sipphone.current_call: return
-        logger.debug('stop record to %s', self.__last_record_filename)
+        logger.debug('stopping recording to %s', self.__last_record_filename)
         DoorPi().sipphone.current_call.stop_recording()
         DoorPi().event_handler('OnRecorderStopped', __name__, {
             'last_record_filename': self.__last_record_filename

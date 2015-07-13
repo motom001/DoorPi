@@ -43,11 +43,11 @@ class FileSystem(KeyboardAbstractBaseClass, FileSystemEventHandler):
         if self.__base_path_output == '': raise MissingMandatoryParameter('base_path_output in %s '%section_name)
 
         if not os.path.exists(os.path.dirname(self.__base_path_input)):
-            logger.info('Path %s not exists - create it now', os.path.dirname(self.__base_path_input))
+            logger.info('Path %s does not exist - creating it now', os.path.dirname(self.__base_path_input))
             os.makedirs(os.path.dirname(self.__base_path_input))
 
         if not os.path.exists(os.path.dirname(self.__base_path_output)):
-            logger.info('Path %s not exists - create it now', os.path.dirname(self.__base_path_output))
+            logger.info('Path %s does not exist - creating it now', os.path.dirname(self.__base_path_output))
             os.makedirs(os.path.dirname(self.__base_path_output))
 
         for input_pin in self._InputPins:

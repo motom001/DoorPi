@@ -24,7 +24,7 @@ CONF_AREA_PREFIX = 'AREA_'
 def load_webserver():
     ip = doorpi.DoorPi().config.get(DOORPIWEB_SECTION, 'ip', '')
     port = doorpi.DoorPi().config.get_int(DOORPIWEB_SECTION, 'port', 80)
-    logger.info('initial WebService at ip %s and port %s', ip, port)
+    logger.info('Initiating WebService at ip %s and port %s', ip, port)
     server_address = (ip, port)
     return DoorPiWeb(server_address, DoorPiWebRequestHandler)
 
@@ -42,16 +42,16 @@ def check_config(config):
         errors.append('no groups in configfile!')
 
     if len(groups_with_write_permissions) == 0:
-        errors.append("no WritePermission founded")
+        errors.append("no WritePermission found")
 
     for group in groups_with_write_permissions:
-        if group not in groups: warnings.append("group %s doesn't exists but is assigned to WritePermission" % group)
+        if group not in groups: warnings.append("group %s doesn't exist but is assigned to WritePermission" % group)
 
     if len(groups_with_read_permissions) == 0:
-        warnings.append("no ReadPermission founded")
+        warnings.append("no ReadPermission found")
 
     for group in groups_with_read_permissions:
-        if group not in groups: warnings.append("group %s doesn't exists but is assigned to ReadPermission" % group)
+        if group not in groups: warnings.append("group %s doesn't exist but is assigned to ReadPermission" % group)
 
     for group in groups:
         users_in_group = config.get_list('Group', group)
@@ -65,13 +65,13 @@ def check_config(config):
         modules = config.get_list('WritePermission', group)
         for module in modules:
             if CONF_AREA_PREFIX+module not in config_section:
-                warnings.append("modul %s doesn't exist but is assigned to group %s in WritePermission" % (module, group))
+                warnings.append("module %s doesn't exist but is assigned to group %s in WritePermission" % (module, group))
 
     for group in groups_with_read_permissions:
         modules = config.get_list('ReadPermission', group)
         for module in modules:
             if CONF_AREA_PREFIX+module not in config_section:
-                warnings.append("modul %s doesn't exist but is assigned to group %s in ReadPermission" % (module, group))
+                warnings.append("module %s doesn't exist but is assigned to group %s in ReadPermission" % (module, group))
 
     for info in infos: logger.info(info)
     for warning in warnings: logger.error(warning)
@@ -93,7 +93,7 @@ class DoorPiWeb(ThreadingMixIn, HTTPServer):
     @property
     def sessions(self):
         if not self._session_handler and self.keep_running:
-            logger.debug('no session handler - create it now')
+            logger.debug('no session handler - creating it now')
             self._session_handler = SessionHandler()
         return self._session_handler
     _session_handler = None

@@ -99,7 +99,7 @@ class KeyboardHandler(KeyboardAbstractBaseClass):
         self.__OutputMappingTable = {}
         self.__keyboards = {}
         for keyboard_name in config_keyboards:
-            logger.info("try to add keyboard '%s' to handler", keyboard_name)
+            logger.info("trying to add keyboard '%s' to handler", keyboard_name)
             self.__keyboards[keyboard_name] = load_single_keyboard(keyboard_name)
             if self.__keyboards[keyboard_name] is None:
                 logger.error("couldn't load keyboard %s", keyboard_name)
@@ -109,7 +109,7 @@ class KeyboardHandler(KeyboardAbstractBaseClass):
             for output_pin in output_pins:
                 output_pin_name = doorpi.DoorPi().config.get(keyboard_name+'_OutputPins', output_pin)
                 if output_pin_name in self.__OutputMappingTable:
-                    logger.warning('overwrite existing name of outputpin "%s" (exists in %s and %s)',
+                    logger.warning('overwriting existing name of outputpin "%s" (exists in %s and %s)',
                         output_pin_name,
                         self.__OutputMappingTable[output_pin_name],
                         keyboard_name

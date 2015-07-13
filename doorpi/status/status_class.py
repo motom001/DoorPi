@@ -45,7 +45,7 @@ class DoorPiStatus(object):
 
         for module in modules:
             if module not in MODULES:
-                logger.warning('skip unknown status module %s', module)
+                logger.warning('skipping unknown status module %s', module)
                 continue
             self.__status[module] = {}
             try:

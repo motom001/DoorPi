@@ -31,11 +31,11 @@ class LinphonePlayer(PlayerAbstractBaseClass):
 
         self.__player_filename = doorpi.DoorPi().parse_string(self.__player_filename)
         if not os.path.exists(os.path.dirname(self.__player_filename)):
-            logger.info('Path %s not exists - create it now', os.path.dirname(self.__player_filename))
+            logger.info('Path %s does not exist - creating it now', os.path.dirname(self.__player_filename))
             os.makedirs(os.path.dirname(self.__player_filename))
         dialtone_renew_every_start = doorpi.DoorPi().config.get_bool('DoorPi', 'dialtone_renew_every_start', False)
         if not os.path.isfile(self.__player_filename) or dialtone_renew_every_start:
-            logger.info('DialTone %s not exists - create it now', self.__player_filename)
+            logger.info('DialTone %s does not exist - creating it now', self.__player_filename)
             dialtone_volume = doorpi.DoorPi().config.get_int('DoorPi', 'dialtone_volume', 35)
             generate_dial_tone(self.__player_filename, dialtone_volume)
         doorpi.DoorPi().event_handler.register_event('OnPlayerStarted', __name__)

@@ -172,6 +172,9 @@ class LinPhone(SipphoneAbstractBaseClass):
         DoorPi().event_handler('OnSipPhoneCreate', __name__)
         self.core.max_calls = conf.get_int(SIPPHONE_SECTION, 'ua.max_calls', 2)
         self.core.echo_cancellation_enabled = conf.get_bool(SIPPHONE_SECTION, 'echo_cancellation_enabled', False)
+        
+        # set local listen ports, default: random
+        self.core.sip_transports = lin.SipTransports(conf.get_int(SIPPHONE_SECTION, 'local_port', 5060), conf.get_int(SIPPHONE_SECTION, 'local_port', 5060), -1, -1)
 
         self.core.video_display_enabled = conf.get_bool(SIPPHONE_SECTION, 'video_display_enabled', False)
         self.core.stun_server = conf.get(SIPPHONE_SECTION, 'stun_server', '')

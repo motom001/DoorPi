@@ -5,5 +5,42 @@
                     <h1 class="page-header">History - Events</h1>
                 </div>
             </div>
+			<div class="row">
+				<table id="history_event_table" class="display" cellspacing="0" width="100%">
+					<thead>
+						<tr>
+							<th>event_id</th>
+							<th>event_name</th>
+							<th>fired_by</th>
+							<th>start_time</th>
+						</tr>
+					</thead>
+			 
+					<tfoot>
+						<tr>
+							<th>event_id</th>
+							<th>event_name</th>
+							<th>fired_by</th>
+							<th>start_time</th>
+						</tr>
+					</tfoot>
+				</table>
+			</div>
+			<script>
+				$(document).ready(function() {
+					$('#history_event_table').dataTable( {
+						ajax: {
+							url: '{BASE_URL}/status?module=history_event',
+							dataSrc: "history_event"
+						},
+						columns: [
+							{ "data": "event_id" },
+							{ "data": "event_name" },
+							{ "data": "fired_by" },
+							{ "data": "start_time" }
+						]
+					} );
+				} );
+			</script>
 
 {TEMPLATE:HTML_FOOTER}

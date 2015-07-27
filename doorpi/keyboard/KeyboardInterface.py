@@ -22,18 +22,20 @@ def load_keyboard():
         logger.info("using single-keyboard mode by keyboards first and only key %s", config_keyboards[0])
         return load_single_keyboard(config_keyboards[0])
     else:
-        logger.info("using single-keyboard mode")
-        return load_single_keyboard()
+        logger.info("using multi-keyboard mode with two dummy keyboards")
+        doorpi.DoorPi().config.get('keyboards', 'dummy1', 'dummy').lower()
+        doorpi.DoorPi().config.get('keyboards', 'dummy2', 'dummy').lower()
+        return KeyboardHandler(['dummy1', 'dummy2'])
 
 def load_single_keyboard(keyboard_name = ''):
     conf_pre = ''
     conf_post = ''
 
     if keyboard_name is '':
-        keyboard_type = doorpi.DoorPi().config.get('keyboard', 'typ', 'gpio').lower()
+        keyboard_type = doorpi.DoorPi().config.get('keyboard', 'typ', 'dummy').lower()
     else:
         conf_pre = keyboard_name+'_'
-        keyboard_type = doorpi.DoorPi().config.get('keyboards', keyboard_name, 'gpio').lower()
+        keyboard_type = doorpi.DoorPi().config.get('keyboards', keyboard_name, 'dummy').lower()
 
     input_pins = doorpi.DoorPi().config.get_keys(conf_pre+'InputPins'+conf_post)
     output_pins = doorpi.DoorPi().config.get_keys(conf_pre+'OutputPins'+conf_post)

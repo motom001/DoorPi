@@ -14,7 +14,12 @@ def load_sipphone():
     conf_pre = ''
     conf_post = ''
 
-    sipphone_name = doorpi.DoorPi().config.get('SIP-Phone', 'sipphonetyp', 'dummy')
+    sipphone_name = doorpi.DoorPi().config.get(
+        'SIP-Phone',
+        'sipphonetyp',
+        find_first_installed_sipphone()
+    )
+
     try:
         sipphone = importlib.import_module('sipphone.from_'+sipphone_name).get(
             sipphone_name = sipphone_name,
@@ -26,3 +31,15 @@ def load_sipphone():
         raise SipphoneNotExists('sipphone %s not found (%s)'%(sipphone_name, str(exp)))
 
     return sipphone
+
+def find_first_installed_sipphone():
+    sipphone_status = doorpi.DoorPi().get_status(['environment'], ['sipphone'])
+    logger.debug(sipphone_status.json_beautified)
+    sipphones = sipphone_status.dictionary['environment']['sipphone']
+    for sipphone_name in sipphones.keys():
+        if sipphones[sipphone_name]['installed']:
+            logger.info('found installed sipphone "%s" and use this as default', sipphone_name)
+            return sipphone_name
+
+    logger.warning('found no installed sipphones and use dummy as default')
+    return 'dummy'

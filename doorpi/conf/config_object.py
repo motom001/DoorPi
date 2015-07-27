@@ -41,10 +41,10 @@ class ConfigObject():
 
         default_files = [
             str(configfile),
-            '!BASEPATH!\conf\doorpi.cfg',
-            '!BASEPATH!\conf\doorpi.ini',
+            '!BASEPATH!/conf/doorpi.ini',
             '!BASEPATH!/conf/doorpi.cfg',
-            '!BASEPATH!/conf/doorpi.ini'
+            '!BASEPATH!\conf\doorpi.ini',
+            '!BASEPATH!\conf\doorpi.cfg'
         ]
 
         for possible_default_file in default_files:
@@ -73,6 +73,7 @@ class ConfigObject():
 
     def save_config(self, configfile = ''):
         if not configfile: configfile = self.config_file
+        if not configfile: configfile = self.find_config(configfile)
         if not configfile: configfile = doorpi.DoorPi().parse_string('!BASEPATH!/conf/doorpi.ini')
 
         #if not configfile: return False
@@ -80,9 +81,9 @@ class ConfigObject():
         try:
             cfgfile = open(configfile,'w')
             config = ConfigParser.ConfigParser(allow_no_value = True)
-            for section in self.__sections:
+            for section in sorted(self.__sections.keys()):
                 config.add_section(section)
-                for key in self.__sections[section]:
+                for key in sorted(self.__sections[section].keys()):
                     config.set(section, key, self.__sections[section][key])
             config.write(cfgfile)
             cfgfile.close()

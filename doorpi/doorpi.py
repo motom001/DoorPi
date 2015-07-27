@@ -111,6 +111,9 @@ class DoorPi(object):
         self.__config = ConfigObject.load_config(parsed_arguments.configfile)
         self.__event_handler = EventHandler()
 
+        if self.config.config_file is None:
+            self.event_handler.register_action('AfterStartup', self.config.save_config)
+
         #register own events
         self.event_handler.register_event('BeforeStartup', __name__)
         self.event_handler.register_event('OnStartup', __name__)

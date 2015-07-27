@@ -71,6 +71,27 @@ class ConfigObject():
         config.read(configfile_name)
         return ConfigObject(config, configfile_name)
 
+    def save_config(self, configfile = ''):
+        if not configfile: configfile = self.config_file
+        if not configfile: configfile = doorpi.DoorPi().parse_string('!BASEPATH!/conf/doorpi.ini')
+
+        #if not configfile: return False
+        logger.debug("write configfile: %s", configfile)
+        try:
+            cfgfile = open(configfile,'w')
+            config = ConfigParser.ConfigParser(allow_no_value = True)
+            for section in self.__sections:
+                config.add_section(section)
+                for key in self.__sections[section]:
+                    config.set(section, key, self.__sections[section][key])
+            config.write(cfgfile)
+            cfgfile.close()
+            logger.info("write configfile was success: %s", configfile)
+            return True
+        except Exception as exp:
+            logger.exception(exp)
+            return False
+
     def get_string_parsed(self, section, key, default = '', log = True):
         raw_string = self.get_string(section, key, default, log)
         parsed_string = doorpi.DoorPi().parse_string(raw_string)
@@ -111,14 +132,14 @@ class ConfigObject():
         return value
 
     def get_float(self, section, key, default = -1, log = True):
-        value = self.get_string(section, key, log = False)
+        value = self.get_string(section, key, str(default), log = False)
         if value is not '': value = float(value)
         else: value = default
         if log: logger.trace("get_integer for key %s in section %s (default: %s) returns %s", key, section, default, value)
         return value
 
     def get_integer(self, section, key, default = -1, log = True):
-        value = self.get(section, key, log = False)
+        value = self.get(section, key, str(default), log = False)
         if value is not '': value = int(value)
         else: value = default
         if log: logger.trace("get_integer for key %s in section %s (default: %s) returns %s", key, section, default, value)
@@ -131,7 +152,7 @@ class ConfigObject():
         return value
 
     def get_list(self, section, key, default = [], separator = ',', log = True):
-        value = self.get(section, key, log = False)
+        value = self.get(section, key, str(default), log = False)
         if value is not '': value = value.split(separator)
         else: value = default
         if log: logger.trace("get_list for key %s in section %s (default: %s) returns %s", key, section, default, value)

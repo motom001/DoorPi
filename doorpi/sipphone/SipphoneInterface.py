@@ -34,7 +34,6 @@ def load_sipphone():
 
 def find_first_installed_sipphone():
     sipphone_status = doorpi.DoorPi().get_status(['environment'], ['sipphone'])
-    logger.debug(sipphone_status.json_beautified)
     sipphones = sipphone_status.dictionary['environment']['sipphone']
     for sipphone_name in sipphones.keys():
         if sipphones[sipphone_name]['installed']:

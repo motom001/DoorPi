@@ -8,6 +8,8 @@ logger.debug("%s loaded", __name__)
 import ConfigParser
 import doorpi
 
+from backward_compatibility import BACKWARD_COMPATIBILITY_KEYS
+
 class ConfigObject():
 
     __sections = {}
@@ -115,18 +117,62 @@ class ConfigObject():
         self.__sections[section][key] = value
         return True
 
+    def rename_key(self, section, old_key, new_key, default = '', log = True):
+        if log: logging.debug('rename key from %s to %s in section %s', old_key, new_key, section)
+        old_value = self.get_string(section, old_key, default, log, store_if_not_exists = False)
+        self.set_value(
+            section = section,
+            key = new_key,
+            value = old_value,
+            log = log
+        )
+        self.delete_key(section, old_key, log = log)
+
+    def delete_section(self, section, delete_empty_only = True, log = True):
+        if section in self.__sections and len(self.__sections[section]) > 0 and delete_empty_only:
+            logger.warning("could not delete section %s, because it's not empty.", section)
+            return False
+
+        try:
+            if len(self.__sections[section]) > 0 and delete_empty_only:
+                raise KeyError('section is not empty')
+
+            self.__sections.pop(section)
+            return True
+        except KeyError as exp:
+            if log: logger.warning('delete section %s failed: %s', section, exp)
+            return False
+
+    def delete_key(self, section, key, log = True):
+        try:
+            if log: logger.info('delete key %s from section %s', key, section)
+            self.__sections[section].pop(key)
+            self.delete_section(section, log = log)
+
+            return True
+        except KeyError as exp:
+            if log: logger.warning('delete key %s from section %s failed: %s', key, section, exp)
+        return False
+
     def get_string(self, section, key, default = '', log = True, password = False, store_if_not_exists = True):
         value = None
-        if section in self.__sections:
-            if key in self.__sections[section]:
-                value = self.__sections[section][key]
+
+        try:
+            value = self.__sections[section][key]
+        except KeyError:
+            try:
+                old_section, old_key = BACKWARD_COMPATIBILITY_KEYS[section][key]
+                value = self.__sections[old_section][old_key]
+                self.delete_key(old_section, old_key, False)
+            except KeyError:
+                pass
 
         if value is None:
             #logger.trace('no value found - use default')
             value = default
             if store_if_not_exists: self.set_value(section, key, default, log, password)
 
-        if key is 'password' or password:
+        if key.endswith('password') or password:
             if log: logger.trace("get_string for key %s in section %s (default: %s) returns %s", key, section, default, '*******')
         else:
             if log: logger.trace("get_string for key %s in section %s (default: %s) returns %s", key, section, default, value)

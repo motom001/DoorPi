@@ -257,10 +257,10 @@ class LinPhone(SipphoneAbstractBaseClass):
                 self.core.enable_payload_type(codec, False)
 
         # Configure the SIP account
-        server = conf.get(SIPPHONE_SECTION, "server")
-        username = conf.get(SIPPHONE_SECTION, "username")
-        password = conf.get(SIPPHONE_SECTION, "password", username)
-        realm = conf.get(SIPPHONE_SECTION, "realm", server)
+        server = conf.get(SIPPHONE_SECTION, "sipserver_server")
+        username = conf.get(SIPPHONE_SECTION, "sipserver_username")
+        password = conf.get(SIPPHONE_SECTION, "sipserver_password", username)
+        realm = conf.get(SIPPHONE_SECTION, "sipserver_realm", server)
         if server and username and password:
             logger.info('using DoorPi with SIP-Server')
             proxy_cfg = self.core.create_proxy_config()
@@ -278,11 +278,6 @@ class LinPhone(SipphoneAbstractBaseClass):
             self.core.add_proxy_config(proxy_cfg)
             self.core.default_proxy_config = proxy_cfg
             logger.debug('%s',self.core.proxy_config_list)
-
-        DoorPi().event_handler.register_action(
-            event_name      = 'OnTimeTickRealtime',
-            action_object   = 'pjsip_handle_events:50'
-        )
 
         logger.debug("start successfully")
 

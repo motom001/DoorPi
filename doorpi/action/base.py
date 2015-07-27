@@ -7,6 +7,7 @@ logger.debug("%s loaded", __name__)
 
 from time import sleep
 import importlib
+import inspect
 
 class SingleAction:
     action_name = None
@@ -58,12 +59,15 @@ class SingleAction:
     @staticmethod
     def from_string(config_string):
         try:
-            action_name = config_string.split(':', 1)[0]
-            try: parameters = config_string.split(':', 1)[1]
-            except: parameters = ""
-            return importlib.import_module('action.SingleActions.'+action_name).get(
-                parameters
-            )
+            action_list = config_string.split(':', 1)
+            action_name = action_list.pop(0)
+            module = importlib.import_module('action.SingleActions.'+action_name)
+
+            if len(inspect.getargspec(module.get).args) == len(action_list):
+                return module.get(*action_list)
+            else:
+                logger.exception('wrong number of arguments for action %s', action_name)
+
         except:
             logger.exception('error while creating SingleAction from config string: %s',config_string)
             return None

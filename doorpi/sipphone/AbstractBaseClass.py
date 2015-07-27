@@ -19,9 +19,6 @@ class SipphoneAbstractBaseClass(object):
     def sound_devices(self): return []
 
     @property
-    def current_call(self): return None
-
-    @property
     def video_codecs(self): return []
 
     @property
@@ -38,6 +35,7 @@ class SipphoneAbstractBaseClass(object):
     def call(self, number): raise NotImplementedError("Subclass %s should implement this!"%self.__class__.__name__)
     def hangup(self): raise NotImplementedError("Subclass %s should implement this!"%self.__class__.__name__)
     def is_admin_number(self, number): raise NotImplementedError("Subclass %s should implement this!"%self.__class__.__name__)
+    def check_call_duration(self): raise NotImplementedError("Subclass %s should implement this!"%self.__class__.__name__)
     def __del__(self): self.destroy()
 
 class RecorderAbstractBaseClass(object):

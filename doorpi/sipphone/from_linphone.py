@@ -279,11 +279,6 @@ class LinPhone(SipphoneAbstractBaseClass):
             self.core.default_proxy_config = proxy_cfg
             logger.debug('%s',self.core.proxy_config_list)
 
-        DoorPi().event_handler.register_action(
-            event_name      = 'OnTimeTickRealtime',
-            action_object   = 'pjsip_handle_events:50'
-        )
-
         logger.debug("start successfully")
 
     def destroy(self):
@@ -295,9 +290,10 @@ class LinPhone(SipphoneAbstractBaseClass):
 
     def self_check(self, *args, **kwargs):
         if not self.core: return
-
         self.core.iterate()
 
+    def check_call_duration(self):
+        logger.debug("CHECK CALL DURATION")
         if not self.current_call: return
 
         if self.current_call.state < lin.CallState.Connected:

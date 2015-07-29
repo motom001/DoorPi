@@ -1,0 +1,103 @@
+{TEMPLATE:HTML_HEADER}
+			
+			<script>
+				$(document).ready(function() {
+					$.getJSON("{DATA_URL}/status?module=environment&name=sipphone&output=json", function(result){
+						if (result.environment.sipphone.pjsua.installed) {
+							$("#idInstallationTestPjsua").removeClass('btn-warning').addClass('btn-success').text('Pjsua ist korrekt installiert');
+						} else {
+							$("#idInstallationTestPjsua").removeClass('btn-warning').addClass('btn-error').text('Pjsua ist nicht installiert oder fehlerhaft installiert');
+						}
+					});
+				});
+			</script>
+			
+            <div class="row">
+                <div class="col-lg-12">
+                    <h1 class="page-header">Hilfe für pjsua</h1>
+                </div>
+                <!-- /.col-lg-12 -->
+            </div>
+            <!-- /.row -->
+			
+            <div class="row">
+                <div class="col-lg-8">
+                    <!-- /.panel -->
+					<div class="panel panel-red">
+                        <div class="panel-heading">
+                            <i class="fa fa-bar-chart-o fa-fw">Achtung</i>
+                        </div>
+                        <!-- /.panel-heading -->
+                        <div class="panel-body">
+                            Das SIP-Phone pjsua wird aktuell nicht mehr im DoorPi Projekt unterstützt. Es wird dringend empfohlen auf <a href="http://192.168.178.43/help/install/sipphone/linphone.html">linphone</a> zu wechseln.
+                        </div>
+                        <!-- /.panel-body -->
+                    </div>
+                    <div class="panel panel-info">
+                        <div class="panel-heading">
+                            <i class="fa fa-bar-chart-o fa-fw">Aufgabe</i>
+                        </div>
+                        <!-- /.panel-heading -->
+                        <div class="panel-body">
+                            Die Aufgabe von einem SIP-Phone innerhalb von DoorPi ist es, die Telefeongespräche (VoIP-Verbindungen) herzustellen. Dazu kann das Sip-Phone entweder mit oder ohne einem SIP-Server (z.B. FritzBox oder Asterisk) zusammen arbeiten.
+                        </div>
+                        <!-- /.panel-body -->
+                    </div>
+                    <!-- /.panel -->
+                    <div class="panel panel-info">
+                        <div class="panel-heading">
+                            <i class="fa fa-bar-chart-o fa-fw">Installation</i>
+                        </div>
+                        <!-- /.panel-heading -->
+                        <div class="panel-body">
+                            
+                        </div>
+                        <!-- /.panel-body -->
+                    </div>
+					<div class="panel panel-info">
+                        <div class="panel-heading">
+                            <i class="fa fa-bar-chart-o fa-fw">Test</i>
+                        </div>
+                        <!-- /.panel-heading -->
+                        <div class="panel-body">
+                            Der automatische Test hat ergeben: <button type="button" class="btn btn-warning disabled" id="idInstallationTestPjsua">Status konnte nicht ermittelt werden</button></br>
+							</br>
+							Es kann jederzeit der Status manuell gestestet werden, in dem im Python-Interpreter <code>import pjsua</code> eingeben wird.</br>
+                        </div>
+                        <!-- /.panel-body -->
+                    </div>
+					<div class="panel panel-info">
+                        <div class="panel-heading">
+                            <i class="fa fa-bar-chart-o fa-fw">Konfiguration</i>
+                        </div>
+                        <!-- /.panel-heading -->
+                        <div class="panel-body">
+                            Für die Konfiguration von Pjsua stehen eine vielzahl an Parametern zur Verfügung, die in dem Abschnitt <a href="http://192.168.178.43/dashboard/pages/config.html">Konfiguration</a> eingesehen werden können.
+                        </div>
+                        <!-- /.panel-body -->
+                    </div>
+                </div>
+                <!-- /.col-lg-8 -->
+				<div class="col-lg-4">
+                    <!-- /.panel -->
+                    <div class="panel panel-primary">
+                        <div class="panel-heading">
+                            <i class="fa fa-bar-chart-o fa-fw">Links</i>
+                        </div>
+                        <!-- /.panel-heading -->
+                        <div class="panel-body">
+                            <ul>
+								<li><a href="http://www.pjsip.org/pjsua.htm">Homepage Pjsua</a></li>
+								<li><a href="http://trac.pjsip.org/repos/wiki/Getting-Started">Installationsanleitung PJSIP</a></li>
+							</ul>
+                        </div>
+                        <!-- /.panel-body -->
+                    </div>
+                    <!-- /.panel -->
+                    
+                </div>
+                <!-- /.col-lg-4 -->
+            </div>
+            <!-- /.row -->
+
+{TEMPLATE:HTML_FOOTER}

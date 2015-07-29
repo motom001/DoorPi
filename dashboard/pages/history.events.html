@@ -28,7 +28,7 @@
 			</div>
 			<script>
 				$(document).ready(function() {
-					$('#history_event_table').dataTable( {
+					$('#history_event_table').dataTable({
 						ajax: {
 							url: '{DATA_URL}/status?module=history_event',
 							dataSrc: "history_event"
@@ -39,8 +39,8 @@
 							{ "data": "fired_by" },
 							{ "data": "start_time" }
 						]
-					} );
-				} );
+					});
+				});
 			</script>
 
 {TEMPLATE:HTML_FOOTER}

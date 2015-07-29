@@ -1,0 +1,105 @@
+{TEMPLATE:HTML_HEADER}
+			
+			<script>
+				var sModulName = 'RPi.GPIO';
+				$(document).ready(function() {
+					$.getJSON("{DATA_URL}/status?module=environment&name=keyboard&output=json", function(result){
+						if (result.environment.keyboard.RPi.GPIO.installed) {
+							$("#idInstallationTest").removeClass('btn-warning').addClass('btn-success').text('RPi.GPIO ist korrekt installiert');
+						} else {
+							$("#idInstallationTest").removeClass('btn-warning').addClass('btn-error').text('RPi.GPIO ist nicht installiert oder fehlerhaft installiert');
+						}
+					});
+				});
+			</script>
+			
+            <div class="row">
+                <div class="col-lg-12">
+                    <h1 class="page-header">Hilfe für RPi.GPIO</h1>
+                </div>
+                <!-- /.col-lg-12 -->
+            </div>
+            <!-- /.row -->
+			
+            <div class="row">
+                <div class="col-lg-8">
+                    <!-- /.panel -->
+                    <div class="panel panel-info">
+                        <div class="panel-heading">
+                            <i class="fa fa-bar-chart-o fa-fw">Aufgabe</i>
+                        </div>
+                        <!-- /.panel-heading -->
+                        <div class="panel-body">
+                            Die Aufgabe von einem Keyboard innerhalb von DoorPi ist es, Eingaben und Ausgaben zu steuern. Keyboard bezieht sich dabei nicht auf die Tastertur, sondern auf ein Brett mit Knöpfen und LED's.</br>
+							Speziell RPi.GPIO kümmert sich um die Ein- und Ausgaben der GPIO Schnittstelle eines Raspberry Pi.</br>
+							
+							
+                        </div>
+                        <!-- /.panel-body -->
+                    </div>
+                    <!-- /.panel -->
+                    <div class="panel panel-info">
+                        <div class="panel-heading">
+                            <i class="fa fa-bar-chart-o fa-fw">Installation</i>
+                        </div>
+                        <!-- /.panel-heading -->
+                        <div class="panel-body">
+                            Die Installation ist sehr gut <a href="http://sourceforge.net/p/raspberry-gpio-python/wiki/install/">auf Sourceforge</a> beschrieben.</br>
+							Alternativ kann die Installation automatisch ausgeführt werden:</br>
+							<a href="{DATA_URL}/control/install/keyboard/RPi.GPIO"><button type="button" class="btn btn-outline btn-danger">Start der automatischen Installation</button></a>
+                        </div>
+                        <!-- /.panel-body -->
+                    </div>
+					<div class="panel panel-info">
+                        <div class="panel-heading">
+                            <i class="fa fa-bar-chart-o fa-fw">Test</i>
+                        </div>
+                        <!-- /.panel-heading -->
+                        <div class="panel-body">
+                            Der automatische Test hat ergeben: <button type="button" class="btn btn-warning disabled" id="idInstallationTest">Status konnte nicht ermittelt werden</button></br>
+							</br>
+							Es kann jederzeit der Status manuell gestestet werden, in dem im Python-Interpreter <code>import RPi.GPIO</code> eingeben wird.</br>
+                        </div>
+                        <!-- /.panel-body -->
+                    </div>
+					<div class="panel panel-info">
+                        <div class="panel-heading">
+                            <i class="fa fa-bar-chart-o fa-fw">Konfiguration</i>
+                        </div>
+                        <!-- /.panel-heading -->
+                        <div class="panel-body">
+                            Für die Konfiguration von RPi.GPIO stehen eine vielzahl an Parametern zur Verfügung, die in dem Abschnitt <a href="http://192.168.178.43/dashboard/pages/config.html">Konfiguration</a> eingesehen werden können.
+                        </div>
+                        <!-- /.panel-body -->
+                    </div>
+                </div>
+                <!-- /.col-lg-8 -->
+				<div class="col-lg-4">
+                    <!-- /.panel -->
+                    <div class="panel panel-primary">
+                        <div class="panel-heading">
+                            <i class="fa fa-bar-chart-o fa-fw">Links</i>
+                        </div>
+                        <!-- /.panel-heading -->
+                        <div class="panel-body">
+                            <ul>
+								<li>www.raspberrypi.org
+									<ul>
+										<li><a href="https://www.raspberrypi.org/documentation/hardware/raspberrypi/gpio/README.md">GPIO Overview</a></li>
+										<li><a href="https://www.raspberrypi.org/documentation/usage/gpio/README.md">GPIO Usage</a></li>
+									</ul>
+								</li>
+								<li><a href="https://pypi.python.org/pypi/RPi.GPIO">RPi.GPIO on pypi</a></li>
+								<li><a href="http://sourceforge.net/p/raspberry-gpio-python/wiki/install/">Installationsanleitung auf Sourceforge</a></li>
+							</ul>
+                        </div>
+                        <!-- /.panel-body -->
+                    </div>
+                    <!-- /.panel -->
+                    
+                </div>
+                <!-- /.col-lg-4 -->
+            </div>
+            <!-- /.row -->
+
+{TEMPLATE:HTML_FOOTER}

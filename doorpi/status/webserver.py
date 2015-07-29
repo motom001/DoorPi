@@ -80,7 +80,6 @@ def check_config(config):
     return {'infos': infos, 'warnings': warnings, 'errors': errors}
 
 class DoorPiWeb(ThreadingMixIn, HTTPServer):
-    test = False
     keep_running = True
 
     www = None
@@ -89,6 +88,9 @@ class DoorPiWeb(ThreadingMixIn, HTTPServer):
     base_url = None
     area_public_name = None
     online_fallback = None
+
+    @property
+    def config_status(self): return check_config(self.config)
 
     @property
     def sessions(self):

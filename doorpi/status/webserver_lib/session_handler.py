@@ -19,6 +19,12 @@ class SessionHandler:
     @property
     def config(self): return doorpi.DoorPi().config
 
+    @property
+    def session_ids(self): return self._Sessions.keys()
+
+    @property
+    def sessions(self): return self._Sessions
+
     def __init__(self):
         doorpi.DoorPi().event_handler.register_event('WebServerCreateNewSession', __name__)
         doorpi.DoorPi().event_handler.register_event('WebServerAuthUnknownUser', __name__)
@@ -44,7 +50,6 @@ class SessionHandler:
 
     def build_security_object(self, username, password, remote_client = ''):
         if not len(self.config.get_keys('User')):
-            logger.error('erzeuge default context')
             self.config.set_value(section = 'User', key = 'door', value = 'pi', password = True)
             self.config.set_value(section = 'Group', key = 'administrator', value = 'door')
             self.config.set_value(section = 'WritePermission', key = 'administrator', value = 'installer')

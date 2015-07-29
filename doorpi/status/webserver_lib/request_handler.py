@@ -54,6 +54,10 @@ class DoorPiWebRequestHandler(BaseHTTPRequestHandler):
         parsed_path = urlparse(self.path)
         #doorpi.DoorPi().event_handler('OnWebServerRequest', __name__, {'header': self.headers.items(), 'path': parsed_path})
         #doorpi.DoorPi().event_handler('OnWebServerRequestGet', __name__, {'header': self.headers.items(), 'path': parsed_path})
+
+        if parsed_path.path == "/":
+            return self.return_redirection('dashboard/pages/index.html')
+
         if self.authentication_required(): return self.login_form()
 
         if parsed_path.path in VIRTUELL_RESOURCES:
@@ -152,12 +156,7 @@ class DoorPiWebRequestHandler(BaseHTTPRequestHandler):
         <a href="{new_location}">{new_location}</a>
         </html>
         '''.format(new_location = new_location)
-        self.return_message(message, http_code = 301)
-        self.wfile.write(message)
-
-    def return_error(self, error_code = 404, error_message = None):
-        self.send_error(error_code, error_message)
-        raise Exception('sending error '+str(error_code)+' - '+str(error_message))
+        return self.return_message(message, 'text/html', http_code = 301)
 
     @staticmethod
     def get_mime_typ(url):
@@ -197,7 +196,7 @@ class DoorPiWebRequestHandler(BaseHTTPRequestHandler):
                 content = self.read_from_fallback(self.server.online_fallback + path)
                 mime = self.get_mime_typ(self.server.online_fallback + path)
             except Exception as exp:
-                self.return_error(500, str(first_exp)+" - "+str(exp))
+                return self.send_error(500, str(first_exp)+" - "+str(exp))
 
         return self.return_message(
             content,

@@ -43,7 +43,8 @@ class SessionHandler:
         return session_id in self._Sessions
 
     def build_security_object(self, username, password, remote_client = ''):
-        if self.config.config_file is None:
+        if not len(self.config.get_keys('User')):
+            logger.error('erzeuge default context')
             self.config.set_value(section = 'User', key = 'door', value = 'pi', password = True)
             self.config.set_value(section = 'Group', key = 'administrator', value = 'door')
             self.config.set_value(section = 'WritePermission', key = 'administrator', value = 'installer')

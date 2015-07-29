@@ -19,7 +19,8 @@ MODULES = [
     'event_handler',
     'history_event',
     #'history_action',
-    'environment'
+    'environment',
+    'webserver'
 ]
 
 def collect_status(doorpi_object, modules = MODULES, value = list(), name = list()):

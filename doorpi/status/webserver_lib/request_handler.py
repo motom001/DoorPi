@@ -23,6 +23,8 @@ VIRTUELL_RESOURCES = [
     '/control'
 ]
 
+DOORPIWEB_SECTION = 'DoorPiWeb'
+
 class WebServerLoginRequired(Exception): pass
 class WebServerRequestHandlerShutdownAction(SingleAction): pass
 
@@ -52,6 +54,8 @@ class DoorPiWebRequestHandler(BaseHTTPRequestHandler):
         parsed_path = urlparse(self.path)
         #doorpi.DoorPi().event_handler('OnWebServerRequest', __name__, {'header': self.headers.items(), 'path': parsed_path})
         #doorpi.DoorPi().event_handler('OnWebServerRequestGet', __name__, {'header': self.headers.items(), 'path': parsed_path})
+        if self.authentication_required(): return self.login_form()
+
         if parsed_path.path in VIRTUELL_RESOURCES:
             return self.create_virtual_resource(parsed_path, parse_qs(urlparse(self.path).query))
         else: return self.real_resource(parsed_path.path)
@@ -200,14 +204,10 @@ class DoorPiWebRequestHandler(BaseHTTPRequestHandler):
             mime
         )
 
-    def return_message(self, message = "", content_type = 'text/plain; charset=utf-8', http_code = 200, login_form = False):
-        try:
-            if not login_form: self.check_authentication()
-        except WebServerLoginRequired: return self.login_form()
-
+    def return_message(self, message = "", content_type = 'text/plain; charset=utf-8', http_code = 200,):
         self.send_response(http_code)
-        if login_form:
-            self.send_header('WWW-Authenticate', 'Basic realm=\"%s\"' % doorpi.DoorPi().name_and_version)
+        #if login_form:
+        self.send_header('WWW-Authenticate', 'Basic realm=\"%s\"' % doorpi.DoorPi().name_and_version)
         self.send_header("Server", doorpi.DoorPi().name_and_version)
         self.send_header("Content-type", content_type)
         self.send_header('Connection', 'close')
@@ -215,8 +215,10 @@ class DoorPiWebRequestHandler(BaseHTTPRequestHandler):
         self.wfile.write(message)
 
     def login_form(self):
-        return_value = False
         try:
+            login_form_content = self.read_from_file(self.server.www + "/" + self.server.loginfile)
+        except IOError:
+            logger.info('Missing login file: '+ self.server.loginfile)
             login_form_content = '''
                 <head>
                 <title>Error response</title>
@@ -228,24 +230,23 @@ class DoorPiWebRequestHandler(BaseHTTPRequestHandler):
                 <p>Error code explanation: 401 = Unauthorized.
                 </body>
             '''
-            login_form_content = self.read_from_file(self.server.www + self.server.loginfile)
-            self.return_message(
-                message = login_form_content ,
-                content_type = 'text/html; charset=utf-8',
-                http_code = 401,
-                login_form = True
-            )
-            return_value = True
-        except IOError as exp:   self.send_error(404, str(exp))
         except Exception as exp:
             logger.exception(exp)
             self.send_error(500, str(exp))
-        return True if return_value else False
+            return False
+
+        self.return_message(
+            message = self.parse_content(login_form_content),
+            content_type = 'text/html; charset=utf-8',
+            http_code = 401
+        )
+        return True
 
     def authentication_required(self):
         parsed_path = urlparse(self.path)
 
-        for public_resource in self.conf.get_keys(self.server.area_public_name, log = False):
+        public_resources = self.conf.get_keys(self.server.area_public_name, log = False)
+        for public_resource in public_resources:
             if re.match(public_resource, parsed_path.path):
                 logger.debug('public resource: %s',parsed_path.path)
                 return False

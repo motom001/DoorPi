@@ -73,9 +73,6 @@ class DoorPi(object):
     def get_status(self, modules = '', value= '', name = ''): return DoorPiStatus(self, modules, value, name)
 
     @property
-    def base_path(self): return os.path.dirname(__file__)
-
-    @property
     def epilog(self): return metadata.epilog
 
     @property

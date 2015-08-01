@@ -4,29 +4,44 @@
 				$(document).ready(function() {
 					var html_button_installed = '<button type="button" class="btn btn-success disabled">installiert</button>';
 					var html_button_not_installed = '<button type="button" class="btn btn-warning disabled">fehlt</button>';
+					var html_button_not_installed_but_necessary = '<button type="button" class="btn btn-danger disabled">fehlt</button>';
 					
-					$.getJSON("{DATA_URL}/status", function(result){
-						console.log( Object.keys(result.event_handler.events).length );
+					$.getJSON("{DATA_URL}/status?output=json.parsed", function(result){
+						
 						$("#history_event_length").text(result.history_event.length);
 						$("#event_handler_length").text(
 							Object.keys(result.event_handler.actions).length +
 							' / ' +
 							Object.keys(result.event_handler.events).length
 						);
+						
+						var aModulStatus = new Array();
 						$.each(result.environment, function(modul_area_name, modul_area){
-							$.each(modul_area, function(modul_name, modul){
-								$("#module_status_table_body").append(
-									'<tr>'+
-									'<td>'+ modul_area_name +'</td>'+
-									'<td>'+ modul_name +'</td>'+
-									'<td>'+ ((modul.installed) ? html_button_installed : html_button_not_installed) + '</td>' +
-									'<td>'+ ((modul.installed) ? modul.file : '') + '</td>' +
-									'<td>'+ '<a href="{BASE_URL}/help/install/' + modul_area_name + '/' + modul_name + '.html?installed=' + modul.installed + '">' +
-										'<button type="button" class="btn btn-info">Info</button></a>' + 
-									'</td>' +
-									'</tr>'
-								);
+							$.each(modul_area.libraries, function(modul_name, modul){
+								var sSingleModulStatus = '';
+								if (modul.status.installed) sSingleModulStatus = html_button_installed;
+								else if ( modul_area.is_fulfilled ) sSingleModulStatus = html_button_not_installed;
+								else sSingleModulStatus = html_button_not_installed_but_necessary;
+								
+								aModulStatus.push({
+									'modul_area_name': modul_area_name,
+									'modul_name': modul_name,
+									'installed': sSingleModulStatus,
+									'file': ((modul.status.installed) ? modul.status.file : ''),
+									'link': '<a href="{BASE_URL}/help/modules.overview.html?module=' + modul_area_name + '&name=' + modul_name + '&installed=' + modul.status.installed + '">' + '<button type="button" class="btn btn-info">Info</button></a>'
+								})
 							});
+						});
+						$('#idTableModulStatus').html( '<table class="display table table-bordered table-hover table-striped" id="idTableModulStatusContent"></table>' );
+						$('#idTableModulStatusContent').dataTable({
+							data: aModulStatus,
+							columns: [
+								{ "data": "modul_area_name", "title": "Bereich" },
+								{ "data": "modul_name", "title": "Modul" },
+								{ "data": "installed", "title": "Status" },
+								{ "data": "file", "title": "Datei" },
+								{ "data": "link", "title": "Hilfe" }
+							]
 						});
 					});
 				});
@@ -88,40 +103,30 @@
             <!-- /.row -->
 			
             <div class="row">
-                <div class="col-lg-8">
-                    <!-- /.panel -->
+				<div class="col-lg-8">
                     <div class="panel panel-primary">
-                        <div class="panel-heading">
-                            <i class="fa fa-bar-chart-o fa-fw"></i> Modul Status
-                        </div>
-                        <!-- /.panel-heading -->
-                        <div class="panel-body">
-                            <div class="row">
-                                <div class="col-lg-11">
-                                    <div class="table-responsive">
-                                        <table class="table table-bordered table-hover table-striped">
-                                            <thead>
-                                                <tr>
-                                                    <th>Bereich</th>
-                                                    <th>Modul</th>
-                                                    <th>Status</th>
-                                                    <th>Datei</th>
-													<th>Hilfe</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody id = "module_status_table_body"></tbody>
-                                        </table>
-                                    </div>
-                                    <!-- /.table-responsive -->
-                                </div>
-                                <!-- /.col-lg-4 (nested) -->
-                            </div>
-                            <!-- /.row -->
-                        </div>
-                        <!-- /.panel-body -->
-                    </div>
-                    <!-- /.panel -->
-                    
+						<div class="panel-heading">
+							<i class="fa fa-bar-chart-o fa-fw">Modul Status</i>
+						</div>
+						<!-- /.panel-heading -->
+						<div class="panel-body">
+							Hier werden alle Python-Module aufgelistet, die innerhalb von DoorPi verwendet werden.<br />
+							Der Status kann folgende Zustände anzeigen:
+							<ul>
+							<li><button type="button" class="btn btn-success disabled">installiert</button> - Modul ist richtig installiert und kann verwendet werden.</li>
+							<li><button type="button" class="btn btn-warning disabled">fehlt</button> - Modul ist nicht oder nicht richtig installiert, aber es ist optional.</li>
+							<li><button type="button" class="btn btn-danger disabled">fehlt</button> - Modul ist nicht oder nicht richtig installiert, ist aber zwingend erforderlich.</li>
+							</ul>
+							In manchen Bereichen (speziell sipphone und keyboard) ist es nur notwendig, dass eins der Module installiert wird, damit alle anderen optional werden.<br />
+							Über den Hilfe-Info button können zu jedem Modul umfangreiche Infos abgerufen werden. Dazu zählen auch Konfigurationsparameter und mögliche Events sowie Details zu dem Bereich selbst.<br />
+							Diese Übersicht (bzw. dessen Ergebnisse) ist die Grundlage für alle weiteren Funktionen in diesem Dashboard.<br />
+						</div>
+						<!-- /.panel-body -->
+						<div class="panel-footer" id="idTableModulStatus">
+						</div>
+						<!-- /.panel-footer -->
+					</div>
+					<!-- /.panel -->
                 </div>
                 <!-- /.col-lg-8 -->
             </div>

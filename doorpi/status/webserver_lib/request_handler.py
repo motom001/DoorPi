@@ -338,7 +338,7 @@ class DoorPiWebRequestHandler(BaseHTTPRequestHandler):
 
             #nutze den Hostnamen aus der URL. sonst ist ein erneuter Login nötig
             if 'host' in self.headers.keys():
-                mapping_table['BASE_URL'] =     "http://%s:%s"%(self.headers['host'], self.server.server_port)
+                mapping_table['BASE_URL'] =     "http://%s"%self.headers['host']
             else:
                 mapping_table['BASE_URL'] =     "http://%s:%s"%(self.server.server_name, self.server.server_port)
 

@@ -7,7 +7,7 @@ logger.debug("%s loaded", __name__)
 
 import datetime
 
-from AbstractBaseClass import SipphoneAbstractBaseClass
+from AbstractBaseClass import SipphoneAbstractBaseClass, SIPPHONE_SECTION
 import linphone as lin
 
 from doorpi import DoorPi
@@ -16,7 +16,6 @@ from linphone_lib.Player import LinphonePlayer
 from linphone_lib.Recorder import LinphoneRecorder
 from media.CreateDialTone import generate_dial_tone
 
-SIPPHONE_SECTION = 'SIP-Phone'
 conf = DoorPi().config
 
 def log_handler(level, msg):

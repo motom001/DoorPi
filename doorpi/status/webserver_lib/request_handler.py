@@ -20,7 +20,8 @@ import doorpi
 VIRTUELL_RESOURCES = [
     '/mirror',
     '/status',
-    '/control'
+    '/control',
+    '/help/modules.overview.html'
 ]
 
 DOORPIWEB_SECTION = 'DoorPiWeb'
@@ -87,6 +88,14 @@ class DoorPiWebRequestHandler(BaseHTTPRequestHandler):
             if path.path == '/mirror':
                 return_object = self.create_mirror()
                 raw_parameters['output'] = "string"
+            elif path.path == '/help/modules.overview.html':
+                return_object, mime = self.get_file_content('/dashboard/parts/modules.overview.html')
+                return_object = self.parse_content(
+                    return_object,
+                    MODULE_AREA_NAME = raw_parameters['module'][0] or '',
+                    MODULE_NAME = raw_parameters['name'][0] or ''
+                )
+                raw_parameters['output'] = "html"
             elif path.path == '/status':
                 return_object = doorpi.DoorPi().get_status(
                     modules = raw_parameters['module'],
@@ -102,12 +111,18 @@ class DoorPiWebRequestHandler(BaseHTTPRequestHandler):
 
         if return_type in ["json", "default"]:
             return  self.return_message(json.dumps(prepared_object), "application/json; charset=utf-8")
-        elif return_type in ["json_beautified", "json.beautified", "beautified.json", ""]:
+        if return_type in ["json_parsed", "json.parsed"]:
+            return  self.return_message(self.parse_content(json.dumps(prepared_object)), "application/json; charset=utf-8")
+        elif return_type in ["json_beautified", "json.beautified", "beautified.json"]:
             return  self.return_message(json.dumps(prepared_object, sort_keys=True, indent=4), "application/json; charset=utf-8")
+        elif return_type in ["json_beautified_parsed", "json.beautified.parsed", "beautified.json.parsed", ""]:
+            return  self.return_message(self.parse_content(json.dumps(prepared_object, sort_keys=True, indent=4)), "application/json; charset=utf-8")
         elif return_type in ["string", "plain", "str"]:
             return self.return_message(str(prepared_object))
         elif return_type in ["repr"]:
             return self.return_message(repr(prepared_object))
+        elif return_type is 'html':
+            return self.return_message(prepared_object, 'text/html; charset=utf-8')
         else:
             try:    return self.return_message(repr(prepared_object))
             except: return self.return_message(str(prepared_object))
@@ -186,7 +201,7 @@ class DoorPiWebRequestHandler(BaseHTTPRequestHandler):
         else:
             return response.read()
 
-    def return_file_content(self, path):
+    def get_file_content(self, path):
         content = mime = ""
         try:
             content = self.read_from_file(self.server.www + path)
@@ -196,11 +211,14 @@ class DoorPiWebRequestHandler(BaseHTTPRequestHandler):
                 content = self.read_from_fallback(self.server.online_fallback + path)
                 mime = self.get_mime_typ(self.server.online_fallback + path)
             except Exception as exp:
-                return self.send_error(500, str(first_exp)+" - "+str(exp))
+                return self.send_error(404, str(first_exp)+" - "+str(exp))
 
+        return content, mime
+
+    def return_file_content(self, path):
+        content, mime = self.get_file_content(path)
         return self.return_message(
-            content,
-            mime
+            content, mime
         )
 
     def return_message(self, message = "", content_type = 'text/plain; charset=utf-8', http_code = 200,):
@@ -307,55 +325,54 @@ class DoorPiWebRequestHandler(BaseHTTPRequestHandler):
         message = '\r\n'.join(message_parts)
         return message
 
-    def parse_content(self, content, online_fallback = False):
+    def parse_content(self, content, online_fallback = False, **mapping_table):
         try:
             matches = re.findall(r"{([^}\s]*)}", content)
             if not matches: return content
             #http://stackoverflow.com/questions/12897374/get-unique-values-from-a-list-in-python/12897491#12897491
             matches = list(set(matches))
 
-            mapping_table = {
-                'DOORPI': doorpi.DoorPi().name_and_version,
-                'SERVER': self.server.server_name,
-                'PORT': str(self.server.server_port),
-                #nutze den Hostnamen aus der URL. sonst ist ein erneuter Login nötig
-                'BASE_URL': "http://%s:%s"%(self.headers['host'], self.server.server_port)
-                            if 'host' in self.headers.keys() else
-                            "http://%s:%s"%(self.server.server_name, self.server.server_port)
-            }
+            mapping_table['DOORPI'] =           doorpi.DoorPi().name_and_version
+            mapping_table['SERVER'] =           self.server.server_name
+            mapping_table['PORT'] =             str(self.server.server_port)
+
+            #nutze den Hostnamen aus der URL. sonst ist ein erneuter Login nötig
+            if 'host' in self.headers.keys():
+                mapping_table['BASE_URL'] =     "http://%s:%s"%(self.headers['host'], self.server.server_port)
+            else:
+                mapping_table['BASE_URL'] =     "http://%s:%s"%(self.server.server_name, self.server.server_port)
+
             # Trennung DATA_URL (AJAX) und BASE_URL (Dateien)
             mapping_table['DATA_URL'] = mapping_table['BASE_URL']
 
             if online_fallback and self.server.online_fallback:
                 mapping_table['BASE_URL'] = self.server.online_fallback
 
-            mapping_templates = {
-                'TEMPLATE:HTML_HEADER':         'html.header.html',
-                'TEMPLATE:HTML_FOOTER':         'html.footer.html',
-                'TEMPLATE:NAVIGATION':          'navigation.html'
-            }
+            # Templates:
+            mapping_table['TEMPLATE:HTML_HEADER'] =     'html.header.html'
+            mapping_table['TEMPLATE:HTML_FOOTER'] =     'html.footer.html'
+            mapping_table['TEMPLATE:NAVIGATION'] =      'navigation.html'
 
             for match in matches:
                 if match not in mapping_table.keys(): continue
-                content = content.replace('{'+match+'}', mapping_table[match])
-
-            for match in matches:
-                if match not in mapping_templates.keys(): continue
-                try: replace_with = self.read_from_file(self.server.www + '/dashboard/parts/' + mapping_templates[match])
-                except IOError:
-                    if self.server.online_fallback:
-                        replace_with = self.read_from_fallback(
-                            self.server.online_fallback +
-                            '/dashboard/parts/' +
-                            mapping_templates[match]
-                        )
-                    else:
-                        replace_with = ""
-                except Exception: replace_with = ""
-                content = content.replace(
-                    '{'+match+'}',
-                    replace_with or ""
-                )
+                if match.startswith('TEMPLATE:'):
+                    try: replace_with = self.read_from_file(self.server.www + '/dashboard/parts/' + mapping_table[match])
+                    except IOError:
+                        if self.server.online_fallback:
+                            replace_with = self.read_from_fallback(
+                                self.server.online_fallback +
+                                '/dashboard/parts/' +
+                                mapping_table[match]
+                            )
+                        else:
+                            replace_with = ""
+                    except Exception: replace_with = ""
+                    content = content.replace(
+                        '{'+match+'}',
+                        replace_with or ""
+                    )
+                else:
+                    content = content.replace('{'+match+'}', mapping_table[match])
 
         except Exception as exp:
             logger.exception(exp)

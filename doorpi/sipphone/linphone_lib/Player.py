@@ -9,7 +9,7 @@ import os
 
 import doorpi
 from media.CreateDialTone import generate_dial_tone
-from sipphone.AbstractBaseClass import PlayerAbstractBaseClass
+from sipphone.AbstractBaseClass import PlayerAbstractBaseClass, SIPPHONE_SECTION
 
 class LinphonePlayer(PlayerAbstractBaseClass):
 
@@ -22,7 +22,7 @@ class LinphonePlayer(PlayerAbstractBaseClass):
     def player_filename(self): return self.__player_filename
 
     def __init__(self):
-        self.__player_filename = doorpi.DoorPi().config.get('DoorPi', 'dialtone', '')
+        self.__player_filename = doorpi.DoorPi().config.get(SIPPHONE_SECTION, 'dialtone', '')
         if self.__player_filename is '':
             logger.debug('no player found in config at section DoorPi and key dialtone')
             return
@@ -33,10 +33,10 @@ class LinphonePlayer(PlayerAbstractBaseClass):
         if not os.path.exists(os.path.dirname(self.__player_filename)):
             logger.info('Path %s does not exist - creating it now', os.path.dirname(self.__player_filename))
             os.makedirs(os.path.dirname(self.__player_filename))
-        dialtone_renew_every_start = doorpi.DoorPi().config.get_bool('DoorPi', 'dialtone_renew_every_start', False)
+        dialtone_renew_every_start = doorpi.DoorPi().config.get_bool(SIPPHONE_SECTION, 'dialtone_renew_every_start', False)
         if not os.path.isfile(self.__player_filename) or dialtone_renew_every_start:
             logger.info('DialTone %s does not exist - creating it now', self.__player_filename)
-            dialtone_volume = doorpi.DoorPi().config.get_int('DoorPi', 'dialtone_volume', 35)
+            dialtone_volume = doorpi.DoorPi().config.get_int(SIPPHONE_SECTION, 'dialtone_volume', 35)
             generate_dial_tone(self.__player_filename, dialtone_volume)
         doorpi.DoorPi().event_handler.register_event('OnPlayerStarted', __name__)
         doorpi.DoorPi().event_handler.register_event('OnPlayerStopped', __name__)

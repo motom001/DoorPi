@@ -31,6 +31,7 @@ supporter_string = '\n'.join(supporters)
 
 license = 'CC BY-NC 4.0, 2014-2015'
 url = 'https://github.com/motom001/DoorPi'
+URL_DOORPI_WIKI = url+"/wiki"
 
 # created with: http://patorjk.com/software/taag/#p=display&f=Ogre&t=DoorPi
 epilog = '''
@@ -51,3 +52,5 @@ Supporter:  {supporters}
         url = url)
 
 base_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+

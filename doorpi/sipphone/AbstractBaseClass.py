@@ -5,6 +5,8 @@ import logging
 logger = logging.getLogger(__name__)
 logger.debug("%s loaded", __name__)
 
+SIPPHONE_SECTION = 'SIP-Phone'
+
 class SipphoneAbstractBaseClass(object):
 
     def thread_register(self, name): pass

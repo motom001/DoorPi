@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python
 # -*- coding: utf-8 -*-
 
 import argparse
@@ -135,8 +135,8 @@ def main_as_daemon(argv):
     #This ensures that the logger file handle does not get closed during daemonization
     daemon_runner.daemon_context.files_preserve = files_preserve_by_path(DEFAULT_LOG_FILENAME)
     try:
-        logger.info('loaded with arguments: %s', str(argv))
         daemon_runner.do_action()
+        logger.info('loaded with arguments: %s', str(argv))
     except DaemonRunnerStopFailureError as ex:
         print "can't stop DoorPi daemon - maybe it's not running? (Message: %s)" % ex
         return 1

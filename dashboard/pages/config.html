@@ -1,8 +1,95 @@
 {TEMPLATE:HTML_HEADER}
-
+			<script>
+				function prepareConfig ( aSourceObject ) {
+					var aConfigObject = new Array();
+					/*var aAllKnownConfigParameters = new Array();
+					$.getJSON("{DATA_URL}/status?module=config&output=json", function( result ){
+						$.each(result.environment, function ( sModuleAreaName, oModuleArea ) {
+							$.each(oModuleArea, function ( sModuleAreaName, oModuleArea ) {
+								
+							});
+						});
+					});*/
+					$.each(aSourceObject, function ( section_name, single_config_object ) {
+						$.each(single_config_object, function ( key_name, value ) {
+							aConfigObject.push({
+								section: section_name,
+								key: key_name,
+								value: value,
+								default_value: 'text',
+								description: 'beschreibung'
+							});
+						});
+					});
+					console.log(aConfigObject);
+					return aConfigObject;
+				}
+				
+				$(document).ready(function() {
+					$.getJSON("{DATA_URL}/status?module=config&output=json", function( result ){
+						$('#idConfigTable').html( '<table class="display table table-bordered table-hover table-striped" id="idConfigTableContent"></table>' );
+						$('#idConfigTableContent').dataTable({
+							data: prepareConfig( result.config ),
+							displayLength: 100,
+							columns: [
+								{ "data": "section", "title": "Sektion", "visible": false },
+								{ "data": "key", "title": "Schlüssel" },
+								{ "data": "value", "title": "Wert" },
+								{ "data": "default_value", "title": "Vorgabe", "readonly": true },
+								{ "data": "description", "title": "Beschreibung" }
+							],
+							drawCallback: function ( settings ) {
+								var api = this.api();
+								var rows = api.rows( {page:'current'} ).nodes();
+								var last = null;
+								
+								api.column(0, {page:'current'} ).data().each( function ( group, i ) {
+									if ( last !== group ) {
+										$(rows).eq( i ).before(
+											'<tr class="group"><td colspan="4"><b>'+group+'</b></td></tr>'
+										);
+					 
+										last = group;
+									}
+								});
+							}
+						});
+					});
+				});
+				
+				
+			</script>
             <div class="row">
+				<div class="col-lg-12">
+                    <div class="panel panel-primary">
+						<div class="panel-heading">
+							<i class="fa fa-bar-chart-o fa-fw">Beschreibung</i>
+						</div>
+						<!-- /.panel-heading -->
+						<div class="panel-body">
+							Hier kann die aktuelle Konfiguration eingesehen werden. Eine Inline-Bearbeitung ist in Arbeit.
+						</div>
+						<!-- /.panel-body -->
+						<div class="panel-footer">
+						</div>
+						<!-- /.panel-footer -->
+					</div>
+					<!-- /.panel -->
+                </div>
                 <div class="col-lg-12">
-                    <h1 class="page-header">Configuration</h1>
+                    <div class="panel panel-primary">
+						<div class="panel-heading">
+							<i class="fa fa-bar-chart-o fa-fw">Konfiguration</i>
+						</div>
+						<!-- /.panel-heading -->
+						<div class="panel-body">
+						</div>
+						<!-- /.panel-body -->
+						<div class="panel-footer" id="idConfigTable">
+						</div>
+						<!-- /.panel-footer -->
+					</div>
+					<!-- /.panel -->
                 </div>
             </div>
 

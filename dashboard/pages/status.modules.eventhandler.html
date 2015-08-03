@@ -2,8 +2,98 @@
 
             <div class="row">
                 <div class="col-lg-12">
-                    <h1 class="page-header">Status - Modules - Event Handler</h1>
-                </div>
+					<div class="panel panel-primary">
+                        <div class="panel-heading">
+                            <i class="fa fa-bar-chart-o fa-fw">Text</i>
+                        </div>
+                        <!-- /.panel-heading -->
+                        <div class="panel-body">
+							
+                        </div>
+                        <!-- /.panel-body -->
+						<div class="panel-footer">
+						</div>
+						<!-- /.panel-footer -->
+                    </div>
+                    <!-- /.panel -->
+					<div class="panel panel-primary">
+                        <div class="panel-heading">
+                            <i class="fa fa-bar-chart-o">Events die Actions auslösen</i>
+                        </div>
+                        <!-- /.panel-heading -->
+                        <div class="panel-body">
+							<table class="display table table-bordered table-hover table-striped" id="idEvents"></table>
+                        </div>
+                        <!-- /.panel-body -->
+						<div class="panel-footer">
+						</div>
+						<!-- /.panel-footer -->
+                    </div>
+                    <!-- /.panel -->
+					<div class="panel panel-primary">
+                        <div class="panel-heading">
+                            <i class="fa fa-bar-chart-o fa-fw">Quellen und deren Events</i>
+                        </div>
+                        <!-- /.panel-heading -->
+                        <div class="panel-body">
+							<table class="display table table-bordered table-hover table-striped" id="idActions"></table>
+                        </div>
+                        <!-- /.panel-body -->
+						<div class="panel-footer">
+						</div>
+						<!-- /.panel-footer -->
+                    </div>
+                    <!-- /.panel -->
+				</div>
             </div>
+			<script>
+				$(document).ready(function() {
+					function prepareEventActionList ( oSourceList ) {
+						var aReturnArray = new Array();
+						$.each(oSourceList, function ( sEventName, aActionList ) {
+							$.each(aActionList, function ( sActionName, oActionObject ) {
+								aReturnArray.push({
+									event_name: sEventName,
+									action_name: $('<div/>').text(String(oActionObject)).html() // thx to http://stackoverflow.com/a/10825766
+								});
+							});
+						});
+						return aReturnArray;
+					}
+					function prepareSourceEventList ( oSourceList ) {
+						var aReturnArray = new Array();
+						$.each(oSourceList, function ( sSourceName, aEventList ) {
+							$.each(aEventList, function ( sEventName, oEventObject ) {
+								aReturnArray.push({
+									source_name: sSourceName,
+									event_name: $('<div/>').text(String(oEventObject)).html() // thx to http://stackoverflow.com/a/10825766
+								});
+							});
+						});
+						console.log(aReturnArray);
+						return aReturnArray;
+					}
+					$.getJSON("{DATA_URL}/status?module=event_handler&name=actions&output=json", function(result){
+						$('#idEvents').dataTable({
+							data: prepareEventActionList(result.event_handler.actions),
+							columns: [
+								{ "data": "event_name", "title": "Eventname" },
+								{ "data": "action_name", "title": "Action" }
+							],
+							displayLength: 100
+						});
+					});
+					$.getJSON("{DATA_URL}/status?module=event_handler&name=events_by_source&output=json", function(result){
+						$('#idActions').dataTable({
+							data: prepareSourceEventList(result.event_handler.events_by_source),
+							columns: [
+								{ "data": "source_name", "title": "Quelle" },
+								{ "data": "event_name", "title": "Eventname" }
+							],
+							displayLength: 100
+						});
+					});
+				});
+			</script>
 
 {TEMPLATE:HTML_FOOTER}

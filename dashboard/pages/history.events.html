@@ -2,42 +2,50 @@
 
             <div class="row">
                 <div class="col-lg-12">
-                    <h1 class="page-header">History - Events</h1>
-                </div>
+                
+					<div class="panel panel-primary">
+                        <div class="panel-heading">
+                            <i class="fa fa-bar-chart-o fa-fw">Aufgabe</i>
+                        </div>
+                        <!-- /.panel-heading -->
+                        <div class="panel-body">
+							Hier werden alle Events angezeigt, die seit dem start von DoorPi ausgelöst wurden.
+                        </div>
+                        <!-- /.panel-body -->
+						<div class="panel-footer">
+						</div>
+						<!-- /.panel-footer -->
+                    </div>
+                    <!-- /.panel -->
+					<div class="panel panel-primary">
+                        <div class="panel-heading">
+                            <i class="fa fa-bar-chart-o fa-fw">Events</i>
+                        </div>
+                        <!-- /.panel-heading -->
+                        <div class="panel-body">
+							<table class="display table table-bordered table-hover table-striped" id="idHistoryEventTable"></table>
+                        </div>
+                        <!-- /.panel-body -->
+						<div class="panel-footer">
+						</div>
+						<!-- /.panel-footer -->
+                    </div>
+                    <!-- /.panel -->
+				</div>
             </div>
-			<div class="row">
-				<table id="history_event_table" class="display" cellspacing="0" width="100%">
-					<thead>
-						<tr>
-							<th>event_id</th>
-							<th>event_name</th>
-							<th>fired_by</th>
-							<th>start_time</th>
-						</tr>
-					</thead>
-			 
-					<tfoot>
-						<tr>
-							<th>event_id</th>
-							<th>event_name</th>
-							<th>fired_by</th>
-							<th>start_time</th>
-						</tr>
-					</tfoot>
-				</table>
-			</div>
 			<script>
 				$(document).ready(function() {
-					$('#history_event_table').dataTable({
+					$('#idHistoryEventTable').dataTable({
 						ajax: {
 							url: '{DATA_URL}/status?module=history_event',
-							dataSrc: "history_event"
+							dataSrc: "history_event",
+							displayLength: 100
 						},
 						columns: [
-							{ "data": "event_id" },
-							{ "data": "event_name" },
-							{ "data": "fired_by" },
-							{ "data": "start_time" }
+							{ "data": "event_id", "title": "ID" },
+							{ "data": "event_name", "title": "Eventname" },
+							{ "data": "fired_by", "title": "ausgelöst durch" },
+							{ "data": "start_time", "title": "Starttime" }
 						]
 					});
 				});

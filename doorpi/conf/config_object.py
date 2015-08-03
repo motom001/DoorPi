@@ -162,12 +162,12 @@ class ConfigObject():
             value = self.__sections[old_section][old_key]
             self.delete_key(old_section, old_key, False)
             self.__sections[section][key] = value
-		except KeyError:
-			try:
-				value = self.__sections[section][key]
-			except KeyError:
-				pass
-		
+        except KeyError:
+            try:
+                value = self.__sections[section][key]
+            except KeyError:
+                pass
+        
         if value is None:
             #logger.trace('no value found - use default')
             value = default

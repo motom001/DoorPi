@@ -7,10 +7,10 @@ logger.debug("%s loaded", __name__)
 
 BACKWARD_COMPATIBILITY_KEYS = {
     'SIP-Phone': {
-        'sipphone_server':      ('SIP-Phone', 'server'),
-        'sipphone_username':    ('SIP-Phone', 'username'),
-        'sipphone_password':    ('SIP-Phone', 'password'),
-        'sipphone_realm':       ('SIP-Phone', 'realm')
+        'sipserver_server':      ('SIP-Phone', 'server'),
+        'sipserver_username':    ('SIP-Phone', 'username'),
+        'sipserver_password':    ('SIP-Phone', 'password'),
+        'sipserver_realm':       ('SIP-Phone', 'realm')
     },
     'DoorPi': {
         'dialtone':                     ('SIP-Phone', 'dialtone'),

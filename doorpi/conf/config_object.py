@@ -156,17 +156,18 @@ class ConfigObject():
 
     def get_string(self, section, key, default = '', log = True, password = False, store_if_not_exists = True):
         value = None
-
+        
         try:
-            value = self.__sections[section][key]
-        except KeyError:
-            try:
-                old_section, old_key = BACKWARD_COMPATIBILITY_KEYS[section][key]
-                value = self.__sections[old_section][old_key]
-                self.delete_key(old_section, old_key, False)
-            except KeyError:
-                pass
-
+            old_section, old_key = BACKWARD_COMPATIBILITY_KEYS[section][key]
+            value = self.__sections[old_section][old_key]
+            self.delete_key(old_section, old_key, False)
+            self.__sections[section][key] = value
+		except KeyError:
+			try:
+				value = self.__sections[section][key]
+			except KeyError:
+				pass
+		
         if value is None:
             #logger.trace('no value found - use default')
             value = default

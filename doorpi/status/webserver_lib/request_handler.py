@@ -13,6 +13,7 @@ from urlparse import urlparse, parse_qs # parsing parameters and url
 import re # regex for area
 import json # for virtual resources
 from urllib2 import urlopen as load_online_fallback
+from urllib import unquote_plus
 
 from action.base import SingleAction
 import doorpi
@@ -20,7 +21,11 @@ import doorpi
 VIRTUELL_RESOURCES = [
     '/mirror',
     '/status',
-    '/control',
+    '/control/trigger_event',
+    '/control/config_value_get',
+    '/control/config_value_set',
+    '/control/config_value_delete',
+    '/control/config_save',
     '/help/modules.overview.html'
 ]
 
@@ -45,11 +50,17 @@ class DoorPiWebRequestHandler(BaseHTTPRequestHandler):
         doorpi.DoorPi().event_handler.register_event('OnWebServerVirtualResource', __name__)
         doorpi.DoorPi().event_handler.register_event('OnWebServerRealResource', __name__)
 
+        # for do_control
+        doorpi.DoorPi().event_handler.register_event('OnFireEvent', __name__)
+        doorpi.DoorPi().event_handler.register_event('OnConfigKeySet', __name__)
+        doorpi.DoorPi().event_handler.register_event('OnConfigKeyDelete', __name__)
+
     @staticmethod
     def destroy():
         doorpi.DoorPi().event_handler.unregister_source( __name__, True)
 
     def do_GET(self):
+        #doorpi.DoorPi().event_handler('OnWebServerRequest', __name__)
         if not self.server.keep_running: return
 
         parsed_path = urlparse(self.path)
@@ -61,34 +72,80 @@ class DoorPiWebRequestHandler(BaseHTTPRequestHandler):
 
         if self.authentication_required(): return self.login_form()
 
+        #doorpi.DoorPi().event_handler('OnWebServerRequestGet', __name__)
+
         if parsed_path.path in VIRTUELL_RESOURCES:
             return self.create_virtual_resource(parsed_path, parse_qs(urlparse(self.path).query))
         else: return self.real_resource(parsed_path.path)
 
-    def do_control(self):
-        # http://192.168.178.43/control?module=keyboard.testsystem&name=11&value=1&output=json
-        # http://192.168.178.43/control?module=event&name=OnWebserverStart&value=true&output=json
-        # http://192.168.178.43/control?module=action&name=call&value=**613&output=json
-        pass
+    def do_control(self, control_order, para):
+        result_object = dict(
+            success = False,
+            message = 'unknown error'
+        )
+        logger.debug(json.dumps(para, sort_keys = True, indent = 4))
 
-    def create_virtual_resource(self, path, raw_parameters):
-        #doorpi.DoorPi().event_handler('OnWebServerVirtualResource', __name__, {'path': path})
+        try:
+            for parameter_name in para.keys():
+                try:                    para[parameter_name] = unquote_plus(para[parameter_name][0])
+                except KeyError:        para[parameter_name] = ''
+                except IndexError:      para[parameter_name] = ''
 
+            if control_order == "trigger_event":
+                result_object['success'] = doorpi.DoorPi().event_handler.fire_event_synchron(**para)
+                result_object['message'] = "trigger_event %s" % (
+                    'success' if result_object['success'] else 'failed'
+                )
+            elif control_order == "config_value_get":
+                # section, key, default, store
+                result_object['success'] = True
+                result_object['message'] = doorpi.DoorPi().config.get_string_by_webservice(**para)
+            elif control_order == "config_value_set":
+                # section, key, value, password
+                result_object['success'] = doorpi.DoorPi().config.set_value_by_webservice(**para)
+                result_object['message'] = "config_value_set %s" % (
+                    'success' if result_object['success'] else 'failed'
+                )
+            elif control_order == "config_value_delete":
+                # section and key
+                result_object['success'] = doorpi.DoorPi().config.delete_key_by_webservice(**para)
+                result_object['message'] = "config_value_delete %s" % (
+                    'success' if result_object['success'] else 'failed'
+                )
+            elif control_order == "config_save":
+                result_object['success'] = doorpi.DoorPi().config.save_config(**para)
+                result_object['message'] = "config_save %s" % (
+                    'success' if result_object['success'] else 'failed'
+                )
+
+        except Exception as exp:
+            result_object['message'] = str(exp)
+
+        return result_object
+
+    def clear_parameters(self, raw_parameters):
         if 'module' not in raw_parameters.keys(): raw_parameters['module'] = []
         if 'name' not in raw_parameters.keys(): raw_parameters['name'] = []
         if 'value' not in raw_parameters.keys(): raw_parameters['value'] = []
-        if 'output' not in raw_parameters.keys(): raw_parameters['output'] = ''
+        return raw_parameters
 
-        #for parameter in parameters.keys():
-        #    try: parameters[parameter] = raw_parameters[parameter][0]
-        #    except: pass
-
+    def create_virtual_resource(self, path, raw_parameters):
         return_object = {}
         try:
             if path.path == '/mirror':
                 return_object = self.create_mirror()
                 raw_parameters['output'] = "string"
+            elif path.path == '/status':
+                raw_parameters = self.clear_parameters(raw_parameters)
+                return_object = doorpi.DoorPi().get_status(
+                    modules = raw_parameters['module'],
+                    name = raw_parameters['name'],
+                    value = raw_parameters['value']
+                ).dictionary
+            elif path.path.startswith('/control/'):
+                return_object = self.do_control(path.path.split('/')[-1], raw_parameters)
             elif path.path == '/help/modules.overview.html':
+                raw_parameters = self.clear_parameters(raw_parameters)
                 return_object, mime = self.get_file_content('/dashboard/parts/modules.overview.html')
                 return_object = self.parse_content(
                     return_object,
@@ -96,14 +153,9 @@ class DoorPiWebRequestHandler(BaseHTTPRequestHandler):
                     MODULE_NAME = raw_parameters['name'][0] or ''
                 )
                 raw_parameters['output'] = "html"
-            elif path.path == '/status':
-                return_object = doorpi.DoorPi().get_status(
-                    modules = raw_parameters['module'],
-                    name = raw_parameters['name'],
-                    value = raw_parameters['value']
-                ).dictionary
-        except Exception as return_object: pass
+        except Exception as exp: return_object = dict(error_message = str(exp))
 
+        if 'output' not in raw_parameters.keys(): raw_parameters['output'] = ''
         return self.return_virtual_resource(return_object, raw_parameters['output'])
 
     def return_virtual_resource(self, prepared_object, return_type = 'json'):

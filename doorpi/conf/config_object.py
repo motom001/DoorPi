@@ -43,6 +43,7 @@ class ConfigObject():
 
         default_files = [
             str(configfile),
+            doorpi.DoorPi().parse_string(str(configfile)),
             '!BASEPATH!/conf/doorpi.ini',
             '!BASEPATH!/conf/doorpi.cfg',
             '!BASEPATH!\conf\doorpi.ini',

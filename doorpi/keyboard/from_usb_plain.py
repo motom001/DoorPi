@@ -22,6 +22,8 @@ class UsbPlain(KeyboardAbstractBaseClass):
     @property
     def last_received_chars(self): return self._last_received_chars
 
+    _ser = None
+
     def read_usb_plain(self):
 
         self._last_received_chars = ""
@@ -68,11 +70,11 @@ class UsbPlain(KeyboardAbstractBaseClass):
         # somit wirds aus der Config-Datei geladen, falls dort vorhanden.
         section_name = conf_pre+'keyboard'+conf_post
 
-        port = CONFIG.get(section_name, 'port', "/dev/ttyUSB0")
+        port = CONFIG.get(section_name, 'port', "/dev/ttyUSB1")
         baudrate = CONFIG.get_int(section_name, 'baudrate', 9600)
 
         self._input_stop_flag = CONFIG.get(section_name, 'input_stop_flag', OS_LINESEP)
-        self._input_max_size = CONFIG.int(section_name, 'input_max_size', 255)
+        self._input_max_size = CONFIG.get_int(section_name, 'input_max_size', 255)
         self._output_stop_flag = CONFIG.get(section_name, 'output_stop_flag', OS_LINESEP)
 
         self._ser = serial.Serial(port, baudrate)
@@ -99,7 +101,7 @@ class UsbPlain(KeyboardAbstractBaseClass):
         if self.is_destroyed: return
         logger.debug("destroy")
         self._shutdown = True
-        if self._ser.isOpen(): self._ser.close()
+        if self._ser and self._ser.isOpen(): self._ser.close()
         doorpi.DoorPi().event_handler.unregister_source(__name__, True)
         self.__destroyed = True
         return
@@ -112,8 +114,7 @@ class UsbPlain(KeyboardAbstractBaseClass):
             return False
 
     def set_output(self, pin, value, log_output = True):
-        # RDM6300 does not support output
-        if self._ser.isOpen():
+        if self._ser and self._ser.isOpen():
             if log_output: logger.debug('try to write %s to serial usb plain', pin)
             self._ser.flushOutput()
             self._ser.write(pin + self._output_stop_flag)

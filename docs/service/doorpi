@@ -1,8 +1,4 @@
 #!/bin/sh
-# kFreeBSD do not accept scripts as interpreters, using #!/bin/sh and sourcing.
-if [ true != "$INIT_D_SCRIPT_SOURCED" ] ; then
-    set "$0" "$@"; INIT_D_SCRIPT_SOURCED=true . /lib/init/init-d-script
-fi
 ### BEGIN INIT INFO
 # Provides:          DoorPi
 # Required-Start:    $remote_fs $syslog
@@ -13,10 +9,7 @@ fi
 # Description:       VoIP Intercom Service DoorPi
 ### END INIT INFO
 
-# Author: Foo Bar <foobar@baz.org>
-#
-# Please remove the "Author" lines above and replace them
-# with your own name if you copy and modify this script.
+. /lib/lsb/init-functions
 
 NAME=DoorPi
 DESC="VoIP Intercom Service"
@@ -24,6 +17,21 @@ DOORPI_PATH=/home/DoorPI
 DAEMON=$DOORPI_PATH/doorpi/main.py
 DAEMON_ARGS="--configfile $DOORPI_PATH/conf/doorpi.cfg"
 PIDFILE=/var/run/doorpi.pid
+SCRIPTNAME=/etc/init.d/doorpi
+
+# Exit if the package is not installed
+if [ none != "$DAEMON" ] && [ ! -x "$DAEMON" ] ; then
+        exit 0
+fi
+
+# Read configuration variable file if it is present
+[ -r /etc/default/$NAME ] && . /etc/default/$NAME
+
+# Load the VERBOSE setting and other rcS variables
+. /lib/init/vars.sh
+if [ -t 0 ] ; then # Be verbose when called from a terminal
+    VERBOSE=yes
+fi
 
 do_start_cmd()
 {
@@ -38,3 +46,38 @@ do_stop_cmd()
 	rm -f $PIDFILE
 	return 0
 }
+
+case "$1" in
+	start)
+		[ "$VERBOSE" != no ] && log_daemon_msg "Starting $DESC" "$NAME"
+		do_start_cmd
+		case "$?" in
+			0|1) [ "$VERBOSE" != no ] && log_end_msg 0 ;;
+			2) [ "$VERBOSE" != no ] && log_end_msg 1 ;;
+		esac
+		;;
+	stop)
+		[ "$VERBOSE" != no ] && log_daemon_msg "Stopping $DESC" "$NAME"
+		do_stop_cmd
+		case "$?" in
+			0|1) [ "$VERBOSE" != no ] && log_end_msg 0 ;;
+			2) [ "$VERBOSE" != no ] && log_end_msg 1 ;;
+		esac
+		;;
+	restart)
+		[ "$VERBOSE" != no ] && log_daemon_msg "Restarting $DESC" "$NAME"
+		do_stop_cmd
+		do_start_cmd
+		case "$?" in
+			0|1) [ "$VERBOSE" != no ] && log_end_msg 0 ;;
+			2) [ "$VERBOSE" != no ] && log_end_msg 1 ;;
+		esac
+		;;
+	status)
+		status_of_proc "$DAEMON" "$NAME" && return 0 || return $?
+		;;
+	*)
+		echo "Usage: $SCRIPTNAME {start|stop|status|restart}" >&2
+		exit 3
+		;;
+esac

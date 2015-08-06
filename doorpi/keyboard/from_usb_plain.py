@@ -70,7 +70,7 @@ class UsbPlain(KeyboardAbstractBaseClass):
         # somit wirds aus der Config-Datei geladen, falls dort vorhanden.
         section_name = conf_pre+'keyboard'+conf_post
 
-        port = CONFIG.get(section_name, 'port', "/dev/ttyUSB1")
+        port = CONFIG.get(section_name, 'port', "/dev/ttyUSB0")
         baudrate = CONFIG.get_int(section_name, 'baudrate', 9600)
 
         self._input_stop_flag = CONFIG.get(section_name, 'input_stop_flag', OS_LINESEP)

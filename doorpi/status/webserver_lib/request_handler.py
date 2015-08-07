@@ -387,6 +387,7 @@ class DoorPiWebRequestHandler(BaseHTTPRequestHandler):
             mapping_table['DOORPI'] =           doorpi.DoorPi().name_and_version
             mapping_table['SERVER'] =           self.server.server_name
             mapping_table['PORT'] =             str(self.server.server_port)
+            mapping_table['MIN_EXTENSION'] =    '' if logger.getEffectiveLevel() <= 5 else '.min'
 
             #nutze den Hostnamen aus der URL. sonst ist ein erneuter Login nötig
             if 'host' in self.headers.keys():

@@ -102,28 +102,6 @@ class ConfigObject():
         logger.debug('parse string "%s" to "%s"', raw_string, parsed_string)
         return parsed_string
 
-    def set_value_by_webservice(self, section, key, value, password = 'False'):
-        return self.set_value(
-            section = section,
-            key = key,
-            value = value,
-            password = True if password.lower() == 'true' else False
-        )
-
-    def get_string_by_webservice(self, section, key, default = '', store = 'True'):
-        return self.get_string(
-            section = section,
-            key = key,
-            default = default,
-            store_if_not_exists = True if store.lower() == 'true' else False
-        )
-
-    def delete_key_by_webservice(self, section, key):
-        return self.delete_key(
-            section = section,
-            key = key
-        )
-
     def set_value(self, section, key, value, log = True, password = False):
         if section not in self.__sections.keys():
             self.__sections[section] = {}

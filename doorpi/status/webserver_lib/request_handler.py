@@ -17,6 +17,7 @@ from urllib import unquote_plus
 
 from action.base import SingleAction
 import doorpi
+from request_handler_static_functions import *
 
 VIRTUELL_RESOURCES = [
     '/mirror',
@@ -26,6 +27,7 @@ VIRTUELL_RESOURCES = [
     '/control/config_value_set',
     '/control/config_value_delete',
     '/control/config_save',
+    '/control/config_get_configfile',
     '/help/modules.overview.html'
 ]
 
@@ -99,24 +101,28 @@ class DoorPiWebRequestHandler(BaseHTTPRequestHandler):
             elif control_order == "config_value_get":
                 # section, key, default, store
                 result_object['success'] = True
-                result_object['message'] = doorpi.DoorPi().config.get_string_by_webservice(**para)
+                result_object['message'] = control_config_get_value(**para)
             elif control_order == "config_value_set":
                 # section, key, value, password
-                result_object['success'] = doorpi.DoorPi().config.set_value_by_webservice(**para)
+                result_object['success'] = control_config_set_value(**para)
                 result_object['message'] = "config_value_set %s" % (
                     'success' if result_object['success'] else 'failed'
                 )
             elif control_order == "config_value_delete":
                 # section and key
-                result_object['success'] = doorpi.DoorPi().config.delete_key_by_webservice(**para)
+                result_object['success'] = control_config_delete_key(**para)
                 result_object['message'] = "config_value_delete %s" % (
                     'success' if result_object['success'] else 'failed'
                 )
             elif control_order == "config_save":
-                result_object['success'] = doorpi.DoorPi().config.save_config(**para)
+                # configfile
+                result_object['success'] = control_config_save(**para)
                 result_object['message'] = "config_save %s" % (
                     'success' if result_object['success'] else 'failed'
                 )
+            elif control_order == "config_get_configfile":
+                result_object['message'] = control_config_get_configfile()
+                result_object['success'] = True if result_object['message'] != "" else False
 
         except Exception as exp:
             result_object['message'] = str(exp)

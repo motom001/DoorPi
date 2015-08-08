@@ -27,8 +27,13 @@ def load_sipphone():
             conf_post = conf_post
         )
     except ImportError as exp:
-        logger.exception('sipphone %s not found @ sipphone.from_%s', sipphone_name, sipphone_name)
-        raise SipphoneNotExists('sipphone %s not found (%s)'%(sipphone_name, str(exp)))
+        logger.exception('sipphone %s not found @ sipphone.from_%s with exception %s', sipphone_name, sipphone_name, exp)
+        logger.warning('use dummy sipphone after last exception!')
+        sipphone = importlib.import_module('sipphone.from_dummy').get(
+            sipphone_name = sipphone_name,
+            conf_pre = conf_pre,
+            conf_post = conf_post
+        )
 
     return sipphone
 

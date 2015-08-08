@@ -106,6 +106,7 @@ class KeyboardHandler(KeyboardAbstractBaseClass):
             if self.__keyboards[keyboard_name] is None:
                 logger.error("couldn't load keyboard %s", keyboard_name)
                 del self.__keyboards[keyboard_name]
+                continue
 
             output_pins = doorpi.DoorPi().config.get_keys(keyboard_name+'_OutputPins')
             for output_pin in output_pins:

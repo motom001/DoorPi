@@ -432,21 +432,28 @@
                                         <div class="modal-body">
                                             <div class="alert" style="display: none;" id="idSaveConfigResponse"></div>
 											<div class="form-group" id="idSaveConfigValueInput">
-												<label>configfile</label>
+												<label>configfile <span id="idCurrentConfigfile"></span></label>
 												<input class="form-control" placeholder="Leave blank to use default" id="idSaveConfigValueInputVal">
 											</div>
 											<script>
 												function ResetSaveConfigModal () {
 													LoadOldConfigfileBeforeSave();
-												}
+												};
 												
 												function LoadOldConfigfileBeforeSave () {
+													$('#idCurrentConfigfile').val('');
 													try {
-														$('#idSaveConfigValueInputVal').attr('placeholder', 'Leave blank to use default');
+														$.getJSON("{DATA_URL}/control/config_get_configfile", function( result ){
+															if (result.success) {
+																$('#idCurrentConfigfile').html('(current: "'+result.message+'")');
+															} else {
+																$('#idCurrentConfigfile').html('');
+															}
+														});
 													} catch(err) {
-														$('#idSaveConfigValueInputVal').val(err);
+														$('#idCurrentConfigfile').html('(current: "unknown")');
 													}
-												}
+												};
 												
 												function PrepareSaveConfigModal () {
 													$("#idSaveConfigModalButtonSave").click(function() {

@@ -132,9 +132,9 @@ class RDM6300(KeyboardAbstractBaseClass):
                             self.last_key_time = now
                             logger.debug("key is %s", self.last_key)
                             if self.last_key in self._InputPins:
-                                self._fire_OnKeyDown(input_pin, __name__)
-                                self._fire_OnKeyPressed(input_pin, __name__)
-                                self._fire_OnKeyUp(input_pin, __name__)
+                                self._fire_OnKeyDown(self.last_key, __name__)
+                                self._fire_OnKeyPressed(self.last_key, __name__)
+                                self._fire_OnKeyUp(self.last_key, __name__)
                                 doorpi.DoorPi().event_handler('OnFoundKnownTag', __name__)
                             else:
                                 doorpi.DoorPi().event_handler('OnFoundUnknownTag', __name__)

@@ -127,18 +127,19 @@ class RDM6300(KeyboardAbstractBaseClass):
                         # alles okay... nur noch schauen, ob das nicht eine Erkennungs-Wiederholung ist
                         now = time.time()
                         if now - self.last_key_time > self.__dismisstime:
+                            doorpi.DoorPi().event_handler('OnFoundTag', __name__)
                             self.last_key = int(chars[5:-3], 16)
                             self.last_key_time = now
                             logger.debug("key is %s", self.last_key)
-                            for input_pin in self._InputPins:
-                                logger.debug("checking %s is %s", input_pin, self.last_key)
-                                if input_pin == self.last_key:
-                                    logger.debug("yes")
-                                    self._fire_OnKeyDown(input_pin, __name__)
-                                    self._fire_OnKeyPressed(input_pin, __name__)
-                                    self._fire_OnKeyUp(input_pin, __name__)
+                            if self.last_key in self._InputPins:
+                                self._fire_OnKeyDown(input_pin, __name__)
+                                self._fire_OnKeyPressed(input_pin, __name__)
+                                self._fire_OnKeyUp(input_pin, __name__)
+                                doorpi.DoorPi().event_handler('OnFoundKnownTag', __name__)
+                            else:
+                                doorpi.DoorPi().event_handler('OnFoundUnknownTag', __name__)
 
-                    # ggf. l�schen
+                    # ggf. löschen
                     if newChar == STOP_FLAG or len(chars) > MAX_LENGTH:
                         chars = ""
 
@@ -155,6 +156,10 @@ class RDM6300(KeyboardAbstractBaseClass):
         logger.debug("__init__ (input_pins = %s)", input_pins)
         self.keyboard_name = keyboard_name
         self._InputPins = map(int, input_pins)
+
+        doorpi.DoorPi().event_handler.register_event('OnFoundTag', __name__)
+        doorpi.DoorPi().event_handler.register_event('OnFoundUnknownTag', __name__)
+        doorpi.DoorPi().event_handler.register_event('OnFoundKnownTag', __name__)
 
         self.last_key = ""
         self.last_key_time = 0

@@ -52,7 +52,7 @@ def get(parameters):
 
     smtp_to = parameter_list[0]
     smtp_subject = parameter_list[1]
-    smtp_text = parameter_list[1]
+    smtp_text = parameter_list[2]
 
     return MailtoAction(fire_action_mail,
                      smtp_to = smtp_to,

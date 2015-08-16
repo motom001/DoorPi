@@ -29,14 +29,14 @@ class UsbPlain(KeyboardAbstractBaseClass):
         self._last_received_chars = ""
         while not self._shutdown and self._ser.isOpen():
             # char aus buffer holen
-            newChar = self._UART.read()
+            newChar = self._ser.read()
             if newChar == "": continue
 
             self._last_received_chars += str(newChar)
             logger.debug("new char %s read and is now %s", newChar, self._last_received_chars)
 
             for input_pin in self._InputPins:
-                if self._last_received_chars.endswith(input_pin + self._input_stop_flag):
+                if self._last_received_chars.endswith(input_pin):
                     self.last_key = input_pin
                     self._fire_OnKeyDown(input_pin, __name__)
                     self._fire_OnKeyPressed(input_pin, __name__)
@@ -80,6 +80,7 @@ class UsbPlain(KeyboardAbstractBaseClass):
         self._ser = serial.Serial(port, baudrate)
 
         self._ser.timeout = 1             #block read, 0 for #non-block read, > 0 for timeout block read
+        self._ser.close()
         #self._ser.bytesize = serial.EIGHTBITS       #number of bits per bytes
         #self._ser.parity = serial.PARITY_NONE       #set parity check: no parity
         #self._ser.stopbits = serial.STOPBITS_ONE    #number of stop bits

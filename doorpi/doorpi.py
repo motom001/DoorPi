@@ -126,7 +126,7 @@ class DoorPi(object):
         self.event_handler.register_action('OnTimeTick', 'time_tick:!last_tick!')
 
         #register modules
-        self.__webserver    = load_webserver().start()
+        self.__webserver    = load_webserver()
         self.__keyboard     = load_keyboard()
         self.__sipphone     = load_sipphone()
         self.sipphone.start()
@@ -222,18 +222,25 @@ class DoorPi(object):
 
         logger.info('DoorPi started successfully')
         logger.info('BasePath is %s', self.base_path)
+        if self.__webserver:
+            logger.info('Weburl is %s', self.__webserver.own_url)
+        else:
+            logger.info('no Webserver loaded')
 
         time_ticks = 0
 
         while True and not self.__shutdown:
             time_ticks += 0.05
-            if self.sipphone: self.sipphone.self_check()
+            self.check_time_critical_threads()
             if time_ticks > 0.5:
                 self.__last_tick = time.time()
                 self.__event_handler.fire_event_asynchron('OnTimeTick', __name__)
                 time_ticks = 0
             time.sleep(0.05)
         return self
+
+    def check_time_critical_threads(self):
+        if self.sipphone: self.sipphone.self_check()
 
     def parse_string(self, input_string):
         parsed_string = datetime.datetime.now().strftime(str(input_string))

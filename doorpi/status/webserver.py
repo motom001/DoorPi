@@ -8,6 +8,8 @@ logger.debug("%s loaded", __name__)
 from BaseHTTPServer import HTTPServer
 from SocketServer import ThreadingMixIn
 
+from random import randrange
+
 import doorpi
 from action.base import SingleAction
 
@@ -17,6 +19,7 @@ from status.webserver_lib.request_handler import DoorPiWebRequestHandler
 class WebServerStartupAction(SingleAction): pass
 class WebServerFakeRequestAction(SingleAction): pass
 class WebServerShutdownAction(SingleAction): pass
+class WebServerInformUrl(SingleAction): pass
 
 DOORPIWEB_SECTION = 'DoorPiWeb'
 CONF_AREA_PREFIX = 'AREA_'
@@ -24,9 +27,23 @@ CONF_AREA_PREFIX = 'AREA_'
 def load_webserver():
     ip = doorpi.DoorPi().config.get(DOORPIWEB_SECTION, 'ip', '')
     port = doorpi.DoorPi().config.get_int(DOORPIWEB_SECTION, 'port', 80)
-    logger.info('Initiating WebService at ip %s and port %s', ip, port)
-    server_address = (ip, port)
-    return DoorPiWeb(server_address, DoorPiWebRequestHandler)
+
+    doorpiweb_object = False
+
+    possible_ports = [port, 80, 8080, 0]
+    for single_port in possible_ports:
+        try:
+            server_address = (ip, single_port)
+            doorpiweb_object = DoorPiWeb(server_address, DoorPiWebRequestHandler)
+            logger.info('Initiating WebService at ip %s and port %s', ip, single_port)
+            doorpiweb_object.start()
+            if single_port is not port:
+                doorpi.DoorPi().event_handler.register_action('OnTimeSecondEvenNumber', doorpiweb_object.inform_own_url)
+            return doorpiweb_object
+        except Exception as exp:
+            logger.warning('failed to initiating WebService at ip %s and port %s (%s)', ip, single_port, exp)
+
+    return doorpiweb_object
 
 def check_config(config):
     errors = []
@@ -91,6 +108,15 @@ class DoorPiWeb(ThreadingMixIn, HTTPServer):
 
     @property
     def config_status(self): return check_config(self.config)
+
+    @property
+    def own_url(self):
+        if self.server_port is 80:
+            return "http://%s/"%self.server_name
+        else:
+            return "http://%s:%s/"%(self.server_name, self.server_port)
+
+    def inform_own_url(self): logger.info('DoorPiWeb URL is %s', self.own_url)
 
     @property
     def sessions(self):

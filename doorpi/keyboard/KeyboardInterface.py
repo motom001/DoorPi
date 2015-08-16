@@ -18,29 +18,22 @@ def load_keyboard():
     if len(config_keyboards) > 0:
         logger.info("using multi-keyboard mode (keyboards: %s)", ', '.join(config_keyboards))
         return KeyboardHandler(config_keyboards)
-    elif len(config_keyboards) is 1:
-        logger.info("using single-keyboard mode by keyboards first and only key %s", config_keyboards[0])
-        return load_single_keyboard(config_keyboards[0])
     else:
-        logger.info("using multi-keyboard mode with two dummy keyboards")
-        doorpi.DoorPi().config.get('keyboards', 'dummy1', 'dummy').lower()
-        doorpi.DoorPi().config.get('keyboards', 'dummy2', 'dummy').lower()
-        return KeyboardHandler(['dummy1', 'dummy2'])
+        logger.info("using multi-keyboard mode with dummy keyboard")
+        return KeyboardHandler(['dummy'])
 
-def load_single_keyboard(keyboard_name = ''):
-    conf_pre = ''
+def load_single_keyboard(keyboard_name):
+    conf_pre = keyboard_name+'_'
     conf_post = ''
 
-    if keyboard_name is '':
-        keyboard_type = doorpi.DoorPi().config.get('keyboard', 'typ', 'dummy').lower()
-    else:
-        conf_pre = keyboard_name+'_'
-        keyboard_type = doorpi.DoorPi().config.get('keyboards', keyboard_name, 'dummy').lower()
+    keyboard_type = doorpi.DoorPi().config.get('keyboards', keyboard_name, 'dummy').lower()
+    store_if_not_exists = False if keyboard_type == "dummy" else True
 
     input_pins = doorpi.DoorPi().config.get_keys(conf_pre+'InputPins'+conf_post)
     output_pins = doorpi.DoorPi().config.get_keys(conf_pre+'OutputPins'+conf_post)
-    bouncetime = doorpi.DoorPi().config.get_float(conf_pre+'keyboard'+conf_post, 'bouncetime', 2000)
-    polarity = doorpi.DoorPi().config.get_int(conf_pre+'keyboard'+conf_post, 'polarity', 0)
+    bouncetime = doorpi.DoorPi().config.get_float(conf_pre+'keyboard'+conf_post, 'bouncetime', 2000, store_if_not_exists = store_if_not_exists)
+    polarity = doorpi.DoorPi().config.get_int(conf_pre+'keyboard'+conf_post, 'polarity', 0, store_if_not_exists = store_if_not_exists)
+
     try:
         keyboard = importlib.import_module('keyboard.from_'+keyboard_type).get(
             input_pins = input_pins,
@@ -119,8 +112,9 @@ class KeyboardHandler(KeyboardAbstractBaseClass):
                     )
                 self.__OutputMappingTable[output_pin_name] = keyboard_name
 
-        if len(self.__keyboards) is 0: raise KeyboardImportError('no keyboards found')
-
+        if len(self.__keyboards) is 0:
+            logger.error('No Keyboards loaded - load dummy!')
+            self.__keyboards['dummy'] = load_single_keyboard('dummy')
 
     def destroy(self):
         try:

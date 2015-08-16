@@ -266,6 +266,7 @@ class DoorPiWebRequestHandler(BaseHTTPRequestHandler):
             mime = self.get_mime_typ(self.server.www + path)
         except Exception as first_exp:
             try:
+                logger.trace('use onlinefallback - local file  %s not found', self.server.www + path)
                 content = self.read_from_fallback(self.server.online_fallback + path)
                 mime = self.get_mime_typ(self.server.online_fallback + path)
             except Exception as exp:

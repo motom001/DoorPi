@@ -179,28 +179,28 @@ class ConfigObject():
             if log: logger.trace("get_string for key %s in section %s (default: %s) returns %s", key, section, default, value)
         return value
 
-    def get_float(self, section, key, default = -1, log = True):
-        value = self.get_string(section, key, str(default), log = False)
+    def get_float(self, section, key, default = -1, log = True, store_if_not_exists = True):
+        value = self.get_string(section, key, str(default), log = False, store_if_not_exists = store_if_not_exists)
         if value is not '': value = float(value)
         else: value = default
         if log: logger.trace("get_integer for key %s in section %s (default: %s) returns %s", key, section, default, value)
         return value
 
-    def get_integer(self, section, key, default = -1, log = True):
-        value = self.get(section, key, str(default), log = False)
+    def get_integer(self, section, key, default = -1, log = True, store_if_not_exists = True):
+        value = self.get(section, key, str(default), log = False, store_if_not_exists = store_if_not_exists)
         if value is not '': value = int(value)
         else: value = default
         if log: logger.trace("get_integer for key %s in section %s (default: %s) returns %s", key, section, default, value)
         return value
 
-    def get_boolean(self, section, key, default = False, log = True):
-        value = self.get(section, key, str(default), log = False)
+    def get_boolean(self, section, key, default = False, log = True, store_if_not_exists = True):
+        value = self.get(section, key, str(default), log = False, store_if_not_exists = store_if_not_exists)
         value = value.lower() in ['true', 'yes', 'ja', '1']
         if log: logger.trace("get_boolean for key %s in section %s (default: %s) returns %s", key, section, default, value)
         return value
 
-    def get_list(self, section, key, default = [], separator = ',', log = True):
-        value = self.get(section, key, str(default), log = False)
+    def get_list(self, section, key, default = [], separator = ',', log = True, store_if_not_exists = True):
+        value = self.get(section, key, str(default), log = False, store_if_not_exists = store_if_not_exists)
         if value is not '': value = value.split(separator)
         else: value = default
         if log: logger.trace("get_list for key %s in section %s (default: %s) returns %s", key, section, default, value)

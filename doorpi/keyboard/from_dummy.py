@@ -19,12 +19,6 @@ class DUMMY(KeyboardAbstractBaseClass):
         conf_pre = kwargs['conf_pre']
         conf_post = kwargs['conf_post']
 
-        doorpi.DoorPi().config.get(conf_pre+'InputPins'+conf_post, '1', 'call:12345')
-        doorpi.DoorPi().config.get(conf_pre+'InputPins'+conf_post, '2', 'call:54321')
-
-        doorpi.DoorPi().config.get(conf_pre+'OutputPins'+conf_post, '3', 'door')
-        doorpi.DoorPi().config.get(conf_pre+'OutputPins'+conf_post, '4', 'garage')
-
         self.keyboard_name = keyboard_name
         self._polarity = polarity
         self._InputPins = doorpi.DoorPi().config.get_keys(conf_pre+'InputPins'+conf_post)

@@ -15,7 +15,7 @@ class LinphoneCallbacks:
     def used_callbacks(self): return {
         #http://www.linphone.org/docs/liblinphone/struct__LinphoneCoreVTable.html
         #'global_state_changed': self.global_state_changed, #Notifies global state changes
-        'registration_state_changed': self.registration_state_changed, #Notifies registration state changes
+        #'registration_state_changed': self.registration_state_changed, #Notifies registration state changes
         'call_state_changed': self.call_state_changed, #Notifies call state changes
         #'notify_presence_received': self.notify_presence_received, #Notify received presence events
         #'new_subscription_requested': self.new_subscription_requested, #Notify about pending presence subscription request
@@ -59,9 +59,14 @@ class LinphoneCallbacks:
     def __init__(self):
         logger.debug("__init__")
 
+        self._last_number_of_calls = 0
+
         DoorPi().event_handler.register_action('OnSipPhoneDestroy', self.destroy)
 
         DoorPi().event_handler.register_event('OnCallMediaStateChange', __name__)
+        DoorPi().event_handler.register_event('OnMediaRequired', __name__)
+        DoorPi().event_handler.register_event('OnMediaNotRequired', __name__)
+
         DoorPi().event_handler.register_event('OnCallStateChange', __name__)
         DoorPi().event_handler.register_event('OnCallStateConnect', __name__)
         DoorPi().event_handler.register_event('AfterCallStateConnect', __name__)
@@ -97,6 +102,15 @@ class LinphoneCallbacks:
     def global_state_changed(self, core, global_state, message): pass
     def registration_state_changed(self, core, linphone_proxy_config, state, message): pass
     def call_state_changed(self, core, call, call_state, message):
+        self.call_state_changed_handle(core, call, call_state, message)
+
+        if core.calls_nb > 0 and self._last_number_of_calls == 0:
+            DoorPi().event_handler('OnMediaRequired', __name__)
+        elif self._last_number_of_calls is not core.calls_nb:
+            DoorPi().event_handler('OnMediaNotRequired', __name__)
+        self._last_number_of_calls = core.calls_nb
+
+    def call_state_changed_handle(self, core, call, call_state, message):
         logger.debug("call_state_changed (%s - %s)", call_state, message)
 
         remote_uri = call.remote_address.as_string_uri_only()
@@ -106,8 +120,6 @@ class LinphoneCallbacks:
             'call_state': call_state,
             'state': message
         })
-
-
 
         if call_state == linphone.CallState.Idle:
             pass

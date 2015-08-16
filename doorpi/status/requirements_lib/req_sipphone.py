@@ -22,6 +22,8 @@ REQUIREMENT = dict(
         dict( name = 'OnSipPhoneCallTimeoutMaxCalltime', description = 'Das Gespräch wurde beendet, da das Gespräch länger als erlaubt lief (Parameter max_call_time)'),
         dict( name = 'OnPlayerCreated', description = 'Es wurde ein Player erstellt und es kann beim nächsten Anruf eine Sounddatei als Wartemusik abgespielt werden (Parameter dialtone)'),
         dict( name = 'OnCallMediaStateChange', description = 'Die Nutzung der Ein- un Ausgabegeräte (Audio und Video) hat sich geändert.'),
+        dict( name = 'OnMediaRequired', description = 'Es existiert ein Call und es wird das Media-Gerät benötigt. Kann z.B. genutzt werden um Verstärker zu aktivieren.'),
+        dict( name = 'OnMediaNotRequired', description = 'Es existiert kein Call (mehr) und es wird das Media-Gerät nicht (mehr) benötigt. Kann z.B. genutzt werden um Verstärker zu deaktivieren.'),
         dict( name = 'OnCallStateChange', description = 'Der Status eines Anrufs hat sich verändert'),
         dict( name = 'OnCallStateConnect', description = 'Der Stauts eines Gespräches ist jetzt wieder auf verbunden (Connected, Resuming oder Updating)'),
         dict( name = 'AfterCallStateConnect', description = 'Das Gespräch wurde aufgebaut, die Media-Verbindung besteht'),

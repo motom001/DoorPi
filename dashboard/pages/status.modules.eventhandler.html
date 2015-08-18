@@ -18,25 +18,45 @@
                     <!-- /.panel -->
 					<div class="panel panel-primary">
                         <div class="panel-heading">
-                            <i class="fa fa-bar-chart-o">Events die Actions auslösen</i>
+                            <i class="fa fa-bar-chart-o">Eventhandler</i>
                         </div>
                         <!-- /.panel-heading -->
                         <div class="panel-body">
-							<table class="display table table-bordered table-hover table-striped" id="idEvents"></table>
-                        </div>
-                        <!-- /.panel-body -->
-						<div class="panel-footer">
-						</div>
-						<!-- /.panel-footer -->
-                    </div>
-                    <!-- /.panel -->
-					<div class="panel panel-primary">
-                        <div class="panel-heading">
-                            <i class="fa fa-bar-chart-o fa-fw">Quellen und deren Events</i>
-                        </div>
-                        <!-- /.panel-heading -->
-                        <div class="panel-body">
-							<table class="display table table-bordered table-hover table-striped" id="idActions"></table>
+							<div class="modal fade" id="ModalFireEventResponse" tabindex="-1" role="dialog" aria-labelledby="ModalFireEventResponseLabel" aria-hidden="true" style="display: none;">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                                            <h4 class="modal-title" id="ModalFireEventResponseLabel">Modal title</h4>
+                                        </div>
+                                        <div class="modal-body" id="ModalFireEventResponseMessage">
+										</div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                                        </div>
+                                    </div>
+                                    <!-- /.modal-content -->
+                                </div>
+                                <!-- /.modal-dialog -->
+                            </div>
+							<ul class="nav nav-tabs">
+								<li class="active"><a href="#EventAction" data-toggle="tab" aria-expanded="true">Event - Actions</a>
+								</li>
+								<li class=""><a href="#SourceEvent" data-toggle="tab" aria-expanded="false">Quelle - Event</a>
+								</li>
+							</ul>
+							<div class="tab-content">
+								<div class="tab-pane fade active in" id="EventAction">
+									<div class="dataTable_wrapper">
+										<table class="display table table-bordered table-hover table-striped" id="idEvents"></table>
+									</div>
+								</div>
+								<div class="tab-pane fade" id="SourceEvent">
+									<div class="dataTable_wrapper">
+										<table class="display table table-bordered table-hover table-striped" id="idActions"></table>
+									</div>
+								</div>
+							</div>
                         </div>
                         <!-- /.panel-body -->
 						<div class="panel-footer">
@@ -47,50 +67,115 @@
 				</div>
             </div>
 			<script>
-				$(document).ready(function() {
-					function prepareEventActionList ( oSourceList ) {
-						var aReturnArray = new Array();
-						$.each(oSourceList, function ( sEventName, aActionList ) {
-							$.each(aActionList, function ( sActionName, oActionObject ) {
-								aReturnArray.push({
-									event_name: sEventName,
-									action_name: $('<div/>').text(String(oActionObject)).html() // thx to http://stackoverflow.com/a/10825766
-								});
-							});
-						});
-						return aReturnArray;
-					}
-					function prepareSourceEventList ( oSourceList ) {
-						var aReturnArray = new Array();
-						$.each(oSourceList, function ( sSourceName, aEventList ) {
-							$.each(aEventList, function ( sEventName, oEventObject ) {
-								aReturnArray.push({
-									source_name: sSourceName,
-									event_name: $('<div/>').text(String(oEventObject)).html() // thx to http://stackoverflow.com/a/10825766
-								});
-							});
-						});
-						return aReturnArray;
-					}
-					$.getJSON("{DATA_URL}/status?module=event_handler&name=actions&output=json", function(result){
-						$('#idEvents').dataTable({
-							data: prepareEventActionList(result.event_handler.actions),
-							columns: [
-								{ "data": "event_name", "title": "Eventname" },
-								{ "data": "action_name", "title": "Action" }
-							],
-							displayLength: 100
-						});
+				// source: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/encodeURIComponent#Examples
+				function encodeRFC5987ValueChars (str) {
+					return encodeURIComponent(str).
+						// Note that although RFC3986 reserves "!", RFC5987 does not,
+						// so we do not need to escape it
+						replace(/['()]/g, escape). // i.e., %27 %28 %29
+						replace(/\*/g, '%2A').
+							// The following are not required for percent-encoding per RFC5987, 
+							// so we can allow for a little better readability over the wire: |`^
+							replace(/%(?:7C|60|5E)/g, unescape);
+				}
+				function GetFireEventUrl (sSourceName, sEventName) {
+					var sFireEventUrl = "{DATA_URL}/control/trigger_event?";
+					sFireEventUrl += "event_name="+encodeRFC5987ValueChars(sEventName)+"&";
+					sFireEventUrl += "event_source="+encodeRFC5987ValueChars(sSourceName);
+					return sFireEventUrl;
+				}
+				function FireEventNow (sSourceName, sEventName) {
+					var sFireEventUrl = GetFireEventUrl(sSourceName, sEventName);
+					
+					$.getJSON(sFireEventUrl, function( result ){
+						if (result.success == true) {
+							$("#ModalFireEventResponseLabel").html("Fire event success");
+						} else {
+							$("#ModalFireEventResponseLabel").html("Fire event failed");
+						}
+						$("#ModalFireEventResponseMessage").html(String(result.message));
+						return false;
 					});
-					$.getJSON("{DATA_URL}/status?module=event_handler&name=events_by_source&output=json", function(result){
-						$('#idActions').dataTable({
-							data: prepareSourceEventList(result.event_handler.events_by_source),
-							columns: [
-								{ "data": "source_name", "title": "Quelle" },
-								{ "data": "event_name", "title": "Eventname" }
-							],
-							displayLength: 100
-						});
+					return false;
+				}
+				$(document).ready(function() {
+					oConfigTable = $('#idEvents').dataTable({
+						"ajax": {
+							"url": "{DATA_URL}/status?module=event_handler&name=actions&output=json",
+							"type": "GET",
+							"dataSrc": function ( aSourceObject ) {
+								oConfigObject = aSourceObject.event_handler.actions;
+								var aReturnArray = new Array();
+								
+								$.each(oConfigObject, function ( sEventName, aActionList ) {
+									$.each(aActionList, function ( i, oActionObject ) {
+										aReturnArray.push({
+											event_name: sEventName,
+											order_id: i+1,
+											action_name: $('<div/>').text(String(oActionObject)).html() // thx to http://stackoverflow.com/a/10825766
+										});
+									});
+								});
+								return aReturnArray;
+							}
+						},
+						"displayLength": 100,
+						"columns": [
+							{ "data": "event_name", "title": "Eventname" },
+							{ "data": "order_id", "title": "Reihenfolge" },
+							{ "data": "action_name", "title": "Action" }
+						]
+					});
+					oConfigTable = $('#idActions').dataTable({
+						"ajax": {
+							"url": "{DATA_URL}/status?module=event_handler&name=events_by_source&output=json",
+							"type": "GET",
+							"dataSrc": function ( aSourceObject ) {
+								oConfigObject = aSourceObject.event_handler.events_by_source
+								var aReturnArray = new Array();
+								
+								$.each(oConfigObject, function ( sSourceName, aEventList ) {
+									$.each(aEventList, function ( i, oEventObject ) {
+										var sFireEventUrl = GetFireEventUrl(sSourceName, String(oEventObject));
+										/*
+										var oFireButton = $('<button>', {
+											type: "button",
+											'class': "btn btn-warning",
+											'data-toggle': "modal",
+											'data-target': "#ModalFireEventResponse",
+											text: String(oEventObject)
+										});
+										var oFireButtonLink = $('<a>',{
+											//text: oFireButton[0].outerHTML,
+											title: 'fire event '+String(oEventObject)+'in the name of '+sSourceName,
+											href: sFireEventUrl,
+											click: function() { 
+												BlahFunc( options.rowId );
+												return false;
+											}
+										}).bind('click',function(){BlahFunc( options.rowId ); return false;}).append(oFireButton);
+										*/
+										var sFireButton = '<a href="'+sFireEventUrl+'">';
+										sFireButton += '<button type="button" class="btn btn-warning" data-toggle="modal" data-target="#ModalFireEventResponse"';
+										sFireButton += 'onclick="FireEventNow(\''+sSourceName+'\', \''+String(oEventObject)+'\'); return false;">';
+										sFireButton += String(oEventObject);
+										sFireButton += '</button>'+'</a>';
+										
+										aReturnArray.push({
+											source_name: sSourceName,
+											fire_button: sFireButton,//oFireButtonLink[0].outerHTML,
+											event_name: $('<div/>').text(String(oEventObject)).html() // thx to http://stackoverflow.com/a/10825766
+										});
+									});
+								});
+								return aReturnArray;
+							}
+						},
+						"displayLength": 100,
+						"columns": [
+							{ "data": "source_name", "title": "Quelle" },
+							{ "data": "fire_button", "title": "Button" }
+						]
 					});
 				});
 			</script>

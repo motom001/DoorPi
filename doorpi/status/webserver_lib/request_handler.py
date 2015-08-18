@@ -94,10 +94,12 @@ class DoorPiWebRequestHandler(BaseHTTPRequestHandler):
                 except IndexError:      para[parameter_name] = ''
 
             if control_order == "trigger_event":
-                result_object['success'] = doorpi.DoorPi().event_handler.fire_event_synchron(**para)
-                result_object['message'] = "trigger_event %s" % (
-                    'success' if result_object['success'] else 'failed'
-                )
+                result_object['message'] = doorpi.DoorPi().event_handler.fire_event_synchron(**para)
+                if result_object['message'] is True:
+                    result_object['success'] = True
+                    result_object['message'] = "fire Event was success"
+                else:
+                    result_object['success'] = False
             elif control_order == "config_value_get":
                 # section, key, default, store
                 result_object['success'] = True

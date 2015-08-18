@@ -6,11 +6,18 @@ logger = logging.getLogger(__name__)
 logger.debug("%s loaded", __name__)
 
 import doorpi
+from action.base import SingleAction
 
 HIGH_LEVEL = ['1', 'high', 'on', 'true']
 LOW_LEVEL = ['0', 'low', 'off', 'false']
 
+class KeyboardDestroyAction(SingleAction): pass
+
 class KeyboardAbstractBaseClass(object):
+
+    def register_destroy_action(self, destroy_function = False):
+        if destroy_function is False: destroy_function = self.destroy
+        return doorpi.DoorPi().event_handler.register_action('OnShutdown', KeyboardDestroyAction(destroy_function))
 
     ############## methods to implement ##############
     def __init__(self): raise NotImplementedError("Subclasses should implement this!")

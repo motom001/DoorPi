@@ -178,7 +178,7 @@ class RDM6300(KeyboardAbstractBaseClass):
         self._thread.daemon = True
         self._thread.start()
 
-        doorpi.DoorPi().event_handler.register_action('OnShutdown', self.destroy)
+        self.register_destroy_action()
 
     def destroy(self):
         if self.is_destroyed: return

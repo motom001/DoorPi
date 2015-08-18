@@ -27,7 +27,7 @@ class DUMMY(KeyboardAbstractBaseClass):
         for output_pin in self._OutputPins:
             self.set_output(output_pin, 0, False)
 
-        doorpi.DoorPi().event_handler.register_action('OnShutdown', self.destroy)
+        self.register_destroy_action()
 
     def destroy(self):
         if self.is_destroyed: return

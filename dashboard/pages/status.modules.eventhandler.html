@@ -4,21 +4,35 @@
                 <div class="col-lg-12">
 					<div class="panel panel-primary">
                         <div class="panel-heading">
-                            <i class="fa fa-bar-chart-o fa-fw">Text</i>
+                            <i class="fa fa-bar-chart-o fa-fw"></i>Event-Handler
                         </div>
                         <!-- /.panel-heading -->
                         <div class="panel-body">
-							
-                        </div>
+							<ul class="nav nav-tabs">
+								<li class="active"><a href="#idEventHandlerDescription" data-toggle="tab" aria-expanded="true">Beschreibung</a></li>
+								<li class=""><a href="#idTableModulStatus" data-toggle="tab" aria-expanded="false">Module</a></li>
+							</ul>
+							<div class="tab-content">
+								<div class="tab-pane fade active in" id="idEventHandlerDescription">
+									<div class="well well-lg" id="idEventHandlerDescriptionContent"></div>
+								</div>
+								<div class="tab-pane fade" id="idTableModulStatus">
+									<div class="dataTable_wrapper well">
+										<table class="display table table-bordered table-hover table-striped" id="idTableModulStatusContent"></table>
+									</div>
+								</div>
+							</div>
+						</div>
                         <!-- /.panel-body -->
 						<div class="panel-footer">
+							
 						</div>
 						<!-- /.panel-footer -->
                     </div>
                     <!-- /.panel -->
 					<div class="panel panel-primary">
                         <div class="panel-heading">
-                            <i class="fa fa-bar-chart-o">Eventhandler</i>
+                            <i class="fa fa-bar-chart-o"></i>Übersichten
                         </div>
                         <!-- /.panel-heading -->
                         <div class="panel-body">
@@ -40,20 +54,30 @@
                                 <!-- /.modal-dialog -->
                             </div>
 							<ul class="nav nav-tabs">
-								<li class="active"><a href="#EventAction" data-toggle="tab" aria-expanded="true">Event - Actions</a>
-								</li>
-								<li class=""><a href="#SourceEvent" data-toggle="tab" aria-expanded="false">Quelle - Event</a>
-								</li>
+								<li class="active"><a href="#EventAction" data-toggle="tab" aria-expanded="true">aktive Events</a></li>
+								<li class=""><a href="#SourceEvent" data-toggle="tab" aria-expanded="false">aktive Quellen</a></li>
+								<li class=""><a href="#EventHistory" data-toggle="tab" aria-expanded="false">Event Histroy</a></li>
+								<li class=""><a href="#idThreads" data-toggle="tab" aria-expanded="false">Threads</a></li>
 							</ul>
 							<div class="tab-content">
 								<div class="tab-pane fade active in" id="EventAction">
-									<div class="dataTable_wrapper">
-										<table class="display table table-bordered table-hover table-striped" id="idEvents"></table>
+									<div class="dataTable_wrapper well">
+										<table class="display table table-bordered table-hover table-striped TableIsRefreshable" id="idEvents"></table>
 									</div>
 								</div>
 								<div class="tab-pane fade" id="SourceEvent">
-									<div class="dataTable_wrapper">
-										<table class="display table table-bordered table-hover table-striped" id="idActions"></table>
+									<div class="dataTable_wrapper well">
+										<table class="display table table-bordered table-hover table-striped TableIsRefreshable" id="idActions"></table>
+									</div>
+								</div>
+								<div class="tab-pane fade" id="EventHistory">
+									<div class="dataTable_wrapper well">
+										<table class="display table table-bordered table-hover table-striped TableIsRefreshable" id="idEventHistory"></table>
+									</div>
+								</div>
+								<div class="tab-pane fade" id="idThreads">
+									<div class="dataTable_wrapper well">
+										<table class="display table table-bordered table-hover table-striped TableIsRefreshable" id="idThreadsContent"></table>
 									</div>
 								</div>
 							</div>
@@ -98,8 +122,47 @@
 					});
 					return false;
 				}
+				
 				$(document).ready(function() {
-					oConfigTable = $('#idEvents').dataTable({
+					$.getJSON("{DATA_URL}/status?module=environment&name=event_handler&output=json.parsed", function(result) {
+						$("#idEventHandlerDescriptionContent").html(result.environment.event_handler.text_description);
+						
+						var html_button_installed = '<button type="button" class="btn btn-success disabled">installiert</button>';
+						var html_button_not_installed = '<button type="button" class="btn btn-warning disabled">fehlt</button>';
+						var html_button_not_installed_but_necessary = '<button type="button" class="btn btn-danger disabled">fehlt</button>';
+						
+						var aModulStatus = new Array();
+						$.each(result.environment, function(modul_area_name, modul_area){
+							$.each(modul_area.libraries, function(modul_name, modul){
+								var sSingleModulStatus = '';
+								if (modul.status.installed) sSingleModulStatus = html_button_installed;
+								else if ( modul_area.is_fulfilled ) sSingleModulStatus = html_button_not_installed;
+								else sSingleModulStatus = html_button_not_installed_but_necessary;
+								
+								aModulStatus.push({
+									'modul_area_name': modul_area_name,
+									'modul_name': modul_name,
+									'installed': sSingleModulStatus,
+									'file': ((modul.status.installed) ? modul.status.file : ''),
+									'link': '<a href="{DATA_URL}/help/modules.overview.html?module=' + modul_area_name + '&name=' + modul_name + '&installed=' + modul.status.installed + '">' + '<button type="button" class="btn btn-info">Info</button></a>'
+								})
+							});
+						});
+						$('#idTableModulStatusContent').dataTable({
+							"data": aModulStatus,
+							"lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+							"iDisplayLength": -1,
+							"colReorder": true,
+							"columns": [
+								{ "data": "modul_area_name", "title": "Bereich" },
+								{ "data": "modul_name", "title": "Modul" },
+								{ "data": "installed", "title": "Status" },
+								{ "data": "file", "title": "Datei" },
+								{ "data": "link", "title": "Hilfe" }
+							]
+						});
+					});
+					$('#idEvents').dataTable({
 						"ajax": {
 							"url": "{DATA_URL}/status?module=event_handler&name=actions&output=json",
 							"type": "GET",
@@ -119,14 +182,16 @@
 								return aReturnArray;
 							}
 						},
-						"displayLength": 100,
+						"lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+						"iDisplayLength": -1,
+						"colReorder": true,
 						"columns": [
 							{ "data": "event_name", "title": "Eventname" },
 							{ "data": "order_id", "title": "Reihenfolge" },
 							{ "data": "action_name", "title": "Action" }
 						]
 					});
-					oConfigTable = $('#idActions').dataTable({
+					$('#idActions').dataTable({
 						"ajax": {
 							"url": "{DATA_URL}/status?module=event_handler&name=events_by_source&output=json",
 							"type": "GET",
@@ -171,11 +236,82 @@
 								return aReturnArray;
 							}
 						},
-						"displayLength": 100,
+						"lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+						"iDisplayLength": -1,
+						"aButtons": ["refresh"],
 						"columns": [
 							{ "data": "source_name", "title": "Quelle" },
 							{ "data": "fire_button", "title": "Button" }
 						]
+					});
+					$('#idEventHistory').dataTable({
+						"ajax": {
+							"url": '{DATA_URL}/status?module=history_event&output=json',
+							"type": "GET",
+							"dataSrc": function ( aSourceObject ) {
+								$.each(aSourceObject.history_event, function ( i, oEventObject ) {
+									oEventObject.start_time = new Date(oEventObject.start_time * 1000);
+								});
+								return aSourceObject.history_event;
+							}
+						},
+						"lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+						"iDisplayLength": -1,
+						"colReorder": true,
+						"order": [[ 3, "desc" ]],
+						"columns": [
+							{ "data": "event_id", "title": "ID" },
+							{ "data": "event_name", "title": "Eventname" },
+							{ "data": "fired_by", "title": "ausgelöst durch" },
+							{ "data": "start_time", "title": "Starttime", "type": "date" }
+						]
+					});
+					$('#idThreadsContent').dataTable({
+						"ajax": {
+							"url": '{DATA_URL}/status?module=event_handler&name=threads&output=json',
+							"type": "GET",
+							"dataSrc": function ( aSourceObject ) {
+								var aReturnArray = new Array();
+								// Beispiel: <Thread(OnWebServerStart from status.webserver, started 1985889392)>
+								var sRegEx = ""; 
+								sRegEx += "<"; // Anfang
+								sRegEx += "(\w*)"; // der Teil "Thread"
+								sRegEx += "\("; // Klammer auf = Anfang von inneren Teil
+								sRegEx += "([\w- .]*)"; // Name bis zum Komma
+								sRegEx += ", started "; // Komma und Wort started 
+								sRegEx += "(\d*)"; // Timestamp
+								sRegEx += "\)>"; // Ende mit Klammer zu und >
+								// gesamt: <(\w*)\(([\w- .]*), started (\d*)\)>
+								
+								var myRegexp = /<(\w*)\(([\w- .]*), started (\d*)\)>/g;
+								var match = myRegexp.exec(aSourceObject.event_handler.threads);
+								while (match != null) {
+									// matched text: match[0]
+									// match start: match.index
+									// capturing group n: match[n]
+									aReturnArray.push({
+										thread_name: match[1],
+										thread_title: match[2],
+										start_time: new Date(match[3])
+									});
+									match = myRegexp.exec(aSourceObject.event_handler.threads);
+								}
+								return aReturnArray;
+							}
+						},
+						"lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+						"iDisplayLength": -1,
+						"colReorder": true,
+						"aButtons": ["refresh"],
+						"columns": [
+							{ "data": "thread_name", "title": "Name" },
+							{ "data": "thread_title", "title": "Titel" },
+							{ "data": "start_time", "title": "Starttime", "type": "date" }
+						]
+					});
+					$('<button class="refreshButton">Refresh</button>').appendTo('div.dataTables_filter');
+					$('.refreshButton').click(function() {
+						$('.TableIsRefreshable').DataTable().ajax.reload();
 					});
 				});
 			</script>

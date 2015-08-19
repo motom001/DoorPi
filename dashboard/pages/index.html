@@ -54,6 +54,8 @@
 						$('#idTableModulStatus').html( '<table class="display table table-bordered table-hover table-striped" id="idTableModulStatusContent"></table>' );
 						$('#idTableModulStatusContent').dataTable({
 							data: aModulStatus,
+							lengthMenu: [[10, 25, 50, -1], [10, 25, 50, "All"]],
+							iDisplayLength: -1,
 							columns: [
 								{ "data": "modul_area_name", "title": "Bereich" },
 								{ "data": "modul_name", "title": "Modul" },

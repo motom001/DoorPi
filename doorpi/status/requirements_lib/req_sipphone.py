@@ -17,6 +17,7 @@ REQUIREMENT = dict(
         dict( name = 'OnSipPhoneRecorderCreate', description = 'Es wurde eine Recorder erstellt wurde und bereit ist Anrufe aufzuzeichnen.'),
         dict( name = 'OnSipPhoneRecorderDestroy', description = 'Es wurde ein Recorder gestoppt und es sind keine weiteren Aufnamen möglich.'),
         dict( name = 'OnSipPhoneMakeCall', description = 'Es wird ein Gespräch von DoorPi aus gestartet.'),
+        dict( name = 'OnSipPhoneMakeCallFailed', description = 'Es ist ein Fehler aufgetreten, als ein Gespräch von DoorPi aus gestartet werden sollte.'),
         dict( name = 'AfterSipPhoneMakeCall', description = 'Das Gespräch wurde hergestellt und es klingelt an der Gegenstelle'),
         dict( name = 'OnSipPhoneCallTimeoutNoResponse', description = 'Das Gespräch wurde beendet, da die Gegenstelle nicht abgenommen hat (Parameter call_timeout)'),
         dict( name = 'OnSipPhoneCallTimeoutMaxCalltime', description = 'Das Gespräch wurde beendet, da das Gespräch länger als erlaubt lief (Parameter max_call_time)'),

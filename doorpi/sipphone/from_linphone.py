@@ -149,6 +149,7 @@ class LinPhone(SipphoneAbstractBaseClass):
         DoorPi().event_handler.register_event('OnSipPhoneRecorderDestroy', __name__)
 
         DoorPi().event_handler.register_event('OnSipPhoneMakeCall', __name__)
+        DoorPi().event_handler.register_event('OnSipPhoneMakeCallFailed', __name__)
         DoorPi().event_handler.register_event('AfterSipPhoneMakeCall', __name__)
         
         DoorPi().event_handler.register_event('OnSipPhoneCallTimeoutNoResponse', __name__)
@@ -310,7 +311,12 @@ class LinPhone(SipphoneAbstractBaseClass):
         if not self.current_call:
             logger.debug('no current call -> start new call')
             self.reset_call_start_datetime()
-            self.core.invite_with_params(number, self.base_config)
+            if self.core.invite_with_params(number, self.base_config) is None:
+                if DoorPi().event_handler.db.get_event_log_entries_count('OnSipPhoneMakeCallFailed') > 5:
+                    logger.error('failed to execute call five times')
+                else:
+                    DoorPi().event_handler('OnSipPhoneMakeCallFailed', __name__, {'number':number})
+                return None
             DoorPi().event_handler('OnSipPhoneMakeCall', __name__, {'number':number})
         elif number in self.current_call.remote_address.as_string_uri_only():
             if self.current_call_duration <= 2:

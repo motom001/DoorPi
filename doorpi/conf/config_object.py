@@ -162,6 +162,7 @@ class ConfigObject():
             value = self.__sections[old_section][old_key]
             self.delete_key(old_section, old_key, False)
             self.__sections[section][key] = value
+            logger.warning('found %s - %s in BACKWARD_COMPATIBILITY_KEYS with %s - %s', section, key, old_section, old_key)
         except KeyError:
             try:
                 value = self.__sections[section][key]

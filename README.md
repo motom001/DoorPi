@@ -1,5 +1,3 @@
-[LATEST STABLE VERSION](https://github.com/motom001/DoorPi/releases/tag/latest_stable)
-
 
 [DE]
 ==========

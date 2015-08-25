@@ -25,6 +25,8 @@ def take_snapshot(size, path, max):
         lastNr = int(lastFile[:lastFile.rfind(".jpg")])
         if (lastNr+1 <= max):
             lastNr = lastNr + 1
+	else:
+	    lastNr = 1
     imageFilename = path + str(lastNr) + ".jpg"
     logger.info('create snapshot: %s', imageFilename)
     # fswebcam automatically selects the first video device

@@ -1,0 +1,47 @@
+{TEMPLATE:HTML_HEADER}
+
+<div class="row">
+    <div class="col-lg-12">
+        <h1 class="page-header">History - Snapshots</h1>
+        <img class="img-responsive" id="snapshot" src='' alt=''/>
+        </BR>
+        <button id="previous" type="button" class="btn btn-primary" onclick="prev()">Previous</button>
+        <button id="next" type="button" class="btn btn-primary" onclick="next()">Next</button>
+    </div>
+</div>
+
+<script>
+        var files = undefined
+        var current = 0
+        $(document).ready(function() {
+                $.ajax({
+                        url : '{DATA_URL}/status?module=history_snapshot',
+                        dataSrc : "history_snapshot",
+
+                        success : function(values) {
+                                files = values.history_snapshot
+                                if (files.length > 0) {
+                                        document.getElementById("snapshot").src=files[current];
+                                        document.getElementById("snapshot").alt=files[current];
+                                }
+                        }
+                });
+        });
+        function next() {
+                current = current + 1;
+                if (current > files.length-1)
+                        current = 0;
+                document.getElementById("snapshot").src=files[current];
+                document.getElementById("snapshot").alt=files[current];
+        }
+        function prev() {
+                current = current - 1;
+                if (current < 0)
+                        current = files.length-1;
+                document.getElementById("snapshot").src=files[current];
+                document.getElementById("snapshot").alt=files[current];
+        }
+</script>
+
+{TEMPLATE:HTML_FOOTER}
+                

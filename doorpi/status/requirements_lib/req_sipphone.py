@@ -16,6 +16,7 @@ REQUIREMENT = dict(
         dict( name = 'OnSipPhoneDestroy', description = 'Das SIP-Phone soll beendet werden.'),
         dict( name = 'OnSipPhoneRecorderCreate', description = 'Es wurde eine Recorder erstellt wurde und bereit ist Anrufe aufzuzeichnen.'),
         dict( name = 'OnSipPhoneRecorderDestroy', description = 'Es wurde ein Recorder gestoppt und es sind keine weiteren Aufnamen möglich.'),
+        dict( name = 'BeforeSipPhoneMakeCall', description = 'Kurz bevor ein Gespräch von DoorPi aus gestartet wird.'),
         dict( name = 'OnSipPhoneMakeCall', description = 'Es wird ein Gespräch von DoorPi aus gestartet.'),
         dict( name = 'OnSipPhoneMakeCallFailed', description = 'Es ist ein Fehler aufgetreten, als ein Gespräch von DoorPi aus gestartet werden sollte.'),
         dict( name = 'AfterSipPhoneMakeCall', description = 'Das Gespräch wurde hergestellt und es klingelt an der Gegenstelle'),
@@ -65,6 +66,8 @@ REQUIREMENT = dict(
         dict( section = SIPPHONE_SECTION, key = 'dialtone_volume', type = 'integer', default = '35', mandatory = False, description = 'Lautstärke des DialTone, der erzeugt werden soll (in %).'),
         dict( section = SIPPHONE_SECTION, key = 'records', type = 'string', default = '', mandatory = False, description = 'Ablagepfad der aufgenommenen Gespräche (z.B. !BASEPATH!/records/!LastKey!/%Y-%m-%d_%H-%M-%S.wav)'),
         dict( section = SIPPHONE_SECTION, key = 'record_while_dialing', type = 'string', default = 'False', mandatory = False, description = 'Soll das Gespräch schon aufgenommen werden, wenn es klingelt (True) oder erst wenn die Gegenseite abgenommmen hat (False). Im Fall von verpassten Anrufen kann man aufgrund der Geräusche den Besucher eventuell erkennen.'),
+        dict( section = SIPPHONE_SECTION, key = 'snapshot_path', type = 'string', default = '!Basepath!/doorpi/media/snapshots', mandatory = False, description = 'Ablagepfad der erstellten Bilder vor dem Läuten (z.B. !BASEPATH!/doorpi/media/snapshots)'),
+        dict( section = SIPPHONE_SECTION, key = 'number_of_snapshots', type = 'integer', default = '10', mandatory = False, description = 'Anzahl der Bilder die gespeichert werden.')
     ],
     libraries = dict(
         linphone = dict(
@@ -146,3 +149,4 @@ Für den Betrieb hinter einem NAT-Router steht das STUN-Protokoll zur Verfügung
         )
     )
 )
+

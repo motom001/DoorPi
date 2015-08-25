@@ -148,6 +148,7 @@ class LinPhone(SipphoneAbstractBaseClass):
         DoorPi().event_handler.register_event('OnSipPhoneRecorderCreate', __name__)
         DoorPi().event_handler.register_event('OnSipPhoneRecorderDestroy', __name__)
 
+        DoorPi().event_handler.register_event('BeforeSipPhoneMakeCall', __name__)
         DoorPi().event_handler.register_event('OnSipPhoneMakeCall', __name__)
         DoorPi().event_handler.register_event('OnSipPhoneMakeCallFailed', __name__)
         DoorPi().event_handler.register_event('AfterSipPhoneMakeCall', __name__)
@@ -307,6 +308,7 @@ class LinPhone(SipphoneAbstractBaseClass):
                 DoorPi().event_handler('OnSipPhoneCallTimeoutMaxCalltime', __name__)
 
     def call(self, number):
+        DoorPi().event_handler('BeforeSipPhoneMakeCall', __name__, {'number':number})
         logger.debug("call (%s)",str(number))
         if not self.current_call:
             logger.debug('no current call -> start new call')
@@ -344,3 +346,4 @@ class LinPhone(SipphoneAbstractBaseClass):
             self.core.terminate_call(self.current_call)
         else:
             logger.debug("Ignoring hangup request as there is no ongoing call")
+

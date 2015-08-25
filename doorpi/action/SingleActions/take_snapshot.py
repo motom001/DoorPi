@@ -43,7 +43,7 @@ def getLastFilename(path):
 
 def get(parameters):
     conf = doorpi.DoorPi().config
-    video_size = conf.get_string(SIPPHONE_SECTION, 'video_size', '720p')
+    video_size = conf.get_string(SIPPHONE_SECTION, 'video_size', '1280x720')
     snapshot_path = conf.get_string_parsed(DOORPI_SECTION, 'snapshot_path', '!BASEPATH!/../DoorPiWeb/snapshots/')
     number_of_snapshots = conf.get_int(DOORPI_SECTION, 'number_of_snapshots', 10)
 

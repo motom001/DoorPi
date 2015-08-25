@@ -8,12 +8,15 @@ logger.debug("%s loaded", __name__)
 import smtplib # used by: fire_action_mail
 from email.mime.multipart import MIMEMultipart # used by: fire_action_mail
 from email.mime.text import MIMEText # used by: fire_action_mail
+from email.MIMEBase import MIMEBase # used by: fire_action_mail
+from email import Encoders # used by: fire_action_mail
 from email.Utils import COMMASPACE # used by: fire_action_mail
 
 from action.base import SingleAction
 import doorpi
+import os
 
-def fire_action_mail(smtp_to, smtp_subject, smtp_text):
+def fire_action_mail(smtp_to, smtp_subject, smtp_text, smtp_snapshot):
     try:
         smtp_host = doorpi.DoorPi().config.get('SMTP', 'server')
         smtp_port = doorpi.DoorPi().config.get_int('SMTP', 'port')
@@ -39,6 +42,18 @@ def fire_action_mail(smtp_to, smtp_subject, smtp_text):
         msg['Subject'] = doorpi.DoorPi().parse_string(smtp_subject)
         msg.attach(MIMEText(doorpi.DoorPi().parse_string(smtp_text), 'html'))
         msg.attach(MIMEText('\nsent by:\n'+doorpi.DoorPi().epilog, 'plain'))
+
+ 	#add a snapshot
+        video_enabled = doorpi.DoorPi().config.get_bool('SIP-Phone', 'video_display_enabled', 'False')
+        if (smtp_snapshot and video_enabled):
+            file = createSnapshot()
+            part = MIMEBase('application',"octet-stream")
+            part.set_payload(open(file,"rb").read())
+            Encoders.encode_base64(part)
+            part.add_header('Content-Disposition', 'attachment; filename="%s"'
+                       % os.path.basename(file))
+            msg.attach(part)
+
         server.sendmail(smtp_from, smtp_tolist, msg.as_string())
         server.quit()
     except:
@@ -46,18 +61,30 @@ def fire_action_mail(smtp_to, smtp_subject, smtp_text):
         return False
     return True
 
+def createSnapshot():
+    snapshot_file = '/tmp/doorpi.jpg'
+    size = doorpi.DoorPi().config.get_string('SIP-Phone', 'video_size', '1280x720')
+    os.system("fswebcam --top-banner --font luxisr:20 -r " + size + " " + snapshot_file)
+    return snapshot_file
+
 def get(parameters):
     parameter_list = parameters.split(',')
-    if len(parameter_list) is not 3: return None
+    if len(parameter_list) < 3 or len(parameter_list) > 4: return None
 
     smtp_to = parameter_list[0]
     smtp_subject = parameter_list[1]
     smtp_text = parameter_list[2]
-
+    if (len(parameter_list) == 4):
+        smtp_snapshot = parameter_list[3]
+    else:
+        smtp_snapshot = False
+    
     return MailtoAction(fire_action_mail,
                      smtp_to = smtp_to,
                      smtp_subject = smtp_subject,
-                     smtp_text = smtp_text)
+                     smtp_text = smtp_text,
+                     smtp_snapshot = smtp_snapshot)
+
 
 class MailtoAction(SingleAction):
     pass

@@ -22,7 +22,7 @@ class PjsuaPlayer(PlayerAbstractBaseClass):
     def player_filename(self): return self.__player_filename
 
     def __init__(self):
-        self.__player_filename = doorpi.DoorPi().config.get(SIPPHONE_SECTION, 'dialtone', '!BASEPATH!/doorpi/media/ShortDialTone.wav')
+        self.__player_filename = doorpi.DoorPi().config.get_string_parsed(SIPPHONE_SECTION, 'dialtone', '!BASEPATH!/doorpi/media/ShortDialTone.wav')
         if self.__player_filename is '':
             logger.debug('no player found in config at section DoorPi and key dialtone')
             return

@@ -64,7 +64,7 @@ def fire_action_mail(smtp_to, smtp_subject, smtp_text, smtp_snapshot):
 def createSnapshot():
     snapshot_file = '/tmp/doorpi.jpg'
     size = doorpi.DoorPi().config.get_string('SIP-Phone', 'video_size', '1280x720')
-    os.system("fswebcam --top-banner --font luxisr:20 -r " + size + " " + snapshot_file)
+    os.system("fswebcam --no-banner -r " + size + " " + snapshot_file)
     return snapshot_file
 
 def get(parameters):

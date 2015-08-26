@@ -11,6 +11,7 @@ DOORPI_SECTION = 'DoorPi'
 
 from action.base import SingleAction
 import doorpi
+import subprocess as sub
 
 conf = doorpi.DoorPi().config
 
@@ -28,10 +29,16 @@ def take_snapshot(size, path, max):
 	else:
 	    lastNr = 1
     imageFilename = path + str(lastNr) + ".jpg"
-    logger.info('create snapshot: %s', imageFilename)
     # fswebcam automatically selects the first video device
-    os.system("fswebcam --top-banner --font luxisr:20 -b -r " + size + " " + imageFilename)
-    return imageFilename
+    command = "fswebcam --top-banner -b --font luxisr:20 -r " + size + " " + imageFilename
+    p = sub.Popen(command, shell=True, stdout=sub.PIPE, stderr=sub.PIPE)
+    output, errors = p.communicate()
+    if (len(errors) > 0):
+        logger.error('error creating snapshot - maybe fswebcam is missing')
+    else:
+        logger.info('snapshot created: %s', imageFilename)
+    return
+
 
 def getLastFilename(path):
     files = [s for s in os.listdir(path)

@@ -15,6 +15,7 @@ from email.Utils import COMMASPACE # used by: fire_action_mail
 from action.base import SingleAction
 import doorpi
 import os
+import subprocess as sub
 
 def fire_action_mail(smtp_to, smtp_subject, smtp_text, smtp_snapshot):
     try:
@@ -47,12 +48,13 @@ def fire_action_mail(smtp_to, smtp_subject, smtp_text, smtp_snapshot):
         video_enabled = doorpi.DoorPi().config.get_bool('SIP-Phone', 'video_display_enabled', 'False')
         if (smtp_snapshot and video_enabled):
             file = createSnapshot()
-            part = MIMEBase('application',"octet-stream")
-            part.set_payload(open(file,"rb").read())
-            Encoders.encode_base64(part)
-            part.add_header('Content-Disposition', 'attachment; filename="%s"'
-                       % os.path.basename(file))
-            msg.attach(part)
+	    if (len(file) > 0):
+		    part = MIMEBase('application',"octet-stream")
+		    part.set_payload(open(file,"rb").read())
+		    Encoders.encode_base64(part)
+		    part.add_header('Content-Disposition', 'attachment; filename="%s"'
+			       % os.path.basename(file))
+		    msg.attach(part)
 
         server.sendmail(smtp_from, smtp_tolist, msg.as_string())
         server.quit()
@@ -64,7 +66,13 @@ def fire_action_mail(smtp_to, smtp_subject, smtp_text, smtp_snapshot):
 def createSnapshot():
     snapshot_file = '/tmp/doorpi.jpg'
     size = doorpi.DoorPi().config.get_string('SIP-Phone', 'video_size', '1280x720')
-    os.system("fswebcam --no-banner -r " + size + " " + snapshot_file)
+    command = "fswebcam --no-banner -b -r " + size + " " + snapshot_file
+    p = sub.Popen(command, shell=True, stdout=sub.PIPE, stderr=sub.PIPE)
+    output, errors = p.communicate()
+    if (len(errors) > 0):
+        logger.error('error creating snapshot - maybe fswebcam is missing')
+	return ''
+    logger.info('snapshot created: %s', snapshot_file)
     return snapshot_file
 
 def get(parameters):

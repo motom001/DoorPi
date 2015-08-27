@@ -86,6 +86,7 @@ class Pjsua(SipphoneAbstractBaseClass):
         DoorPi().event_handler.register_event('OnSipPhoneRecorderCreate', __name__)
         DoorPi().event_handler.register_event('OnSipPhoneRecorderDestroy', __name__)
 
+        DoorPi().event_handler.register_event('BeforeSipPhoneMakeCall', __name__)
         DoorPi().event_handler.register_event('OnSipPhoneMakeCall', __name__)
         DoorPi().event_handler.register_event('AfterSipPhoneMakeCall', __name__)
         
@@ -205,9 +206,9 @@ class Pjsua(SipphoneAbstractBaseClass):
                 pass
 
     def call(self, number):
-
+        DoorPi().event_handler('BeforeSipPhoneMakeCall', __name__, {'number':number})
         logger.debug("call(%s)",str(number))
-        DoorPi().event_handler('OnSipPhoneMakeCall', __name__)
+
         self.lib.thread_register('call_theard')
 
         sip_server = pjsua_lib.Config.sipphone_server()
@@ -219,6 +220,7 @@ class Pjsua(SipphoneAbstractBaseClass):
         else:
             logger.debug("SIP-URI %s is valid", sip_uri)
 
+        DoorPi().event_handler('OnSipPhoneMakeCall', __name__)
         if not self.current_call or self.current_call.is_valid() is 0:
             lck = self.lib.auto_lock()
             self.current_callcallback = pjsua_lib.SipPhoneCallCallBack.SipPhoneCallCallBack()
@@ -272,3 +274,4 @@ class Pjsua(SipphoneAbstractBaseClass):
             self.lib.hangup_all()
         else:
             logger.debug("Ignoring hangup request as there is no ongoing call")
+

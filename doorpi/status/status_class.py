@@ -18,6 +18,7 @@ MODULES = [
     'sipphone',
     'event_handler',
     'history_event',
+    'history_snapshot',
     #'history_action',
     'environment',
     'webserver'

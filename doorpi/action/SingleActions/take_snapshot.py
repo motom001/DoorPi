@@ -50,12 +50,12 @@ def getLastFilename(path):
 
 def get(parameters):
     conf = doorpi.DoorPi().config
-    video_size = conf.get_string(SIPPHONE_SECTION, 'video_size', '1280x720')
+    snapshot_size = conf.get_string(DOORPI_SECTION, 'snapshot_size', '1280x720')
     snapshot_path = conf.get_string_parsed(DOORPI_SECTION, 'snapshot_path', '!BASEPATH!/../DoorPiWeb/snapshots/')
     number_of_snapshots = conf.get_int(DOORPI_SECTION, 'number_of_snapshots', 10)
 
-    if conf.get_bool(SIPPHONE_SECTION, 'video_display_enabled', 'False'):
-        return SnapShotAction(take_snapshot, size = video_size, path = snapshot_path, max = number_of_snapshots)
+    if len(conf.get(SIPPHONE_SECTION, 'capture_device', '')) > 0:
+        return SnapShotAction(take_snapshot, size = snapshot_size, path = snapshot_path, max = number_of_snapshots)
     logger.warning('can not create snapshot - video disabled')
 
 class SnapShotAction(SingleAction):

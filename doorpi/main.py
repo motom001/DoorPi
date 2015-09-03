@@ -168,6 +168,8 @@ def entry_point():
         print "DoorPi must run with sudo rights"
         raise SystemExit(1)
 
+    init_logger(sys.argv)
+
     """Zero-argument entry point for use with setuptools/distribute."""
     if len(sys.argv) > 1 and sys.argv[1] in ['status']:
         raise SystemExit(get_status_from_doorpi(sys.argv))
@@ -177,5 +179,4 @@ def entry_point():
         raise SystemExit(main_as_application(sys.argv))
 
 if __name__ == '__main__':
-    init_logger(sys.argv)
     entry_point()

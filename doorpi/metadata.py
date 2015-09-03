@@ -6,14 +6,14 @@ Information describing the project.
 import os
 
 # The package name, which is also the "UNIX name" for the project.
-package = 'doorpi'
+package = 'DoorPi'
 project = "VoIP Door-Intercomstation with Raspberry Pi"
 project_no_spaces = project.replace(' ', '')
-version = '2.3 #231'
+version = '2.4'
 description = 'provide intercomstation to the doorstation by VoIP'
 
 authors = ['Thomas Meissner']
-authors_emails = ['motom001@gmail.com']
+authors_emails = emails = ['motom001@gmail.com']
 authors_string = ', '.join(authors)
 author_strings = []
 for name, email in zip(authors, authors_emails):
@@ -29,7 +29,7 @@ supporters = [
 ]
 supporter_string = '\n'.join(supporters)
 
-license = 'CC BY-NC 4.0, 2014-2015'
+license = 'CC BY-NC 4.0'
 url = 'https://github.com/motom001/DoorPi'
 URL_DOORPI_WIKI = url+"/wiki"
 

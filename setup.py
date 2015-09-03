@@ -24,13 +24,11 @@ import imp, os
 metadata = imp.load_source(
     'metadata', os.path.join('doorpi', 'metadata.py'))
 
-here = os.path.abspath(os.path.dirname(__file__))
-# Get the long description from the relevant file
-with open(os.path.join(here, 'README.md')) as f:
-    long_description = f.read()
+def read(filename):
+    with open(os.path.join(os.path.dirname(__file__), filename)) as f:
+        return f.read()
 
 # See here for more options:
-# <http://pythonhosted.org/setuptools/setuptools.html>
 setup_dict = dict(
     license = metadata.license,
     name = metadata.package,
@@ -41,7 +39,7 @@ setup_dict = dict(
     maintainer_email = metadata.emails[0],
     url = metadata.url,
     description = metadata.description,
-    long_description = long_description,
+    long_description = read('README.md'),
     # Find a list of classifiers here:
     # <http://pypi.python.org/pypi?%3Aaction=list_classifiers>
     classifiers=[
@@ -81,6 +79,7 @@ setup_dict = dict(
         "pifacedigitalio >= 3.0.5",
         "pyserial >= 2.7",
     ],
+    platforms = ["any"],
     #zip_safe = False,  # don't use eggs
     entry_points = {
         'console_scripts': [
@@ -91,6 +90,8 @@ setup_dict = dict(
         #     'doorpi_gui = doorpi.gui:entry_point'
         # ]
     }
+
+# <http://pythonhosted.org/setuptools/setuptools.html>
 )
 def main():
     setup(**setup_dict)

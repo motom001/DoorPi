@@ -1,27 +1,39 @@
 
 [DE]
 ==========
-Ziel des Projektes ist die Steuerung einer Türsprechanlage mittels einem Minicomputer wie dem Raspberry Pi und optional PiFace / GPIO.
-Dazu habe ich das Projekt "door-berry" von "mpodroid" auf github gefunden (https://github.com/mpodroid/door-berry). 
-Seit einiger Zeit findet dort aber keine Entwicklung mehr statt und es ist dort noch recht viel zu tun. Aber als Vorlage war es perfekt.
 
-Mit Hilfe von DoorPi soll die Möglichkeit bestehen, eine im Vergleich zu kommerziellen Produkten, günstige Variante einer Sprechanlage zu realisieren. Dabei sollen beim Klingeln die im Haus vorhandenen Telefon oder auch externe Nummer angerufen werden, über die dann mit der an der Tür stehenden Person kommuniziert werden kann.
+Ziel des Projektes DoorPi ist die Steuerung einer Türsprechanlage mittels einem Einplatiniencomputer wie dem Raspberry Pi.
 
-Vorraussetzungen:
-* Raspberry Pi mit installiertem Raspbian OS
-* optional PiFace
-* Soundkarte
-* SD-Karte
+Dazu sollen Ereignisse (Events) wie "Drücken einer Türklingel" oder "NFC Chip xyz vorgehalten" die Auslöser von Aktionen (Actions) wie "Anruf bei Telefon xyz" oder "E-Mail an xxx"  sein.
 
-Möglichkeiten mit DoorPi
-* Anschluss der vorhandenen Türsprechanlage (Bsp. 3 Taster, Mikrofon, Lautsprecher)
-* Ansteuerung verschiedener Aktoren (wie Türöffner, Licht) per Tastendruck am Telefon (z.B. #)
-* Kommunikation mittels VoIP mit einem VoIP Server (z.B. FritzBox, Asterisk)
-* pro Klingel-Taste soll eine andere Rufnummer gewählt werden (können)
+Um diese Events zu registrieren werden "DoorPi-Keyboards" genutzt, was z.B. 
+* die GPIO-Pins
+* ein PiFace 
+* Dateien im Dateisystem des Pi (z.B. für Remote-Befehle über SSH)
+* die serielle Schnittstelle (RDM6300 als NFC Reader)
+* Webservice mit Authentifizierung
+* VoIP-Telefon
+sein können.
 
-Der Anschluss der einzelnen Aktoren kann mit einem PiFace oder per GPIO und einem Relais realisiert werde. 
+An jedes Event können beliebig viele Actions angefügt werden, die syncron oder asyncron ausgeführt werden. Eine nicht vollständige Liste der Actions ist:
+* VoIP Anruf zu festgelegter Nummer starten
+* VoIP Anruf zu Nummer starten, die aus einer Datei ausgelesen wird
+* Anruf beenden
+* E-Mail versenden
+* Programm ausführen
+* Ausgang schalten
+* Status-Datei schreiben
+* Werte aus IP-Symcon lesen oder zurück schreiben
+* ...
+Durch die Kombination der Events und Actions sind fast alle gewünschten Kombinationen möglich. 
 
-Die Installation wird mittels des DoorPI.sh (http://raspberrypi.roxxs.org/EPSPi/packs/DoorPI.sh) Skripts durchgeführt.
+Ein mögliches Szenario ist:
+1. Beim Druck eines Klingeltasters wird ein Anruf ausgelöst und gezielt eine Nummer angerufen (z.B. interne FritzBox Nummer **613 aber auch Handynummern).
+2. Der Bewohner kann mit der Außenstelle telefonieren und auf Wunsch die Tür remote öffnen, in dem eine definierte Taste (oder Tastenfolge) auf dem Telefon gedrückt wird.
+3. Der Bewohner vergisst das auflegen und DoorPi beendet selbst das Gespräch, sobald die Tür wieder geschlossen wurde.
+4. DoorPi versendet eine E-Mail, dass es einen Anruf gab, jemand die Tür geöffnet hat und jemand ins Haus gegangen ist.
+
+Mittlerweile gibt es auch Video-Support, so dass an der Haustür eine Kamera installiert werden kann und das Bild auf den Innenstationen angesehen werden kann, noch bevor das Gespräch angenommen wird.
 
 Weitere Informationen zur Installation und Konfiguration von DoorPi sind im Wiki unter https://github.com/motom001/DoorPi/wiki zu finden.
 

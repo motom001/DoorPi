@@ -9,7 +9,7 @@ import os
 package = 'DoorPi'
 project = "VoIP Door-Intercomstation with Raspberry Pi"
 project_no_spaces = project.replace(' ', '')
-version = '2.4'
+version = '2.4.0.1'
 description = 'provide intercomstation to the doorstation by VoIP'
 
 authors = ['Thomas Meissner']
@@ -31,7 +31,6 @@ supporter_string = '\n'.join(supporters)
 
 license = 'CC BY-NC 4.0'
 url = 'https://github.com/motom001/DoorPi'
-URL_DOORPI_WIKI = url+"/wiki"
 
 # created with: http://patorjk.com/software/taag/#p=display&f=Ogre&t=DoorPi
 epilog = '''

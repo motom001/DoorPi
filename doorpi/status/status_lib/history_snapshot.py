@@ -14,7 +14,7 @@ def get(*args, **kwargs):
         if len(kwargs['value']) == 0: kwargs['value'] = ['']
 
         path = kwargs['DoorPiObject'].config.get_string_parsed(DOORPI_SECTION, 'snapshot_path')
- 	
+ 	files = None	
 	if (os.path.exists(path)):
 	    files = [os.path.join(path,i) for i in os.listdir(path)]
 	    files = sorted(files, key=os.path.getmtime)

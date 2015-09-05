@@ -7,7 +7,7 @@ logger.debug("%s loaded", __name__)
 
 from time import sleep
 
-from action.base import SingleAction
+from doorpi.action.base import SingleAction
 import doorpi
 
 def out_triggered(pin, start_value, end_value, timeout, stop_pin):

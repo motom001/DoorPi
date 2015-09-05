@@ -9,7 +9,7 @@ logger.debug("%s loaded", __name__)
 SIPPHONE_SECTION = 'SIP-Phone'
 DOORPI_SECTION = 'DoorPi'
 
-from action.base import SingleAction
+from doorpi.action.base import SingleAction
 import doorpi
 import subprocess as sub
 
@@ -26,8 +26,8 @@ def take_snapshot(size, path, max):
         lastNr = int(lastFile[:lastFile.rfind(".jpg")])
         if (lastNr+1 <= max):
             lastNr = lastNr + 1
-	else:
-	    lastNr = 1
+    else:
+        lastNr = 1
     imageFilename = path + str(lastNr) + ".jpg"
     # fswebcam automatically selects the first video device
     command = "fswebcam --top-banner -b --font luxisr:20 -r " + size + " " + imageFilename

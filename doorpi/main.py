@@ -71,9 +71,9 @@ def parse_arguments(argv):
         else:
             return  arg_parser.parse_args(args=sys.argv[1:])
     except IOError:
-        print "EXCEPTION: configfile does not exist or is not readable"
-        print "please refer to the DoorPi wiki for more information "
-        print "<https://github.com/motom001/DoorPi/wiki>"
+        print("EXCEPTION: configfile does not exist or is not readable")
+        print("please refer to the DoorPi wiki for more information ")
+        print("<https://github.com/motom001/DoorPi/wiki>")
         raise SystemExit(1)
 
 def files_preserve_by_path(*paths):
@@ -96,17 +96,17 @@ def files_preserve_by_path(*paths):
 
 def get_status_from_doorpi(argv):
     try:
-        print "called: %s" % argv
+        print("called: %s" % argv)
         import urllib2
-        print urllib2.urlopen("http://127.0.0.1:8080/status?json&output=all").read()
+        print(urllib2.urlopen("http://127.0.0.1:8080/status?json&output=all").read())
     except Exception as ex:
-        print "couln't get Status (Message: %s)" % ex
+        print("couln't get Status (Message: %s)" % ex)
         return 1
     return 0
 
 def main_as_daemon(argv):
     if argv[1] is 'reload':
-        print 'not implemeted yet - use restart instead'
+        print('not implemeted yet - use restart instead')
         return 1
     if argv[1] in ['stop']:
         parsed_arguments = None
@@ -124,7 +124,7 @@ def main_as_daemon(argv):
 
     logging.getLogger('').addHandler(logrotating)
 
-    print metadata.epilog
+    print(metadata.epilog)
 
     from daemon import runner
     from daemon.runner import DaemonRunnerInvalidActionError
@@ -138,13 +138,13 @@ def main_as_daemon(argv):
         daemon_runner.do_action()
         logger.info('loaded with arguments: %s', str(argv))
     except DaemonRunnerStopFailureError as ex:
-        print "can't stop DoorPi daemon - maybe it's not running? (Message: %s)" % ex
+        print("can't stop DoorPi daemon - maybe it's not running? (Message: %s)" % ex)
         return 1
     except DaemonRunnerStartFailureError as ex:
-        print "can't start DoorPi daemon - maybe it's running already? (Message: %s)" % ex
+        print("can't start DoorPi daemon - maybe it's running already? (Message: %s)" % ex)
         return 1
     except Exception as ex:
-        print "Exception NameError: %s" % ex
+        print("Exception NameError: %s" % ex)
     finally:
         doorpi.DoorPi().destroy()
 
@@ -165,7 +165,7 @@ def main_as_application(argv):
 
 def entry_point():
     if os.geteuid() != 0:
-        print "DoorPi must run with sudo rights"
+        print("DoorPi must run with sudo rights")
         raise SystemExit(1)
 
     init_logger(sys.argv)

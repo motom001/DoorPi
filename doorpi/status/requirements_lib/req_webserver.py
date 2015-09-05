@@ -5,7 +5,7 @@ import logging
 logger = logging.getLogger(__name__)
 logger.debug("%s loaded", __name__)
 
-from status.webserver import DOORPIWEB_SECTION, CONF_AREA_PREFIX
+from doorpi.status.webserver import DOORPIWEB_SECTION, CONF_AREA_PREFIX
 
 REQUIREMENT = dict(
     fulfilled_with_one = False,

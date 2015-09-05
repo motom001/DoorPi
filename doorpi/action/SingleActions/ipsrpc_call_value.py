@@ -9,7 +9,7 @@ import doorpi
 import requests
 import json
 from requests.auth import HTTPBasicAuth
-from action.base import SingleAction
+from doorpi.action.base import SingleAction
 
 def ips_rpc_create_config():
     config = {}

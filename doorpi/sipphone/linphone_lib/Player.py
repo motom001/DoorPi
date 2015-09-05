@@ -8,8 +8,8 @@ logger.debug("%s loaded", __name__)
 import os
 
 import doorpi
-from media.CreateDialTone import generate_dial_tone
-from sipphone.AbstractBaseClass import PlayerAbstractBaseClass, SIPPHONE_SECTION
+from doorpi.media.CreateDialTone import generate_dial_tone
+from doorpi.sipphone.AbstractBaseClass import PlayerAbstractBaseClass, SIPPHONE_SECTION
 
 class LinphonePlayer(PlayerAbstractBaseClass):
 

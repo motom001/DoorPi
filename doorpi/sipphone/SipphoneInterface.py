@@ -21,7 +21,7 @@ def load_sipphone():
     )
 
     try:
-        sipphone = importlib.import_module('sipphone.from_'+sipphone_name).get(
+        sipphone = importlib.import_module('doorpi.sipphone.from_'+sipphone_name).get(
             sipphone_name = sipphone_name,
             conf_pre = conf_pre,
             conf_post = conf_post
@@ -29,7 +29,7 @@ def load_sipphone():
     except ImportError as exp:
         logger.exception('sipphone %s not found @ sipphone.from_%s with exception %s', sipphone_name, sipphone_name, exp)
         logger.warning('use dummy sipphone after last exception!')
-        sipphone = importlib.import_module('sipphone.from_dummy').get(
+        sipphone = importlib.import_module('doorpi.sipphone.from_dummy').get(
             sipphone_name = sipphone_name,
             conf_pre = conf_pre,
             conf_post = conf_post

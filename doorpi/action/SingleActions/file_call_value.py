@@ -6,7 +6,7 @@ logger = logging.getLogger(__name__)
 logger.debug("%s loaded", __name__)
 
 import doorpi
-from action.base import SingleAction
+from doorpi.action.base import SingleAction
 
 def call_phonenumber_from_file(filename):
     try:

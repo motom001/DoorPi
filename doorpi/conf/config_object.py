@@ -5,6 +5,8 @@ import logging
 logger = logging.getLogger(__name__)
 logger.debug("%s loaded", __name__)
 
+import os
+
 import ConfigParser
 import doorpi
 
@@ -39,7 +41,8 @@ class ConfigObject():
         try:
             open(configfile.name, 'r').close()
             return configfile.name
-        except AttributeError, IOError: pass
+        except AttributeError: pass
+        except IOError: pass
 
         default_files = [
             str(configfile),
@@ -77,11 +80,14 @@ class ConfigObject():
     def save_config(self, configfile = ''):
         if not configfile: configfile = self.config_file
         if not configfile: configfile = self.find_config(configfile)
-        if not configfile: configfile = doorpi.DoorPi().parse_string('!BASEPATH!/conf/doorpi.ini')
+        if not configfile: configfile = doorpi.DoorPi().parse_string('!BASEPATH!/doorpi/conf/doorpi.ini')
 
         #if not configfile: return False
         logger.debug("write configfile: %s", configfile)
         try:
+            if not os.path.exists(os.path.dirname(configfile)):
+                logger.info('Path %s does not exist - creating it now', os.path.dirname(configfile))
+                os.makedirs(os.path.dirname(configfile))
             cfgfile = open(configfile,'w')
             config = ConfigParser.ConfigParser(allow_no_value = True)
             for section in sorted(self.__sections.keys()):

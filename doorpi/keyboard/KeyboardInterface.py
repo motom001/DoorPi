@@ -8,7 +8,7 @@ logger.debug("%s loaded", __name__)
 import importlib
 
 import doorpi
-from keyboard.AbstractBaseClass import KeyboardAbstractBaseClass
+from doorpi.keyboard.AbstractBaseClass import KeyboardAbstractBaseClass
 
 class KeyboardImportError(ImportError): pass
 class UnknownOutputPin(Exception): pass
@@ -35,7 +35,7 @@ def load_single_keyboard(keyboard_name):
     polarity = doorpi.DoorPi().config.get_int(conf_pre+'keyboard'+conf_post, 'polarity', 0, store_if_not_exists = store_if_not_exists)
 
     try:
-        keyboard = importlib.import_module('keyboard.from_'+keyboard_type).get(
+        keyboard = importlib.import_module('doorpi.keyboard.from_'+keyboard_type).get(
             input_pins = input_pins,
             output_pins = output_pins,
             bouncetime = bouncetime,

@@ -242,7 +242,7 @@ class Pjsua(SipphoneAbstractBaseClass):
             try:
                 # self.current_call.hangup()
                 self.lib.hangup_all()
-            except pj.Error, e:
+            except pj.Error as e:
                 logger.exception("Exception: %s", str(e))
             self.call(Number)
 

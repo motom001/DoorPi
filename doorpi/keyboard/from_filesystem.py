@@ -12,7 +12,7 @@ from time import sleep
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 
-from keyboard.AbstractBaseClass import KeyboardAbstractBaseClass, HIGH_LEVEL, LOW_LEVEL
+from doorpi.keyboard.AbstractBaseClass import KeyboardAbstractBaseClass, HIGH_LEVEL, LOW_LEVEL
 import doorpi
 
 def path_leaf(path):
@@ -98,7 +98,7 @@ class FileSystem(KeyboardAbstractBaseClass, FileSystemEventHandler):
 
     def __set_input(self, file, value = False):
         self.__write_file(file, value)
-        os.chmod(file, 0666)
+        os.chmod(file, 0o666)
 
     def set_output(self, pin, value, log_output = True):
         parsed_pin = doorpi.DoorPi().parse_string("!"+str(pin)+"!")

@@ -7,7 +7,7 @@ logger.debug("%s loaded", __name__)
 
 import pifacedigitalio as p # basic for PiFce control
 
-from keyboard.AbstractBaseClass import KeyboardAbstractBaseClass, HIGH_LEVEL, LOW_LEVEL
+from doorpi.keyboard.AbstractBaseClass import KeyboardAbstractBaseClass, HIGH_LEVEL, LOW_LEVEL
 import doorpi
 
 def get(**kwargs): return PiFace(**kwargs)

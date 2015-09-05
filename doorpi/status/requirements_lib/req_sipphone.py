@@ -5,7 +5,7 @@ import logging
 logger = logging.getLogger(__name__)
 logger.debug("%s loaded", __name__)
 
-from sipphone.AbstractBaseClass import SIPPHONE_SECTION
+from doorpi.sipphone.AbstractBaseClass import SIPPHONE_SECTION
 
 REQUIREMENT = dict(
     fulfilled_with_one = True,

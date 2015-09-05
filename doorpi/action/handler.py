@@ -11,6 +11,7 @@ from inspect import isfunction, ismethod # used by: register_action
 import string, random # used by event_id
 
 import sqlite3
+import os
 
 from base import SingleAction
 import doorpi
@@ -40,31 +41,37 @@ class EventLog(object):
     def __init__(self, file_name):
 
         if not file_name: return
+        try:
+            if not os.path.exists(os.path.dirname(file_name)):
+                logger.info('Path %s does not exist - creating it now', os.path.dirname(file_name))
+                os.makedirs(os.path.dirname(file_name))
+            #https://docs.python.org/2/library/sqlite3.html#sqlite3.connect
+            self._db = sqlite3.connect(
+                database = file_name,
+                timeout = 1,
+                check_same_thread = False
+            )
 
-        #https://docs.python.org/2/library/sqlite3.html#sqlite3.connect
-        self._db = sqlite3.connect(
-            database = file_name,
-            timeout = 1,
-            check_same_thread = False
-        )
+            self.execute_sql('''
+                CREATE TABLE IF NOT EXISTS event_log (
+                    event_id TEXT,
+                    fired_by TEXT,
+                    event_name TEXT,
+                    start_time REAL,
+                    additional_infos TEXT
+                );'''
+            )
+            self.execute_sql('''
+                CREATE TABLE IF NOT EXISTS action_log (
+                    event_id TEXT,
+                    action_name TEXT,
+                    start_time REAL,
+                    action_result TEXT
+                );'''
+            )
+        except:
+            logger.error('error to create event_db')
 
-        self.execute_sql('''
-            CREATE TABLE IF NOT EXISTS event_log (
-                event_id TEXT,
-                fired_by TEXT,
-                event_name TEXT,
-                start_time REAL,
-                additional_infos TEXT
-            );'''
-        )
-        self.execute_sql('''
-            CREATE TABLE IF NOT EXISTS action_log (
-                event_id TEXT,
-                action_name TEXT,
-                start_time REAL,
-                action_result TEXT
-            );'''
-        )
     def get_event_log_entries_count(self, filter = ''):
         logger.debug('request event logs count with filter %s', filter)
         try:
@@ -144,7 +151,8 @@ class EventLog(object):
         pass
 
     def destroy(self):
-        self._db.close()
+        try: self._db.close()
+        except: pass
 
     __del__ = destroy
 
@@ -183,7 +191,7 @@ class EventHandler:
     def additional_informations(self): return self.__additional_informations
 
     def __init__(self):
-        db_path = doorpi.DoorPi().config.get_string_parsed('DoorPi', 'eventlog', '!BASEPATH!/conf/eventlog.db')
+        db_path = doorpi.DoorPi().config.get_string_parsed('DoorPi', 'eventlog', '!BASEPATH!/doorpi/conf/eventlog.db')
         self.db = EventLog(db_path)
 
     __destroy = False

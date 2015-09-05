@@ -8,7 +8,7 @@ logger.debug("%s loaded", __name__)
 import os
 
 from doorpi import DoorPi
-from sipphone.AbstractBaseClass import RecorderAbstractBaseClass, SIPPHONE_SECTION
+from doorpi.sipphone.AbstractBaseClass import RecorderAbstractBaseClass, SIPPHONE_SECTION
 
 class LinphoneRecorder(RecorderAbstractBaseClass):
 

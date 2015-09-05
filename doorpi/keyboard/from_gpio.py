@@ -7,7 +7,7 @@ logger.debug("%s loaded", __name__)
 
 import RPi.GPIO as RPiGPIO # basic for GPIO control
 
-from keyboard.AbstractBaseClass import KeyboardAbstractBaseClass, HIGH_LEVEL, LOW_LEVEL
+from doorpi.keyboard.AbstractBaseClass import KeyboardAbstractBaseClass, HIGH_LEVEL, LOW_LEVEL
 import doorpi
 
 def get(**kwargs): return GPIO(**kwargs)

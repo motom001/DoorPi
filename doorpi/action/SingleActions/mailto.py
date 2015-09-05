@@ -12,7 +12,7 @@ from email.MIMEBase import MIMEBase # used by: fire_action_mail
 from email import Encoders # used by: fire_action_mail
 from email.Utils import COMMASPACE # used by: fire_action_mail
 
-from action.base import SingleAction
+from doorpi.action.base import SingleAction
 import doorpi
 import os
 import subprocess as sub
@@ -44,16 +44,17 @@ def fire_action_mail(smtp_to, smtp_subject, smtp_text, smtp_snapshot):
         msg.attach(MIMEText(doorpi.DoorPi().parse_string(smtp_text), 'html'))
         msg.attach(MIMEText('\nsent by:\n'+doorpi.DoorPi().epilog, 'plain'))
 
- 	#add a snapshot
-        if (smtp_snapshot and len(doorpi.DoorPi().config.get('SIP-Phone', 'capture_device', '')) > 0):
+        #add a snapshot
+        file = []
+        if smtp_snapshot and len(doorpi.DoorPi().config.get('SIP-Phone', 'capture_device', '')) > 0:
             file = createSnapshot()
-	    if (len(file) > 0):
-		    part = MIMEBase('application',"octet-stream")
-		    part.set_payload(open(file,"rb").read())
-		    Encoders.encode_base64(part)
-		    part.add_header('Content-Disposition', 'attachment; filename="%s"'
-			       % os.path.basename(file))
-		    msg.attach(part)
+        if len(file) > 0:
+            part = MIMEBase('application',"octet-stream")
+            part.set_payload(open(file,"rb").read())
+            Encoders.encode_base64(part)
+            part.add_header('Content-Disposition', 'attachment; filename="%s"'
+                   % os.path.basename(file))
+            msg.attach(part)
 
         server.sendmail(smtp_from, smtp_tolist, msg.as_string())
         server.quit()
@@ -68,12 +69,12 @@ def createSnapshot():
     command = "fswebcam --no-banner -r " + size + " " + snapshot_file
     try:
         retcode = subprocess.call(command, shell=True)
-    	if retcode != 0:
-       	    logger.error('error creating snapshot')
-	else:
-	    logger.info('snapshot created: %s', snapshot_file)
-    	    return snapshot_file
-	    
+        if retcode != 0:
+            logger.error('error creating snapshot')
+        else:
+            logger.info('snapshot created: %s', snapshot_file)
+            return snapshot_file
+
     except OSError as e:
         logger.error('error creating snapshot')
     return ''

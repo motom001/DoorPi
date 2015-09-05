@@ -10,7 +10,7 @@ import serial
 import time
 from os import linesep as OS_LINESEP
 
-from keyboard.AbstractBaseClass import KeyboardAbstractBaseClass, HIGH_LEVEL, LOW_LEVEL
+from doorpi.keyboard.AbstractBaseClass import KeyboardAbstractBaseClass, HIGH_LEVEL, LOW_LEVEL
 import doorpi
 
 CONFIG = doorpi.DoorPi().config

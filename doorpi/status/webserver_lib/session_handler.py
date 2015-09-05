@@ -7,7 +7,7 @@ logger.debug("%s loaded", __name__)
 
 import time # session timestamp
 
-from action.base import SingleAction
+from doorpi.action.base import SingleAction
 import doorpi
 
 CONF_AREA_PREFIX = 'AREA_'

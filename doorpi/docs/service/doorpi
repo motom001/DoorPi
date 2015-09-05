@@ -13,9 +13,9 @@
 
 NAME=DoorPi
 DESC="VoIP Intercom Service"
-DOORPI_PATH=/home/DoorPI
-DAEMON=$DOORPI_PATH/doorpi/main.py
-DAEMON_ARGS="--configfile $DOORPI_PATH/conf/doorpi.cfg"
+DAEMON=doorpi_cli
+DOORPI_PATH=/etc/$NAME
+DAEMON_ARGS="--configfile $DOORPI_PATH/conf/doorpi.ini --trace"
 PIDFILE=/var/run/doorpi.pid
 SCRIPTNAME=/etc/init.d/doorpi
 

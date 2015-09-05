@@ -13,6 +13,7 @@ import os # used by: DoorPi.load_config
 
 import datetime # used by: parse_string
 import cgi # used by: parse_string
+import tempfile
 #import threading
 #import BaseHTTPServer
 
@@ -84,8 +85,9 @@ class DoorPi(object):
     @property
     def shutdown(self): return self.__shutdown
 
+    _base_path = tempfile.gettempdir()
     @property
-    def base_path(self): return metadata.base_path
+    def base_path(self): return self._base_path
 
     def __init__(self, parsed_arguments = None):
         self.__parsed_arguments = parsed_arguments
@@ -106,6 +108,7 @@ class DoorPi(object):
         #    raise Exception("no config exists and no new given")
 
         self.__config = ConfigObject.load_config(parsed_arguments.configfile)
+        self._base_path = self.config.get('DoorPi', 'base_path', tempfile.gettempdir())
         self.__event_handler = EventHandler()
 
         if self.config.config_file is None:

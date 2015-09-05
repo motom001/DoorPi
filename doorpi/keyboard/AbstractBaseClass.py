@@ -6,7 +6,7 @@ logger = logging.getLogger(__name__)
 logger.debug("%s loaded", __name__)
 
 import doorpi
-from action.base import SingleAction
+from doorpi.action.base import SingleAction
 
 HIGH_LEVEL = ['1', 'high', 'on', 'true']
 LOW_LEVEL = ['0', 'low', 'off', 'false']

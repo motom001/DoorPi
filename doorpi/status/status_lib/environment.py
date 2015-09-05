@@ -38,7 +38,7 @@ def check_module_status(module):
     return module
 
 def load_module_status(module_name):
-    module = importlib.import_module('status.requirements_lib.'+module_name).REQUIREMENT
+    module = importlib.import_module('doorpi.status.requirements_lib.'+module_name).REQUIREMENT
     return check_module_status(module)
 
 REQUIREMENTS_DOORPI = {

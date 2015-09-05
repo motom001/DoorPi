@@ -1,12 +1,13 @@
 # -*- coding: utf-8 -*-
 
-from ez_setup import use_setuptools
-use_setuptools()
+#from ez_setup import use_setuptools
+#use_setuptools()
 try:
     from setuptools import setup, find_packages
 except ImportError:
     from distutils.core import setup, find_packages
 import imp, os
+
 # the following metadata part is stolen from:
 # https://github.com/seanfisk/python-project-template
 
@@ -38,6 +39,7 @@ setup_dict = dict(
     maintainer = metadata.authors[0],
     maintainer_email = metadata.emails[0],
     url = metadata.url,
+    keywords = metadata.keywords,
     description = metadata.description,
     long_description = read('README.md'),
     # Find a list of classifiers here:
@@ -72,13 +74,7 @@ setup_dict = dict(
         'Topic :: Utilities'
     ],
     packages = find_packages(exclude=['contrib', 'docs', 'tests*']),
-    install_requires = [
-        # module dependencies
-        "requests >= 2.7.0",
-        "RPi.GPIO >= 0.5.11",
-        "pifacedigitalio >= 3.0.5",
-        "pyserial >= 2.7",
-    ],
+    install_requires = read('requires.txt').split('\n'),
     platforms = ["any"],
     #zip_safe = False,  # don't use eggs
     entry_points = {

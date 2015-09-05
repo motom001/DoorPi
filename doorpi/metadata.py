@@ -9,9 +9,9 @@ import os
 package = 'DoorPi'
 project = "VoIP Door-Intercomstation with Raspberry Pi"
 project_no_spaces = project.replace(' ', '')
-version = '2.4.0.1'
+version = '2.4.0.6'
 description = 'provide intercomstation to the doorstation by VoIP'
-
+keywords = ['intercom', 'VoIP', 'doorstation', 'home automation', 'IoT']
 authors = ['Thomas Meissner']
 authors_emails = emails = ['motom001@gmail.com']
 authors_string = ', '.join(authors)
@@ -28,7 +28,7 @@ supporters = [
     'missing someone? -> sorry -> mail me'
 ]
 supporter_string = '\n'.join(supporters)
-
+copyright = "%s, 2014-2015"%authors[0]
 license = 'CC BY-NC 4.0'
 url = 'https://github.com/motom001/DoorPi'
 
@@ -50,6 +50,10 @@ Supporter:  {supporters}
         supporters = '\n            '.join(supporters),
         url = url)
 
-base_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-
-
+import tempfile
+base_path = tempfile.gettempdir()
+if os.access(base_path, os.W_OK):
+    print("USE BASE_PATH1: %s"%base_path)
+else:
+    base_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    print("USE BASE_PATH2: %s"%base_path)

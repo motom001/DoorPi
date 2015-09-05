@@ -15,7 +15,7 @@ import json # for virtual resources
 from urllib2 import urlopen as load_online_fallback
 from urllib import unquote_plus
 
-from action.base import SingleAction
+from doorpi.action.base import SingleAction
 import doorpi
 from request_handler_static_functions import *
 

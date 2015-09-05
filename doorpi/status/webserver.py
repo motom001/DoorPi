@@ -11,10 +11,10 @@ from SocketServer import ThreadingMixIn
 from random import randrange
 
 import doorpi
-from action.base import SingleAction
+from doorpi.action.base import SingleAction
 
-from status.webserver_lib.session_handler import SessionHandler
-from status.webserver_lib.request_handler import DoorPiWebRequestHandler
+from doorpi.status.webserver_lib.session_handler import SessionHandler
+from doorpi.status.webserver_lib.request_handler import DoorPiWebRequestHandler
 
 class WebServerStartupAction(SingleAction): pass
 class WebServerFakeRequestAction(SingleAction): pass

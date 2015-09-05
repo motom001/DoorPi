@@ -6,7 +6,7 @@ logger = logging.getLogger(__name__)
 logger.debug("%s loaded", __name__)
 
 import subprocess
-from action.base import SingleAction
+from doorpi.action.base import SingleAction
 import doorpi
 
 def fire_command(command):

@@ -5,9 +5,9 @@ import logging
 logger = logging.getLogger(__name__)
 logger.debug("%s loaded", __name__)
 
-from action.base import SingleAction
+from doorpi.action.base import SingleAction
 import doorpi
-from status.status_class import DoorPiStatus
+from doorpi.status.status_class import DoorPiStatus
 
 def write_statusfile(filename, filecontent):
     try:

@@ -1,20 +1,8 @@
 
-Installation from github:
+Achtung: Aktuell gibt es Probleme beim Transfer von github Repository zu einem pypi Paket.
 
-```
-git clone https://github.com/motom001/DoorPi.git /tmp/DoorPi 
-sudo python /tmp/DoorPi/setup.py install &&
-sudo doorpi_cli
-```
+Attention: At the moment I have problems to convert my github project to a running pypi module.
 
-Installation from pypi:
-
-```
-sudo pip install doorpi &&
-sudo doorpi_cli
-```
-
-to install as daemon see doorpi/docs/
 
 [DE]
 ==========

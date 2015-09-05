@@ -8,7 +8,7 @@ logger.debug("%s loaded", __name__)
 import os
 
 from doorpi import DoorPi
-from sipphone.AbstractBaseClass import RecorderAbstractBaseClass
+from doorpi.sipphone.AbstractBaseClass import RecorderAbstractBaseClass
 
 class PjsuaRecorder(RecorderAbstractBaseClass):
 

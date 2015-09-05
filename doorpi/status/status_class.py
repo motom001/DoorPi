@@ -51,7 +51,7 @@ class DoorPiStatus(object):
                 continue
             self.__status[module] = {}
             try:
-                self.__status[module] = importlib.import_module('status.status_lib.'+module).get(
+                self.__status[module] = importlib.import_module('doorpi.status.status_lib.'+module).get(
                     modules = modules,
                     module = module,
                     name = name,

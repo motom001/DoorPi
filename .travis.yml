@@ -4,8 +4,8 @@ python:
   - "pypy"
 # command to install dependencies
 install: 
-  - "sudo python setup.py install"
+  - "python setup.py install"
 # command to run tests
 script: 
   - "doorpi_cli --test --trace"
- 
+sudo: true

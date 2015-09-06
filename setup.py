@@ -48,7 +48,7 @@ setup_dict = dict(
     url = metadata.url,
     keywords = metadata.keywords,
     description = metadata.description,
-    long_description = read('README.md'),
+    long_description = read('README.rst'),
     # Find a list of classifiers here:
     # <http://pypi.python.org/pypi?%3Aaction=list_classifiers>
     classifiers=[

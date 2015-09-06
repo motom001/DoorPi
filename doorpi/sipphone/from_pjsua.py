@@ -7,15 +7,13 @@ logger.debug("%s loaded", __name__)
 
 import pjsua as pj
 
-import AbstractBaseClass
-
 from time import sleep
 
-from pjsua_lib.Config import *
-import pjsua_lib.SipPhoneAccountCallBack
-import pjsua_lib.SipPhoneCallCallBack
-import pjsua_lib.Recorder
-import pjsua_lib.Player
+from doorpi.sipphone.pjsua_lib.Config import *
+import doorpi.sipphone.pjsua_lib.SipPhoneAccountCallBack
+import doorpi.sipphone.pjsua_lib.SipPhoneCallCallBack
+import doorpi.sipphone.pjsua_lib.Recorder
+import doorpi.sipphone.pjsua_lib.Player
 from AbstractBaseClass import SipphoneAbstractBaseClass
 
 from doorpi import DoorPi

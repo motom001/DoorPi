@@ -4,9 +4,13 @@
 #use_setuptools()
 try:
     from setuptools import setup, find_packages
+    packages = find_packages(exclude=['contrib', 'docs', 'tests*'])
 except ImportError:
-    from distutils.core import setup, find_packages
-import imp, os
+    from distutils.core import setup
+    packages = ['doorpi', 'doorpi.status', 'doorpi.action', 'doorpi.keyboard', 'doorpi.conf', 'doorpi.media', 'doorpi.sipphone', 'doorpi.status.requirements_lib', 'doorpi.status.webserver_lib', 'doorpi.status.status_lib', 'doorpi.action.SingleActions', 'doorpi.sipphone.linphone_lib', 'doorpi.sipphone.pjsua_lib']
+import imp, os, uuid
+
+from pip.req import parse_requirements
 
 # the following metadata part is stolen from:
 # https://github.com/seanfisk/python-project-template
@@ -24,6 +28,9 @@ import imp, os
 # the setup_requires keyword.
 metadata = imp.load_source(
     'metadata', os.path.join('doorpi', 'metadata.py'))
+
+install_reqs = parse_requirements('requirements.txt', session=uuid.uuid1())
+reqs = [str(req.req) for req in install_reqs]
 
 def read(filename):
     with open(os.path.join(os.path.dirname(__file__), filename)) as f:
@@ -73,9 +80,10 @@ setup_dict = dict(
         'Topic :: System :: Hardware',
         'Topic :: Utilities'
     ],
-    packages = find_packages(exclude=['contrib', 'docs', 'tests*']),
-    install_requires = read('requires.txt').split('\n'),
+    packages = packages,
+    install_requires = reqs,
     platforms = ["any"],
+    use_2to3 = True,
     #zip_safe = False,  # don't use eggs
     entry_points = {
         'console_scripts': [

@@ -9,8 +9,9 @@ except ImportError:
     from distutils.core import setup
     packages = ['doorpi', 'doorpi.status', 'doorpi.action', 'doorpi.keyboard', 'doorpi.conf', 'doorpi.media', 'doorpi.sipphone', 'doorpi.status.requirements_lib', 'doorpi.status.webserver_lib', 'doorpi.status.status_lib', 'doorpi.action.SingleActions', 'doorpi.sipphone.linphone_lib', 'doorpi.sipphone.pjsua_lib']
 import imp, os, uuid
-
 from pip.req import parse_requirements
+
+base_path = os.path.dirname(os.path.abspath(__file__))
 
 # the following metadata part is stolen from:
 # https://github.com/seanfisk/python-project-template
@@ -26,10 +27,9 @@ from pip.req import parse_requirements
 # instead, effectively side-stepping the dependency problem. Please make sure
 # metadata has no dependencies, otherwise they will need to be added to
 # the setup_requires keyword.
-metadata = imp.load_source(
-    'metadata', os.path.join('doorpi', 'metadata.py'))
+metadata = imp.load_source('metadata', os.path.join(base_path, 'doorpi', 'metadata.py'))
 
-install_reqs = parse_requirements('requirements.txt', session=uuid.uuid1())
+install_reqs = parse_requirements(os.path.join(base_path, 'requirements.txt'), session=uuid.uuid1())
 reqs = [str(req.req) for req in install_reqs]
 
 def read(filename):
@@ -84,7 +84,7 @@ setup_dict = dict(
     install_requires = reqs,
     platforms = ["any"],
     use_2to3 = True,
-    #zip_safe = False,  # don't use eggs
+    zip_safe = False,  # don't use eggs
     entry_points = {
         'console_scripts': [
             'doorpi_cli = doorpi.main:entry_point'

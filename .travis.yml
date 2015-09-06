@@ -1,0 +1,11 @@
+language: python
+python:
+  - "2.7"
+  - "pypy"
+# command to install dependencies
+install: 
+  - "sudo python setup.py install"
+# command to run tests
+script: 
+  - "doorpi_cli --test --trace"
+ 

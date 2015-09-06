@@ -27,6 +27,8 @@ from status.status_class import DoorPiStatus
 #from status.webservice import run_webservice, WebService
 from action.base import SingleAction
 
+
+class DoorPiShutdownAction(SingleAction): pass
 class DoorPiNotExistsException(Exception): pass
 class DoorPiEventHandlerNotExistsException(Exception): pass
 class DoorPiRestartException(Exception): pass
@@ -100,6 +102,10 @@ class DoorPi(object):
 
         self.__last_tick = time.time()
 
+    def doorpi_shutdown(self, time_until_shutdown = 5):
+        time.sleep(time_until_shutdown)
+        self.__shutdown = True
+
     def prepare(self, parsed_arguments):
         logger.debug("prepare")
         logger.debug("givven arguments argv: %s", parsed_arguments)
@@ -107,9 +113,18 @@ class DoorPi(object):
         #if not parsed_arguments.configfile and not self.config:
         #    raise Exception("no config exists and no new given")
 
+        if 'test' in parsed_arguments and parsed_arguments.test is True:
+            logger.warning('using only test-mode and destroy after 5 seconds')
+            parsed_arguments.configfile = ''
+        else:
+            logger.warning('using no test mode: %s', parsed_arguments)
+
         self.__config = ConfigObject.load_config(parsed_arguments.configfile)
         self._base_path = self.config.get('DoorPi', 'base_path', tempfile.gettempdir())
         self.__event_handler = EventHandler()
+
+        if 'test' in parsed_arguments and parsed_arguments.test is True:
+            self.event_handler.register_action('AfterStartup', DoorPiShutdownAction(self.doorpi_shutdown))
 
         if self.config.config_file is None:
             self.event_handler.register_action('AfterStartup', self.config.save_config)

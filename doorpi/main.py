@@ -58,6 +58,7 @@ def parse_arguments(argv):
     )
     arg_parser.add_argument('--debug', action="store_true")
     arg_parser.add_argument('--trace', action="store_true")
+    arg_parser.add_argument('--test', action="store_true")
     arg_parser.add_argument(
         '--configfile',
         help='configfile for DoorPi - https://github.com/motom001/DoorPi/wiki for more help',

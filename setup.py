@@ -1,34 +1,20 @@
 # -*- coding: utf-8 -*-
 
-#from ez_setup import use_setuptools
-#use_setuptools()
+from ez_setup import use_setuptools
+use_setuptools()
+
 try:
     from setuptools import setup, find_packages
     packages = find_packages(exclude=['contrib', 'docs', 'tests*'])
 except ImportError:
     from distutils.core import setup
     packages = ['doorpi', 'doorpi.status', 'doorpi.action', 'doorpi.keyboard', 'doorpi.conf', 'doorpi.media', 'doorpi.sipphone', 'doorpi.status.requirements_lib', 'doorpi.status.webserver_lib', 'doorpi.status.status_lib', 'doorpi.action.SingleActions', 'doorpi.sipphone.linphone_lib', 'doorpi.sipphone.pjsua_lib']
+
 import imp, os, uuid
 from pip.req import parse_requirements
 
 base_path = os.path.dirname(os.path.abspath(__file__))
-
-# the following metadata part is stolen from:
-# https://github.com/seanfisk/python-project-template
-
-# Import metadata. Normally this would just be:
-#
-#     from doorpi import metadata
-#
-# However, when we do this, we also import `doorpi/__init__.py'. If this
-# imports names from some other modules and these modules have third-party
-# dependencies that need installing (which happens after this file is run), the
-# script will crash. What we do instead is to load the metadata module by path
-# instead, effectively side-stepping the dependency problem. Please make sure
-# metadata has no dependencies, otherwise they will need to be added to
-# the setup_requires keyword.
 metadata = imp.load_source('metadata', os.path.join(base_path, 'doorpi', 'metadata.py'))
-
 install_reqs = parse_requirements(os.path.join(base_path, 'requirements.txt'), session=uuid.uuid1())
 reqs = [str(req.req) for req in install_reqs]
 
@@ -36,7 +22,6 @@ def read(filename):
     with open(os.path.join(os.path.dirname(__file__), filename)) as f:
         return f.read()
 
-# See here for more options:
 setup_dict = dict(
     license = metadata.license,
     name = metadata.package,

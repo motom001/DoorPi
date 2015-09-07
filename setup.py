@@ -1,7 +1,26 @@
 # -*- coding: utf-8 -*-
 
-from ez_setup import use_setuptools
-use_setuptools()
+import imp, os, uuid, sys
+
+try:
+    import pip, setuptools
+except ImportError:
+    print("install missing pip now")
+    from get_pip import main as check_for_pip
+    old_args = sys.argv
+    sys.argv = [sys.argv[0]]
+    try:
+        check_for_pip()
+    except SystemExit as e:
+        if e.code == 0:
+            print("sys.argv[0]: %s" % sys.argv[0])
+            print("old_args: %s" % old_args)
+            os.execv(sys.executable, [sys.executable] + old_args)
+        else:
+            print("install pip failed with error code %s" % e.code)
+            sys.exit(e.code)
+
+base_path = os.path.dirname(os.path.abspath(__file__))
 
 try:
     from setuptools import setup, find_packages
@@ -10,13 +29,15 @@ except ImportError:
     from distutils.core import setup
     packages = ['doorpi', 'doorpi.status', 'doorpi.action', 'doorpi.keyboard', 'doorpi.conf', 'doorpi.media', 'doorpi.sipphone', 'doorpi.status.requirements_lib', 'doorpi.status.webserver_lib', 'doorpi.status.status_lib', 'doorpi.action.SingleActions', 'doorpi.sipphone.linphone_lib', 'doorpi.sipphone.pjsua_lib']
 
-import imp, os, uuid
-from pip.req import parse_requirements
+try:
+    from pip.req import parse_requirements
+    install_reqs = parse_requirements(os.path.join(base_path, 'requirements.txt'), session=uuid.uuid1())
+    reqs = [str(req.req) for req in install_reqs]
+except ImportError:
+    with open(os.path.join(base_path, 'requirements.txt')) as req_file:
+        reqs = req_file.readlines()
 
-base_path = os.path.dirname(os.path.abspath(__file__))
 metadata = imp.load_source('metadata', os.path.join(base_path, 'doorpi', 'metadata.py'))
-install_reqs = parse_requirements(os.path.join(base_path, 'requirements.txt'), session=uuid.uuid1())
-reqs = [str(req.req) for req in install_reqs]
 
 def read(filename):
     with open(os.path.join(os.path.dirname(__file__), filename)) as f:

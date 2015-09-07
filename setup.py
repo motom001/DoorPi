@@ -13,8 +13,6 @@ except ImportError:
         check_for_pip()
     except SystemExit as e:
         if e.code == 0:
-            print("sys.argv[0]: %s" % sys.argv[0])
-            print("old_args: %s" % old_args)
             os.execv(sys.executable, [sys.executable] + old_args)
         else:
             print("install pip failed with error code %s" % e.code)

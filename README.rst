@@ -94,7 +94,7 @@ via `GitHub`_:
 .. code-block:: bash
 
    git clone https://github.com/motom001/DoorPi.git /tmp/DoorPi 
-   sudo python /tmp/DoorPi/setup.py install &&
+   sudo python /tmp/DoorPi/setup.py build -b /tmp/DoorPi install &&
    sudo doorpi_cli  
 
 -----------------
@@ -150,7 +150,7 @@ via `GitHub`_:
 .. code-block:: bash
 
    git clone https://github.com/motom001/DoorPi.git /tmp/DoorPi 
-   sudo python /tmp/DoorPi/setup.py install &&
+   sudo python /tmp/DoorPi/setup.py build -b /tmp/DoorPi install &&
    sudo doorpi_cli  
 
 

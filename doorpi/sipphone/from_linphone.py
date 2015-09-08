@@ -265,7 +265,9 @@ class LinPhone(SipphoneAbstractBaseClass):
         if server and username and password:
             logger.info('using DoorPi with SIP-Server')
             proxy_cfg = self.core.create_proxy_config()
-            proxy_cfg.identity = "%s <sip:%s@%s>"%(conf.get(SIPPHONE_SECTION, "identity", 'DoorPi'), username, server)
+            proxy_cfg.identity_address = lin.Address.new("%s <sip:%s@%s>" % (
+                    conf.get(SIPPHONE_SECTION, "identity", 'DoorPi'), username, server)
+            )
             proxy_cfg.server_addr = "sip:%s"%server
             proxy_cfg.register_enabled = True
             self.core.add_proxy_config(proxy_cfg)

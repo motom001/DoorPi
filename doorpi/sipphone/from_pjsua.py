@@ -10,10 +10,10 @@ import pjsua as pj
 from time import sleep
 
 from doorpi.sipphone.pjsua_lib.Config import *
-import doorpi.sipphone.pjsua_lib.SipPhoneAccountCallBack
-import doorpi.sipphone.pjsua_lib.SipPhoneCallCallBack
-import doorpi.sipphone.pjsua_lib.Recorder
-import doorpi.sipphone.pjsua_lib.Player
+from doorpi.sipphone.pjsua_lib.SipPhoneAccountCallBack import SipPhoneAccountCallBack
+from doorpi.sipphone.pjsua_lib.SipPhoneCallCallBack import SipPhoneCallCallBack
+from doorpi.sipphone.pjsua_lib.Recorder import PjsuaRecorder
+from doorpi.sipphone.pjsua_lib.Player import PjsuaPlayer
 from AbstractBaseClass import SipphoneAbstractBaseClass
 
 from doorpi import DoorPi
@@ -107,15 +107,15 @@ class Pjsua(SipphoneAbstractBaseClass):
 
         logger.debug("init Lib")
         self.__Lib.init(
-            ua_cfg      = pjsua_lib.Config.create_UAConfig(),
-            media_cfg   = pjsua_lib.Config.create_MediaConfig(),
-            log_cfg     = pjsua_lib.Config.create_LogConfig()
+            ua_cfg      = doorpi.sipphone.pjsua_lib.Config.create_UAConfig(),
+            media_cfg   = doorpi.sipphone.pjsua_lib.Config.create_MediaConfig(),
+            log_cfg     = doorpi.sipphone.pjsua_lib.Config.create_LogConfig()
         )
 
         logger.debug("init transport")
         transport = self.__Lib.create_transport(
             type        = pj.TransportType.UDP,
-            cfg         = pjsua_lib.Config.create_TransportConfig()
+            cfg         = doorpi.sipphone.pjsua_lib.Config.create_TransportConfig()
         )
         logger.debug("Listening on: %s",str(transport.info().host))
         logger.debug("Port: %s",str(transport.info().port))
@@ -129,20 +129,20 @@ class Pjsua(SipphoneAbstractBaseClass):
         )
 
         logger.debug("init Acc")
-        self.current_account_callback = pjsua_lib.SipPhoneAccountCallBack.SipPhoneAccountCallBack()
+        self.current_account_callback = SipPhoneAccountCallBack()
         self.__account = self.__Lib.create_account(
-            acc_config  = pjsua_lib.Config.create_AccountConfig(),
+            acc_config  = doorpi.sipphone.pjsua_lib.Config.create_AccountConfig(),
             set_default = True,
             cb          = self.current_account_callback
         )
 
-        self.call_timeout = pjsua_lib.Config.call_timeout()
-        self.max_call_time = pjsua_lib.Config.max_call_time()
+        self.call_timeout = doorpi.sipphone.pjsua_lib.Config.call_timeout()
+        self.max_call_time = doorpi.sipphone.pjsua_lib.Config.max_call_time()
 
         DoorPi().event_handler('OnSipPhoneStart', __name__)
 
-        self.__recorder = pjsua_lib.Recorder.PjsuaRecorder()
-        self.__player = pjsua_lib.Player.PjsuaPlayer()
+        self.__recorder = PjsuaRecorder()
+        self.__player = PjsuaPlayer()
 
         logger.debug("start successfully")
 
@@ -209,7 +209,7 @@ class Pjsua(SipphoneAbstractBaseClass):
 
         self.lib.thread_register('call_theard')
 
-        sip_server = pjsua_lib.Config.sipphone_server()
+        sip_server = doorpi.sipphone.pjsua_lib.Config.sipphone_server()
         sip_uri = "sip:"+str(number)+"@"+str(sip_server)
 
         if self.lib.verify_sip_url(sip_uri) is not 0:
@@ -221,7 +221,7 @@ class Pjsua(SipphoneAbstractBaseClass):
         DoorPi().event_handler('OnSipPhoneMakeCall', __name__)
         if not self.current_call or self.current_call.is_valid() is 0:
             lck = self.lib.auto_lock()
-            self.current_callcallback = pjsua_lib.SipPhoneCallCallBack.SipPhoneCallCallBack()
+            self.current_callcallback = SipPhoneCallCallBack()
             self.current_call = self.__account.make_call(
                 sip_uri,
                 self.current_callcallback

@@ -34,7 +34,7 @@ DoorPi ist ein Event-Action basierendes System. Es gibt Komponenten die Events a
 Event-Quellen
 ---------------
 
-Um diese Events zu registrieren werden "DoorPi-Keyboards" genutzt, was z.B.:
+Um diese Events zu registrieren, werden "DoorPi-Keyboards" genutzt, was z.B.:
 
 * die GPIO-Pins
 * ein PiFace 
@@ -87,16 +87,39 @@ via `PyPi`_:
 .. code-block:: bash
 
    sudo pip install doorpi &&
-   sudo doorpi_cli  
+   sudo doorpi_cli --trace
 
 via `GitHub`_:
 
 .. code-block:: bash
 
    git clone https://github.com/motom001/DoorPi.git /tmp/DoorPi 
-   cd /tmp/DoorPi
    sudo python /tmp/DoorPi/setup.py build -b /tmp/DoorPi install
-   sudo doorpi_cli  
+   sudo doorpi_cli --trace 
+
+   
+-----------------
+Konfiguration
+-----------------
+
+Der Start von DoorPi endet mit der Ausgabe der Weboberfläche-URL wie hier:
+
+   2015-09-10 17:52:28,085 [INFO]   [doorpi.status.webserver] DoorPiWeb URL is http://raspberrypi:53540/
+   
+Aktuell bin ich noch nicht dazu gekommen, die Config pro Gerät (GPIO, PiFace, ...) zu individualisieren.
+In der Weboberfläche ist auf dem Startbildschirm die Übersicht der Module (z.B. GPIO). Rechts von dem Modul gibt es den Button Info. 
+In der Info-Seite findest Du neben der Beschreibung auch die möglichen Parameter mit default-Werten.
+Parallel dazu gibt es in der Navigation den Konfig-Editor. Dort kannst Du die Config bearbeiten, wenn Du weißt, welche Parameter wo hin gehören.
+Auch die Config abspeichern kannst Du in der Übersicht.
+
+-----------------
+Daemon
+-----------------
+
+Anleitung um DoorPi als Daemon einzurichten ist hier zu finden:
+https://github.com/motom001/DoorPi/tree/master/doorpi/docs/service
+
+Es sollte aber auf jeden Fall der `BASE_PATH <https://github.com/motom001/DoorPi/blob/master/doorpi/docs/service/doorpi#L17>`_ auf den Ablageort der Config-Datei angepasst werden.
 
 -----------------
 DoorPi Threads
@@ -144,22 +167,37 @@ via `PyPi`_:
 .. code-block:: bash
 
    sudo pip install doorpi &&
-   sudo doorpi_cli  
+   sudo doorpi_cli --trace
 
 via `GitHub`_:
 
 .. code-block:: bash
 
    git clone https://github.com/motom001/DoorPi.git /tmp/DoorPi 
-   cd /tmp/DoorPi
    sudo python /tmp/DoorPi/setup.py build -b /tmp/DoorPi install
-   sudo doorpi_cli  
+   sudo doorpi_cli --trace
 
+-----------------
+Configuration
+-----------------
 
+coming soon
+
+-----------------
+Daemon
+-----------------
+
+The readme to install doorpi as daemon is here:
+https://github.com/motom001/DoorPi/tree/master/doorpi/docs/service
+
+But you should change the `BASE_PATH <https://github.com/motom001/DoorPi/blob/master/doorpi/docs/service/doorpi#L17>`_ to the path of the config file.
 
 .. _VoIP: https://de.wikipedia.org/wiki/IP-Telefonie
 .. _PyPi: https://pypi.python.org/pypi/DoorPi
 .. _GitHub: https://github.com/motom001/DoorPi
+.. _GitHubDaemonReadme: https://github.com/motom001/DoorPi/tree/master/doorpi/docs/service
+.. _GitHubDaemonFileLine17: https://github.com/motom001/DoorPi/blob/master/doorpi/docs/service/doorpi#L17
+
 
 .. |pypi_License| image:: https://img.shields.io/pypi/l/DoorPi.svg
     :target: https://creativecommons.org/licenses/by-nc/4.0/

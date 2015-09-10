@@ -24,11 +24,11 @@ DoorPi: VoIP Door-Intercomstation with Raspberry Pi
 Deutsch
 =============
 ---------------
-Einführung
+EinfÃ¼hrung
 ---------------
-Ziel des Projektes DoorPi ist die Steuerung einer Türsprechanlage mittels einem Einplatiniencomputer wie dem Raspberry Pi und dem Kommunikationsprotokoll `VoIP`_.
+Ziel des Projektes DoorPi ist die Steuerung einer TÃ¼rsprechanlage mittels einem Einplatiniencomputer wie dem Raspberry Pi und dem Kommunikationsprotokoll `VoIP`_.
 
-DoorPi ist ein Event-Action basierendes System. Es gibt Komponenten die Events auslösen und Komponenten die aufgrund dieser Events reagieren. Dazu sollen Ereignisse (Events) wie "Drücken einer Türklingel" oder "RFID Chip xyz vorgehalten" die Auslöser von Aktionen (Actions) wie "Anruf bei Telefon xyz", "E-Mail an xxx" oder "Öffne Tür" sein.
+DoorPi ist ein Event-Action basierendes System. Es gibt Komponenten die Events auslÃ¶sen und Komponenten die aufgrund dieser Events reagieren. Dazu sollen Ereignisse (Events) wie "DrÃ¼cken einer TÃ¼rklingel" oder "RFID Chip xyz vorgehalten" die AuslÃ¶ser von Aktionen (Actions) wie "Anruf bei Telefon xyz", "E-Mail an xxx" oder "Ã–ffne TÃ¼r" sein.
 
 ---------------
 Event-Quellen
@@ -38,45 +38,45 @@ Um diese Events zu registrieren werden "DoorPi-Keyboards" genutzt, was z.B.:
 
 * die GPIO-Pins
 * ein PiFace 
-* Dateien im Dateisystem des Pi (z.B. für Remote-Befehle über SSH)
+* Dateien im Dateisystem des Pi (z.B. fÃ¼r Remote-Befehle Ã¼ber SSH)
 * die serielle Schnittstelle (RDM6300 als NFC Reader)
 * Webservice mit Authentifizierung
 * VoIP-Telefon
 
-sein können.
+sein kÃ¶nnen.
 
-An jedes Event können beliebig viele Actions angefügt werden, die syncron oder asyncron ausgeführt werden. 
+An jedes Event kÃ¶nnen beliebig viele Actions angefÃ¼gt werden, die syncron oder asyncron ausgefÃ¼hrt werden. 
 
 -----------------
-Action-Empfänger
+Action-EmpfÃ¤nger
 -----------------
 
-Eine nicht vollständige Liste der Actions ist:
+Eine nicht vollstÃ¤ndige Liste der Actions ist:
 
 * VoIP Anruf zu festgelegter Nummer starten
 * VoIP Anruf zu Nummer starten, die aus einer Datei ausgelesen wird
 * Anruf beenden
 * E-Mail versenden
-* Programm ausführen
+* Programm ausfÃ¼hren
 * Ausgang schalten
 * Status-Datei schreiben
-* Werte aus IP-Symcon lesen oder zurück schreiben
+* Werte aus IP-Symcon lesen oder zurÃ¼ck schreiben
 * ...
 
-Durch die Kombination der Events und Actions sind fast alle gewünschten Kombinationen möglich. 
+Durch die Kombination der Events und Actions sind fast alle gewÃ¼nschten Kombinationen mÃ¶glich. 
 
 -----------------
 Beispiele
 -----------------
 
-Ein mögliches Szenario ist:
+Ein mÃ¶gliches Szenario ist:
 
-#. Beim Druck eines Klingeltasters wird ein Anruf ausgelöst und gezielt eine Nummer angerufen (z.B. interne FritzBox Nummer \*\*613 aber auch Handynummern).
-#. Der Bewohner kann mit der Außenstelle telefonieren und auf Wunsch die Tür remote öffnen, in dem eine definierte Taste (oder Tastenfolge) auf dem Telefon gedrückt wird (z.B. die Taste "#").
-#. Der Bewohner vergisst das auflegen und DoorPi beendet selbst das Gespräch, sobald die Tür wieder geschlossen wurde.
-#. DoorPi versendet eine E-Mail, dass es einen Anruf gab, jemand die Tür geöffnet hat und jemand ins Haus gegangen ist.
+#. Beim Druck eines Klingeltasters wird ein Anruf ausgelÃ¶st und gezielt eine Nummer angerufen (z.B. interne FritzBox Nummer \*\*613 aber auch Handynummern).
+#. Der Bewohner kann mit der AuÃŸenstelle telefonieren und auf Wunsch die TÃ¼r remote Ã¶ffnen, in dem eine definierte Taste (oder Tastenfolge) auf dem Telefon gedrÃ¼ckt wird (z.B. die Taste "#").
+#. Der Bewohner vergisst das auflegen und DoorPi beendet selbst das GesprÃ¤ch, sobald die TÃ¼r wieder geschlossen wurde.
+#. DoorPi versendet eine E-Mail, dass es einen Anruf gab, jemand die TÃ¼r geÃ¶ffnet hat und jemand ins Haus gegangen ist.
 
-Mittlerweile gibt es auch Video-Support, so dass an der Haustür eine Kamera installiert werden kann und das Bild auf den Innenstationen angesehen werden kann, noch bevor das Gespräch angenommen wird.
+Mittlerweile gibt es auch Video-Support, so dass an der HaustÃ¼r eine Kamera installiert werden kann und das Bild auf den Innenstationen angesehen werden kann, noch bevor das GesprÃ¤ch angenommen wird.
 
 -----------------
 Installation
@@ -103,7 +103,7 @@ DoorPi Threads
 
 Link zu Foren mit DoorPi Threads:
 
-:forum-raspberrypi.de: `[Haussteuerung] DoorPi (VoIP Wechselsprechanlage / Türsprechanlage mit Video-Support) <http://www.forum-raspberrypi.de/Thread-haussteuerung-doorpi-voip-wechselsprechanlage-tuersprechanlage-mit-video-support>`_
+:forum-raspberrypi.de: `[Haussteuerung] DoorPi (VoIP Wechselsprechanlage / TÃ¼rsprechanlage mit Video-Support) <http://www.forum-raspberrypi.de/Thread-haussteuerung-doorpi-voip-wechselsprechanlage-tuersprechanlage-mit-video-support>`_
 
 :ip-symcon.de: `DoorPI / VoIP Door-Intercomstation with Raspberry Pi <http://www.ip-symcon.de/forum/threads/26739-DoorPI-VoIP-Door-Intercomstation-with-Raspberry-Pi>`_
 
@@ -150,7 +150,8 @@ via `GitHub`_:
 .. code-block:: bash
 
    git clone https://github.com/motom001/DoorPi.git /tmp/DoorPi 
-   sudo python /tmp/DoorPi/setup.py build -b /tmp/DoorPi install &&
+   cd /tmp/DoorPi
+   sudo python /tmp/DoorPi/setup.py build -b /tmp/DoorPi install
    sudo doorpi_cli  
 
 

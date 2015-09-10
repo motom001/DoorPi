@@ -196,7 +196,10 @@ class DoorPi(object):
     def destroy(self):
         logger.debug('destroy doorpi')
 
-        if not self.event_handler: DoorPiEventHandlerNotExistsException("don't try to stop, when not prepared")
+        if not self.event_handler or self.event_handler.threads == None: 
+			DoorPiEventHandlerNotExistsException("don't try to stop, when not prepared")
+			return False
+			
         #if self.__prepared is not True:
         #    raise DoorPiDoesntExist("don't try to stop, when not prepared")
 

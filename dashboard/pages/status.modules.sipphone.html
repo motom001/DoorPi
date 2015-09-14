@@ -1,8 +1,123 @@
 {TEMPLATE:HTML_HEADER}
-
+			<script>
+				var refreshIntervalId = 0;
+				
+				function refresh_data() {
+					try {
+						clearInterval(refreshIntervalId);
+						refreshIntervalId = 0;
+						$.getJSON("{DATA_URL}/status?module=sipphone&name=current_call&output=json.parsed", function(result) {
+							if (Object.keys(result.sipphone.current_call).length == 0) {
+								result = result.sipphone.current_call;
+								$("#current_call_direction").text("-");
+								$("#current_call_remote_uri").text("-");
+								$("#current_call_level_incoming").text("-");
+								$("#current_call_level_outgoing").text("-");
+								$("#current_call_duration").text("-"+" sec");
+								refreshIntervalId = setInterval(refresh_data, 2000);
+							} else {
+								result = result.sipphone.current_call;
+								$("#current_call_direction").text(result.direction);
+								$("#current_call_remote_uri").text(result.remote_uri);
+								$("#current_call_level_incoming").text(result.level_incoming);
+								$("#current_call_level_outgoing").text(result.level_outgoing);
+								$("#current_call_duration").text(result.total_time+" sec");
+								refreshIntervalId = setInterval(refresh_data, 200);
+							}
+						});
+					} catch (e) {
+						console.log(e)
+					}
+				}
+				
+				$(document).ready(function() {
+					refresh_data()
+				});
+			</script>
             <div class="row">
-                <div class="col-lg-12">
-                    <h1 class="page-header">Status - Modules - SIP-Phone</h1>
+				<div class="col-lg-2">
+                    <div class="panel panel-info">
+						<div class="panel-heading">
+							<i class="fa fa-bar-chart-o fa-fw"></i> Direction
+						</div>
+						<!-- /.panel-heading -->
+						<div class="panel-body" id="current_call_direction">
+						</div>
+						<!-- /.panel-body -->
+						<div class="panel-footer">
+						Show the direction of the call. 
+						Incoming = DoorPi to remote uri
+						Outgoing = remote uri to DoorPi
+						</div>
+						<!-- /.panel-footer -->
+					</div>
+					<!-- /.panel -->
+                </div>
+				<div class="col-lg-4">
+                    <div class="panel panel-info">
+						<div class="panel-heading">
+							<i class="fa fa-bar-chart-o fa-fw"></i> Remote URI
+						</div>
+						<!-- /.panel-heading -->
+						<div class="panel-body" id="current_call_remote_uri">
+						</div>
+						<!-- /.panel-body -->
+						<div class="panel-footer">
+						Show the remote uri as sip format
+						</div>
+						<!-- /.panel-footer -->
+					</div>
+					<!-- /.panel -->
+                </div>
+			</div>
+			<div class="row">
+                <div class="col-lg-2">
+                    <div class="panel panel-red">
+						<div class="panel-heading">
+							<i class="fa fa-bar-chart-o fa-fw"></i> Level recorded
+						</div>
+						<!-- /.panel-heading -->
+						<div class="panel-body" id="current_call_level_incoming">
+						</div>
+						<!-- /.panel-body -->
+						<div class="panel-footer">
+						Show the measured sound volume recorded locally (sent to remote). It is expressed in dbm0.
+						</div>
+						<!-- /.panel-footer -->
+					</div>
+					<!-- /.panel -->
+                </div>
+				<div class="col-lg-2">
+                    <div class="panel panel-green">
+						<div class="panel-heading">
+							<i class="fa fa-bar-chart-o fa-fw"></i> Level played
+						</div>
+						<!-- /.panel-heading -->
+						<div class="panel-body" id="current_call_level_outgoing">
+						</div>
+						<!-- /.panel-body -->
+						<div class="panel-footer">
+						Show the measured sound volume played locally (received from remote). It is expressed in dbm0.
+						</div>
+						<!-- /.panel-footer -->
+					</div>
+					<!-- /.panel -->
+                </div>
+				<div class="col-lg-2">
+                    <div class="panel panel-primary">
+						<div class="panel-heading">
+							<i class="fa fa-bar-chart-o fa-fw"></i> Duration
+						</div>
+						<!-- /.panel-heading -->
+						<div class="panel-body" id="current_call_duration">
+						</div>
+						<!-- /.panel-body -->
+						<div class="panel-footer">
+						Show the current call duration time in seconds.
+						</div>
+						<!-- /.panel-footer -->
+					</div>
+					<!-- /.panel -->
                 </div>
             </div>
 

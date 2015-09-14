@@ -9,7 +9,10 @@
 						"searching":	false,
 						"order": [[ 1, "desc" ]],
 						"data": [
+							{'nickname': 'Sauger999', 'realname': '******', 'date': '2015-09-11', 'amount': '10,00 €'},
+							{'nickname': 'max_kr', 'realname': '******', 'date': '2015-09-09', 'amount': '20,00 €'},
 							{'nickname': 'Nilimann', 'realname': '******', 'date': '2015-09-01', 'amount': '5,00 €'},
+							{'nickname': '****', 'realname': '******', 'date': '2015-08-22', 'amount': '10,00 €'},
 							{'nickname': 'wesp74', 'realname': '******', 'date': '2015-08-11', 'amount': '20,00 €'},
 							{'nickname': 'Apolo', 'realname': '******', 'date': '2015-08-08', 'amount': '10,00 €'},
 							{'nickname': 'Nea', 'realname': '******', 'date': '2015-08-04', 'amount': '10,00 €'}
@@ -34,6 +37,21 @@
 							' / ' +
 							Object.keys(result.event_handler.events).length
 						);
+						
+						if (Object.keys(result.sipphone.current_call).length == 0) {
+							$("#current_call_panel").removeClass("panel-red").addClass("panel-primary");
+							$("#current_call_status").text("kein Anruf");
+							$("#current_call_details").text("");
+						} else {
+							$("#current_call_panel").removeClass("panel-primary").addClass("panel-red");
+							$("#current_call_status").text("'"+result.sipphone.current_call.direction+"'");
+							$("#current_call_details").html(
+								result.sipphone.current_call.remote_uri+"</br>"+
+								result.sipphone.current_call.total_time.toFixed(2)+" sec "+
+								"(Level: &uarr; "+result.sipphone.current_call.level_incoming.toFixed(2)+
+								"&darr; "+result.sipphone.current_call.level_outgoing.toFixed(2)+")"
+							);
+						}
 						
 						var aModulStatus = new Array();
 						$.each(result.environment, function(modul_area_name, modul_area){
@@ -71,6 +89,28 @@
 			
             <!-- /.row -->
             <div class="row">
+				<div class="col-lg-3 col-md-6">
+                    <div class="panel panel-primary" id="current_call_panel">
+                        <div class="panel-heading">
+                            <div class="row">
+                                <div class="col-xs-3">
+                                    <i class="fa fa-comments fa-5x"></i>
+                                </div>
+                                <div class="col-xs-9 text-right">
+                                    <div class="huge" id="current_call_status">kein Anruf</div>
+                                    <div id="current_call_details"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <a href="{DATA_URL}/dashboard/pages/status.modules.sipphone.html">
+                            <div class="panel-footer">
+                                <span class="pull-left">Details</span>
+                                <span class="pull-right"><i class="fa fa-arrow-circle-right"></i></span>
+                                <div class="clearfix"></div>
+                            </div>
+                        </a>
+                    </div>
+                </div>
                 <div class="col-lg-3 col-md-6">
                     <div class="panel panel-primary">
                         <div class="panel-heading">
@@ -84,7 +124,7 @@
                                 </div>
                             </div>
                         </div>
-                        <a href="history.events.html">
+                        <a href="{DATA_URL}/dashboard/pages/history.events.html">
                             <div class="panel-footer">
                                 <span class="pull-left">Details</span>
                                 <span class="pull-right"><i class="fa fa-arrow-circle-right"></i></span>
@@ -106,7 +146,7 @@
                                 </div>
                             </div>
                         </div>
-                        <a href="status.modules.eventhandler.html">
+                        <a href="{DATA_URL}/dashboard/pages/status.modules.eventhandler.html">
                             <div class="panel-footer">
                                 <span class="pull-left">Details</span>
                                 <span class="pull-right"><i class="fa fa-arrow-circle-right"></i></span>

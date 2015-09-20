@@ -25,6 +25,8 @@ supporters = [
     'Dennis Häußler <haeusslerd@outlook.com>',
     'Hubert Nusser <hubsif@gmx.de>',
     'Michael Hauer <frrr@gmx.at>',
+    'Andreas Schwarz <doorpi@schwarz-ketsch.de>',
+    'Max Rößler <max_kr@gmx.de>',
     'missing someone? -> sorry -> mail me'
 ]
 supporter_string = '\n'.join(supporters)

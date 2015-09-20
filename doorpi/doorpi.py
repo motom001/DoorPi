@@ -116,7 +116,7 @@ class DoorPi(object):
 
         if 'test' in parsed_arguments and parsed_arguments.test is True:
             logger.warning('using only test-mode and destroy after 5 seconds')
-            # self.event_handler.register_action('AfterStartup', DoorPiShutdownAction(self.doorpi_shutdown))
+            self.event_handler.register_action('AfterStartup', DoorPiShutdownAction(self.doorpi_shutdown))
 
         if self.config.config_file is None:
             self.event_handler.register_action('AfterStartup', self.config.save_config)
@@ -238,7 +238,7 @@ class DoorPi(object):
             logger.info('no Webserver loaded')
 
         time_ticks = 0
-        
+
         while True and not self.__shutdown:
             time_ticks += 0.05
             self.check_time_critical_threads()

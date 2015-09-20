@@ -8,4 +8,4 @@ install:
   - "python setup.py install"
 # command to run tests
 script: 
-  - "sudo doorpi/main.py --test --trace"
+  - "sudo ~/virtualenv/python2.7/bin/doorpi_cli --test --trace"

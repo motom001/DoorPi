@@ -2,6 +2,8 @@
 DoorPi: VoIP Door-Intercomstation with Raspberry Pi
 ****************************************************
 
+|travis_status_master|
+
 :DoorPi @ `PyPi`_: 
     |pypi_latest_version| |pypi_License|
     
@@ -198,6 +200,9 @@ But you should change the `BASE_PATH <https://github.com/motom001/DoorPi/blob/ma
 .. _GitHubDaemonReadme: https://github.com/motom001/DoorPi/tree/master/doorpi/docs/service
 .. _GitHubDaemonFileLine17: https://github.com/motom001/DoorPi/blob/master/doorpi/docs/service/doorpi#L17
 
+.. |travis_status_master| image:: https://travis-ci.org/motom001/DoorPi.svg?branch=travis-ci
+    :target: https://travis-ci.org/motom001/DoorPi
+	:alt: Build status on travis-ci
 
 .. |pypi_License| image:: https://img.shields.io/pypi/l/DoorPi.svg
     :target: https://creativecommons.org/licenses/by-nc/4.0/

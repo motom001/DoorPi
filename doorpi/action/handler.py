@@ -41,6 +41,7 @@ class EventLog(object):
     def __init__(self, file_name):
 
         if not file_name: return
+        return
         try:
             if not os.path.exists(os.path.dirname(file_name)):
                 logger.info('Path %s does not exist - creating it now', os.path.dirname(file_name))

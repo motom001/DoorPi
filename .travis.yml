@@ -1,4 +1,4 @@
-sudo: true
+sudo: false
 language: python
 python:
   - "2.7"
@@ -8,4 +8,4 @@ install:
   - "python setup.py install"
 # command to run tests
 script: 
-  - "sudo ~/virtualenv/python2.7/bin/doorpi_cli --test --trace"
+  - "doorpi_cli --test --trace"

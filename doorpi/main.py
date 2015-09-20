@@ -165,9 +165,9 @@ def main_as_application(argv):
     return 0
 
 def entry_point():
-    if os.geteuid() != 0:
-        print("DoorPi must run with sudo rights")
-        raise SystemExit(1)
+    #if os.geteuid() != 0:
+    #    print("DoorPi must run with sudo rights")
+    #    raise SystemExit(1)
 
     init_logger(sys.argv)
 

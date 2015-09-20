@@ -93,9 +93,9 @@ class DoorPi(object):
         if self._base_path is None:
             try:
                 self._base_path = os.path.join(os.path.expanduser('~'), metadata.package)
-                assert os.access(self._base_path, os.W_OK)
+                assert os.access(self._base_path, os.W_OK), 'use fallback for base_path (see tmp path)'
             except Exception as exp:
-                logger.exception(exp)
+                logger.error(exp)
                 import tempfile
                 self._base_path = tempfile.gettempdir()
         return self._base_path

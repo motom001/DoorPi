@@ -108,29 +108,21 @@ class DoorPi(object):
 
     def prepare(self, parsed_arguments):
         logger.debug("prepare")
-        logger.debug("givven arguments argv: %s", parsed_arguments)
-
-        #if not parsed_arguments.configfile and not self.config:
-        #    raise Exception("no config exists and no new given")
-
-        if 'test' in parsed_arguments and parsed_arguments.test is True:
-            logger.warning('using only test-mode and destroy after 5 seconds')
-            parsed_arguments.configfile = ''
-        else:
-            logger.warning('using no test mode: %s', parsed_arguments)
+        logger.debug("given arguments argv: %s", parsed_arguments)
 
         self.__config = ConfigObject.load_config(parsed_arguments.configfile)
         self._base_path = self.config.get('DoorPi', 'base_path', tempfile.gettempdir())
         self.__event_handler = EventHandler()
 
         if 'test' in parsed_arguments and parsed_arguments.test is True:
-            self.event_handler.register_action('AfterStartup', DoorPiShutdownAction(self.doorpi_shutdown))
+            logger.warning('using only test-mode and destroy after 5 seconds')
+            # self.event_handler.register_action('AfterStartup', DoorPiShutdownAction(self.doorpi_shutdown))
 
         if self.config.config_file is None:
             self.event_handler.register_action('AfterStartup', self.config.save_config)
             self.config.get('EVENT_OnStartup', '10', 'sleep:1')
 
-        #register own events
+        # register own events
         self.event_handler.register_event('BeforeStartup', __name__)
         self.event_handler.register_event('OnStartup', __name__)
         self.event_handler.register_event('AfterStartup', __name__)
@@ -140,10 +132,10 @@ class DoorPi(object):
         self.event_handler.register_event('OnTimeTick', __name__)
         self.event_handler.register_event('OnTimeTickRealtime', __name__)
 
-        #register base actions
+        # register base actions
         self.event_handler.register_action('OnTimeTick', 'time_tick:!last_tick!')
 
-        #register modules
+        # register modules
         self.__webserver    = load_webserver()
         self.__keyboard     = load_keyboard()
         self.__sipphone     = load_sipphone()
@@ -196,12 +188,9 @@ class DoorPi(object):
     def destroy(self):
         logger.debug('destroy doorpi')
 
-        if not self.event_handler or self.event_handler.threads == None: 
-			DoorPiEventHandlerNotExistsException("don't try to stop, when not prepared")
-			return False
-			
-        #if self.__prepared is not True:
-        #    raise DoorPiDoesntExist("don't try to stop, when not prepared")
+        if not self.event_handler or self.event_handler.threads == None:
+            DoorPiEventHandlerNotExistsException("don't try to stop, when not prepared")
+            return False
 
         logger.debug("Threads before starting shutdown: %s", self.event_handler.threads)
 
@@ -212,8 +201,8 @@ class DoorPi(object):
         timeout = 5
         waiting_between_checks = 0.5
         time.sleep(waiting_between_checks)
-        while timeout > 0 and self.modules_destroyed != True:
-        #while not self.event_handler.idle and timeout > 0 and len(self.event_handler.sources) > 1:
+        while timeout > 0 and self.modules_destroyed is not True:
+            # while not self.event_handler.idle and timeout > 0 and len(self.event_handler.sources) > 1:
             logger.debug('wait %s seconds for threads %s and %s event',
                          timeout, len(self.event_handler.threads[1:]), len(self.event_handler.sources))
             logger.trace('still existing threads:       %s', self.event_handler.threads[1:])
@@ -239,7 +228,7 @@ class DoorPi(object):
         self.event_handler.fire_event_synchron('OnStartup', __name__)
         self.event_handler.fire_event('AfterStartup', __name__)
 
-        #self.event_handler.register_action('OnTimeMinuteUnevenNumber', 'doorpi_restart')
+        # self.event_handler.register_action('OnTimeMinuteUnevenNumber', 'doorpi_restart')
 
         logger.info('DoorPi started successfully')
         logger.info('BasePath is %s', self.base_path)
@@ -248,6 +237,7 @@ class DoorPi(object):
         else:
             logger.info('no Webserver loaded')
 
+        return self
         time_ticks = 0
 
         while True and not self.__shutdown:

@@ -237,9 +237,8 @@ class DoorPi(object):
         else:
             logger.info('no Webserver loaded')
 
-        return self
         time_ticks = 0
-
+        
         while True and not self.__shutdown:
             time_ticks += 0.05
             self.check_time_critical_threads()

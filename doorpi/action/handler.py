@@ -191,7 +191,7 @@ class EventHandler:
     def additional_informations(self): return self.__additional_informations
 
     def __init__(self):
-        db_path = doorpi.DoorPi().config.get_string_parsed('DoorPi', 'eventlog', '!BASEPATH!/doorpi/conf/eventlog.db')
+        db_path = doorpi.DoorPi().config.get_string_parsed('DoorPi', 'eventlog', '!BASEPATH!/conf/eventlog.db')
         self.db = EventLog(db_path)
 
     __destroy = False

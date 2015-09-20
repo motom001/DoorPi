@@ -84,10 +84,10 @@ def create_LogConfig():
 def create_AccountConfig():
     logger.debug("create_AccountConfig")
     # Doc: http://www.pjsip.org/python/pjsua.htm#AccountConfig
-    server = conf.get(SIPPHONE_SECTION, "server")
-    username = conf.get(SIPPHONE_SECTION, "username")
-    password = conf.get(SIPPHONE_SECTION, "password")
-    realm = conf.get(SIPPHONE_SECTION, "realm")
+    server = conf.get(SIPPHONE_SECTION, "sipserver_server")
+    username = conf.get(SIPPHONE_SECTION, "sipserver_username")
+    password = conf.get(SIPPHONE_SECTION, "sipserver_password")
+    realm = conf.get(SIPPHONE_SECTION, "sipserver_realm")
 
     AccountConfig = pj.AccountConfig()
     AccountConfig.id = "sip:" + username + "@" + server

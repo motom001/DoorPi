@@ -28,7 +28,8 @@ class PjsuaRecorder(RecorderAbstractBaseClass):
     def last_record_filename(self): return self.__last_record_filename
 
     def __init__(self):
-        self.__record_filename = DoorPi().config.get('DoorPi', 'records', '')
+        self.__record_filename = DoorPi().config.get('DoorPi', 'records',
+                                                     '!BASEPATH!/records/%Y-%m-%d_%H-%M-%S.wav')
         if self.__record_filename is '':
             logger.debug('no recorder found in config at section DoorPi and key records')
             return

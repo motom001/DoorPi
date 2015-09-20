@@ -9,7 +9,7 @@ import os
 package = 'DoorPi'
 project = "VoIP Door-Intercomstation with Raspberry Pi"
 project_no_spaces = project.replace(' ', '')
-version = '2.4.0.8'
+version = '2.4.1.0'
 description = 'provide intercomstation to the doorstation by VoIP'
 keywords = ['intercom', 'VoIP', 'doorstation', 'home automation', 'IoT']
 authors = ['Thomas Meissner']
@@ -25,6 +25,8 @@ supporters = [
     'Dennis Häußler <haeusslerd@outlook.com>',
     'Hubert Nusser <hubsif@gmx.de>',
     'Michael Hauer <frrr@gmx.at>',
+    'Andreas Schwarz <doorpi@schwarz-ketsch.de>',
+    'Max Rößler <max_kr@gmx.de>',
     'missing someone? -> sorry -> mail me'
 ]
 supporter_string = '\n'.join(supporters)
@@ -49,11 +51,3 @@ Supporter:  {supporters}
         authors = '\n'.join(author_strings),
         supporters = '\n            '.join(supporters),
         url = url)
-
-import tempfile
-base_path = tempfile.gettempdir()
-if os.access(base_path, os.W_OK):
-    print("USE BASE_PATH1: %s"%base_path)
-else:
-    base_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    print("USE BASE_PATH2: %s"%base_path)

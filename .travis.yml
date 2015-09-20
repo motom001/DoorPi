@@ -1,11 +1,10 @@
+sudo: false
 language: python
 python:
   - "2.7"
-  - "pypy"
 # command to install dependencies
 install: 
   - "python setup.py install"
 # command to run tests
 script: 
   - "doorpi_cli --test --trace"
-sudo: true

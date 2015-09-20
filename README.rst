@@ -200,7 +200,7 @@ But you should change the `BASE_PATH <https://github.com/motom001/DoorPi/blob/ma
 .. _GitHubDaemonReadme: https://github.com/motom001/DoorPi/tree/master/doorpi/docs/service
 .. _GitHubDaemonFileLine17: https://github.com/motom001/DoorPi/blob/master/doorpi/docs/service/doorpi#L17
 
-.. |travis_status_master| image:: https://travis-ci.org/motom001/DoorPi.svg?branch=travis-ci
+.. |travis_status_master| image:: https://travis-ci.org/motom001/DoorPi.svg?branch=master
     :target: https://travis-ci.org/motom001/DoorPi
 
 .. |pypi_License| image:: https://img.shields.io/pypi/l/DoorPi.svg

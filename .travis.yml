@@ -8,4 +8,4 @@ install:
   - "python setup.py install"
 # command to run tests
 script: 
-  - "sudo /usr/local/bin/doorpi_cli --test --trace"
+  - "sudo .travis/doorpi_cli --test --trace"

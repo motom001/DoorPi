@@ -202,7 +202,6 @@ But you should change the `BASE_PATH <https://github.com/motom001/DoorPi/blob/ma
 
 .. |travis_status_master| image:: https://travis-ci.org/motom001/DoorPi.svg?branch=travis-ci
     :target: https://travis-ci.org/motom001/DoorPi
-	:alt: Build status on travis-ci
 
 .. |pypi_License| image:: https://img.shields.io/pypi/l/DoorPi.svg
     :target: https://creativecommons.org/licenses/by-nc/4.0/

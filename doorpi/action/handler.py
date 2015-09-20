@@ -41,7 +41,6 @@ class EventLog(object):
     def __init__(self, file_name):
 
         if not file_name: return
-        return
         try:
             if not os.path.exists(os.path.dirname(file_name)):
                 logger.info('Path %s does not exist - creating it now', os.path.dirname(file_name))
@@ -192,7 +191,7 @@ class EventHandler:
     def additional_informations(self): return self.__additional_informations
 
     def __init__(self):
-        db_path = doorpi.DoorPi().config.get_string_parsed('DoorPi', 'eventlog', '!BASEPATH!/doorpi/conf/eventlog.db')
+        db_path = doorpi.DoorPi().config.get_string_parsed('DoorPi', 'eventlog', '!BASEPATH!/conf/eventlog.db')
         self.db = EventLog(db_path)
 
     __destroy = False

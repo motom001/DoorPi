@@ -87,9 +87,18 @@ class DoorPi(object):
     @property
     def shutdown(self): return self.__shutdown
 
-    _base_path = tempfile.gettempdir()
+    _base_path = None
     @property
-    def base_path(self): return self._base_path
+    def base_path(self):
+        if self._base_path is None:
+            try:
+                self._base_path = os.path.join(os.path.expanduser('~'), metadata.package)
+                assert os.access(self._base_path, os.W_OK), 'use fallback for base_path'
+            except Exception as exp:
+                logger.exception(exp)
+                import tempfile
+                self._base_path = tempfile.gettempdir()
+        return self._base_path
 
     def __init__(self, parsed_arguments = None):
         self.__parsed_arguments = parsed_arguments
@@ -102,7 +111,7 @@ class DoorPi(object):
 
         self.__last_tick = time.time()
 
-    def doorpi_shutdown(self, time_until_shutdown = 5):
+    def doorpi_shutdown(self, time_until_shutdown=10):
         time.sleep(time_until_shutdown)
         self.__shutdown = True
 
@@ -111,16 +120,16 @@ class DoorPi(object):
         logger.debug("given arguments argv: %s", parsed_arguments)
 
         self.__config = ConfigObject.load_config(parsed_arguments.configfile)
-        self._base_path = self.config.get('DoorPi', 'base_path', tempfile.gettempdir())
+        self._base_path = self.config.get('DoorPi', 'base_path', self.base_path)
         self.__event_handler = EventHandler()
-
-        if 'test' in parsed_arguments and parsed_arguments.test is True:
-            logger.warning('using only test-mode and destroy after 5 seconds')
-            self.event_handler.register_action('AfterStartup', DoorPiShutdownAction(self.doorpi_shutdown))
 
         if self.config.config_file is None:
             self.event_handler.register_action('AfterStartup', self.config.save_config)
             self.config.get('EVENT_OnStartup', '10', 'sleep:1')
+
+        if 'test' in parsed_arguments and parsed_arguments.test is True:
+            logger.warning('using only test-mode and destroy after 5 seconds')
+            self.event_handler.register_action('AfterStartup', DoorPiShutdownAction(self.doorpi_shutdown))
 
         # register own events
         self.event_handler.register_event('BeforeStartup', __name__)

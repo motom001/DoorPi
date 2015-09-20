@@ -198,11 +198,11 @@ class LinPhone(SipphoneAbstractBaseClass):
         self.core.ringback = self.player.player_filename
         self.__recorder = LinphoneRecorder()
 
-        self.core.capture_device = conf.get(SIPPHONE_SECTION, 'capture_device', '')
-        self.core.playback_device = conf.get(SIPPHONE_SECTION, 'playback_device', '')
         if len(self.core.sound_devices) == 0:
             logger.warning('no audio devices available')
         else:
+            self.core.capture_device = conf.get(SIPPHONE_SECTION, 'capture_device', self.core.capture_device)
+            self.core.playback_device = conf.get(SIPPHONE_SECTION, 'playback_device', self.core.playback_device)
             logger.info("found %s possible sounddevices:", len(self.core.sound_devices))
             logger.debug("|rec|play| name")
             logger.debug("------------------------------------")
@@ -226,7 +226,7 @@ class LinPhone(SipphoneAbstractBaseClass):
                 logger.debug('disable audio codec %s', codec.mime_type)
                 self.core.enable_payload_type(codec, False)
 
-        config_camera = conf.get(SIPPHONE_SECTION, 'video_device', '')
+
         if len(self.core.video_devices) == 0:
             self.core.video_capture_enabled = False
             logger.warning('no video devices available')
@@ -237,6 +237,7 @@ class LinPhone(SipphoneAbstractBaseClass):
             for video_device in self.core.video_devices:
                 logger.debug("| %s ", video_device)
             logger.debug("------------------------------------")
+            config_camera = conf.get(SIPPHONE_SECTION, 'video_device', self.core.video_devices[0])
             if config_camera not in self.core.video_devices:
                 logger.warning('camera "%s" from config does not exist in possible video devices.', config_camera)
                 logger.debug('switching to first possible video device "%s"', self.core.video_devices[0])
@@ -244,7 +245,7 @@ class LinPhone(SipphoneAbstractBaseClass):
 
             self.core.video_capture_enabled = True
             self.core.video_device = config_camera
-            self.core.preferred_video_size_by_name = conf.get(SIPPHONE_SECTION, 'video_size', '')
+            self.core.preferred_video_size_by_name = conf.get(SIPPHONE_SECTION, 'video_size', 'vga')
             logger.debug("using video_device: %s", self.core.video_device)
 
         # Only enable VP8 video codec

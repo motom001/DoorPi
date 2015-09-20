@@ -51,11 +51,3 @@ Supporter:  {supporters}
         authors = '\n'.join(author_strings),
         supporters = '\n            '.join(supporters),
         url = url)
-
-import tempfile
-base_path = tempfile.gettempdir()
-if os.access(base_path, os.W_OK):
-    print("USE BASE_PATH1: %s"%base_path)
-else:
-    base_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    print("USE BASE_PATH2: %s"%base_path)

@@ -25,7 +25,10 @@ try:
     packages = find_packages(exclude=['contrib', 'docs', 'tests*'])
 except ImportError:
     from distutils.core import setup
-    packages = ['doorpi', 'doorpi.status', 'doorpi.action', 'doorpi.keyboard', 'doorpi.conf', 'doorpi.media', 'doorpi.sipphone', 'doorpi.status.requirements_lib', 'doorpi.status.webserver_lib', 'doorpi.status.status_lib', 'doorpi.action.SingleActions', 'doorpi.sipphone.linphone_lib', 'doorpi.sipphone.pjsua_lib']
+    packages = ['doorpi', 'doorpi.status', 'doorpi.action',
+                'doorpi.keyboard', 'doorpi.conf', 'doorpi.media', 'doorpi.sipphone',
+                'doorpi.status.requirements_lib', 'doorpi.status.webserver_lib', 'doorpi.status.status_lib',
+                'doorpi.action.SingleActions', 'doorpi.sipphone.linphone_lib', 'doorpi.sipphone.pjsua_lib']
 
 try:
     from pip.req import parse_requirements
@@ -67,8 +70,8 @@ setup_dict = dict(
         'Natural Language :: English',
         'Operating System :: OS Independent',
         'Programming Language :: Python :: 2.7',
-        'Programming Language :: Python :: 3.3',
-        'Programming Language :: Python :: Implementation :: PyPy',
+        # 'Programming Language :: Python :: 3.3',
+        # 'Programming Language :: Python :: Implementation :: PyPy',
         'Topic :: Documentation',
         'Topic :: Software Development :: Libraries :: Python Modules',
         'Topic :: System :: Installation/Setup',
@@ -87,7 +90,7 @@ setup_dict = dict(
     packages = packages,
     install_requires = reqs,
     platforms = ["any"],
-    use_2to3 = True,
+    use_2to3 = False,
     zip_safe = False,  # don't use eggs
     entry_points = {
         'console_scripts': [

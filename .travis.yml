@@ -1,10 +1,17 @@
 sudo: false
 language: python
 python:
-  - "2.7"
-# command to install dependencies
-install: 
-  - "python setup.py install"
-# command to run tests
-script: 
-  - "doorpi_cli --test --trace"
+- '2.7'
+install:
+- python setup.py install
+script:
+- doorpi_cli --test --trace
+deploy:
+  provider: pypi
+  user:
+    secure: pcCDIPxwtfOt5a4uhWWDf+tl8H4yUb6fOKJfviMrFTH6CvTnapi2BYqpuzrC7n0cBKT1oVybs3AI2/hhzXvMrxJsqpi7iEY1hWJ8cdL+/Rvi8/HJB8+t6EYoS7BVZIH9ySUkfSAzbnvG3FFDa41ZwOseFjvjWKg68mPNLGa1rIuIm5HGlhKZQR1XV9dOLZarmB0u/qHF8xNHAhTDmfQ+Ktd3SzylY2Pv60DZpjw1h3jQ1+7r2S8HvYn9eHUtejb05kZ0rKcGR+gKATS9wK/4i236hKegTIVkiFPcBFKhEIk0WEkF9fH6yusgForcVutlALdo+qTXHmq0TQW6TNrw+1p4HWdoi6YHmRqx/nawkLmMmmgoW1PpkAqf/LqnOqQArCWK/EcMVXc410cAXOigkbg4MjVBSGu9AoXAY2JVTYxGlQ7clolsnYQTQUrEhizHwtXzBhW+YCEvMEdL2DyeNAi+EuhfdIahcCu89Xq9hvEfc/+GxFw80+6tl53fLSBWD5jZOmwQltVMSGyBbkLGXjxmyS5rGRaoN/HPHK2ibojhoWHpa8qatFAN90r10fpNk5qSRcAXSpeiBRA4ron5l58e3lZbkfz2hsEGOrB/WKrDzrFYcqPeZ4Wi7IXPPWpE15M3hno8MUjKccKpL3A2luhBryJgp3XikYLofHzoSQk=
+  password:
+    secure: dFEcLae9ppOvAKDqowjMBnLV8fhcbe2I+97vDds3CiCxJXlOVORk4S5hoc1YD/HMUNjrRXE1GvLmQju0K3uSfiQdn6JIJCknF2XV5IIRzSDSL4X5HEUDgZDzZMDwRIcAt14YRWDpapFDfhEM+1fdrXO2TbKmIM4Xmb4ErpMuwZuZyDJ4A2xsfpqiwpaMDm91t/CLkIbbwUifSLFXwl4ZvoMH0WPjqQSYdKXl0rx+ndvlDPq3zaE7ZJOfIzku4xuuXJ2OwwBAFgg4D1F+fGq9wrFe0t7BQqb4tYmTLJ/dJyKsHxUVUObWSFxxps43F8fasSmz9YhyTaTdOh4ArCQfXi28bCbZsu5NTio2UcCI24LcekKudxolslyMJ04AfHFDuCGEWYSGT5AJzBnDs6ElSh1uaxCk7OHo2aG3xl9odF3GG8fnc8cFAqesUQGObasY91cTALyNIcGvl2UdOyTpRr/ryHleQu2mnJtX6cPcYSjql5bzpgwH25B04aHeFCDiUoE/XX5diSv6U3YSmJDAxJS4lKs76u69GhwoaRYnPFpbqHYkYZ0YVYerZe4VqShUCE1I+1CH+VETZjIFK+v1/ZlbFHBELDSAFwMs1kJuuJPsrP7AxjqwY7mL3npVofq1i7kX6MXHCiRCeIexDwcwT5BOq4da8+7olGh3w41VRsw=
+  distributions: sdist bdist bdist_egg bdist_wheel
+  on:
+    branch: master

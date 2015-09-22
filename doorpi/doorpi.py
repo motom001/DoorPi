@@ -119,7 +119,7 @@ class DoorPi(object):
         logger.debug("prepare")
         logger.debug("given arguments argv: %s", parsed_arguments)
 
-        self.__config = ConfigObject.load_config(parsed_arguments)
+        self.__config = ConfigObject.load_config(parsed_arguments.configfile)
         self._base_path = self.config.get('DoorPi', 'base_path', self.base_path)
         self.__event_handler = EventHandler()
 

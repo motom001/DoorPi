@@ -112,7 +112,14 @@ setup_dict = dict(
         # 'gui_scripts': [
         #     'doorpi_gui = doorpi.gui:entry_point'
         # ]
-    }
+    },
+    data_files=[
+        (
+            os.path.join(metadata.doorpi_path, 'docs', 'daemon'), [
+                return_parsed_filename(metadata.daemon_name_template, metadata.daemon_name_template_parsed)
+            ]
+         )
+    ]
 )
 
 

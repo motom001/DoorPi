@@ -55,7 +55,7 @@ Supporter:  {supporters}
 
 if os.name == 'posix':
     dummy_file = 'doorpi/docs/dummy_file'
-    doorpi_path = '/usr/local/etc/%s_neu' % package
+    doorpi_path = os.path.join('/usr/local/etc/%s_neu', package)
     pidfile = '/var/run/%s.pid' % package.lower()
     daemon_folder = '/etc/init.d'
     daemon_name = package.lower()
@@ -64,8 +64,12 @@ if os.name == 'posix':
     daemon_args = '--configfile $DOORPI_PATH/conf/doorpi.ini --trace'
     doorpi_executable = '/usr/local/bin/doorpi_cli'
     log_folder = '%s/log' % doorpi_path
+    try:
+        if not os.path.exists(doorpi_path):
+            os.makedirs(doorpi_path)
+    except OSError:
+        doorpi_path = os.path.join(os.path.expanduser('~'), package)
 else:
     raise Exception('os unknown')
 
-if not os.path.exists(doorpi_path):
-    os.makedirs(doorpi_path)
+

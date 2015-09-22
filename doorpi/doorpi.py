@@ -87,7 +87,7 @@ class DoorPi(object):
     @property
     def shutdown(self): return self.__shutdown
 
-    _base_path = None
+    _base_path = metadata.doorpi_path
     @property
     def base_path(self):
         if self._base_path is None:
@@ -119,7 +119,7 @@ class DoorPi(object):
         logger.debug("prepare")
         logger.debug("given arguments argv: %s", parsed_arguments)
 
-        self.__config = ConfigObject.load_config(parsed_arguments.configfile)
+        self.__config = ConfigObject.load_config(parsed_arguments)
         self._base_path = self.config.get('DoorPi', 'base_path', self.base_path)
         self.__event_handler = EventHandler()
 

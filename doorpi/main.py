@@ -12,11 +12,11 @@ from resource import getrlimit, RLIMIT_NOFILE
 
 TRACE_LEVEL = 5
 LOG_FORMAT = '%(asctime)s [%(levelname)s]  \t[%(name)s] %(message)s'
-DEFAULT_LOG_FILENAME = '/var/log/doorpi/doorpi.log'
 
 logger = logging.getLogger(__name__)
 
 log_level = logging.INFO
+
 
 def add_trace_level():
     logging.addLevelName(TRACE_LEVEL, "TRACE")
@@ -42,7 +42,6 @@ def init_logger(arguments):
     return logging.getLogger(__name__)
 
 
-
 def parse_arguments(argv):
     arg_parser = argparse.ArgumentParser(
         prog=argv[0],
@@ -60,22 +59,21 @@ def parse_arguments(argv):
     arg_parser.add_argument('--trace', action="store_true")
     arg_parser.add_argument('--test', action="store_true")
     arg_parser.add_argument(
-        '--configfile',
+        '-c', '--configfile',
         help='configfile for DoorPi - https://github.com/motom001/DoorPi/wiki for more help',
-        type=file,
-        dest='configfile',
-        required = False
+        dest='configfile'
     )
     try:
         if  len(sys.argv) > 1 and sys.argv[1] in ['start', 'stop', 'restart', 'status']: # running as daemon? cut first argument
-            return  arg_parser.parse_args(args=sys.argv[2:])
+            return arg_parser.parse_args(args=sys.argv[2:])
         else:
-            return  arg_parser.parse_args(args=sys.argv[1:])
+            return arg_parser.parse_args(args=sys.argv[1:])
     except IOError:
         print("EXCEPTION: configfile does not exist or is not readable")
         print("please refer to the DoorPi wiki for more information ")
         print("<https://github.com/motom001/DoorPi/wiki>")
         raise SystemExit(1)
+
 
 def files_preserve_by_path(*paths):
     wanted=[]
@@ -95,15 +93,6 @@ def files_preserve_by_path(*paths):
     fd_max = getrlimit(RLIMIT_NOFILE)[1]
     return [ fd for fd in xrange(fd_max) if fd_wanted(fd) ]
 
-def get_status_from_doorpi(argv):
-    try:
-        print("called: %s" % argv)
-        import urllib2
-        print(urllib2.urlopen("http://127.0.0.1:8080/status?json&output=all").read())
-    except Exception as ex:
-        print("couln't get Status (Message: %s)" % ex)
-        return 1
-    return 0
 
 def main_as_daemon(argv):
     if argv[1] is 'reload':
@@ -114,9 +103,13 @@ def main_as_daemon(argv):
     else:
         parsed_arguments = parse_arguments(argv)
 
+    if not os.path.exists(metadata.log_folder):
+        os.makedirs(metadata.log_folder)
+
+    log_file = os.path.join(metadata.log_folder, "doorpi.log")
     logrotating = logging.handlers.RotatingFileHandler(
-          DEFAULT_LOG_FILENAME,
-          maxBytes=50000,
+          log_file,
+          maxBytes=5000000,
           backupCount=10
     )
     global log_level
@@ -134,7 +127,7 @@ def main_as_daemon(argv):
 
     daemon_runner = runner.DaemonRunner(doorpi.DoorPi(parsed_arguments))
     #This ensures that the logger file handle does not get closed during daemonization
-    daemon_runner.daemon_context.files_preserve = files_preserve_by_path(DEFAULT_LOG_FILENAME)
+    daemon_runner.daemon_context.files_preserve = files_preserve_by_path(log_file)
     try:
         daemon_runner.do_action()
         logger.info('loaded with arguments: %s', str(argv))
@@ -148,8 +141,8 @@ def main_as_daemon(argv):
         print("Exception NameError: %s" % ex)
     finally:
         doorpi.DoorPi().destroy()
-
     return 0
+
 
 def main_as_application(argv):
 
@@ -163,6 +156,7 @@ def main_as_application(argv):
     finally:                    doorpi.DoorPi().destroy()
 
     return 0
+
 
 def entry_point():
     init_logger(sys.argv)

@@ -3,5 +3,5 @@ RPi.GPIO >= 0.5.11
 pifacedigitalio >= 3.0.5
 pyserial >= 2.7
 watchdog >= 0.8.3
-daemon >= 1.1
+python-daemon >= 2.0.0
 linphone4raspberry

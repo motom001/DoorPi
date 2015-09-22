@@ -2,10 +2,8 @@
 
 import imp
 import os
-import stat
 import uuid
 import sys
-from setuptools import setup, find_packages
 
 base_path = os.path.dirname(os.path.abspath(__file__))
 metadata = imp.load_source('metadata', os.path.join(base_path, 'doorpi', 'metadata.py'))
@@ -52,6 +50,7 @@ except ImportError:
             print("install pip failed with error code %s" % e.code)
             sys.exit(e.code)
 
+from setuptools import setup, find_packages
 from pip.req import parse_requirements
 install_reqs = parse_requirements(os.path.join(base_path, 'requirements.txt'), session=uuid.uuid1())
 reqs = [str(req.req) for req in install_reqs]
@@ -113,14 +112,7 @@ setup_dict = dict(
         # 'gui_scripts': [
         #     'doorpi_gui = doorpi.gui:entry_point'
         # ]
-    },
-    data_files=[
-        (
-            os.path.join(metadata.doorpi_path, 'docs', 'daemon'), [
-                return_parsed_filename(metadata.daemon_name_template, metadata.daemon_name_template_parsed)
-            ]
-         )
-    ]
+    }
 )
 
 

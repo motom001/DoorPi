@@ -55,7 +55,7 @@ Supporter:  {supporters}
 
 if os.name == 'posix':
     dummy_file = 'doorpi/docs/dummy_file'
-    doorpi_path = os.path.join('/usr/local/etc/%s_neu', package)
+    doorpi_path = os.path.join('/usr/local/etc', package)
     pidfile = '/var/run/%s.pid' % package.lower()
     daemon_folder = '/etc/init.d'
     daemon_name = package.lower()

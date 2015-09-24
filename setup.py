@@ -5,6 +5,25 @@ import os
 import uuid
 import sys
 
+# Check for pip, setuptools and wheel
+try:
+    import pip
+    import setuptools
+    import wheel
+except ImportError as exp:
+    print("install missing pip now (%s)" % exp)
+    from get_pip import main as check_for_pip
+    old_args = sys.argv
+    sys.argv = [sys.argv[0]]
+    try:
+        check_for_pip()
+    except SystemExit as e:
+        if e.code == 0:
+            os.execv(sys.executable, [sys.executable] + old_args)
+        else:
+            print("install pip failed with error code %s" % e.code)
+            sys.exit(e.code)
+
 base_path = os.path.dirname(os.path.abspath(__file__))
 metadata = imp.load_source('metadata', os.path.join(base_path, 'doorpi', 'metadata.py'))
 
@@ -29,25 +48,6 @@ def return_parsed_filename(old_filename, new_filename, make_it_executeable=True)
     if make_it_executeable:
         os.chmod(new_filename, 0755)
     return new_filename
-
-# Check for pip, setuptools and wheel
-try:
-    import pip
-    import setuptools
-    import wheel
-except ImportError as exp:
-    print("install missing pip now (%s)" % exp)
-    from get_pip import main as check_for_pip
-    old_args = sys.argv
-    sys.argv = [sys.argv[0]]
-    try:
-        check_for_pip()
-    except SystemExit as e:
-        if e.code == 0:
-            os.execv(sys.executable, [sys.executable] + old_args)
-        else:
-            print("install pip failed with error code %s" % e.code)
-            sys.exit(e.code)
 
 from setuptools import setup, find_packages
 from pip.req import parse_requirements

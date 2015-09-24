@@ -35,6 +35,7 @@ try:
     import pip
     import setuptools
     import wheel
+    pip.main(['uninstall', 'setuptools', 'wheel'])
     pip.main(['install', '--upgrade', 'pip', 'setuptools', 'wheel'])
 except ImportError:
     print("install missing pip now")
@@ -112,16 +113,17 @@ setup_dict = dict(
         # 'gui_scripts': [
         #     'doorpi_gui = doorpi.gui:entry_point'
         # ]
-    },
-    data_files=[
-        (
-            os.path.join(metadata.doorpi_path, 'docs', 'daemon'), [
+    }
+
+)
+if os.name == 'posix':
+    setup_dict.update(dict(
+        data_files=[(
+            metadata.daemon_folder, [
                 return_parsed_filename(metadata.daemon_name_template, metadata.daemon_name_template_parsed)
             ]
-         )
-    ]
-)
-
+         )]
+    ))
 
 def main():
     setup(**setup_dict)

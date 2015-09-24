@@ -39,6 +39,13 @@ do_start_cmd()
        	$DAEMON start $DAEMON_ARGS || return 2
 }
 
+do_test_cmd()
+{
+        status_of_proc "$DAEMON" "$NAME" > /dev/null && return 1
+       	$DAEMON start $DAEMON_ARGS --test || return 2
+}
+
+
 do_stop_cmd()
 {
 	status_of_proc "$DAEMON" "$NAME" > /dev/null || return 1
@@ -51,6 +58,14 @@ case "$1" in
 	start)
 		[ "$VERBOSE" != no ] && log_daemon_msg "Starting $DESC" "$NAME"
 		do_start_cmd
+		case "$?" in
+			0|1) [ "$VERBOSE" != no ] && log_end_msg 0 ;;
+			2) [ "$VERBOSE" != no ] && log_end_msg 1 ;;
+		esac
+		;;
+	start)
+		[ "$VERBOSE" != no ] && log_daemon_msg "Starting $DESC" "$NAME"
+		do_test_cmd
 		case "$?" in
 			0|1) [ "$VERBOSE" != no ] && log_end_msg 0 ;;
 			2) [ "$VERBOSE" != no ] && log_end_msg 1 ;;

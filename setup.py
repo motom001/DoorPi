@@ -8,7 +8,6 @@ import sys
 base_path = os.path.dirname(os.path.abspath(__file__))
 metadata = imp.load_source('metadata', os.path.join(base_path, 'doorpi', 'metadata.py'))
 
-
 def read(filename, parse_file_content=False, new_filename=None):
     with open(os.path.join(base_path, filename)) as f:
         file_content = f.read()
@@ -36,8 +35,9 @@ try:
     import pip
     import setuptools
     import wheel
-except ImportError:
-    print("install missing pip now")
+    pip.main(['install', '--upgrade', 'pip', 'setuptools', 'wheel'])
+except ImportError as exp:
+    print("install missing pip now (%s)" % exp)
     from get_pip import main as check_for_pip
     old_args = sys.argv
     sys.argv = [sys.argv[0]]
@@ -112,16 +112,17 @@ setup_dict = dict(
         # 'gui_scripts': [
         #     'doorpi_gui = doorpi.gui:entry_point'
         # ]
-    },
-    data_files=[
-        (
-            os.path.join(metadata.doorpi_path, 'docs', 'daemon'), [
+    }
+
+)
+if os.name == 'posix' and os.geteuid() == 0:
+    setup_dict.update(dict(
+        data_files=[(
+            metadata.daemon_folder, [
                 return_parsed_filename(metadata.daemon_name_template, metadata.daemon_name_template_parsed)
             ]
-         )
-    ]
-)
-
+         )]
+    ))
 
 def main():
     setup(**setup_dict)

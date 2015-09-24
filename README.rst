@@ -2,7 +2,7 @@
 DoorPi: VoIP Door-Intercomstation with Raspberry Pi
 ****************************************************
 
-|travis_status_master| |code_climate_badge|
+|travis_status_master| |code_climate_badge| |scrutinizer_status_master| 
 
 :DoorPi @ `PyPi`_: 
     |pypi_latest_version| |pypi_License|
@@ -207,10 +207,13 @@ But you should change the `BASE_PATH <https://github.com/motom001/DoorPi/blob/ma
 .. |travis_status_master| image:: https://travis-ci.org/motom001/DoorPi.svg?branch=master
     :target: https://travis-ci.org/motom001/DoorPi
 
-.. |code_climate_badge| image:: https://codeclimate.com/github/motom001/DoorPi/badges/gpa.svg
+.. |scrutinizer_status_master| image:: https://codeclimate.com/github/motom001/DoorPi/badges/gpa.svg
    :target: https://codeclimate.com/github/motom001/DoorPi
    :alt: Code Climate
 
+.. |code_climate_badge| image:: https://scrutinizer-ci.com/g/motom001/DoorPi/badges/quality-score.png?b=master
+   :target: https://scrutinizer-ci.com/g/motom001/DoorPi/
+   
 .. |pypi_License| image:: https://img.shields.io/pypi/l/DoorPi.svg
     :target: https://creativecommons.org/licenses/by-nc/4.0/
     :alt: CC BY-NC 4.0

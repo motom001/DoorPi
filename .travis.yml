@@ -1,11 +1,22 @@
-sudo: false
+sudo: true
 language: python
-python:
-- '2.7'
+
+matrix:
+    include:
+        - python: 2.7
+          env: START_MODE=application
+        - python: 2.7
+          env: START_MODE=daemon
+
+before_install:
+- .travis/before_install.sh
+
 install:
-- python setup.py install
+- sudo -H python setup.py install
+
 script:
-- doorpi_cli --test --trace
+- .travis/script.sh
+
 deploy:
   provider: pypi
   user:

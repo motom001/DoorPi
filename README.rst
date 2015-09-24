@@ -207,11 +207,11 @@ But you should change the `BASE_PATH <https://github.com/motom001/DoorPi/blob/ma
 .. |travis_status_master| image:: https://travis-ci.org/motom001/DoorPi.svg?branch=master
     :target: https://travis-ci.org/motom001/DoorPi
 
-.. |code_climate_badge| image:: https://scrutinizer-ci.com/g/motom001/DoorPi/badges/quality-score.png?b=master
+.. |scrutinizer_status_master| image:: https://codeclimate.com/github/motom001/DoorPi/badges/gpa.svg
    :target: https://codeclimate.com/github/motom001/DoorPi
    :alt: Code Climate
 
-.. |scrutinizer_status_master| image:: https://codeclimate.com/github/motom001/DoorPi/badges/gpa.svg
+.. |code_climate_badge| image:: https://scrutinizer-ci.com/g/motom001/DoorPi/badges/quality-score.png?b=master
    :target: https://scrutinizer-ci.com/g/motom001/DoorPi/
    
 .. |pypi_License| image:: https://img.shields.io/pypi/l/DoorPi.svg

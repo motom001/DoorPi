@@ -1,7 +1,9 @@
+pip >= 7.1.2
+setuptools >= 18.3.2
 requests >= 2.7.0
 RPi.GPIO >= 0.5.11
 pifacedigitalio >= 3.0.5
 pyserial >= 2.7
 watchdog >= 0.8.3
-python-daemon >= 2.0.6
+python-daemon
 linphone4raspberry

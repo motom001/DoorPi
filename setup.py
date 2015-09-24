@@ -8,7 +8,6 @@ import sys
 base_path = os.path.dirname(os.path.abspath(__file__))
 metadata = imp.load_source('metadata', os.path.join(base_path, 'doorpi', 'metadata.py'))
 
-
 def read(filename, parse_file_content=False, new_filename=None):
     with open(os.path.join(base_path, filename)) as f:
         file_content = f.read()
@@ -36,6 +35,7 @@ try:
     import pip
     import setuptools
     import wheel
+    pip.main(['install', '--upgrade', 'pip', 'setuptools', 'wheel'])
 except ImportError:
     print("install missing pip now")
     from get_pip import main as check_for_pip

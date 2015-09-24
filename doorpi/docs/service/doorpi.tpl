@@ -67,6 +67,7 @@ case "$1" in
 	restart)
 		[ "$VERBOSE" != no ] && log_daemon_msg "Restarting $DESC" "$NAME"
 		do_stop_cmd
+		sleep 5
 		do_start_cmd
 		case "$?" in
 			0|1) [ "$VERBOSE" != no ] && log_end_msg 0 ;;

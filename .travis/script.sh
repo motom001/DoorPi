@@ -9,17 +9,18 @@ fi
 
 if [[ $START_MODE = "daemon" ]]; then
     sudo service doorpi status
-    #if [ $? -ne 3 ] exit 1
+    if [ $? -ne 3 ] && exit 1
     sleep 5
     sudo service doorpi start
-    #if [ $? -ne 0 ] exit 1
+    if [ $? -ne 0 ] && exit 1
     sleep 5
     sudo service doorpi status
-    #if [ $? -ne 0 ] exit 1
+    if [ $? -ne 0 ] && exit 1
     sleep 5
     sudo service doorpi stop
-    #if [ $? -ne 0 ] exit 1
+    if [ $? -ne 0 ] && exit 1
     sleep 5
     sudo service doorpi status
-    #if [ $? -ne 3 ] exit 1
+    if [ $? -ne 3 ] && exit 1
 fi
+exit 0

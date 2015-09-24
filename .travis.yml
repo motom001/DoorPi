@@ -12,7 +12,7 @@ before_install:
 - .travis/before_install.sh
 
 install:
-- sudo -H python setup.py install
+- .travis/install.sh
 
 script:
 - .travis/script.sh

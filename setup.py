@@ -35,7 +35,6 @@ try:
     import pip
     import setuptools
     import wheel
-    pip.main(['install', '--upgrade', 'pip', 'setuptools', 'wheel'])
 except ImportError as exp:
     print("install missing pip now (%s)" % exp)
     from get_pip import main as check_for_pip

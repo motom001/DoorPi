@@ -1,23 +1,23 @@
 #!/bin/sh
 ### BEGIN INIT INFO
-# Provides:          DoorPi
+# Provides:          !!package!!
 # Required-Start:    $remote_fs $syslog
 # Required-Stop:     $remote_fs $syslog
 # Default-Start:     2 3 4 5
 # Default-Stop:      0 1 6
-# Short-Description: DoorPi
-# Description:       VoIP Intercom Service DoorPi
+# Short-Description: !!package!!
+# Description:       !!project!!
 ### END INIT INFO
 
 . /lib/lsb/init-functions
 
-NAME=DoorPi
-DESC="VoIP Intercom Service"
-DAEMON=doorpi_cli
-DOORPI_PATH=/etc/$NAME
-DAEMON_ARGS="--configfile $DOORPI_PATH/conf/doorpi.ini --trace"
-PIDFILE=/var/run/doorpi.pid
-SCRIPTNAME=/etc/init.d/doorpi
+NAME=!!package!!
+DESC="!!project!!"
+DAEMON=!!doorpi_executable!!
+DOORPI_PATH=!!doorpi_path!!
+DAEMON_ARGS="!!daemon_args!!"
+PIDFILE=!!pidfile!!
+SCRIPTNAME=!!daemon_folder!!/!!daemon_name!!
 
 # Exit if the package is not installed
 if [ none != "$DAEMON" ] && [ ! -x "$DAEMON" ] ; then

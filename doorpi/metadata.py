@@ -9,7 +9,7 @@ import os
 package = 'DoorPi'
 project = "VoIP Door-Intercomstation with Raspberry Pi"
 project_no_spaces = project.replace(' ', '')
-version = '2.4.1.0'
+version = '2.4.1.2'
 description = 'provide intercomstation to the doorstation by VoIP'
 keywords = ['intercom', 'VoIP', 'doorstation', 'home automation', 'IoT']
 authors = ['Thomas Meissner']
@@ -30,7 +30,7 @@ supporters = [
     'missing someone? -> sorry -> mail me'
 ]
 supporter_string = '\n'.join(supporters)
-copyright = "%s, 2014-2015"%authors[0]
+copyright = "%s, 2014-2015" % authors[0]
 license = 'CC BY-NC 4.0'
 url = 'https://github.com/motom001/DoorPi'
 
@@ -51,3 +51,25 @@ Supporter:  {supporters}
         authors = '\n'.join(author_strings),
         supporters = '\n            '.join(supporters),
         url = url)
+
+
+if os.name == 'posix':
+    dummy_file = 'doorpi/docs/dummy_file'
+    doorpi_path = os.path.join('/usr/local/etc', package)
+    pidfile = '/var/run/%s.pid' % package.lower()
+    daemon_folder = '/etc/init.d'
+    daemon_name = package.lower()
+    daemon_name_template = 'doorpi/docs/service/doorpi.tpl'
+    daemon_name_template_parsed = 'doorpi/docs/service/doorpi'
+    daemon_args = '--configfile $DOORPI_PATH/conf/doorpi.ini --trace'
+    doorpi_executable = '/usr/local/bin/doorpi_cli'
+    log_folder = '%s/log' % doorpi_path
+    try:
+        if not os.path.exists(doorpi_path):
+            os.makedirs(doorpi_path)
+    except OSError:
+        doorpi_path = os.path.join(os.path.expanduser('~'), package)
+else:
+    raise Exception('os unknown')
+
+

@@ -87,7 +87,7 @@ class DoorPi(object):
     @property
     def shutdown(self): return self.__shutdown
 
-    _base_path = None
+    _base_path = metadata.doorpi_path
     @property
     def base_path(self):
         if self._base_path is None:

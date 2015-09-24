@@ -2,7 +2,7 @@
 DoorPi: VoIP Door-Intercomstation with Raspberry Pi
 ****************************************************
 
-|travis_status_master|
+|travis_status_master| |code_climate_badge|
 
 :DoorPi @ `PyPi`_: 
     |pypi_latest_version| |pypi_License|
@@ -89,15 +89,17 @@ via `PyPi`_:
 .. code-block:: bash
 
    sudo pip install doorpi &&
-   sudo doorpi_cli --trace
+   doorpi_cli --trace
 
 via `GitHub`_:
 
 .. code-block:: bash
 
-   git clone https://github.com/motom001/DoorPi.git /tmp/DoorPi 
-   sudo python /tmp/DoorPi/setup.py build -b /tmp/DoorPi install
-   sudo doorpi_cli --trace 
+   sudo rm -r -f /tmp/DoorPi
+   git clone https://github.com/motom001/DoorPi.git /tmp/DoorPi
+   cd /tmp/DoorPi
+   sudo python setup.py install
+   doorpi_cli --trace
 
    
 -----------------
@@ -175,9 +177,11 @@ via `GitHub`_:
 
 .. code-block:: bash
 
-   git clone https://github.com/motom001/DoorPi.git /tmp/DoorPi 
-   sudo python /tmp/DoorPi/setup.py build -b /tmp/DoorPi install
-   sudo doorpi_cli --trace
+   sudo rm -r -f /tmp/DoorPi
+   git clone https://github.com/motom001/DoorPi.git /tmp/DoorPi
+   cd /tmp/DoorPi
+   sudo python setup.py install
+   doorpi_cli --trace
 
 -----------------
 Configuration
@@ -202,6 +206,10 @@ But you should change the `BASE_PATH <https://github.com/motom001/DoorPi/blob/ma
 
 .. |travis_status_master| image:: https://travis-ci.org/motom001/DoorPi.svg?branch=master
     :target: https://travis-ci.org/motom001/DoorPi
+
+.. |code_climate_badge| image:: https://codeclimate.com/github/motom001/DoorPi/badges/gpa.svg
+   :target: https://codeclimate.com/github/motom001/DoorPi
+   :alt: Code Climate
 
 .. |pypi_License| image:: https://img.shields.io/pypi/l/DoorPi.svg
     :target: https://creativecommons.org/licenses/by-nc/4.0/

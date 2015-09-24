@@ -35,7 +35,7 @@ try:
     import pip
     import setuptools
     import wheel
-    pip.main(['uninstall', 'setuptools', 'wheel'])
+    pip.main(['uninstall', '-y', 'setuptools', 'wheel'])
     pip.main(['install', '--upgrade', 'pip', 'setuptools', 'wheel'])
 except ImportError:
     print("install missing pip now")

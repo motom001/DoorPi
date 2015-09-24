@@ -1,7 +1,9 @@
-sudo: false
+sudo: true
 language: python
 python:
 - '2.7'
+before_install:
+- .travis/install.sh
 install:
 - python setup.py install
 script:

@@ -5,7 +5,7 @@ python:
 before_install:
 - .travis/before_install.sh
 install:
-- sudo python setup.py install
+- sudo -H python setup.py install
 script:
 - sudo doorpi_cli --test --trace
 deploy:

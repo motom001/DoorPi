@@ -115,7 +115,7 @@ setup_dict = dict(
     }
 
 )
-if os.name == 'posix':
+if os.name == 'posix' and os.geteuid() == 0:
     setup_dict.update(dict(
         data_files=[(
             metadata.daemon_folder, [

@@ -5,6 +5,8 @@ matrix:
     include:
         - python: 2.7
           env: START_MODE=application
+        - python: 2.7
+          env: START_MODE=daemon
 
 before_install:
 - .travis/before_install.sh

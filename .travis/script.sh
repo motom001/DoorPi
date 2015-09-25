@@ -4,7 +4,7 @@
 set -x # Print commands and their arguments as they are executed.
 
 if [[ $START_MODE = "application" ]]; then
-    sudo doorpi_cli --trace --test
+    doorpi_cli --trace --test
 fi
 
 if [[ $START_MODE = "daemon" ]]; then

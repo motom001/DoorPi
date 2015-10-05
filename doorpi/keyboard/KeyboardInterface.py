@@ -29,21 +29,26 @@ def load_single_keyboard(keyboard_name):
     keyboard_type = doorpi.DoorPi().config.get('keyboards', keyboard_name, 'dummy').lower()
     store_if_not_exists = False if keyboard_type == "dummy" else True
 
+    section_name = conf_pre+'keyboard'+conf_post
     input_pins = doorpi.DoorPi().config.get_keys(conf_pre+'InputPins'+conf_post)
     output_pins = doorpi.DoorPi().config.get_keys(conf_pre+'OutputPins'+conf_post)
-    bouncetime = doorpi.DoorPi().config.get_float(conf_pre+'keyboard'+conf_post, 'bouncetime', 2000, store_if_not_exists = store_if_not_exists)
-    polarity = doorpi.DoorPi().config.get_int(conf_pre+'keyboard'+conf_post, 'polarity', 0, store_if_not_exists = store_if_not_exists)
-
+    bouncetime = doorpi.DoorPi().config.get_float(section_name, 'bouncetime', 2000,
+                                                  store_if_not_exists=store_if_not_exists)
+    polarity = doorpi.DoorPi().config.get_int(section_name, 'polarity', 0,
+                                              store_if_not_exists=store_if_not_exists)
+    pressed_on_key_down = doorpi.DoorPi().config.get_bool(section_name, 'pressed_on_keydown',
+                                                          True, store_if_not_exists=store_if_not_exists)
     try:
         keyboard = importlib.import_module('doorpi.keyboard.from_'+keyboard_type).get(
-            input_pins = input_pins,
-            output_pins = output_pins,
-            bouncetime = bouncetime,
-            polarity = polarity,
-            keyboard_name = keyboard_name,
-            keyboard_type = keyboard_type,
-            conf_pre = conf_pre,
-            conf_post = conf_post
+            input_pins=input_pins,
+            output_pins=output_pins,
+            bouncetime=bouncetime,
+            polarity=polarity,
+            keyboard_name=keyboard_name,
+            keyboard_type=keyboard_type,
+            conf_pre=conf_pre,
+            conf_post=conf_post,
+            pressed_on_key_down=pressed_on_key_down
         )
     except ImportError as exp:
         logger.exception('keyboard %s not found @ keyboard.from_%s (msg: %s)', keyboard_name, keyboard_type, exp)

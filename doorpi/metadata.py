@@ -64,11 +64,8 @@ if os.name == 'posix':
     daemon_args = '--configfile $DOORPI_PATH/conf/doorpi.ini --trace'
     doorpi_executable = '/usr/local/bin/doorpi_cli'
     log_folder = '%s/log' % doorpi_path
-    try:
-        if not os.path.exists(doorpi_path):
-            os.makedirs(doorpi_path)
-    except OSError:
-        doorpi_path = os.path.join(os.path.expanduser('~'), package)
+    if not os.path.exists(doorpi_path):
+        os.makedirs(doorpi_path)
 else:
     raise Exception('os unknown')
 

@@ -44,7 +44,8 @@ class PiFace(KeyboardAbstractBaseClass):
         self.register_destroy_action()
 
     def destroy(self):
-        if self.is_destroyed: return
+        if self.is_destroyed:
+            return
         logger.debug("destroy")
         
         # shutdown listener

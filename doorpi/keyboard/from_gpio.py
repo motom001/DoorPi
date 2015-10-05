@@ -29,7 +29,7 @@ class GPIO(KeyboardAbstractBaseClass):
         RPiGPIO.setwarnings(False)
 
         section_name = conf_pre+'keyboard'+conf_post
-        if doorpi.DoorPi().config.get_bool(section_name, 'mode', "BOARD").upper() == "board":
+        if doorpi.DoorPi().config.get_bool(section_name, 'mode', "BOARD").upper() == "BOARD":
             RPiGPIO.setmode(RPiGPIO.BOARD)
         else:
             RPiGPIO.setmode(RPiGPIO.BCM)

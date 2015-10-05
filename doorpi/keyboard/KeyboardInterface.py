@@ -56,6 +56,7 @@ def load_single_keyboard(keyboard_name):
 
     return keyboard
 
+
 class KeyboardHandler(KeyboardAbstractBaseClass):
     @property
     def name(self):

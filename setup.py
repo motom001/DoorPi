@@ -106,13 +106,8 @@ setup_dict = dict(
     entry_points={
         'console_scripts': [
             'doorpi_cli = doorpi.main:entry_point'
-        ],
-        # if you have a gui, use this
-        # 'gui_scripts': [
-        #     'doorpi_gui = doorpi.gui:entry_point'
-        # ]
+        ]
     }
-
 )
 if os.name == 'posix' and os.geteuid() == 0:
     setup_dict.update(dict(
@@ -122,6 +117,7 @@ if os.name == 'posix' and os.geteuid() == 0:
             ]
          )]
     ))
+
 
 def main():
     setup(**setup_dict)

@@ -99,9 +99,23 @@ via `GitHub`_:
    git clone https://github.com/motom001/DoorPi.git /tmp/DoorPi
    cd /tmp/DoorPi
    sudo python setup.py install
-   doorpi_cli --trace
+   sudo doorpi_cli --trace
 
-   
+-----------------
+Daemon
+-----------------
+
+Als Erstes sollte doorPi als Anwendung gestartet werden, damit mögliche Fehler sofort angezeigt werden können. Außerdem wird beim ersten Start das DoorPi Basis-Verzeichnis unter /usr/local/etc/DoorPi eingerichtet.
+
+Die passende Daemon-Datei wird bereits unter /etc/init.d/doorpi abgelegt. Um DoorPi beim Systemstart automatisch starten zu lassen, muss dieser noch registriert werden:
+
+.. code-block:: bash
+
+   sudo update-rc.d doorpi defaults
+   sudo service doorpi start
+
+Logdateien werden von DoorPi angelegt unter: /usr/local/etc/DoorPi/log/*
+
 -----------------
 Konfiguration
 -----------------
@@ -116,93 +130,30 @@ In der Info-Seite findest Du neben der Beschreibung auch die möglichen Paramete
 Parallel dazu gibt es in der Navigation den Konfig-Editor. Dort kannst Du die Config bearbeiten, wenn Du weißt, welche Parameter wo hin gehören.
 Auch die Config abspeichern kannst Du in der Übersicht.
 
------------------
-Daemon
------------------
+Hilfe zur DoorPi Konfiguration (egal ob im Dashboard oder per Konfigurationsdatei) gibt es im DoorPi Wiki:
 
-Anleitung um DoorPi als Daemon einzurichten ist hier zu finden:
-https://github.com/motom001/DoorPi/tree/master/doorpi/docs/service
-
-Es sollte aber auf jeden Fall der `BASE_PATH <https://github.com/motom001/DoorPi/blob/master/doorpi/docs/service/doorpi#L17>`_ auf den Ablageort der Config-Datei angepasst werden.
+`DoorPi Wiki <https://github.com/motom001/DoorPi/wiki/Konfiguration>`_
 
 -----------------
-DoorPi Threads
+DoorPi-Hilfe 
 -----------------
 
-Link zu Foren mit DoorPi Threads:
+Link zu Foren mit DoorPi Beiträgen:
 
-:forum-raspberrypi.de: `[Haussteuerung] DoorPi (VoIP Wechselsprechanlage / Türsprechanlage mit Video-Support) <http://www.forum-raspberrypi.de/Thread-haussteuerung-doorpi-voip-wechselsprechanlage-tuersprechanlage-mit-video-support>`_
+`[Haussteuerung] DoorPi (VoIP Wechselsprechanlage / Türsprechanlage mit Video-Support) <http://www.forum-raspberrypi.de/Thread-haussteuerung-doorpi-voip-wechselsprechanlage-tuersprechanlage-mit-video-support>`_
 
-:ip-symcon.de: `DoorPI / VoIP Door-Intercomstation with Raspberry Pi <http://www.ip-symcon.de/forum/threads/26739-DoorPI-VoIP-Door-Intercomstation-with-Raspberry-Pi>`_
+`DoorPI / VoIP Door-Intercomstation with Raspberry Pi <http://www.ip-symcon.de/forum/threads/26739-DoorPI-VoIP-Door-Intercomstation-with-Raspberry-Pi>`_
 
 =============
-English
+Changelog
 =============
----------------
-Introduction
----------------
 
-coming soon
+see `changelog.txt<https://github.com/motom001/DoorPi/changelog.txt>`_
 
----------------
-Event-Sorces
----------------
-
-coming soon
-
------------------
-Action-Receiver
------------------
-
-coming soon
-
------------------
-Examples
------------------
-
-coming soon
-
------------------
-Installation
------------------
-
-via `PyPi`_:
-
-.. code-block:: bash
-
-   sudo pip install doorpi &&
-   sudo doorpi_cli --trace
-
-via `GitHub`_:
-
-.. code-block:: bash
-
-   sudo rm -r -f /tmp/DoorPi
-   git clone https://github.com/motom001/DoorPi.git /tmp/DoorPi
-   cd /tmp/DoorPi
-   sudo python setup.py install
-   doorpi_cli --trace
-
------------------
-Configuration
------------------
-
-coming soon
-
------------------
-Daemon
------------------
-
-The readme to install doorpi as daemon is here:
-https://github.com/motom001/DoorPi/tree/master/doorpi/docs/service
-
-But you should change the `BASE_PATH <https://github.com/motom001/DoorPi/blob/master/doorpi/docs/service/doorpi#L17>`_ to the path of the config file.
 
 .. _VoIP: https://de.wikipedia.org/wiki/IP-Telefonie
 .. _PyPi: https://pypi.python.org/pypi/DoorPi
 .. _GitHub: https://github.com/motom001/DoorPi
-.. _GitHubDaemonReadme: https://github.com/motom001/DoorPi/tree/master/doorpi/docs/service
-.. _GitHubDaemonFileLine17: https://github.com/motom001/DoorPi/blob/master/doorpi/docs/service/doorpi#L17
 
 .. |travis_status_master| image:: https://travis-ci.org/motom001/DoorPi.svg?branch=master
     :target: https://travis-ci.org/motom001/DoorPi

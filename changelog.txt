@@ -8,9 +8,12 @@ Legend:
 ~ change
 / reference to commit
 
-Version: 2.4.1.8 (2015-10-05)
+Version: 2.4.1.8 (2015-xx-xx)
 -------------------------------
-/ 
+/ xxx
++ add cat of logfile for test @ travis
+
+/ 047aa727da62262f5b0815222d65ffec123af549
 ~ change code to PEP8 style
 + add changelog reference to README.rst
 ~ change behavior of restart daemon: check until doorpi is stopped before to start it again (default sleep between 2 sec) #132
@@ -22,11 +25,14 @@ Version: 2.4.1.8 (2015-10-05)
 
 / 7119caffd79cd02322a224df8ae102e1096e9e8a
 + add changelog to README.rst
-+ config property keyboard piface pressed_on_keydown
-+ config property keyboard gpio pressed_on_keydown
++ config property keyboard piface pressed_on_keydown #134
+~ ATTENTION: changed behavior of keyboard piface event OnKeyPressed from fire with OnKeyUp to fire with OnKeyDown #134
++ config property keyboard gpio pressed_on_keydown #134
 + config property keyboard gpio mode
-+ config property keyboard gpio pull_up_down
-+ config property keyboard filesystem pressed_on_keydown
++ config property keyboard gpio pull_up_down #134
++ config property keyboard filesystem pressed_on_keydown #134
 ~ try to register keyboard gpio inputpins as list but except TypeError and register it as int (old gpio behavior) #133
-~ ATTATION: changed behavior of keyboard piface event OnKeyPressed from fire with OnKeyUp to fire with OnKeyDown
 ~ change code to PEP8 style
+
+/ 50943b5c30cbe5a10678b5ea929afa200916d9a5
+- remove sudo for `doorpi_cli --trace --test` for test @ travis

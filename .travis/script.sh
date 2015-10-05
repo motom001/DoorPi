@@ -30,5 +30,6 @@ if [[ $START_MODE = "daemon" ]]; then
     if [ $? -ne 3 ]; then 
         exit 1 
     fi
+    cat /usr/local/etc/DoorPi/log/doorpi.log
     exit 0
 fi

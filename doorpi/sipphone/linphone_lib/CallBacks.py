@@ -213,7 +213,7 @@ class LinphoneCallbacks:
     def message_received(self, core, linphone_chat_room, message): pass
     def is_composing_received(self, core, linphone_chat_room): pass
     def dtmf_received(self, core, call, digits):
-        logger.debug("on_dtmf_digit (%s)",str(digits))
+        logger.debug("on_dtmf_digit (%s)", str(digits))
         digits = chr(digits)
         DoorPi().event_handler('OnDTMF', __name__, {'digits':digits})
         self.__DTMF += str(digits)

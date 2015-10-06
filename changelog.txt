@@ -7,10 +7,14 @@ Legend:
 - remove
 ~ change
 / reference to commit
+! fix issue or kown bug
 
 Version: 2.4.1.8 (2015-xx-xx)
 -------------------------------
 / xxx
+! fix "Exception NameError: 'bool' object has no attribute 'upper'" @ doorpi/keyboard/from_gpio.py (thx to cubeschrauber)
+
+/ f24ac1b8df34bfe17f08b3ae78558ab10af2c22d
 + add cat of logfile for test @ travis
 
 / 047aa727da62262f5b0815222d65ffec123af549
@@ -35,4 +39,4 @@ Version: 2.4.1.8 (2015-xx-xx)
 ~ change code to PEP8 style
 
 / 50943b5c30cbe5a10678b5ea929afa200916d9a5
-- remove sudo for `doorpi_cli --trace --test` for test @ travis
+- remove sudo for `doorpi_cli --trace --test` for test @ travis in application mode

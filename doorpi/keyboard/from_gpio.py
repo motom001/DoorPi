@@ -29,13 +29,13 @@ class GPIO(KeyboardAbstractBaseClass):
         RPiGPIO.setwarnings(False)
 
         section_name = conf_pre+'keyboard'+conf_post
-        if doorpi.DoorPi().config.get_bool(section_name, 'mode', "BOARD").upper() == "BOARD":
+        if doorpi.DoorPi().config.get(section_name, 'mode', "BOARD").upper() == "BOARD":
             RPiGPIO.setmode(RPiGPIO.BOARD)
         else:
             RPiGPIO.setmode(RPiGPIO.BCM)
 
         # issue 134
-        pull_up_down = doorpi.DoorPi().config.get_bool(section_name, 'pull_up_down', "PUD_OFF").upper()
+        pull_up_down = doorpi.DoorPi().config.get(section_name, 'pull_up_down', "PUD_OFF").upper()
         if pull_up_down == "PUD_DOWN":
             pull_up_down = RPiGPIO.PUD_DOWN
         elif pull_up_down == "PUD_UP":

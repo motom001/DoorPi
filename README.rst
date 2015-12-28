@@ -84,6 +84,8 @@ Mittlerweile gibt es auch Video-Support, so dass an der Haustür eine Kamera ins
 Installation
 -----------------
 
+Es wird aktuell empfohlen DoorPi nur auf Raspbian Wheezy zu installieren da das Installationskrip für Raspbian Jessie angepasst werden muss.
+
 via `PyPi`_:
 
 .. code-block:: bash

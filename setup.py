@@ -4,6 +4,7 @@ import imp
 import os
 import uuid
 import sys
+import urllib2
 
 # Check for pip, setuptools and wheel
 try:
@@ -27,27 +28,25 @@ except ImportError as exp:
 base_path = os.path.dirname(os.path.abspath(__file__))
 metadata = imp.load_source('metadata', os.path.join(base_path, 'doorpi', 'metadata.py'))
 
+
+def parse_string(raw_string):
+    for meta_key in dir(metadata):
+        if not meta_key.startswith('__'):
+            raw_string = raw_string.replace('!!%s!!' % meta_key,  str(getattr(metadata, meta_key)))
+    return raw_string
+
+
 def read(filename, parse_file_content=False, new_filename=None):
     with open(os.path.join(base_path, filename)) as f:
         file_content = f.read()
     if parse_file_content:
-        for meta_key in dir(metadata):
-            if not meta_key.startswith('__'):
-                file_content = file_content.replace('!!%s!!' % meta_key,  str(getattr(metadata, meta_key)))
+        file_content = parse_string(file_content)
     if new_filename:
         with open(os.path.join(base_path, new_filename), 'w') as f:
             f.write(file_content)
         return new_filename
     return file_content
 
-
-def return_parsed_filename(old_filename, new_filename, make_it_executeable=True):
-    new_filename = os.path.join(base_path, new_filename)
-    with open(new_filename, 'w') as f:
-        f.write(read(old_filename, True))
-    if make_it_executeable:
-        os.chmod(new_filename, 0755)
-    return new_filename
 
 from setuptools import setup, find_packages
 from pip.req import parse_requirements
@@ -109,17 +108,15 @@ setup_dict = dict(
         ]
     }
 )
-if os.name == 'posix' and os.geteuid() == 0:
-    setup_dict.update(dict(
-        data_files=[(
-            metadata.daemon_folder, [
-                return_parsed_filename(metadata.daemon_name_template, metadata.daemon_name_template_parsed)
-            ]
-         )]
-    ))
 
 
 def main():
+    if os.name == 'posix' and os.geteuid() == 0:
+        with open(metadata.daemon_file, "w") as daemon_file:
+            for line in urllib2.urlopen(metadata.daemon_online_template):
+                daemon_file.write(parse_string(line))
+        os.chmod(metadata.daemon_file, 0755)
+
     setup(**setup_dict)
 
 if __name__ == '__main__':

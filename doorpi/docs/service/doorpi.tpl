@@ -21,7 +21,7 @@ SCRIPTNAME=!!daemon_folder!!/!!daemon_name!!
 
 # Exit if the package is not installed
 if [ none != "$DAEMON" ] && [ ! -x "$DAEMON" ] ; then
-        exit 0
+        exit 3
 fi
 
 # Read configuration variable file if it is present
@@ -57,13 +57,16 @@ do_stop_cmd()
 	return 0
 }
 
+EX=0
 case "$1" in
 	start)
 		[ "$VERBOSE" != no ] && log_daemon_msg "Starting $DESC" "$NAME"
 		do_start_cmd
 		case "$?" in
 			0|1) [ "$VERBOSE" != no ] && log_end_msg 0 ;;
-			2) [ "$VERBOSE" != no ] && log_end_msg 1 ;;
+			2) 
+				 [ "$VERBOSE" != no ] && log_end_msg 1 
+				 EX=1 ;;
 		esac
 		;;
 	stop)
@@ -71,7 +74,9 @@ case "$1" in
 		do_stop_cmd
 		case "$?" in
 			0|1) [ "$VERBOSE" != no ] && log_end_msg 0 ;;
-			2) [ "$VERBOSE" != no ] && log_end_msg 1 ;;
+			2) 
+				 [ "$VERBOSE" != no ] && log_end_msg 1 
+				 EX=1 ;;
 		esac
 		;;
 	restart)
@@ -90,7 +95,9 @@ case "$1" in
 		do_start_cmd
 		case "$?" in
 			0|1) [ "$VERBOSE" != no ] && log_end_msg 0 ;;
-			2) [ "$VERBOSE" != no ] && log_end_msg 1 ;;
+			2) 
+				 [ "$VERBOSE" != no ] && log_end_msg 1 
+				 EX=1 ;;
 		esac
 		;;
 	status)
@@ -101,3 +108,5 @@ case "$1" in
 		exit 3
 		;;
 esac
+
+exit $EX

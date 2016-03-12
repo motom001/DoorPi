@@ -8,3 +8,4 @@ pip --version
 #pip uninstall -y setuptools
 #sudo rm -f /usr/local/lib/python2.7/dist-packages/setuptools*.egg
 pip install --upgrade setuptools
+pip install linphone4raspberry

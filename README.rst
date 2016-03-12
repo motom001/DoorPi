@@ -84,7 +84,7 @@ Mittlerweile gibt es auch Video-Support, so dass an der Haustür eine Kamera ins
 Installation
 -----------------
 
-Die Installationen werden `hier beschrieben <http://www.meissner.me/DoorPi/board/forumdisplay.php?fid=4>`_
+Die Installationen werden `hier beschrieben <http://board.doorpi.org/forumdisplay.php?fid=4>`_
 
 Empfohlen wird die Installation via `PyPi`_ (in Kurzfassung):
 
@@ -102,7 +102,7 @@ Daemon
 
 Als Erstes sollte DoorPi als Anwendung gestartet werden, damit mögliche Fehler sofort angezeigt werden können. Außerdem wird beim ersten Start das DoorPi Basis-Verzeichnis unter /usr/local/etc/DoorPi eingerichtet.
 
-Die Einrichtung als Daemon wird `hier beschrieben <http://www.meissner.me/DoorPi/board/showthread.php?tid=12>`_
+Die Einrichtung als Daemon wird `hier beschrieben <http://board.doorpi.org/showthread.php?tid=12>`_
 
 -----------------
 Konfiguration
@@ -128,7 +128,7 @@ DoorPi-Hilfe
 
 Link zu Foren mit DoorPi Beiträgen:
 
-`DoorPi Forum <http://www.meissner.me/DoorPi/board/member.php?action=register&referrer=1>`_
+`DoorPi Forum <http://board.doorpi.org/>`_
 
 `[Haussteuerung] DoorPi (VoIP Wechselsprechanlage / Türsprechanlage mit Video-Support) <http://www.forum-raspberrypi.de/Thread-haussteuerung-doorpi-voip-wechselsprechanlage-tuersprechanlage-mit-video-support>`_
 

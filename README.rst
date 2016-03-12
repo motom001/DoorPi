@@ -88,6 +88,8 @@ Die Installationen werden `hier beschrieben <http://www.meissner.me/DoorPi/board
 
 Empfohlen wird die Installation via `PyPi`_ (in Kurzfassung):
 
+via `PyPi`_:
+
 .. code-block:: bash
 
    sudo pip install doorpi &&

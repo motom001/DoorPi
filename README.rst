@@ -138,7 +138,7 @@ Link zu Foren mit DoorPi Beiträgen:
 Changelog
 =============
 
-see `changelog.txt<https://github.com/motom001/DoorPi/changelog.txt>`_
+see `changelog.txt <https://github.com/motom001/DoorPi/changelog.txt>`_
 
 
 .. _VoIP: https://de.wikipedia.org/wiki/IP-Telefonie

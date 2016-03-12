@@ -9,9 +9,16 @@ Legend:
 / reference to commit
 ! fix issue or kown bug
 
-Version: 2.4.1.8 (2015-xx-xx)
+Version: 2.4.1.8 (2016-03-12)
 -------------------------------
-/ xxx
+/ 20895649e196795734acd9b5016684e7dd6af0f8
+~ BASE_PATH set to /usr/local/etc/DoorPi
+
+/ 598f559cb9cfab3fe5533d2cd2ba2d04c6fc6ce1
+~ daemon file template with exitcode (for jessie) (thx to Postler)
+
+
+/ 5f681f10b18fcfcdac84ab06e9ae9a500549450c
 ! fix "Exception NameError: 'bool' object has no attribute 'upper'" @ doorpi/keyboard/from_gpio.py (thx to cubeschrauber)
 
 / f24ac1b8df34bfe17f08b3ae78558ab10af2c22d

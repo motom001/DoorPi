@@ -4,4 +4,4 @@ pifacedigitalio >= 3.0.5
 pyserial >= 2.7
 watchdog >= 0.8.3
 python-daemon >= 2.1.1
-https://linphone.org/releases/linphone-python-raspberry/linphone4raspberry-3.9.0-cp27-none-any.whl
+linphone4raspberry

@@ -111,12 +111,14 @@ setup_dict = dict(
 
 
 def main():
-    if os.name == 'posix' and os.geteuid() == 0 and \
-            not os.path.isfile(metadata.daemon_file) and not os.path.exists(metadata.daemon_file):
-        with open(metadata.daemon_file, "w") as daemon_file:
-            for line in urllib2.urlopen(metadata.daemon_online_template):
-                daemon_file.write(parse_string(line))
-        os.chmod(metadata.daemon_file, 0755)
+    try:
+        if os.name == 'posix' and os.geteuid() == 0 and \
+                not os.path.isfile(metadata.daemon_file) and not os.path.exists(metadata.daemon_file):
+            with open(metadata.daemon_file, "w") as daemon_file:
+                for line in urllib2.urlopen(metadata.daemon_online_template):
+                    daemon_file.write(parse_string(line))
+            os.chmod(metadata.daemon_file, 0755)
+    except: pass
 
     setup(**setup_dict)
 

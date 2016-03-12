@@ -63,7 +63,7 @@ if os.name == 'posix':
     daemon_folder = '/etc/init.d'
     daemon_file = os.path.join(daemon_folder, daemon_name)
 
-    daemon_online_template = url_raw+'/development/'+'doorpi/docs/service/doorpi.tpl'
+    daemon_online_template = url_raw+'/master/'+'doorpi/docs/service/doorpi.tpl'
 
     daemon_args = '--configfile $DOORPI_PATH/conf/doorpi.ini'
     doorpi_executable = '/usr/local/bin/doorpi_cli'

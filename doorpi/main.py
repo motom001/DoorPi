@@ -64,7 +64,7 @@ def parse_arguments(argv):
         dest='configfile'
     )
     try:
-        if  len(sys.argv) > 1 and sys.argv[1] in ['start', 'stop', 'restart', 'status']: # running as daemon? cut first argument
+        if len(sys.argv) > 1 and sys.argv[1] in ['start', 'stop', 'restart', 'status']:
             return arg_parser.parse_args(args=sys.argv[2:])
         else:
             return arg_parser.parse_args(args=sys.argv[1:])
@@ -76,7 +76,7 @@ def parse_arguments(argv):
 
 
 def files_preserve_by_path(*paths):
-    wanted=[]
+    wanted = []
     for path in paths:
         fd = os.open(path, os.O_RDONLY)
         try:
@@ -91,7 +91,7 @@ def files_preserve_by_path(*paths):
             return False
 
     fd_max = getrlimit(RLIMIT_NOFILE)[1]
-    return [ fd for fd in xrange(fd_max) if fd_wanted(fd) ]
+    return [fd for fd in xrange(fd_max) if fd_wanted(fd)]
 
 
 def main_as_daemon(argv):
@@ -130,7 +130,6 @@ def main_as_daemon(argv):
     daemon_runner.daemon_context.files_preserve = files_preserve_by_path(log_file)
     try:
         daemon_runner.do_action()
-        logger.info('loaded with arguments: %s', str(argv))
     except DaemonRunnerStopFailureError as ex:
         print("can't stop DoorPi daemon - maybe it's not running? (Message: %s)" % ex)
         return 1

@@ -21,7 +21,7 @@ SCRIPTNAME=!!daemon_folder!!/!!daemon_name!!
 
 # Exit if the package is not installed
 if [ none != "$DAEMON" ] && [ ! -x "$DAEMON" ] ; then
-        exit 0
+        exit 3
 fi
 
 # Read configuration variable file if it is present
@@ -35,17 +35,20 @@ fi
 
 do_start_cmd()
 {
-        status_of_proc "$DAEMON" "$NAME" > /dev/null && return 1
-       	$DAEMON start $DAEMON_ARGS || return 2
+	status_of_proc "$DAEMON" "$NAME" > /dev/null && return 1
+	$DAEMON start $DAEMON_ARGS || return 2
 }
 
 do_test_cmd()
 {
-        status_of_proc "$DAEMON" "$NAME" > /dev/null && return 1
-       	$DAEMON start $DAEMON_ARGS --test || return 2
+	status_of_proc "$DAEMON" "$NAME" > /dev/null && return 1
+	$DAEMON start $DAEMON_ARGS --test || return 2
 }
-
-
+is_doorpi_running()
+{
+	status_of_proc "$DAEMON" "$NAME" > /dev/null && return 0
+	return 1
+}
 do_stop_cmd()
 {
 	status_of_proc "$DAEMON" "$NAME" > /dev/null || return 1
@@ -54,21 +57,16 @@ do_stop_cmd()
 	return 0
 }
 
+EX=0
 case "$1" in
 	start)
 		[ "$VERBOSE" != no ] && log_daemon_msg "Starting $DESC" "$NAME"
 		do_start_cmd
 		case "$?" in
 			0|1) [ "$VERBOSE" != no ] && log_end_msg 0 ;;
-			2) [ "$VERBOSE" != no ] && log_end_msg 1 ;;
-		esac
-		;;
-	start)
-		[ "$VERBOSE" != no ] && log_daemon_msg "Starting $DESC" "$NAME"
-		do_test_cmd
-		case "$?" in
-			0|1) [ "$VERBOSE" != no ] && log_end_msg 0 ;;
-			2) [ "$VERBOSE" != no ] && log_end_msg 1 ;;
+			2) 
+				 [ "$VERBOSE" != no ] && log_end_msg 1 
+				 EX=1 ;;
 		esac
 		;;
 	stop)
@@ -76,17 +74,30 @@ case "$1" in
 		do_stop_cmd
 		case "$?" in
 			0|1) [ "$VERBOSE" != no ] && log_end_msg 0 ;;
-			2) [ "$VERBOSE" != no ] && log_end_msg 1 ;;
+			2) 
+				 [ "$VERBOSE" != no ] && log_end_msg 1 
+				 EX=1 ;;
 		esac
 		;;
 	restart)
 		[ "$VERBOSE" != no ] && log_daemon_msg "Restarting $DESC" "$NAME"
 		do_stop_cmd
-		sleep 5
+		# issue #132
+		echo waiting until !!package!! is stopped
+		sleep 3
+		is_doorpi_running
+		while [ $? -eq 0 ]; do
+			echo !!package!! is still running - wait one more second
+			is_doorpi_running
+			sleep 1
+		done
+		sleep 2
 		do_start_cmd
 		case "$?" in
 			0|1) [ "$VERBOSE" != no ] && log_end_msg 0 ;;
-			2) [ "$VERBOSE" != no ] && log_end_msg 1 ;;
+			2) 
+				 [ "$VERBOSE" != no ] && log_end_msg 1 
+				 EX=1 ;;
 		esac
 		;;
 	status)
@@ -97,3 +108,5 @@ case "$1" in
 		exit 3
 		;;
 esac
+
+exit $EX

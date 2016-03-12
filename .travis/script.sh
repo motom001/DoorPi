@@ -4,7 +4,7 @@
 set -x # Print commands and their arguments as they are executed.
 
 if [[ $START_MODE = "application" ]]; then
-    sudo doorpi_cli --trace --test
+    doorpi_cli --trace --test
 fi
 
 if [[ $START_MODE = "daemon" ]]; then
@@ -30,5 +30,6 @@ if [[ $START_MODE = "daemon" ]]; then
     if [ $? -ne 3 ]; then 
         exit 1 
     fi
+    cat /usr/local/etc/DoorPi/log/doorpi.log
     exit 0
 fi

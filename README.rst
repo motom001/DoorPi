@@ -30,7 +30,7 @@ Einführung
 ---------------
 Ziel des Projektes DoorPi ist die Steuerung einer Türsprechanlage mittels einem Einplatiniencomputer wie dem Raspberry Pi und dem Kommunikationsprotokoll `VoIP`_.
 
-DoorPi ist ein Event-Action basierendes System. Es gibt Komponenten die Events auslösen und Komponenten die aufgrund dieser Events reagieren. Dazu sollen Ereignisse (Events) wie "Drücken einer Türklingel" oder "RFID Chip xyz vorgehalten" die Auslöser von Aktionen (Actions) wie "Anruf bei Telefon xyz", "E-Mail an xxx" oder "Öffne Tür" sein.
+DoorPi ist ein Event-Action basierendes System. Es gibt Komponenten die Events auslösen und Komponenten, die aufgrund dieser Events reagieren. Dazu sollen Ereignisse (Events) wie "Drücken einer Türklingel" oder "RFID Chip xyz vorgehalten" die Auslöser von Aktionen (Actions) wie "Anruf bei Telefon xyz", "E-Mail an xxx" oder "Öffne Tür" sein.
 
 ---------------
 Event-Quellen
@@ -84,89 +84,9 @@ Mittlerweile gibt es auch Video-Support, so dass an der Haustür eine Kamera ins
 Installation
 -----------------
 
-Es wird aktuell empfohlen DoorPi nur auf Raspbian Wheezy zu installieren da das Installationskrip für Raspbian Jessie angepasst werden muss.
+Die Installationen werden `hier beschrieben <http://www.meissner.me/DoorPi/board/forumdisplay.php?fid=4>`_
 
-via `PyPi`_:
-
-.. code-block:: bash
-
-   sudo pip install doorpi &&
-   doorpi_cli --trace
-
-via `GitHub`_:
-
-.. code-block:: bash
-
-   sudo rm -r -f /tmp/DoorPi
-   git clone https://github.com/motom001/DoorPi.git /tmp/DoorPi
-   cd /tmp/DoorPi
-   sudo python setup.py install
-   doorpi_cli --trace
-
-   
------------------
-Konfiguration
------------------
-
-Der Start von DoorPi endet mit der Ausgabe der Weboberfläche-URL wie hier:
-
-   2015-09-10 17:52:28,085 [INFO]   [doorpi.status.webserver] DoorPiWeb URL is http://raspberrypi:53540/
-   
-Aktuell bin ich noch nicht dazu gekommen, die Config pro Gerät (GPIO, PiFace, ...) zu individualisieren.
-In der Weboberfläche ist auf dem Startbildschirm die Übersicht der Module (z.B. GPIO). Rechts von dem Modul gibt es den Button Info. 
-In der Info-Seite findest Du neben der Beschreibung auch die möglichen Parameter mit default-Werten.
-Parallel dazu gibt es in der Navigation den Konfig-Editor. Dort kannst Du die Config bearbeiten, wenn Du weißt, welche Parameter wo hin gehören.
-Auch die Config abspeichern kannst Du in der Übersicht.
-
------------------
-Daemon
------------------
-
-Anleitung um DoorPi als Daemon einzurichten ist hier zu finden:
-https://github.com/motom001/DoorPi/tree/master/doorpi/docs/service
-
-Es sollte aber auf jeden Fall der `BASE_PATH <https://github.com/motom001/DoorPi/blob/master/doorpi/docs/service/doorpi#L17>`_ auf den Ablageort der Config-Datei angepasst werden.
-
------------------
-DoorPi Threads
------------------
-
-Link zu Foren mit DoorPi Threads:
-
-:forum-raspberrypi.de: `[Haussteuerung] DoorPi (VoIP Wechselsprechanlage / Türsprechanlage mit Video-Support) <http://www.forum-raspberrypi.de/Thread-haussteuerung-doorpi-voip-wechselsprechanlage-tuersprechanlage-mit-video-support>`_
-
-:ip-symcon.de: `DoorPI / VoIP Door-Intercomstation with Raspberry Pi <http://www.ip-symcon.de/forum/threads/26739-DoorPI-VoIP-Door-Intercomstation-with-Raspberry-Pi>`_
-
-=============
-English
-=============
----------------
-Introduction
----------------
-
-coming soon
-
----------------
-Event-Sorces
----------------
-
-coming soon
-
------------------
-Action-Receiver
------------------
-
-coming soon
-
------------------
-Examples
------------------
-
-coming soon
-
------------------
-Installation
------------------
+Empfohlen wird die Installation via `PyPi`_ (in Kurzfassung):
 
 via `PyPi`_:
 
@@ -175,36 +95,55 @@ via `PyPi`_:
    sudo pip install doorpi &&
    sudo doorpi_cli --trace
 
-via `GitHub`_:
-
-.. code-block:: bash
-
-   sudo rm -r -f /tmp/DoorPi
-   git clone https://github.com/motom001/DoorPi.git /tmp/DoorPi
-   cd /tmp/DoorPi
-   sudo python setup.py install
-   doorpi_cli --trace
-
------------------
-Configuration
------------------
-
-coming soon
 
 -----------------
 Daemon
 -----------------
 
-The readme to install doorpi as daemon is here:
-https://github.com/motom001/DoorPi/tree/master/doorpi/docs/service
+Als Erstes sollte DoorPi als Anwendung gestartet werden, damit mögliche Fehler sofort angezeigt werden können. Außerdem wird beim ersten Start das DoorPi Basis-Verzeichnis unter /usr/local/etc/DoorPi eingerichtet.
 
-But you should change the `BASE_PATH <https://github.com/motom001/DoorPi/blob/master/doorpi/docs/service/doorpi#L17>`_ to the path of the config file.
+Die Einrichtung als Daemon wird `hier beschrieben <http://www.meissner.me/DoorPi/board/showthread.php?tid=12>`_
+
+-----------------
+Konfiguration
+-----------------
+
+Der Start von DoorPi endet mit der Ausgabe der Weboberfläche-URL wie hier:
+
+   2015-09-10 17:52:28,085 [INFO]   [doorpi.status.webserver] DoorPiWeb URL is http://raspberrypi/
+   
+Aktuell bin ich noch nicht dazu gekommen, die Config pro Gerät (GPIO, PiFace, ...) zu individualisieren.
+In der Weboberfläche ist auf dem Startbildschirm die Übersicht der Module (z.B. GPIO). Rechts von dem Modul gibt es den Button Info. 
+In der Info-Seite findest Du neben der Beschreibung auch die möglichen Parameter mit default-Werten.
+Parallel dazu gibt es in der Navigation den Konfig-Editor. Dort kannst Du die Config bearbeiten, wenn Du weißt, welche Parameter wo hin gehören.
+Auch die Config abspeichern kannst Du in der Übersicht.
+
+Hilfe zur DoorPi Konfiguration (egal ob im Dashboard oder per Konfigurationsdatei) gibt es im DoorPi Wiki:
+
+`DoorPi Wiki <https://github.com/motom001/DoorPi/wiki/Konfiguration>`_
+
+-----------------
+DoorPi-Hilfe 
+-----------------
+
+Link zu Foren mit DoorPi Beiträgen:
+
+`DoorPi Forum <http://www.meissner.me/DoorPi/board/member.php?action=register&referrer=1>`_
+
+`[Haussteuerung] DoorPi (VoIP Wechselsprechanlage / Türsprechanlage mit Video-Support) <http://www.forum-raspberrypi.de/Thread-haussteuerung-doorpi-voip-wechselsprechanlage-tuersprechanlage-mit-video-support>`_
+
+`DoorPI / VoIP Door-Intercomstation with Raspberry Pi <http://www.ip-symcon.de/forum/threads/26739-DoorPI-VoIP-Door-Intercomstation-with-Raspberry-Pi>`_
+
+=============
+Changelog
+=============
+
+see `changelog.txt<https://github.com/motom001/DoorPi/changelog.txt>`_
+
 
 .. _VoIP: https://de.wikipedia.org/wiki/IP-Telefonie
 .. _PyPi: https://pypi.python.org/pypi/DoorPi
 .. _GitHub: https://github.com/motom001/DoorPi
-.. _GitHubDaemonReadme: https://github.com/motom001/DoorPi/tree/master/doorpi/docs/service
-.. _GitHubDaemonFileLine17: https://github.com/motom001/DoorPi/blob/master/doorpi/docs/service/doorpi#L17
 
 .. |travis_status_master| image:: https://travis-ci.org/motom001/DoorPi.svg?branch=master
     :target: https://travis-ci.org/motom001/DoorPi

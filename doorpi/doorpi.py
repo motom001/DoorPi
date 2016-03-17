@@ -286,7 +286,10 @@ class DoorPi(object):
             'BASEPATH':         self.base_path,
             'last_tick':        str(self.__last_tick)
         }
-
+        if self.config:
+            mapping_table.update({
+                'LAST_SNAPSHOT':    str(self.config.get_string('DoorPi', 'last_snapshot', log=False))
+            })
         if self.keyboard and 'KeyboardHandler' not in self.keyboard.name:
             for output_pin in self.config.get_keys('OutputPins', log = False):
                 mapping_table[self.config.get('OutputPins', output_pin, log = False)] = output_pin

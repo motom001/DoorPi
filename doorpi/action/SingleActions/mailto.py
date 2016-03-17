@@ -15,27 +15,33 @@ from email.Utils import COMMASPACE # used by: fire_action_mail
 from doorpi.action.base import SingleAction
 import doorpi
 import os
+from take_snapshot import get_last_snapshot
 import subprocess as sub
 
 def fire_action_mail(smtp_to, smtp_subject, smtp_text, smtp_snapshot):
     try:
-        smtp_host = doorpi.DoorPi().config.get('SMTP', 'server')
-        smtp_port = doorpi.DoorPi().config.get_int('SMTP', 'port')
+        smtp_host = doorpi.DoorPi().config.get('SMTP', 'server', 'smtp.gmail.com')
+        smtp_port = doorpi.DoorPi().config.get_int('SMTP', 'port', 465)
         smtp_user = doorpi.DoorPi().config.get('SMTP', 'username')
         smtp_password = doorpi.DoorPi().config.get('SMTP', 'password')
         smtp_from = doorpi.DoorPi().config.get('SMTP', 'from')
 
-        smtp_use_tls = doorpi.DoorPi().config.get_boolean('SMTP', 'use_tls')
-        smtp_need_login = doorpi.DoorPi().config.get_boolean('SMTP', 'need_login')
+        smtp_use_tls = doorpi.DoorPi().config.get_boolean('SMTP', 'use_tls', False)
+        smtp_use_ssl = doorpi.DoorPi().config.get_boolean('SMTP', 'use_ssl', True)
+        smtp_need_login = doorpi.DoorPi().config.get_boolean('SMTP', 'need_login', True)
 
         smtp_tolist = smtp_to.split()
 
-        server = smtplib.SMTP()
-        server.connect(smtp_host, smtp_port)
-        server.ehlo()
+        if smtp_use_ssl:
+            server = smtplib.SMTP_SSL(smtp_host, smtp_port)
+        else:
+            server = smtplib.SMTP(smtp_host, smtp_port)
 
-        if smtp_use_tls: server.starttls()
-        if smtp_need_login: server.login(smtp_user, smtp_password)
+        server.ehlo()
+        if smtp_use_tls and not smtp_use_ssl:
+            server.starttls()
+        if smtp_need_login:
+            server.login(smtp_user, smtp_password)
 
         msg = MIMEMultipart()
         msg['From'] = smtp_from
@@ -44,17 +50,22 @@ def fire_action_mail(smtp_to, smtp_subject, smtp_text, smtp_snapshot):
         msg.attach(MIMEText(doorpi.DoorPi().parse_string(smtp_text), 'html'))
         msg.attach(MIMEText('\nsent by:\n'+doorpi.DoorPi().epilog, 'plain'))
 
-        #add a snapshot
-        file = []
-        if smtp_snapshot and len(doorpi.DoorPi().config.get('SIP-Phone', 'capture_device', '')) > 0:
-            file = createSnapshot()
-        if len(file) > 0:
-            part = MIMEBase('application',"octet-stream")
-            part.set_payload(open(file,"rb").read())
-            Encoders.encode_base64(part)
-            part.add_header('Content-Disposition', 'attachment; filename="%s"'
-                   % os.path.basename(file))
-            msg.attach(part)
+        if smtp_snapshot:
+            smtp_snapshot = doorpi.DoorPi().parse_string(smtp_snapshot)
+            if not os.path.exists(smtp_snapshot):
+                smtp_snapshot = get_last_snapshot()
+
+        try:
+            with open(smtp_snapshot, "rb") as snapshot_file:
+                part = MIMEBase('application',"octet-stream")
+                part.set_payload(snapshot_file.read())
+                Encoders.encode_base64(part)
+                part.add_header(
+                    'Content-Disposition',
+                    'attachment; filename="%s"' % os.path.basename(smtp_snapshot))
+                msg.attach(part)
+        except Exception as exp:
+            logger.exception("send not attachment for this mail: %s" % exp)
 
         server.sendmail(smtp_from, smtp_tolist, msg.as_string())
         server.quit()
@@ -63,21 +74,6 @@ def fire_action_mail(smtp_to, smtp_subject, smtp_text, smtp_snapshot):
         return False
     return True
 
-def createSnapshot():
-    snapshot_file = '/tmp/doorpi.jpg'
-    size = doorpi.DoorPi().config.get_string('DoorPi', 'snapshot_size', '1280x720')
-    command = "fswebcam --no-banner -r " + size + " " + snapshot_file
-    try:
-        retcode = subprocess.call(command, shell=True)
-        if retcode != 0:
-            logger.error('error creating snapshot')
-        else:
-            logger.info('snapshot created: %s', snapshot_file)
-            return snapshot_file
-
-    except OSError as e:
-        logger.error('error creating snapshot')
-    return ''
 
 def get(parameters):
     parameter_list = parameters.split(',')

@@ -9,6 +9,37 @@ Legend:
 / reference to commit
 ! fix issue or kown bug
 
+Version: 2.5.0.1 (2016-03-17)
+-------------------------------
+! fix bug for mailto an take_snapshot
+
+send Mail with new pic from PiCam:
+```
+[EVENT_AfterStartup]
+10 = take_snapshot
+20 = mailto:motom001@gmail.com,Mailversand mit Bild,Das ist das Bild als Mailtext,true
+```
+
+send Mail with new pic from Webcam:
+```
+[EVENT_AfterStartup]
+10 = take_snapshot:https://www.vvo-online.de/img/webcamimages/carolabruecke-4.jpg
+20 = mailto:motom001@gmail.com,Mailversand mit Bild,Das ist das Bild als Mailtext,true
+```
+  
+and settings for SMTP (checked with 1&1 SMTP-Account):
+```
+[SMTP]
+server = smtp.1und1.de
+port = 587
+username = email@doorpi.org
+password = password
+from = email@doorpi.org
+use_ssl = false
+use_tls = true
+need_login = true
+```
+
 Version: 2.4.1.8 (2016-03-12)
 -------------------------------
 / 20895649e196795734acd9b5016684e7dd6af0f8

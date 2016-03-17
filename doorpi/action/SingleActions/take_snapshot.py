@@ -2,61 +2,75 @@
 # -*- coding: utf-8 -*-
 
 import logging
-import os
-logger = logging.getLogger(__name__)
-logger.debug("%s loaded", __name__)
-
-SIPPHONE_SECTION = 'SIP-Phone'
-DOORPI_SECTION = 'DoorPi'
-
 from doorpi.action.base import SingleAction
 import doorpi
 import subprocess as sub
+import os
+import datetime
+import glob
 
+logger = logging.getLogger(__name__)
+logger.debug("%s loaded", __name__)
 conf = doorpi.DoorPi().config
 
-def take_snapshot(size, path, max):
-    if not os.path.exists(path):
-        logger.info('Path (%s) does not exist - creating it now', path)
-        os.makedirs(path)
+DOORPI_SECTION = 'DoorPi'
 
-    lastFile = getLastFilename(path)
-    lastNr = 1
-    if (len(lastFile) > 0):
-        lastNr = int(lastFile[:lastFile.rfind(".jpg")])
-        if (lastNr+1 <= max):
-            lastNr = lastNr + 1
+
+def get_last_snapshot(snapshot_path=None):
+    if not snapshot_path:
+        snapshot_path = conf.get_string_parsed(DOORPI_SECTION, 'snapshot_path', '/tmp')
+    files = sorted(glob.glob(os.path.join(snapshot_path, "*.*")), key=os.path.getctime)
+    if len(files) > 0:
+        return files[-1]
     else:
-        lastNr = 1
-    imageFilename = path + str(lastNr) + ".jpg"
-    # fswebcam automatically selects the first video device
-    command = "fswebcam --top-banner -b --font luxisr:20 -r " + size + " " + imageFilename
-    p = sub.Popen(command, shell=True, stdout=sub.PIPE, stderr=sub.PIPE)
-    output, errors = p.communicate()
-    if (len(errors) > 0):
-        logger.error('error creating snapshot - maybe fswebcam is missing')
+        return False
+
+
+def get_next_filename(snapshot_path):
+    if not os.path.exists(snapshot_path):
+        os.makedirs(snapshot_path)
+
+    files = sorted(glob.glob(os.path.join(snapshot_path, "*.*")), key=os.path.getctime)
+    if len(files) > conf.get_int(DOORPI_SECTION, 'number_of_snapshots', 10):
+        try:
+            os.remove(os.path.join(snapshot_path, files[0]))
+        except OSError as exp:
+            logger.warning("couldn't delete snapshot file %s with error %s" % (files[0], exp))
+
+    return os.path.join(
+        snapshot_path,
+        datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")+".jpg"
+    )
+
+
+def get_snapshot_from_picam(snapshot_path):
+    import picamera
+    filename = get_next_filename(snapshot_path)
+    with picamera.PiCamera() as camera:
+        camera.resolution = (1024, 768)
+        camera.capture(filename)
+    conf.set_value(DOORPI_SECTION, 'last_snapshot', filename)
+    return filename
+
+
+def get_snapshot_from_url(snapshot_path, url):
+    import requests
+    filename = get_next_filename(snapshot_path)
+    r = requests.get(url, stream=True)
+    with open(filename, 'wb') as fd:
+        for chunk in r.iter_content(1024):
+            fd.write(chunk)
+    conf.set_value(DOORPI_SECTION, 'last_snapshot', filename)
+    return filename
+
+
+def get(parameters=""):
+    snapshot_path = conf.get_string_parsed(DOORPI_SECTION, 'snapshot_path', '/tmp')
+    if parameters == "":
+        return SnapShotAction(get_snapshot_from_picam, snapshot_path=snapshot_path)
     else:
-        logger.info('snapshot created: %s', imageFilename)
-    return
+        return SnapShotAction(get_snapshot_from_url, snapshot_path=snapshot_path, url=parameters)
 
-
-def getLastFilename(path):
-    files = [s for s in os.listdir(path)
-         if os.path.isfile(os.path.join(path, s))]
-    files.sort(key=lambda s: os.path.getmtime(os.path.join(path, s)))
-    if (len(files) == 0):
-        return ''
-    return files[len(files)-1]
-
-def get(parameters):
-    conf = doorpi.DoorPi().config
-    snapshot_size = conf.get_string(DOORPI_SECTION, 'snapshot_size', '1280x720')
-    snapshot_path = conf.get_string_parsed(DOORPI_SECTION, 'snapshot_path', '!BASEPATH!/../DoorPiWeb/snapshots/')
-    number_of_snapshots = conf.get_int(DOORPI_SECTION, 'number_of_snapshots', 10)
-
-    if len(conf.get(SIPPHONE_SECTION, 'capture_device', '')) > 0:
-        return SnapShotAction(take_snapshot, size = snapshot_size, path = snapshot_path, max = number_of_snapshots)
-    logger.warning('can not create snapshot - video disabled')
 
 class SnapShotAction(SingleAction):
     pass

@@ -1,0 +1,14 @@
+-----------------
+Changelog
+-----------------
+
+Legend:
++ add
+- remove
+~ change
+/ reference to commit
+! fix issue or kown bug
+
+Version: 3.0.0 (2016-03-16)
+-------------------------------
++ Initialisierung mit neuer Struktur

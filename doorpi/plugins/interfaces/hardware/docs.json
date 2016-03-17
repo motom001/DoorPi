@@ -1,0 +1,69 @@
+{
+	"fulfilled_with_one": false,
+	"text_description": "Interface base description",
+	"actions": {},
+	"events": {},
+	"configuration": {
+		"/channels": {
+			"MotionDetectionEvent": {"type": "string","default": None,"mandatory": false, "description": ""}
+		}
+	}
+}
+
+
+{
+	"libraries": {
+        "RPIO": {
+            "text_warning" = "",
+			"text_description" = "",
+			"text_installation" = "Die Installation ist sehr gut auf Sourceforge beschrieben (siehe Links).",
+            "auto_install" = "RPi.GPIO >= 0.6.2 @pip",
+            "text_test" = "Der Status kann gestestet werden, in dem im Python-Interpreter <code>import RPi.GPIO</code> eingeben wird.",
+            "text_configuration" = "",
+            "text_links" = {
+                "www.raspberrypi.org": {
+                    "GPIO Overview": "https://www.raspberrypi.org/documentation/hardware/raspberrypi/gpio/README.md",
+                    "GPIO Usage": "https://www.raspberrypi.org/documentation/usage/gpio/README.md"
+                },
+                "RPi.GPIO on pypi": "https://pypi.python.org/pypi/RPi.GPIO",
+                "Installationsanleitung auf Sourceforge": "http://sourceforge.net/p/raspberry-gpio-python/wiki/install/"
+            }
+        }
+	},
+	"test": [
+		["RPIO"]
+	],
+	"text_warning" = "Dieses DoorPi Interface ist nur für den Raspberry Pi verfügbar",
+	"text_description" = "RPi.GPIO kümmert sich um die Ein- und Ausgaben der GPIO Schnittstelle eines Raspberry Pi.",
+	"actions": {
+		"SetStatus": {
+			"text_description": "set output pin",
+			"parameters": {
+				"channel": {"mandatory": true, "type": "int", "options":"!ACTIVE_OUTPUTS!", "label": "Stop-Event", "description": "Welcher Channel soll gesteuert werden?"},
+				"start_value": {"mandatory": false, "default": false, "type": "bool", "options": [true, false], "label": "Stop-Event", "description": "Mit welchem Startwert soll begonnen werden?"},
+				"stop_value": {"mandatory": false, "default": false, "type": "bool", "options": [true, false], "label": "Stop-Event", "description": "Mit welchem Wert soll der Channel verlassen werden?"},
+				"timeout": {"mandatory": false, "type": "float", "label": "Dauer", "description": "Wie viele Sekunden sollen zwischen Start und Stop vergehen?"},
+				"stop_event": {"mandatory": false, "type": "string", "options": "!EVENTS!", "label": "Stop-Event", "description": ""}
+			},
+			"return": {"default": false, "type": "bool", "description": "Erfolgsmeldung"}
+		},
+		"GetStatus": {
+			"text_description": "get status of input pin",
+			"parameters": {
+				"channel": {"mandatory": true, "type": "int", "options":"!ACTIVE_OUTPUTS!"}
+			},
+			"return": {"default": false, "type": "bool", "description": "Status des Channel"}
+		}
+	},
+	"events": {
+		
+	},
+	"configuration": {
+		"event_edge": {"mandatory": false, "type": "string,int", "default": "GPIO.BOTH", "description": ""},
+		"bounce_time": {"mandatory": false, "type": "int", "default": 40, "description": ""},
+		"pull_up_down": {"mandatory": false, "type": "string,int", "default": "GPIO.PUD_OFF", "description": ""},
+		"/channels": {
+			"1": {"mandatory": false, "active": false, "direction":"", "default": null, "description": ""}
+		}
+	}
+}

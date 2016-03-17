@@ -1,0 +1,69 @@
+{
+	"libraries": {
+		"pifacedigitalio": {
+            "text_warning": "Neben der reinen Installation vom Python-Modul pifacedigitalio ist es auch wichtig SPI am System zu aktivieren (siehe Links).",
+			"text_description" = "Das Python-Modul pifacedigitalio ist der 'Treiber' für die PiFace Hardware.",
+			"text_installation" = "Die Installation ist sehr gut auf Sourceforge beschrieben (siehe Links).",
+            "auto_install" = "pifacedigitalio  >= 3.0.5 @pip",
+            "text_test" = "Der Status kann gestestet werden, in dem im Python-Interpreter <code>import pifacedigitalio</code> eingeben wird.",
+            "text_configuration" = "",
+            "text_links" = {
+                "docs.python.org": "https://docs.python.org/2.7/library/configparser.html",
+                "PiFace Beschreibung auf piface.org.uk": "http://www.piface.org.uk/products/piface_digital/",
+                "Installationsanleitung auf github": "http://piface.github.io/pifacedigitalio/installation.html",
+                "SPI und I2C aktivieren": "http://raspberry.tips/faq/raspberry-pi-spi-und-i2c-aktivieren/"
+            }
+        }
+	},
+	"test": [
+		["pifacedigitalio"]
+	],
+	"text_warning" = "Neben der reinen Installation vom Python-Modul pifacedigitalio ist es auch wichtig SPI am System zu aktivieren (siehe Links pifacedigitalio).",
+	"text_description" = "RPi.GPIO kümmert sich um die Ein- und Ausgaben der GPIO Schnittstelle eines Raspberry Pi.",
+	"actions": {
+		"SetStatus": {
+			"text_description": "set output pin",
+			"parameters": {
+				"channel": {"mandatory": true, "type": "int", "options":"!ACTIVE_OUTPUTS!", "label": "Stop-Event", "description": "Welcher Channel soll gesteuert werden?"},
+				"start_value": {"mandatory": false, "default": false, "type": "bool", "options": [true, false], "label": "Stop-Event", "description": "Mit welchem Startwert soll begonnen werden?"},
+				"stop_value": {"mandatory": false, "default": false, "type": "bool", "options": [true, false], "label": "Stop-Event", "description": "Mit welchem Wert soll der Channel verlassen werden?"},
+				"timeout": {"mandatory": false, "type": "float", "label": "Dauer", "description": "Wie viele Sekunden sollen zwischen Start und Stop vergehen?"},
+				"stop_event": {"mandatory": false, "type": "string", "options": "!EVENTS!", "label": "Stop-Event", "description": ""}
+			},
+			"return": {"default": false, "type": "bool", "description": "Erfolgsmeldung"}
+		},
+		"GetStatus": {
+			"text_description": "get status of input pin",
+			"parameters": {
+				"channel": {"mandatory": true, "type": "int", "options":"!ACTIVE_INPUTS!"}
+			},
+			"return": {"default": false, "type": "bool", "description": "Status des Channel"}
+		}
+	},
+	"events": {
+		
+	},
+	"configuration": {
+		"event_edge": {"mandatory": false, "type": "string,int", "default": "GPIO.BOTH", "description": ""},
+		"bounce_time": {"mandatory": false, "type": "int", "default": 40, "description": ""},
+		"pull_up_down": {"mandatory": false, "type": "string,int", "default": "GPIO.PUD_OFF", "description": ""},
+		"channels": {
+			"Input 0": {"mandatory": false, "active": false, "direction":"in", "default": null, "description": "", "technical_name": "0"},
+			"Input 1": {"mandatory": false, "active": false, "direction":"in", "default": null, "description": "", "technical_name": "1"},
+			"Input 2": {"mandatory": false, "active": false, "direction":"in", "default": null, "description": "", "technical_name": "2"},
+			"Input 3": {"mandatory": false, "active": false, "direction":"in", "default": null, "description": "", "technical_name": "3"},
+			"Input 4": {"mandatory": false, "active": false, "direction":"in", "default": null, "description": "", "technical_name": "4"},
+			"Input 5": {"mandatory": false, "active": false, "direction":"in", "default": null, "description": "", "technical_name": "5"},
+			"Input 6": {"mandatory": false, "active": false, "direction":"in", "default": null, "description": "", "technical_name": "6"},
+			"Input 7": {"mandatory": false, "active": false, "direction":"in", "default": null, "description": "", "technical_name": "7"},
+			"Output 0": {"mandatory": false, "active": false, "direction":"out", "default": null, "description": "", "technical_name": "0"},
+			"Output 1": {"mandatory": false, "active": false, "direction":"out", "default": null, "description": "", "technical_name": "1"},
+			"Output 2": {"mandatory": false, "active": false, "direction":"out", "default": null, "description": "", "technical_name": "2"},
+			"Output 3": {"mandatory": false, "active": false, "direction":"out", "default": null, "description": "", "technical_name": "3"},
+			"Output 4": {"mandatory": false, "active": false, "direction":"out", "default": null, "description": "", "technical_name": "4"},
+			"Output 5": {"mandatory": false, "active": false, "direction":"out", "default": null, "description": "", "technical_name": "5"},
+			"Output 6": {"mandatory": false, "active": false, "direction":"out", "default": null, "description": "", "technical_name": "6"},
+			"Output 7": {"mandatory": false, "active": false, "direction":"out", "default": null, "description": "", "technical_name": "7"},
+		}
+	}
+}

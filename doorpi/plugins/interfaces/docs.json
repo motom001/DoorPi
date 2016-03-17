@@ -1,0 +1,13 @@
+{
+	"fulfilled_with_one": false,
+	"text_description": "Interface base description",
+	"actions": {},
+	"events": {},
+	"configuration": {
+		"/": {
+			"typ": {"type": "string","default": None,"mandatory": true,
+			"options": "DOORPI.CONST.INTERFACES_AVAILABLE",
+			"description": ""}
+		}
+	}
+}

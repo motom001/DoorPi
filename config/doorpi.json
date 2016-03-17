@@ -1,0 +1,44 @@
+{
+	"resources": {
+		"user_management": {
+			"user": {
+				"door": {"login": "door", "password": "pi", "groups": ["admins", "tel_admin"], "phone": "**620"},
+				"motom": {"login": "motom", "password": "001", "groups": ["admins", "tel_admin", "webservice"], "phone": ["**621", "0178333333333"]},
+				"nachbar1": {"login": "nachbar1", "password": "irgendwas", "groups": "tel_admin", "phone": "**622"},
+				"OpenHAB": {"login": "OpenHAB", "password": "irgendwas_neues", "groups": "webservice"}
+			}
+		},
+		"event_handler": {
+			"event_log": {
+				"type": "sqllite",
+				"connection_string": "!BASE_PATH!/conf/event_log.db"
+			}
+		}
+	},
+	"interfaces" : {
+		"mein_GPIO_Board": {
+			"type": "hardware.gpio",
+			"inputs": {
+				"Eingang_1": {"technical_name": 11},
+				"Eingang_2": {"technical_name": 13},
+				"Eingang_3": {"technical_name": 15}
+			},
+			"outputs": {
+				"DruckplatteLED": {"technical_name": 16, "high_by_event": "OnInputActive", "low_by_event": "OnInputInactive"},
+				"Stromversorgung": {"technical_name": 18, "high_by_event": "AfterStartup", "low_by_event": "BeforeShutdown"},
+				"Blink_LED": {"technical_name": 7, "log": false, "high_by_event": "OnTimeSecondEvenNumber", "low_by_event": "OnTimeSecondUnevenNumber"}
+			}
+		}
+	},
+	"actions": {
+		"Blink LED aus": {"action": "actions.output", "parameters": {"interface": "interfaces.hardware.gpio.mein_GPIO_Board.Eingang_1", "value": false}},
+		"Blink LED an": {"action": "actions.output", "parameters": {"interface": "interfaces.hardware.gpio.mein_GPIO_Board.Eingang_1", "value": true}},
+		"Klingel EG": {"action": "actions.call", "parameters": {"number": "**620"}},
+		"Foto aufnehmen": {"action": "actions.take_picture", "parameters": {"file": "/var/doorpi/_last_pic.jpeg"}},
+		"E-Mail mit Bild": {"action": "actions.mailto", "parameters": {"to": "email@adresse.de", "attachment": "/var/doorpi/_last_pic.jpeg", "subject": "es hat geklingelt", "text": "schau mal, ob Du den kennst"}},
+		"Rundmail ohne Bild": {"action": "actions.mailto", "parameters": {"to": ["email@adresse.de", "zweite_email@adresse.de"], "subject": "hat jemand reagiert?", "text": "diesmal ohne Bild"}}
+	},
+	"events": {
+		"interfaces.hardware.gpio.mein_GPIO_Board.Eingang_1.OnInputInactive": ["Foto aufnehmen", "E-Mail mit Bild", "Klingel EG"]
+	}
+}

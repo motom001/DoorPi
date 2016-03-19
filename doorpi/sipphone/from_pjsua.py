@@ -259,10 +259,15 @@ class Pjsua(SipphoneAbstractBaseClass):
 
         possible_admin_numbers = DoorPi().config.get_keys('AdminNumbers')
         for admin_number in possible_admin_numbers:
+            if admin_number == "*":
+                logger.info("admin numbers are deactivated by using '*' as single number")
+                return True
             if "sip:"+admin_number+"@" in remote_uri:
                 logger.debug("%s is an adminnumber", remote_uri)
                 return True
-
+            if "sip:"+admin_number is remote_uri:
+                logger.debug("%s is adminnumber %s", remote_uri, admin_number)
+                return True
         logger.debug("%s is not an adminnumber", remote_uri)
         return False
 

@@ -44,6 +44,9 @@ class LinphoneCallbacks:
     def is_admin_number(self, remote_uri):
         logger.debug("is_admin_number (%s)",remote_uri)
         for admin_number in self.whitelist:
+            if admin_number == "*":
+                logger.info("admin numbers are deactivated by using '*' as single number")
+                return True
             if "sip:"+admin_number+"@" in remote_uri:
                 logger.debug("%s is adminnumber %s", remote_uri, admin_number)
                 return True

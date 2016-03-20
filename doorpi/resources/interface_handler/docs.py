@@ -2,10 +2,27 @@
 
 from main import DOORPI
 
+interface_event_parameters = []
+for doorpi_parameter in ["interface_name", "interface_typ", ""]:
+    interface_event_parameters.append(dict(
+        name=doorpi_parameter,
+        type="str",
+        description=_("%s event parameter %s description" % doorpi_parameter)
+    ))
+
 DOCUMENTATION = dict(
     text_description=_("%s text_description" % __name__),
     actions=[],
-    events=[],
+    events=[
+        dict(name='OnInstalledInterfaceFounded', parameter=interface_event_parameters,
+             description=_("%s event description OnInstalledInterfaceFounded" % __name__)),
+        dict(name='OnInterfaceLoad', description=_("%s event description OnInterfaceLoad" % __name__),
+             parameter=interface_event_parameters),
+        dict(name='OnInterfaceLoadFailed', description=_("%s event description OnInterfaceLoadFailed" % __name__),
+             parameter=interface_event_parameters),
+        dict(name='OnInterfaceLoadSuccess', description=_("%s event description OnInterfaceLoadSuccess" % __name__),
+             parameter=interface_event_parameters)
+    ],
     configuration=[
         dict(json_path='/resources/event_handler/event_log/type', type='string', default='sqllite', mandatory=False,
              description=_('%s configuration event_log type description' % __name__)),
@@ -16,19 +33,19 @@ DOCUMENTATION = dict(
     libraries=dict(
         threading=DOORPI.libraries['threading'].copy(),
         inspect=DOORPI.libraries['inspect'].copy(),
-        sqlite3=dict(
+        importlib=dict(
             mandatory=True,
-            text_warning=_("library sqlite3 text_warning"),
-            text_description=_("library sqlite3 text_description"),
-            text_installation=_("library sqlite3 text_description"),
+            text_warning=_("library importlib text_warning"),
+            text_description=_("library importlib text_description"),
+            text_installation=_("library importlib text_description"),
             auto_install=dict(standard=True),
             text_test=_("library global text_test pre") +
-                      _("<code> import sqlite3</code>") +
+                      _("<code> import importlib</code>") +
                       _("library global text_test post"),
-            text_configuration=_("library sqlite3 text_configuration"),
+            text_configuration=_("library importlib text_configuration"),
             configuration=[],
             text_links={
-                _("docs.python.org"): _("library sqlite3 text_links %s" % DOORPI.CONST.USED_PYTHON_VERSION)
+                _("docs.python.org"): _("library importlib text_links %s" % DOORPI.CONST.USED_PYTHON_VERSION)
             }
         )
     ),

@@ -7,3 +7,7 @@ class InterfaceTypMissingException(Exception):
 
 class InterfaceNameAlreadyExistsException(Exception):
     pass
+
+
+class InterfaceTypNotAvailableException(Exception):
+    pass

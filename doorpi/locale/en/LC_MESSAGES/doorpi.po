@@ -1,0 +1,108 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR ORGANIZATION
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"POT-Creation-Date: 2016-03-19 20:24+0100\n"
+"PO-Revision-Date: 2016-03-19 20:28+0100\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: pygettext.py 1.5\n"
+"X-Generator: Poedit 1.8.7\n"
+"Last-Translator: Thomas Meißner <info@doorpi.org>\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Language: de_DE\n"
+
+#: doorpi/main.py:51
+msgid "start to create daemon file now..."
+msgstr ""
+
+#: doorpi/main.py:61
+msgid "finished writing - now set mod to 0755"
+msgstr ""
+
+#: doorpi/main.py:63
+msgid "finished create daemon file"
+msgstr ""
+
+#: doorpi/main.py:79
+msgid "daemon control - NONE to start as application"
+msgstr ""
+
+#: doorpi/main.py:81
+msgid "configfile in json-Style"
+msgstr "Konfigurationsdatei im Json-Format"
+
+#: doorpi/main.py:83
+msgid "Set the logging level for console output"
+msgstr "legt den Protokolliergrad für die Konsolenausgabe fest"
+
+#: doorpi/main.py:85
+msgid "Logfile with rotating file handler"
+msgstr "Logfile mit rotierenden Dateihandler"
+
+#: doorpi/main.py:87
+msgid "Set the logging level for the logfile"
+msgstr "legt den Protokolliergrad für die Logdateien fest"
+
+#: doorpi/main.py:89
+msgid "Set the logfile max size (each rotated file)"
+msgstr "Legen Sie die max. Größe der Logdatei fest (je rollierender Logdatei)"
+
+#: doorpi/main.py:91
+msgid "Set the logfile max rotation"
+msgstr ""
+
+#: doorpi/main.py:93
+msgid "if set DoorPi will not check sudo or root access"
+msgstr ""
+
+#: doorpi/main.py:95
+msgid "write new daemon file from daemon file template"
+msgstr ""
+
+#: doorpi/main.py:97
+msgid "use the last known working config"
+msgstr ""
+
+#: doorpi/main.py:99
+msgid "use for debugging the daemon"
+msgstr ""
+
+#: doorpi/main.py:104
+msgid ""
+"DoorPi must run with sudo rights - maybe use --skip_sudo_check to skip this "
+"check"
+msgstr ""
+
+#: doorpi/main.py:150
+msgid "Managed exception while open logfile %s"
+msgstr ""
+
+#: doorpi/main.py:153
+msgid "loaded with arguments: %s"
+msgstr ""
+
+#: doorpi/main.py:160
+msgid "send SIGTERM to DoorPi with pi %s"
+msgstr ""
+
+#: doorpi/main.py:170
+msgid "KeyboardInterrupt -> DoorPi will shutdown"
+msgstr ""
+
+#: doorpi/main.py:172
+msgid "CorruptConfigFileException: %s"
+msgstr "defekte Konfigurationsdatei mit Fehlermeldung: %s"
+
+#: doorpi/main.py:174
+msgid "Exception: %s"
+msgstr "unerwartete Ausnahme: %s"
+
+#: doorpi/main.py:178
+msgid "main finished"
+msgstr ""

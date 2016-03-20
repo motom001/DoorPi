@@ -26,7 +26,10 @@ DAEMON_PIDFILE = '/home/pi/dev/DoorPi3/log/doorpi.pid'
 DAEMON_PIDFILE_TIMEOUT = 5
 
 DAEMON_FILE = {
-    'source': '!BASE_PATH!/docs/service/linux.daemon.example', 'target': '/etc/init.d/doorpi', 'uninstall_command': 'update-rc.d doorpi remove', 'install_command': 'update-rc.d doorpi defaults'
+    'source': '!BASE_PATH!/docs/service/linux.daemon.example',
+    'target': '/etc/init.d/doorpi',
+    'uninstall_command': 'update-rc.d doorpi remove',
+    'install_command': 'update-rc.d doorpi defaults'
 }
 
 DAEMON_DEFAULT_ARGUMENTS = "--logfile "+LOG_DEFAULT_FILENAME
@@ -45,11 +48,16 @@ HEART_BEAT_LEVEL_CRITICAL = 10
 HEART_BEAT_LEVEL_ERROR = 25
 HEART_BEAT_LEVEL_WARNING = 50
 HEART_BEAT_LEVEL_INFO = 100
-HEART_BEAT_LEVEL_DEBUG = 1500
+HEART_BEAT_LEVEL_DEBUG = 50000
 
+DATETIME_PARTS = ['year', 'month', 'day', 'hour', 'minute', 'second']
 
 MINUTE_RANGE = range(0, 60)
 HOUR_RANGE = range(0, 23)
+HANDLER_BASE_EVENTS = []
+if len(HANDLER_BASE_EVENTS) == 0:
+    for datetime_part in DATETIME_PARTS:
+        HANDLER_BASE_EVENTS += ["OnTime%s" % datetime_part.capitalize()]
 
 INTERFACES_AVAILABLE = []
 INTERFACES_BASE_IMPORT_PATH = 'plugins.interfaces.'

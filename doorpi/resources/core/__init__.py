@@ -6,10 +6,11 @@ import string
 import random
 import main
 
-logger = init_own_logger("resources.core")
+logger = init_own_logger(__name__)
 
 
-class CorruptConfigFileException(Exception): pass
+class CorruptConfigFileException(Exception):
+    pass
 
 
 class DoorPi(object):
@@ -46,7 +47,7 @@ class DoorPi(object):
 
     @property
     def arguments(self):
-        return self._arguments
+        return vars(self._arguments)
 
     @property
     def CONST(self):
@@ -54,7 +55,11 @@ class DoorPi(object):
 
     @property
     def libraries(self):
-        return {'libraries': []} if self._core_documentation is None else self._core_documentation['libraries']
+        doc = self.config.get_module_documentation_by_module_name(__name__)
+        if doc is None:
+            return {'libraries': []}
+        else:
+            return doc['libraries']
 
     @property
     def modules_destroyed(self):
@@ -73,7 +78,7 @@ class DoorPi(object):
         pass
 
     def restart(self):
-        logger.debug('restart')
+        logger.debug(_('restart'))
         self.stop()
         self.__init__()
         self.start()
@@ -85,7 +90,7 @@ class DoorPi(object):
             self._arguments = arguments
 
         if not self._logger:
-            logger.debug('set new logger DoorPiMemoryLog')
+            logger.debug(_('set new logger DoorPiMemoryLog'))
             self._logger = DoorPiMemoryLog()
 
         self._prepared = True
@@ -101,29 +106,37 @@ class DoorPi(object):
             from resources.event_handler import EventHandler
             from resources.interface_handler import InterfaceHandler
 
-            self._core_documentation = ConfigHandler.get_module_documentation_by_module_name(__name__)
-
             try:
                 self._config_handler = ConfigHandler()
                 self._event_handler = EventHandler()
                 self._interface_handler = InterfaceHandler()
+                print self.config.dump_object(
+                    self.config.get_module_documentation_by_module_name("resources.interface_handler")
+                )
 
                 for module in [self._config_handler, self._event_handler, self._interface_handler]:
                     module.start()
 
             except Exception as exp:
-                logger.exception("failed to start DoorPi with error %s" % exp)
+                logger.exception(_("failed to start DoorPi with error %s") % exp)
                 raise CorruptConfigFileException(exp)
 
             self.events.register_events(__name__)
 
-            event_arguments = {'start_as_daemon': 'daemon' if start_as_daemon else 'application'}
-            self.events.fire_event(__name__, 'BeforeStartup', kwargs=event_arguments)
-            self.events.fire_event_synchron(__name__, 'OnStartup', kwargs=event_arguments)
-            self.events.fire_event(__name__, 'AfterStartup', kwargs=event_arguments)
+            self.events.fire_event(__name__, 'BeforeStartup', kwargs=self.arguments)
+            self.events.fire_event_synchron(__name__, 'OnStartup', kwargs=self.arguments)
+            self.events.fire_event(__name__, 'AfterStartup', kwargs=self.arguments)
 
+            if self._arguments.create_parsed_docs:
+                return self.create_parsed_docs()
+
+            test_mode_counter = 0
             while self._event_handler.heart_beat():
-                pass
+                if self._arguments.test_mode and test_mode_counter > 1000:
+                    logger.info(_("stop test_mode now"))
+                    return self
+                elif self._arguments.test_mode:
+                    test_mode_counter += 1
             return self
         except Exception as exp:
             logger.exception(exp)
@@ -133,12 +146,12 @@ class DoorPi(object):
         if not self.events:
             return False
 
-        logger.debug('stop')
-        logger.debug("Threads before starting shutdown: %s", self.events.threads)
+        logger.debug(_('stop'))
+        logger.debug(_("Threads before starting shutdown: %s"), self.events.threads)
 
-        self.events.fire_event(__name__, 'BeforeShutdown')
-        self.events.fire_event_synchron(__name__, 'OnShutdown')
-        self.events.fire_event(__name__, 'AfterShutdown')
+        self.events.fire_event(__name__, 'BeforeShutdown', kwargs=self.arguments)
+        self.events.fire_event_synchron(__name__, 'OnShutdown', kwargs=self.arguments)
+        self.events.fire_event(__name__, 'AfterShutdown', kwargs=self.arguments)
 
         timeout = self.CONST.DOORPI_SHUTDOWN_TIMEOUT
         waiting_between_checks = self.CONST.DOORPI_SHUTDOWN_TIMEOUT_CHECK_INTERVAL
@@ -146,16 +159,20 @@ class DoorPi(object):
         time.sleep(waiting_between_checks)
         while timeout > 0 and not self.modules_destroyed:
             # while not self.event_handler.idle and timeout > 0 and len(self.event_handler.sources) > 1:
-            logger.info('wait %s seconds for threads: %s', timeout, self.events.threads[1:])
+            logger.info(_('wait %s seconds for threads: %s'), timeout, self.events.threads[1:])
             time.sleep(waiting_between_checks)
             timeout -= waiting_between_checks
 
         if timeout <= 0:
-            logger.warning("waiting for threads to time out - there are still threads: %s", self.events.threads[1:])
+            logger.warning(_("waiting for threads to time out - there are still threads: %s"), self.events.threads[1:])
 
-        logger.info('======== DoorPi successfully shutdown ========')
+        logger.info(_('======== DoorPi successfully shutdown ========'))
         if self.logger:
             self.logger.close()
+        return self
+
+    def create_parsed_docs(self):
+        logger.info(_("create_parsed_docs start"))
         return self
 
     def restart_module(self, module_name):
@@ -164,7 +181,7 @@ class DoorPi(object):
             try:
                 self._modules[module_name]['stop_function']()
             except Exception as exp:
-                logger.exception('failed to stop module %s with error %s', module_name, exp)
+                logger.exception(_('failed to stop module %s with error %s'), module_name, exp)
 
     def unregister_module(self, module_name, execute_stop_function=False):
         if module_name not in self._modules: return False
@@ -172,19 +189,19 @@ class DoorPi(object):
             try:
                 self._modules[module_name]['stop_function']
             except Exception as exp:
-                logger.exception('failed to stop module')
+                logger.exception('failed to stop module: %s', exp)
         del self._modules[module_name]
         return True
 
     def register_module(self, module_name, start_function=None, stop_function=None, return_new_logger=False):
         if module_name in self._modules:
-            logger.info("update module %s", module_name)
+            logger.info(_("update module %s"), module_name)
         else:
-            logger.info("register module %s", module_name)
+            logger.info(_("register module %s"), module_name)
 
-        logger.debug("- with start_function:    %s", start_function)
-        logger.debug("- with stop_function:     %s", stop_function)
-        logger.debug("- with return_new_logger: %s", return_new_logger)
+        logger.debug(_("- with start_function:    %s"), start_function)
+        logger.debug(_("- with stop_function:     %s"), stop_function)
+        logger.debug(_("- with return_new_logger: %s"), return_new_logger)
 
         self._modules[module_name] = dict(
             timestamp=time.time(),

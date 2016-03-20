@@ -2,6 +2,7 @@
 
 from main import DOORPI
 from plugins.interfaces import InterfaceBaseClass
+from exceptions import *
 
 logger = DOORPI.register_module(__name__, return_new_logger=True)
 

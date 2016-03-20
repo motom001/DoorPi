@@ -2,16 +2,17 @@
 
 import json
 import importlib
+import os
 
 from main import DOORPI
+from resources.functions.json import get_by_json_path
 
 logger = DOORPI.register_module(__name__, return_new_logger=True)
-
-from resources.functions.json import get_by_json_path
 
 
 class ConfigHandler:
     _config_object = {}
+    _module_docs = dict()
 
     @property
     def json_pretty_printing(self):
@@ -19,19 +20,23 @@ class ConfigHandler:
 
     @staticmethod
     def dump_object(raw_object):
-        return json.dumps(raw_object, sort_keys=True, indent=4, separators=(',', ': '))
+        logger.debug(_("try to dump object of type %s") % type(raw_object))
+        try:
+            return json.dumps(raw_object, sort_keys=True, indent=4, separators=(',', ': '))
+        except TypeError:
+            return json.dumps(vars(raw_object), sort_keys=True, indent=4, separators=(',', ': '))
 
     def __init__(self):
         pass
 
     def start(self):
-        logger.info("start ConfigHandler with configfile %s", DOORPI.arguments.config_file)
+        logger.info(_("start ConfigHandler with configfile %s"), DOORPI.arguments["config_file"])
         DOORPI.register_module(__name__, self.start, self.stop)
-        self._config_object = self.load_config_from_configfile(DOORPI.arguments.config_file)
+        self._config_object = self.load_config_from_configfile(DOORPI.arguments["config_file"])
         return self
 
     def stop(self):
-        logger.info("stop ConfigHandler")
+        logger.info(_("stop ConfigHandler"))
 
     @staticmethod
     def load_config_from_configfile(config_file):
@@ -39,17 +44,25 @@ class ConfigHandler:
             config_object = json.load(data_file)
         return config_object
 
-    @staticmethod
-    def get_module_documentation_by_module_name(module_name):
-        """
-        Load module documentation for given module name.
-        :param module_name: name of module
-        :return: dict in form of documentation dict or empty dict if not found
-        """
+    def update_module_documentation(self, module_name, new_doc=None):
+        if not new_doc:
+            return self.get_module_documentation_by_module_name(module_name, True)
+        self._module_docs[module_name] = new_doc
+        return new_doc
+
+    def get_module_documentation_by_module_name(self, module_name, force_reload=False):
+        if not force_reload and module_name in self._module_docs.keys():
+            doc = self._module_docs[module_name]
+            logger.debug(_("get_module_documentation_by_module_name cache %s (%s)") % (module_name, len(doc)))
+            return doc
+
         try:
-            return importlib.import_module(module_name + '.docs').DOCUMENTATION
-        except:
-            logger.warning('no docs founded for %s', module_name)
+            doc = importlib.import_module(module_name + '.docs').DOCUMENTATION
+            logger.debug(_("get_module_documentation_by_module_name success %s (%s)") % (module_name, len(doc)))
+            self._module_docs[module_name] = doc
+            return doc
+        except Exception as exp:
+            logger.warning(_('no docs founded for %s: %s'), module_name, exp)
             return None
 
     def get_by_path(self, json_path, default=None, config_object=None, function='value'):
@@ -75,23 +88,22 @@ class ConfigHandler:
             elif function == 'length':
                 value = len(value)
         except Exception as exp:
-            logger.error('failed to prepare value with function %s with error %s', function, exp)
+            logger.error(_('failed to prepare value with function %s with error %s'), function, exp)
 
         if value == default and use_default:
-            log_message = "%s of %s: %s (use default)"
+            log_message = _("%s of %s: %s (use default)")
         elif value == default:
-            log_message = "%s of %s: %s (was default)"
+            log_message = _("%s of %s: %s (was default)")
         else:
-            log_message = "%s of %s: %s"
+            log_message = _("%s of %s: %s")
 
         if json_path.split('.')[-1] in DOORPI.CONST.CONFIG_PASSWORD_KEYS:
-            logger.debug(log_message, function, json_path, '*********')
+            logger.debug(log_message, function, json_path, _('*********'))
         else:
             logger.debug(log_message, function, json_path, str(value))
         return value
 
     def get_config_from_documentation_object(self, documentation_object):
-        logger.debug('start get_config_from_documentation_object')
         return_array = documentation_object['configuration'] if 'configuration' in documentation_object else []
         for library_name in get_by_json_path(documentation_object, 'libraries', dict()):
             return_array += get_by_json_path(documentation_object['libraries'][library_name], 'configuration', [])

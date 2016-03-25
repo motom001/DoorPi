@@ -104,52 +104,54 @@ class RDM6300(KeyboardAbstractBaseClass):
         return given_checksum == RDM6300.calculate_checksum(string)
 
     def readUART(self):
-        # initialize UART
-        # make sure that terminal via UART is disabled
-        # see http://kampis-elektroecke.de/?page_id=3248 for details
-        self._UART = serial.Serial(self.__port, self.__baudrate)
-        self._UART.timeout = 1
-        self._UART.close()
-        self._UART.open()
-        try:
-            chars = ""
-
-            while not self._shutdown:
-                # char aus buffer holen
-                newChar = self._UART.read()
-                if newChar != "":
-                    logger.debug("new char %s read", newChar)
-                    chars += str(newChar)
-
-                    # aktuelles Ergebnis kontrollieren
-                    if newChar == STOP_FLAG and chars[0] == START_FLAG and len(chars) == MAX_LENGTH and RDM6300.check_checksum(chars):
-                        logger.debug("found tag, checking dismisstime")
-                        # alles okay... nur noch schauen, ob das nicht eine Erkennungs-Wiederholung ist
-                        now = time.time()
-                        if now - self.last_key_time > self.__dismisstime:
-                            doorpi.DoorPi().event_handler('OnFoundTag', __name__)
-                            self.last_key = int(chars[5:-3], 16)
-                            self.last_key_time = now
-                            logger.debug("key is %s", self.last_key)
-                            if self.last_key in self._InputPins:
-                                self._fire_OnKeyDown(self.last_key, __name__)
-                                self._fire_OnKeyPressed(self.last_key, __name__)
-                                self._fire_OnKeyUp(self.last_key, __name__)
-                                doorpi.DoorPi().event_handler('OnFoundKnownTag', __name__)
-                            else:
-                                doorpi.DoorPi().event_handler('OnFoundUnknownTag', __name__)
-
-                    # ggf. löschen
-                    if newChar == STOP_FLAG or len(chars) > MAX_LENGTH:
-                        chars = ""
-
-        except Exception as ex:
-            logger.exception(ex)
-        finally:
-            # shutdown the UART
+        while not self._shutdown:
+            logger.debug("readUART() started")
+            # initialize UART
+            # make sure that terminal via UART is disabled
+            # see http://kampis-elektroecke.de/?page_id=3248 for details
+            self._UART = serial.Serial(self.__port, self.__baudrate)
+            self._UART.timeout = 1
             self._UART.close()
-            self._UART = None
-            logger.debug("readUART thread ended")
+            self._UART.open()
+            try:
+                chars = ""
+
+                while not self._shutdown:
+                    # char aus buffer holen
+                    newChar = self._UART.read()
+                    if newChar != "":
+                        logger.debug("new char %s read", newChar)
+                        chars += str(newChar)
+
+                        # aktuelles Ergebnis kontrollieren
+                        if newChar == STOP_FLAG and chars[0] == START_FLAG and len(chars) == MAX_LENGTH and RDM6300.check_checksum(chars):
+                            logger.debug("found tag, checking dismisstime")
+                            # alles okay... nur noch schauen, ob das nicht eine Erkennungs-Wiederholung ist
+                            now = time.time()
+                            if now - self.last_key_time > self.__dismisstime:
+                                doorpi.DoorPi().event_handler('OnFoundTag', __name__)
+                                self.last_key = int(chars[5:-3], 16)
+                                self.last_key_time = now
+                                logger.debug("key is %s", self.last_key)
+                                if self.last_key in self._InputPins:
+                                    self._fire_OnKeyDown(self.last_key, __name__)
+                                    self._fire_OnKeyPressed(self.last_key, __name__)
+                                    self._fire_OnKeyUp(self.last_key, __name__)
+                                    doorpi.DoorPi().event_handler('OnFoundKnownTag', __name__)
+                                else:
+                                    doorpi.DoorPi().event_handler('OnFoundUnknownTag', __name__)
+
+                        # ggf. löschen
+                        if newChar == STOP_FLAG or len(chars) > MAX_LENGTH:
+                            chars = ""
+
+            except Exception as ex:
+                logger.exception(ex)
+            finally:
+                # shutdown the UART
+                self._UART.close()
+                self._UART = None
+                logger.debug("readUART thread ended")
 
         
     def __init__(self, input_pins, keyboard_name, conf_pre, conf_post, *args, **kwargs):

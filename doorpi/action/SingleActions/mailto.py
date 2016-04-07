@@ -32,6 +32,8 @@ def fire_action_mail(smtp_to, smtp_subject, smtp_text, smtp_snapshot):
 
         smtp_tolist = smtp_to.split()
 
+        email_signature = doorpi.DoorPi().config.get_string_parsed('SMTP', 'signature', '!EPILOG!')
+
         if smtp_use_ssl:
             server = smtplib.SMTP_SSL(smtp_host, smtp_port)
         else:
@@ -48,7 +50,8 @@ def fire_action_mail(smtp_to, smtp_subject, smtp_text, smtp_snapshot):
         msg['To'] = COMMASPACE.join(smtp_tolist)
         msg['Subject'] = doorpi.DoorPi().parse_string(smtp_subject)
         msg.attach(MIMEText(doorpi.DoorPi().parse_string(smtp_text), 'html'))
-        msg.attach(MIMEText('\nsent by:\n'+doorpi.DoorPi().epilog, 'plain'))
+        if email_signature and len(email_signature) > 0:
+            msg.attach(MIMEText('\nsent by:\n'+doorpi.DoorPi().epilog, 'plain'))
 
         if smtp_snapshot:
             smtp_snapshot = doorpi.DoorPi().parse_string(smtp_snapshot)

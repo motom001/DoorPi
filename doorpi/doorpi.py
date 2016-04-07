@@ -8,14 +8,12 @@ logger.debug("%s loaded", __name__)
 import sys
 import argparse
 
-import time # used by: DoorPi.run
-import os # used by: DoorPi.load_config
+import time  # used by: DoorPi.run
+import os  # used by: DoorPi.load_config
 
-import datetime # used by: parse_string
-import cgi # used by: parse_string
+import datetime  # used by: parse_string
+import cgi  # used by: parse_string
 import tempfile
-#import threading
-#import BaseHTTPServer
 
 import metadata
 from keyboard.KeyboardInterface import load_keyboard
@@ -286,6 +284,11 @@ class DoorPi(object):
             'BASEPATH':         self.base_path,
             'last_tick':        str(self.__last_tick)
         }
+
+        for key in metadata.__dict__.keys():
+            if isinstance(metadata.__dict__[key], str):
+                mapping_table[key.upper()] = metadata.__dict__[key]
+
         if self.config:
             mapping_table.update({
                 'LAST_SNAPSHOT':    str(self.config.get_string('DoorPi', 'last_snapshot', log=False))

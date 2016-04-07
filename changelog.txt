@@ -9,6 +9,24 @@ Legend:
 / reference to commit
 ! fix issue or kown bug
 
+Version: 2.5.0.2 (2016-04-07)
+-------------------------------
++ signature config for mailto action (default is epilog from metadata) - leave blank to disable signature
+
+settings for SMTP (checked with 1&1 SMTP-Account):
+```
+[SMTP]
+server = smtp.1und1.de
+port = 587
+username = email@doorpi.org
+password = password
+from = email@doorpi.org
+use_ssl = false
+use_tls = true
+need_login = true
+signature = sent from DoorPi
+```
+
 Version: 2.5.0.1 (2016-03-17)
 -------------------------------
 ! fix bug for mailto an take_snapshot

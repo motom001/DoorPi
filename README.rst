@@ -1,20 +1,8 @@
 ****************************************************
-DoorPi: VoIP Door-Intercomstation with Raspberry Pi
+DoorPi: Open Source VoIP Türsprechanlage
 ****************************************************
 
-|travis_status_master| |code_climate_badge| |scrutinizer_status_master| 
-
-:DoorPi @ `PyPi`_: 
-    |pypi_latest_version| |pypi_License|
-    
-    |pypi_downloads_day| |pypi_downloads_week| |pypi_downloads_month|
-
-:DoorPi @ `GitHub`_: 
-
-    |github_issues_open| |github_issues_all|
-    
-    |github_watchs| |github_stars| |github_forks|
-
+|pypi_License| |pypi_latest_version| |travis_status_master| |code_climate_badge| |scrutinizer_status_master|
 
 .. contents::
     :local:
@@ -28,9 +16,9 @@ Deutsch
 ---------------
 Einführung
 ---------------
-Ziel des Projektes DoorPi ist die Steuerung einer Türsprechanlage mittels einem Einplatiniencomputer wie dem Raspberry Pi und dem Kommunikationsprotokoll `VoIP`_.
+Ziel des Projektes DoorPi ist die Steuerung einer Türsprechanlage mittels einem Einplatiniencomputer wie dem Raspberry Pi und dem Kommunikationsprotokoll VoIP.
 
-DoorPi ist ein Event-Action basierendes System. Es gibt Komponenten die Events auslösen und Komponenten, die aufgrund dieser Events reagieren. Dazu sollen Ereignisse (Events) wie "Drücken einer Türklingel" oder "RFID Chip xyz vorgehalten" die Auslöser von Aktionen (Actions) wie "Anruf bei Telefon xyz", "E-Mail an xxx" oder "Öffne Tür" sein.
+DoorPi ist ein Event-Action basierendes System. Es gibt Komponenten, die Events auslösen, und Komponenten, die aufgrund dieser Events reagieren. Dazu sollen Ereignisse (Events) wie "Drücken einer Türklingel" oder "RFID Chip xyz vorgehalten" die Auslöser von Aktionen (Actions) wie "Anruf bei Telefon xyz", "E-Mail an xxx" oder "Öffne Tür" sein.
 
 ---------------
 Event-Quellen
@@ -84,43 +72,8 @@ Mittlerweile gibt es auch Video-Support, so dass an der Haustür eine Kamera ins
 Installation
 -----------------
 
-Die Installationen werden `hier beschrieben <http://board.doorpi.org/forumdisplay.php?fid=4>`_
+Die Installationen werden `hier beschrieben <http://www.doorpi.org/forum/board/21-installation/>`_
 
-Empfohlen wird die Installation via `PyPi`_ (in Kurzfassung):
-
-via `PyPi`_:
-
-.. code-block:: bash
-
-   sudo pip install doorpi &&
-   sudo doorpi_cli --trace
-
-
------------------
-Daemon
------------------
-
-Als Erstes sollte DoorPi als Anwendung gestartet werden, damit mögliche Fehler sofort angezeigt werden können. Außerdem wird beim ersten Start das DoorPi Basis-Verzeichnis unter /usr/local/etc/DoorPi eingerichtet.
-
-Die Einrichtung als Daemon wird `hier beschrieben <http://board.doorpi.org/showthread.php?tid=12>`_
-
------------------
-Konfiguration
------------------
-
-Der Start von DoorPi endet mit der Ausgabe der Weboberfläche-URL wie hier:
-
-   2015-09-10 17:52:28,085 [INFO]   [doorpi.status.webserver] DoorPiWeb URL is http://raspberrypi/
-   
-Aktuell bin ich noch nicht dazu gekommen, die Config pro Gerät (GPIO, PiFace, ...) zu individualisieren.
-In der Weboberfläche ist auf dem Startbildschirm die Übersicht der Module (z.B. GPIO). Rechts von dem Modul gibt es den Button Info. 
-In der Info-Seite findest Du neben der Beschreibung auch die möglichen Parameter mit default-Werten.
-Parallel dazu gibt es in der Navigation den Konfig-Editor. Dort kannst Du die Config bearbeiten, wenn Du weißt, welche Parameter wo hin gehören.
-Auch die Config abspeichern kannst Du in der Übersicht.
-
-Hilfe zur DoorPi Konfiguration (egal ob im Dashboard oder per Konfigurationsdatei) gibt es im DoorPi Wiki:
-
-`DoorPi Wiki <https://github.com/motom001/DoorPi/wiki/Konfiguration>`_
 
 -----------------
 DoorPi-Hilfe 
@@ -128,22 +81,89 @@ DoorPi-Hilfe
 
 Link zu Foren mit DoorPi Beiträgen:
 
-`DoorPi Forum <http://board.doorpi.org/>`_
+`DoorPi Forum <http://www.doorpi.org/forum/>`_
 
 `[Haussteuerung] DoorPi (VoIP Wechselsprechanlage / Türsprechanlage mit Video-Support) <http://www.forum-raspberrypi.de/Thread-haussteuerung-doorpi-voip-wechselsprechanlage-tuersprechanlage-mit-video-support>`_
 
 `DoorPI / VoIP Door-Intercomstation with Raspberry Pi <http://www.ip-symcon.de/forum/threads/26739-DoorPI-VoIP-Door-Intercomstation-with-Raspberry-Pi>`_
 
+
+
+
+=============
+English
+=============
+
+
+---------------
+Introduction
+---------------
+
+Aim of the DoorPi project is the realization of a door intercom station with a single board computer like the Raspberry Pi and the communication protocol VOIP.
+
+DoorPi is an event-action based system. There are components which fire events, and components which react on these events. That means that events like "Doorbell pressed" or "RFID chip xyz detected" shall be the trigger for actions like "call telephne xyz", "send email to xyz" or "open door".
+
+
+---------------
+Event-Sources
+---------------
+
+For registering these events, so-called "DoorPi-Keyboards" are used, e.g
+
+* GPIO pins
+* a PiFace
+* files in the filesystem of the PI (e.g. for remote commands via SSH)
+* the serial port (e.g. with an RDM6300 as NFC reader)
+* web service with authentification
+* VOIP phone
+
+To every event, any number of actions can be attached, which are executed synchronously or asynchronously.
+
+
+-----------------
+Action-Receivers
+-----------------
+
+A non-complete list of actions is:
+
+* VOIP call to a predefined number
+* VOIP call to a number which is read from a file
+* end call
+* send email
+* execute program
+* set an output pin
+* write a status file
+* read values from IP-Symcon or write them back
+
+Via the combination of events and actions, almost all combinations are possible.
+
+
+-----------------
+Examples
+-----------------
+
+A thinkable scenario is:
+
+#. when the doorbell button is pressed, a call is instantiated for calling a specific number (e.g. internal number of the FritzBox \*\*613, but also cell phone numbers)
+#. the inhabitant can talk to the outside station and on demand open the door remotely, by pressing a defined key (or sequence of keys) on a telephone (e.g. the key "#")
+#. the inhabitant forgets to end the call and DoorPi ends the call itself, as soon as the door was closed again
+#. DoorPi sends an email that there was a call, somebody opened the door and somebody walked into the house
+
+Meanwhile there is also video support, so that a camera can be installed at the door, and the image can be watched on the inside station even before the call is accepted
+
+
+-----------------
+Installation
+-----------------
+Installations are `described here <http://www.doorpi.org/forum/board/21-installation/>`_
+
+
 =============
 Changelog
 =============
 
-see `changelog.txt <https://github.com/motom001/DoorPi/changelog.txt>`_
+see `changelog.txt <https://github.com/motom001/DoorPi/blob/master/changelog.txt>`_
 
-
-.. _VoIP: https://de.wikipedia.org/wiki/IP-Telefonie
-.. _PyPi: https://pypi.python.org/pypi/DoorPi
-.. _GitHub: https://github.com/motom001/DoorPi
 
 .. |travis_status_master| image:: https://travis-ci.org/motom001/DoorPi.svg?branch=master
     :target: https://travis-ci.org/motom001/DoorPi
@@ -162,33 +182,3 @@ see `changelog.txt <https://github.com/motom001/DoorPi/changelog.txt>`_
 .. |pypi_latest_version| image:: https://img.shields.io/pypi/v/DoorPi.svg?label=latest%20version
     :target: https://pypi.python.org/pypi/DoorPi
     :alt: Download
-
-.. |pypi_downloads_day| image:: https://img.shields.io/pypi/dd/DoorPi.svg
-    :target: https://pypi.python.org/pypi/DoorPi#downloads
-    :alt: Downloads last day
-
-.. |pypi_downloads_week| image:: https://img.shields.io/pypi/dw/DoorPi.svg
-    :target: https://pypi.python.org/pypi/DoorPi#downloads
-    :alt: Downloads last week
-
-.. |pypi_downloads_month| image:: https://img.shields.io/pypi/dm/DoorPi.svg
-    :target: https://pypi.python.org/pypi/DoorPi#downloads
-    :alt: Downloads last month
-
-
-.. |github_issues_open| image:: https://img.shields.io/github/issues/motom001/DoorPi.svg
-    :target: https://github.com/motom001/DoorPi/issues
-    :alt: open issues on github
-
-.. |github_issues_all| image:: https://img.shields.io/github/issues-raw/badges/shields.svg
-    :target: https://github.com/motom001/DoorPi/issues?utf8=%E2%9C%93&q=is%3Aissue
-    :alt: all issues on github
-
-.. |github_watchs| image:: https://img.shields.io/github/watchers/motom001/DoorPi.svg?style=social&label=watchers
-    :target: https://github.com/motom001/DoorPi/watchers
-
-.. |github_stars| image:: https://img.shields.io/github/stars/motom001/DoorPi.svg?style=social&label=stars
-    :target: https://github.com/motom001/DoorPi/stargazers
-
-.. |github_forks| image:: https://img.shields.io/github/forks/motom001/DoorPi.svg?style=social&label=forks
-    :target: https://github.com/motom001/DoorPi/network

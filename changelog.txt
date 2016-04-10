@@ -9,10 +9,12 @@ Legend:
 / reference to commit
 ! fix issue or kown bug
 
+
 Version: 2.5.0.2 (2016-04-07)
 -------------------------------
-+ signature config for mailto action (default is epilog from metadata) - leave blank to disable signature
++ pifacecommon to requirements.txt
 
++ signature config for mailto action (default is epilog from metadata) - leave blank to disable signature
 settings for SMTP (checked with 1&1 SMTP-Account):
 ```
 [SMTP]
@@ -27,10 +29,10 @@ need_login = true
 signature = sent from DoorPi
 ```
 
+
 Version: 2.5.0.1 (2016-03-17)
 -------------------------------
 ! fix bug for mailto an take_snapshot
-
 send Mail with new pic from PiCam:
 ```
 [EVENT_AfterStartup]
@@ -65,7 +67,6 @@ Version: 2.4.1.8 (2016-03-12)
 
 / 598f559cb9cfab3fe5533d2cd2ba2d04c6fc6ce1
 ~ daemon file template with exitcode (for jessie) (thx to Postler)
-
 
 / 5f681f10b18fcfcdac84ab06e9ae9a500549450c
 ! fix "Exception NameError: 'bool' object has no attribute 'upper'" @ doorpi/keyboard/from_gpio.py (thx to cubeschrauber)

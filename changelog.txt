@@ -9,6 +9,21 @@ Legend:
 / reference to commit
 ! fix issue or kown bug
 
+Version: 2.5.0.4 (2016-05-23)
+-------------------------------
++ add missing changelog entries for Version: 2.5.0.3 (2016-05-23)
+
+Version: 2.5.0.3 (2016-05-23)
+-------------------------------
++ new action url_call to *surprise*surprise* call a url 
+```
+[EVENT_OnKeyDown_prod.1]
+10 = url_call:http://192.168.178.200/config/xmlapi/statechange.cgi?ise_id=12345&new_value=1
+```
+by https://www.doorpi.org/forum/thread/25-http-request
+
++ new keyboard PN532 to read NFC Tags
+see https://github.com/motom001/DoorPi/blob/master/doorpi/keyboard/from_pn532.py for more informations
 
 Version: 2.5.0.2 (2016-04-07)
 -------------------------------

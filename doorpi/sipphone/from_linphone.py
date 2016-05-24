@@ -180,15 +180,15 @@ class LinPhone(SipphoneAbstractBaseClass):
             config_path,
             None if factory_config_path is '' else factory_config_path
         )
-
-		for section_name in ['rtp', 'sip', 'video', 'net', 'sound']:
-			for config_key in conf.get_keys('linphone', section_name+'_'):
-				self.__lib_config.set_string(
-					section_name, 
-					config_key[len(section_name)+1:], 
-					conf.get('linphone', config_key)
-				)
-
+        
+        for section_name in ['rtp', 'sip', 'video', 'net', 'sound']:
+            for config_key in conf.get_keys('linphone', section_name+'_'):
+	        self.__lib_config.set_string(
+	            section_name, 
+	            config_key[len(section_name)+1:], 
+	            conf.get('linphone', config_key)
+	         )
+	
         self.__lib = lin.Core.new_with_config(
             self.callback.used_callbacks,
             self.__lib_config

@@ -184,13 +184,13 @@ class LinPhone(SipphoneAbstractBaseClass):
         for config_key in conf.get_keys('linphone', 'rtp_'):
             self.__lib_config.set_string('rtp', config_key[4:], conf.get('linphone', config_key))
         for config_key in conf.get_keys('linphone', 'sip_'):
-            self.__lib_config.set_string('rtp', config_key[4:], conf.get('linphone', config_key))
+            self.__lib_config.set_string('sip', config_key[4:], conf.get('linphone', config_key))
         for config_key in conf.get_keys('linphone', 'video_'):
-            self.__lib_config.set_string('rtp', config_key[6:], conf.get('linphone', config_key))
+            self.__lib_config.set_string('video', config_key[6:], conf.get('linphone', config_key))
         for config_key in conf.get_keys('linphone', 'net_'):
-            self.__lib_config.set_string('rtp', config_key[4:], conf.get('linphone', config_key))
+            self.__lib_config.set_string('net', config_key[4:], conf.get('linphone', config_key))
         for config_key in conf.get_keys('linphone', 'sound_'):
-            self.__lib_config.set_string('rtp', config_key[6:], conf.get('linphone', config_key))
+            self.__lib_config.set_string('sound', config_key[6:], conf.get('linphone', config_key))
 
         self.__lib = lin.Core.new_with_config(
             self.callback.used_callbacks,

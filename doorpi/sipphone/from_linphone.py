@@ -127,7 +127,7 @@ class LinPhone(SipphoneAbstractBaseClass):
     @property
     def base_config(self):
         params = self.core.create_call_params(None)
-        params.record_file = self.recorder.parsed_record_filename
+        params.record_file = self.recorder.reset_last_record_filename()
         params.video_enabled = True
         return params
 

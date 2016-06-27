@@ -18,7 +18,7 @@ def max_call_time():
     return conf.get_int(SIPPHONE_SECTION, 'max_call_time', 120)
 
 def sipphone_server():
-    return conf.get(SIPPHONE_SECTION, 'server')
+    return conf.get(SIPPHONE_SECTION, 'sipserver_server')
 
 def pj_log(level, msg, length):
     # beautify output - remove date / time an line break

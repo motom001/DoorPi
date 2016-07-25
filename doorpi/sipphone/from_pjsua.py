@@ -177,10 +177,10 @@ class Pjsua(SipphoneAbstractBaseClass):
             DoorPi().event_handler.unregister_source(__name__, True)
             return
 
-    def self_check(self, timeout):
+    def self_check(self, *args, **kwargs):
         self.lib.thread_register('pjsip_handle_events')
 
-        self.lib.handle_events(timeout)
+        self.lib.handle_events(self.call_timeout)
 
         if self.current_call is not None:
             if self.current_call.is_valid() is 0:
@@ -214,7 +214,7 @@ class Pjsua(SipphoneAbstractBaseClass):
 
         if self.lib.verify_sip_url(sip_uri) is not 0:
             logger.warning("SIP-URI %s is not valid (Errorcode: %s)", sip_uri, self.lib.verify_sip_url(sip_uri))
-            return false
+            return False
         else:
             logger.debug("SIP-URI %s is valid", sip_uri)
 

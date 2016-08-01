@@ -85,7 +85,7 @@ import threading
 from doorpi.keyboard.AbstractBaseClass import KeyboardAbstractBaseClass, HIGH_LEVEL, LOW_LEVEL
 import doorpi
 import nfc
-
+import time
 
 def get(**kwargs): return pn532(**kwargs)
 
@@ -93,8 +93,20 @@ def get(**kwargs): return pn532(**kwargs)
 class pn532(KeyboardAbstractBaseClass):
     name = 'pn532 nfc keyboard'
 
+    @property
+    def current_millisecond_timestamp(self):
+        return int(round(time.time() * 1000))
+
+    @property
+    def in_bouncetime(self):
+        return self.last_key_time + self.bouncetime >= self.current_millisecond_timestamp
+
     def pn532_recognized(self, tag):
         try:
+            if self.in_bouncetime:
+                logger.debug('founded tag while bouncetime -> skip')
+                return
+            self.last_key_time = self.current_millisecond_timestamp
             logger.debug("tag: %s", tag)
             hmm = str(tag)
             ID = str(hmm.split('ID=')[-1:])[2:-2]
@@ -121,10 +133,11 @@ class pn532(KeyboardAbstractBaseClass):
         finally:
             logger.debug("pn532 thread ended")
 
-    def __init__(self, input_pins, output_pins, keyboard_name, conf_pre, conf_post, *args, **kwargs):
+    def __init__(self, input_pins, output_pins, keyboard_name, conf_pre, conf_post, bouncetime, *args, **kwargs):
         self.keyboard_name = keyboard_name
         self.last_key = ""
-        self.last_key_time = 0
+        self.bouncetime = bouncetime
+        self.last_key_time = self.current_millisecond_timestamp
         # auslesen aus ini:
         section_name = conf_pre+'keyboard'+conf_post
         self._device = doorpi.DoorPi().config.get_string_parsed(section_name, 'device', 'tty:AMA0:pn532')

@@ -24,6 +24,10 @@ class LinphoneRecorder(RecorderAbstractBaseClass):
     @property
     def last_record_filename(self): return self.__last_record_filename
 
+    def reset_last_record_filename(self):
+        self.__last_record_filename = self.parsed_record_filename
+        return self.__last_record_filename
+
     def __init__(self):
         self.__record_filename = DoorPi().config.get(SIPPHONE_SECTION, 'records',
                                                      '!BASEPATH!/records/%Y-%m-%d_%H-%M-%S.wav')
@@ -51,7 +55,6 @@ class LinphoneRecorder(RecorderAbstractBaseClass):
             return
 
         if self.__record_filename is not '':
-            self.__last_record_filename = self.parsed_record_filename
             if not os.path.exists(os.path.dirname(self.__last_record_filename)):
                 logger.info('Path %s does not exist - creating it now', os.path.dirname(self.__last_record_filename))
                 os.makedirs(os.path.dirname(self.__last_record_filename))

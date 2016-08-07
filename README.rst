@@ -72,7 +72,7 @@ Mittlerweile gibt es auch Video-Support, so dass an der Haustür eine Kamera ins
 Installation
 -----------------
 
-Die Installationen werden `hier beschrieben <http://www.doorpi.org/forum/board/21-installation/>`_
+Die Installationen werden `hier beschrieben <https://www.doorpi.org/forum/lexicon/lexicon/6-installation/>`_
 
 
 -----------------
@@ -82,6 +82,8 @@ DoorPi-Hilfe
 Link zu Foren mit DoorPi Beiträgen:
 
 `DoorPi Forum <http://www.doorpi.org/forum/>`_
+
+`DoorPi Lexikon / Wiki <http://www.doorpi.org/forum/>`_
 
 `[Haussteuerung] DoorPi (VoIP Wechselsprechanlage / Türsprechanlage mit Video-Support) <http://www.forum-raspberrypi.de/Thread-haussteuerung-doorpi-voip-wechselsprechanlage-tuersprechanlage-mit-video-support>`_
 
@@ -155,7 +157,7 @@ Meanwhile there is also video support, so that a camera can be installed at the 
 -----------------
 Installation
 -----------------
-Installations are `described here <http://www.doorpi.org/forum/board/21-installation/>`_
+Installations are `described here <https://www.doorpi.org/forum/lexicon/lexicon/6-installation/>`_
 
 
 =============

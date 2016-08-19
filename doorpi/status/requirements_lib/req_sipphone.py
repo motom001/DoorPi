@@ -122,6 +122,7 @@ Für den Betrieb hinter einem NAT-Router steht das STUN-Protokoll zur Verfügung
                 dict( section = SIPPHONE_SECTION, key = 'video_size', type = 'string', default = '', mandatory = False, description = 'möglich Werte: [fehlt noch]'),
                 dict( section = SIPPHONE_SECTION, key = 'video_codecs', type = 'array', default = 'VP8', mandatory = False, description = 'Video-Codecs die aktiviert und genutzt werden können.'),
                 dict( section = SIPPHONE_SECTION, key = 'capture_device', type = 'string', default = '', mandatory = False, description = 'Audiogerät, das für die Aufnahme genutzt wird - wenn nichts angegeben wird, dann wird das erst Beste genutzt. Bitte dazu in der LOG-Datei nach "possible sounddevices:" suchen'),
+                dict( section = SIPPHONE_SECTION, key = 'mic_gain_db', type = 'float', default = '0', mandatory = False, description = 'Zusätzliche Software-Verstärkung der Aufnahme, falls der Pegel vom Mikro auch bei maximaler Mixer-Einstellung zu schwach ist.'),
                 dict( section = SIPPHONE_SECTION, key = 'playback_device', type = 'string', default = '', mandatory = False, description = 'Audiogerät, das für die Aufnahme genutzt wird - wenn nichts angegeben wird, dann wird das erst Beste genutzt. Bitte dazu in der LOG-Datei nach "possible sounddevices:" suchen'),
                 dict( section = SIPPHONE_SECTION, key = 'audio_codecs', type = 'array', default = 'PCMA,PCMU', mandatory = False, description = 'Audio-Codecs die aktiviert und genutzt werden können.'),
             ],

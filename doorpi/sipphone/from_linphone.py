@@ -203,6 +203,7 @@ class LinPhone(SipphoneAbstractBaseClass):
         else:
             self.core.capture_device = conf.get(SIPPHONE_SECTION, 'capture_device', self.core.capture_device)
             self.core.playback_device = conf.get(SIPPHONE_SECTION, 'playback_device', self.core.playback_device)
+            self.core.mic_gain_db = conf.get_float(SIPPHONE_SECTION, 'mic_gain_db', 0)
             logger.info("found %s possible sounddevices:", len(self.core.sound_devices))
             logger.debug("|rec|play| name")
             logger.debug("------------------------------------")
@@ -215,6 +216,7 @@ class LinPhone(SipphoneAbstractBaseClass):
             logger.debug("------------------------------------")
             logger.debug("using capture_device: %s", self.core.capture_device)
             logger.debug("using playback_device: %s", self.core.playback_device)
+            logger.debug("mic_gain_db: %s", self.core.mic_gain_db)
 
         # Only enable PCMU and PCMA audio codecs by default
         config_audio_codecs = conf.get_list(SIPPHONE_SECTION, 'audio_codecs', 'PCMA,PCMU')

@@ -53,14 +53,16 @@ class SingleAction:
                 #print "no args and no kwargs"
                 return self.__callback()
         except TypeError as ex:
-            print ex
+            logger.exception(ex)
 
     @staticmethod
     def from_string(config_string):
         try:
             action_name = config_string.split(':', 1)[0]
-            return importlib.import_module('action.SingleActions.'+action_name).get(
-                config_string.split(':', 1)[1]
+            try: parameters = config_string.split(':', 1)[1]
+            except: parameters = ""
+            return importlib.import_module('doorpi.action.SingleActions.'+action_name).get(
+                parameters
             )
         except:
             logger.exception('error while creating SingleAction from config string: %s',config_string)

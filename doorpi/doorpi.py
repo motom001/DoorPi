@@ -8,24 +8,28 @@ logger.debug("%s loaded", __name__)
 import sys
 import argparse
 
-import time # used by: DoorPi.run
-import os # used by: DoorPi.load_config
+import time  # used by: DoorPi.run
+import os  # used by: DoorPi.load_config
 
-#from math import abs
-
-import datetime # used by: parse_string
-import cgi # used by: parse_string
-import threading
-import BaseHTTPServer
+import datetime  # used by: parse_string
+import cgi  # used by: parse_string
+import tempfile
 
 import metadata
 from keyboard.KeyboardInterface import load_keyboard
 from sipphone.SipphoneInterface import load_sipphone
+from status.webserver import load_webserver
 from conf.config_object import ConfigObject
 from action.handler import EventHandler
 from status.status_class import DoorPiStatus
-from status.webservice import run_webservice, WebService
+#from status.webservice import run_webservice, WebService
 from action.base import SingleAction
+
+
+class DoorPiShutdownAction(SingleAction): pass
+class DoorPiNotExistsException(Exception): pass
+class DoorPiEventHandlerNotExistsException(Exception): pass
+class DoorPiRestartException(Exception): pass
 
 class Singleton(type):
     _instances = {}
@@ -67,19 +71,32 @@ class DoorPi(object):
 
     @property
     def status(self): return DoorPiStatus(self)
-
-    @property
-    def base_path(self): return os.path.dirname(__file__)
+    def get_status(self, modules = '', value= '', name = ''): return DoorPiStatus(self, modules, value, name)
 
     @property
     def epilog(self): return metadata.epilog
+
+    @property
+    def name(self): return str(metadata.package)
+    @property
+    def name_and_version(self): return str(metadata.package) + " - version: " + metadata.version
 
     __shutdown = False
     @property
     def shutdown(self): return self.__shutdown
 
+    _base_path = metadata.doorpi_path
     @property
-    def base_path(self): return metadata.base_path
+    def base_path(self):
+        if self._base_path is None:
+            try:
+                self._base_path = os.path.join(os.path.expanduser('~'), metadata.package)
+                assert os.access(self._base_path, os.W_OK), 'use fallback for base_path (see tmp path)'
+            except Exception as exp:
+                logger.error(exp)
+                import tempfile
+                self._base_path = tempfile.gettempdir()
+        return self._base_path
 
     def __init__(self, parsed_arguments = None):
         self.__parsed_arguments = parsed_arguments
@@ -92,32 +109,51 @@ class DoorPi(object):
 
         self.__last_tick = time.time()
 
+    def doorpi_shutdown(self, time_until_shutdown=10):
+        time.sleep(time_until_shutdown)
+        self.__shutdown = True
+
     def prepare(self, parsed_arguments):
         logger.debug("prepare")
-        logger.debug("givven arguments argv: %s", parsed_arguments)
-
-        if not parsed_arguments.configfile and not self.config:
-            raise Exception("no config exists an no new given")
-
-        self.__event_handler = EventHandler()
+        logger.debug("given arguments argv: %s", parsed_arguments)
 
         self.__config = ConfigObject.load_config(parsed_arguments.configfile)
-        self.__keyboard = load_keyboard()
-        logger.info('Keyboard is now %s', self.keyboard.name)
-        self.__sipphone = load_sipphone()
-        logger.info('Sipphone is now %s', self.sipphone.name)
-        self.sipphone.start()
+        self._base_path = self.config.get('DoorPi', 'base_path', self.base_path)
+        self.__event_handler = EventHandler()
 
-        #register own events
+        if self.config.config_file is None:
+            self.event_handler.register_action('AfterStartup', self.config.save_config)
+            self.config.get('EVENT_OnStartup', '10', 'sleep:1')
+
+        if 'test' in parsed_arguments and parsed_arguments.test is True:
+            logger.warning('using only test-mode and destroy after 5 seconds')
+            self.event_handler.register_action('AfterStartup', DoorPiShutdownAction(self.doorpi_shutdown))
+
+        # register own events
+        self.event_handler.register_event('BeforeStartup', __name__)
         self.event_handler.register_event('OnStartup', __name__)
+        self.event_handler.register_event('AfterStartup', __name__)
+        self.event_handler.register_event('BeforeShutdown', __name__)
         self.event_handler.register_event('OnShutdown', __name__)
+        self.event_handler.register_event('AfterShutdown', __name__)
+        self.event_handler.register_event('OnTimeTick', __name__)
+        self.event_handler.register_event('OnTimeTickRealtime', __name__)
+
+        # register base actions
+        self.event_handler.register_action('OnTimeTick', 'time_tick:!last_tick!')
+
+        # register modules
+        self.__webserver    = load_webserver()
+        self.__keyboard     = load_keyboard()
+        self.__sipphone     = load_sipphone()
+        self.sipphone.start()
 
         # register eventbased actions from configfile
         for event_section in self.config.get_sections('EVENT_'):
-            logger.info("founded EVENT_ section '%s' in configfile", event_section)
+            logger.info("found EVENT_ section '%s' in configfile", event_section)
             event_name = event_section[len('EVENT_'):]
             for action in sorted(self.config.get_keys(event_section)):
-                logger.info("register action '%s' for event '%s'", action, event_name)
+                logger.info("registering action '%s' for event '%s'", action, event_name)
                 self.event_handler.register_action(event_name, self.config.get(event_section, action))
 
         # register actions for inputpins
@@ -151,68 +187,77 @@ class DoorPi(object):
     def __del__(self):
         return self.destroy()
 
+    @property
+    def modules_destroyed(self):
+        if len(self.event_handler.sources) > 1: return False
+        return self.event_handler.idle
+
     def destroy(self):
-        try:
-            if self.__prepared is not True: return False
-            logger.debug('destroy')
-            self.__shutdown = True
-            if self.event_handler is not None:
-                self.event_handler.fire_event_synchron('OnShutdown', __name__)
+        logger.debug('destroy doorpi')
 
-            if self.keyboard is not None:
-                self.keyboard.destroy()
+        if not self.event_handler or self.event_handler.threads == None:
+            DoorPiEventHandlerNotExistsException("don't try to stop, when not prepared")
+            return False
 
-            if self.sipphone is not None:
-                self.sipphone.destroy()
+        logger.debug("Threads before starting shutdown: %s", self.event_handler.threads)
 
-            if self.event_handler is not None:
-                timeout = 2
-                if not self.event_handler.idle:
-                    logger.warning('wait for event_handler with runnig theards %s', self.event_handler.threads[1:])
-                while not self.event_handler.idle and timeout > 0:
-                    logger.info('wait %s seconds for theards %s', timeout, self.event_handler.threads[1:])
-                    time.sleep(0.5)
-                    timeout -= 0.5
+        self.event_handler.fire_event('BeforeShutdown', __name__)
+        self.event_handler.fire_event_synchron('OnShutdown', __name__)
+        self.event_handler.fire_event('AfterShutdown', __name__)
 
-                if timeout <= 0:
-                    logger.error("waiting for theards timed out - there are still theards: %s", self.event_handler.threads[1:])
+        timeout = 5
+        waiting_between_checks = 0.5
+        time.sleep(waiting_between_checks)
+        while timeout > 0 and self.modules_destroyed is not True:
+            # while not self.event_handler.idle and timeout > 0 and len(self.event_handler.sources) > 1:
+            logger.debug('wait %s seconds for threads %s and %s event',
+                         timeout, len(self.event_handler.threads[1:]), len(self.event_handler.sources))
+            logger.trace('still existing threads:       %s', self.event_handler.threads[1:])
+            logger.trace('still existing event sources: %s', self.event_handler.sources)
+            time.sleep(waiting_between_checks)
+            timeout -= waiting_between_checks
 
-            if self.event_handler is not None:
-                self.event_handler.unregister_source(__name__, True)
-                self.event_handler.destroy()
-                self.__event_handler = None
-                del self.__event_handler
+        if timeout <= 0:
+            logger.warning("waiting for threads to time out - there are still threads: %s", self.event_handler.threads[1:])
 
-            self.__keyboard = None
-            del self.__keyboard
+        logger.info('======== DoorPi successfully shutdown ========')
+        return True
 
-            self.__sipphone = None
-            del self.__sipphone
-
-        except Exception as ex:
-            logger.exception(ex)
-
+    def restart(self):
+        if self.destroy(): self.run()
+        else: raise DoorPiRestartException()
 
     def run(self):
         logger.debug("run")
         if not self.__prepared: self.prepare(self.__parsed_arguments)
 
-        self.event_handler.register_event('OnTimeTick', __name__)
-        #self.event_handler.register_action('OnTimeTick', 'sleep:0.1')
-        self.event_handler.register_action('OnTimeTick', 'time_tick:!last_tick!')
-        self.event_handler.fire_event_asynchron('OnTimeTick', __name__)
-
+        self.event_handler.fire_event('BeforeStartup', __name__)
         self.event_handler.fire_event_synchron('OnStartup', __name__)
+        self.event_handler.fire_event('AfterStartup', __name__)
+
+        # self.event_handler.register_action('OnTimeMinuteUnevenNumber', 'doorpi_restart')
 
         logger.info('DoorPi started successfully')
         logger.info('BasePath is %s', self.base_path)
+        if self.__webserver:
+            logger.info('Weburl is %s', self.__webserver.own_url)
+        else:
+            logger.info('no Webserver loaded')
 
-        while True:
-            self.__last_tick = time.time()
-            self.__event_handler.fire_event_synchron('OnTimeTick', __name__)
-            time.sleep(0.4)
+        time_ticks = 0
 
+        while True and not self.__shutdown:
+            time_ticks += 0.05
+            self.check_time_critical_threads()
+            if time_ticks > 0.5:
+                self.__last_tick = time.time()
+                self.__event_handler.fire_event_asynchron('OnTimeTick', __name__)
+                time_ticks = 0
+            time.sleep(0.05)
         return self
+
+    def check_time_critical_threads(self):
+        if self.sipphone: self.sipphone.self_check()
 
     def parse_string(self, input_string):
         parsed_string = datetime.datetime.now().strftime(str(input_string))
@@ -240,6 +285,14 @@ class DoorPi(object):
             'last_tick':        str(self.__last_tick)
         }
 
+        for key in metadata.__dict__.keys():
+            if isinstance(metadata.__dict__[key], str):
+                mapping_table[key.upper()] = metadata.__dict__[key]
+
+        if self.config:
+            mapping_table.update({
+                'LAST_SNAPSHOT':    str(self.config.get_string('DoorPi', 'last_snapshot', log=False))
+            })
         if self.keyboard and 'KeyboardHandler' not in self.keyboard.name:
             for output_pin in self.config.get_keys('OutputPins', log = False):
                 mapping_table[self.config.get('OutputPins', output_pin, log = False)] = output_pin

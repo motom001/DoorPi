@@ -53,8 +53,5 @@ docs/_build/
 # PyBuilder
 target/
 
-# private config-file
-conf/doorpi.ini
-conf/doorpi.cfg
-doorpi/media/*.wav
-records/
+.pypirc
+doorpi/docs/service/doorpi

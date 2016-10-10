@@ -102,9 +102,7 @@ class SipPhoneCallCallBack(pj.CallCallback):
         self.__DTMF += str(digits)
         for DTMF in self.__possible_DTMF:
             if self.__DTMF.endswith(DTMF[1:-1]):
-                print '------------------------------------ davor ------------------------------------'
                 DoorPi().event_handler('OnDTMF_'+DTMF+'', __name__, {
                     'remote_uri': str(self.call.info().remote_uri),
                     'DTMF': str(self.__DTMF)
                 })
-                print '------------------------------------ danach ------------------------------------'

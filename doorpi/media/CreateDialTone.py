@@ -28,3 +28,5 @@ def generate_dial_tone(filename = 'dialtone.wav', volume = 50):
     f.setparams((numChan, dataSize, sampleRate, numSamples, "NONE", "Uncompressed"))
     f.writeframes(data.tostring())
     f.close()
+
+    return filename

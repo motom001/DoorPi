@@ -5,9 +5,9 @@ import logging
 logger = logging.getLogger(__name__)
 logger.debug("%s loaded", __name__)
 
-from action.base import SingleAction
+from doorpi.action.base import SingleAction
 import doorpi
-from status.status_class import DoorPiStatus
+from doorpi.status.status_class import DoorPiStatus
 
 def write_statusfile(filename, filecontent):
     try:
@@ -23,7 +23,7 @@ def write_statusfile(filename, filecontent):
             filecontent = filecontent.replace('!DOORPI_STATUS.json!', doorpi_status_json)
 
         except:
-            logger.exception("error while crete status")
+            logger.exception("error while creating status")
 
     except:
         logger.warning("while action statusfile - error to get DoorPi().parse_string")

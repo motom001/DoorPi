@@ -5,38 +5,46 @@ import logging
 logger = logging.getLogger(__name__)
 logger.debug("%s loaded", __name__)
 
+import importlib
 import doorpi
 
-def get_sipphones():
-    return dict(
-        autodetect = autodetect,
-        pjsua = load_pjsua,
-        pjsip = load_pjsua
-    )
+class SipphoneNotExists(Exception): pass
 
 def load_sipphone():
-    sipphones = get_sipphones()
-    config_value = doorpi.DoorPi().config.get('SIP-Phone', 'sipphonetyp', 'autodetect')
+    conf_pre = ''
+    conf_post = ''
 
-    if config_value not in sipphones.keys():
-        raise Exception(
-            'Sipphone {0} in configfile is unknown. - possible values are {1}'.format(
-            config_value, keyboards.keys())
+    sipphone_name = doorpi.DoorPi().config.get(
+        'SIP-Phone',
+        'sipphonetyp',
+        find_first_installed_sipphone()
+    )
+
+    try:
+        sipphone = importlib.import_module('doorpi.sipphone.from_'+sipphone_name).get(
+            sipphone_name = sipphone_name,
+            conf_pre = conf_pre,
+            conf_post = conf_post
         )
-    return sipphones[config_value]()
+    except ImportError as exp:
+        logger.exception('sipphone %s not found @ sipphone.from_%s with exception %s', sipphone_name, sipphone_name, exp)
+        logger.warning('use dummy sipphone after last exception!')
+        sipphone = importlib.import_module('doorpi.sipphone.from_dummy').get(
+            sipphone_name = sipphone_name,
+            conf_pre = conf_pre,
+            conf_post = conf_post
+        )
 
-def load_pjsua():
-    logger.trace('load_pjsua')
-    import from_pjsua
-    return from_pjsua.Pjsua()
+    return sipphone
 
-def autodetect():
-    sipphones = get_sipphones()
-    for sipphone in sipphones.keys():
-        if sipphone is not "autodetect":
-            logger.trace('try to load %s', sipphone)
-            try: return sipphones[sipphone]()
-            except ImportError: logger.info('could not load sipphone %s', sipphone)
-            except Exception as ex: logger.exception('undefined error while loading sipphone %s (%s)', sipphone, ex)
+def find_first_installed_sipphone():
+    sipphone_status = doorpi.DoorPi().get_status(['environment'], ['sipphone'])
 
-    raise Exception('no valid sipphone found')
+    sipphones = sipphone_status.dictionary['environment']['sipphone']['libraries']
+    for sipphone_name in sipphones.keys():
+        if sipphones[sipphone_name]['status']['installed']:
+            logger.info('found installed sipphone "%s" and use this as default', sipphone_name)
+            return sipphone_name
+
+    logger.warning('found no installed sipphones and use dummy as default')
+    return 'dummy'

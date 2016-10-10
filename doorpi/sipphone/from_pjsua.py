@@ -7,19 +7,18 @@ logger.debug("%s loaded", __name__)
 
 import pjsua as pj
 
-import AbstractBaseClass
-
 from time import sleep
 
-from pjsua_lib.Config import *
-import pjsua_lib.SipPhoneAccountCallBack
-import pjsua_lib.SipPhoneCallCallBack
-import pjsua_lib.Recorder
-import pjsua_lib.Player
+from doorpi.sipphone.pjsua_lib.Config import *
+from doorpi.sipphone.pjsua_lib.SipPhoneAccountCallBack import SipPhoneAccountCallBack
+from doorpi.sipphone.pjsua_lib.SipPhoneCallCallBack import SipPhoneCallCallBack
+from doorpi.sipphone.pjsua_lib.Recorder import PjsuaRecorder
+from doorpi.sipphone.pjsua_lib.Player import PjsuaPlayer
 from AbstractBaseClass import SipphoneAbstractBaseClass
 
 from doorpi import DoorPi
 
+def get(*args, **kwargs): return Pjsua()
 class Pjsua(SipphoneAbstractBaseClass):
 
     @property
@@ -34,7 +33,48 @@ class Pjsua(SipphoneAbstractBaseClass):
     @property
     def player(self): return self.__player
 
-    def __init__(self):
+    @property
+    def sound_devices(self):
+        try:
+            all_devices = []
+            for sound_device in self.lib.enum_snd_dev():
+                all_devices.append({
+                  'name':       sound_device,
+                  'capture':    True if sound_device.input_channels > 0 else False,
+                  'record':     True if sound_device.output_channels > 0 else False
+                })
+            return all_devices
+        except: return []
+
+    @property
+    def sound_codecs(self):
+        try:
+            all_codecs = []
+            for codec in self.lib.enum_codecs():
+                all_codecs.append({
+                    'name':         codec.name,
+                    'channels':     codec.channel_count,
+                    'bitrate':      codec.avg_bps
+                })
+        except: return []
+
+    @property
+    def current_call_dump(self):
+        try:
+            return {
+                'direction':        'incoming' if self.current_call.info().role == 0 else 'outgoing',
+                'remote_uri':       self.current_call.info().remote_uri,
+                'total_time':       self.current_call.info().call_time,
+                'level_incoming':   self.lib.conf_get_signal_level(0)[0],
+                'level_outgoing':   self.lib.conf_get_signal_level(0)[1],
+                'camera':           False
+            }
+        except:
+            return {}
+
+    def thread_register(self, name): return self.lib.thread_register(name)
+
+    def __init__(self, *args, **kwargs):
         logger.debug("__init__")
 
         DoorPi().event_handler.register_event('OnSipPhoneCreate', __name__)
@@ -44,6 +84,7 @@ class Pjsua(SipphoneAbstractBaseClass):
         DoorPi().event_handler.register_event('OnSipPhoneRecorderCreate', __name__)
         DoorPi().event_handler.register_event('OnSipPhoneRecorderDestroy', __name__)
 
+        DoorPi().event_handler.register_event('BeforeSipPhoneMakeCall', __name__)
         DoorPi().event_handler.register_event('OnSipPhoneMakeCall', __name__)
         DoorPi().event_handler.register_event('AfterSipPhoneMakeCall', __name__)
         
@@ -52,7 +93,6 @@ class Pjsua(SipphoneAbstractBaseClass):
 
         self.__Lib = None
         self.__account = None
-        self.current_call = None
         self.current_callcallback = None
         self.current_account_callback = None
         self.__recorder = None
@@ -67,15 +107,15 @@ class Pjsua(SipphoneAbstractBaseClass):
 
         logger.debug("init Lib")
         self.__Lib.init(
-            ua_cfg      = pjsua_lib.Config.create_UAConfig(),
-            media_cfg   = pjsua_lib.Config.create_MediaConfig(),
-            log_cfg     = pjsua_lib.Config.create_LogConfig()
+            ua_cfg      = doorpi.sipphone.pjsua_lib.Config.create_UAConfig(),
+            media_cfg   = doorpi.sipphone.pjsua_lib.Config.create_MediaConfig(),
+            log_cfg     = doorpi.sipphone.pjsua_lib.Config.create_LogConfig()
         )
 
         logger.debug("init transport")
         transport = self.__Lib.create_transport(
             type        = pj.TransportType.UDP,
-            cfg         = pjsua_lib.Config.create_TransportConfig()
+            cfg         = doorpi.sipphone.pjsua_lib.Config.create_TransportConfig()
         )
         logger.debug("Listening on: %s",str(transport.info().host))
         logger.debug("Port: %s",str(transport.info().port))
@@ -89,20 +129,20 @@ class Pjsua(SipphoneAbstractBaseClass):
         )
 
         logger.debug("init Acc")
-        self.current_account_callback = pjsua_lib.SipPhoneAccountCallBack.SipPhoneAccountCallBack()
+        self.current_account_callback = SipPhoneAccountCallBack()
         self.__account = self.__Lib.create_account(
-            acc_config  = pjsua_lib.Config.create_AccountConfig(),
+            acc_config  = doorpi.sipphone.pjsua_lib.Config.create_AccountConfig(),
             set_default = True,
             cb          = self.current_account_callback
         )
 
-        self.call_timeout = pjsua_lib.Config.call_timeout()
-        self.max_call_time = pjsua_lib.Config.max_call_time()
+        self.call_timeout = doorpi.sipphone.pjsua_lib.Config.call_timeout()
+        self.max_call_time = doorpi.sipphone.pjsua_lib.Config.max_call_time()
 
         DoorPi().event_handler('OnSipPhoneStart', __name__)
 
-        self.__recorder = pjsua_lib.Recorder.PjsuaRecorder()
-        self.__player = pjsua_lib.Player.PjsuaPlayer()
+        self.__recorder = PjsuaRecorder()
+        self.__player = PjsuaPlayer()
 
         logger.debug("start successfully")
 
@@ -137,10 +177,10 @@ class Pjsua(SipphoneAbstractBaseClass):
             DoorPi().event_handler.unregister_source(__name__, True)
             return
 
-    def self_check(self, timeout):
+    def self_check(self, *args, **kwargs):
         self.lib.thread_register('pjsip_handle_events')
 
-        self.lib.handle_events(timeout)
+        self.lib.handle_events(self.call_timeout)
 
         if self.current_call is not None:
             if self.current_call.is_valid() is 0:
@@ -164,23 +204,24 @@ class Pjsua(SipphoneAbstractBaseClass):
                 pass
 
     def call(self, number):
-
+        DoorPi().event_handler('BeforeSipPhoneMakeCall', __name__, {'number':number})
         logger.debug("call(%s)",str(number))
-        DoorPi().event_handler('OnSipPhoneMakeCall', __name__)
+
         self.lib.thread_register('call_theard')
 
-        sip_server = pjsua_lib.Config.sipphone_server()
+        sip_server = doorpi.sipphone.pjsua_lib.Config.sipphone_server()
         sip_uri = "sip:"+str(number)+"@"+str(sip_server)
 
         if self.lib.verify_sip_url(sip_uri) is not 0:
             logger.warning("SIP-URI %s is not valid (Errorcode: %s)", sip_uri, self.lib.verify_sip_url(sip_uri))
-            return false
+            return False
         else:
             logger.debug("SIP-URI %s is valid", sip_uri)
 
+        DoorPi().event_handler('OnSipPhoneMakeCall', __name__)
         if not self.current_call or self.current_call.is_valid() is 0:
             lck = self.lib.auto_lock()
-            self.current_callcallback = pjsua_lib.SipPhoneCallCallBack.SipPhoneCallCallBack()
+            self.current_callcallback = SipPhoneCallCallBack()
             self.current_call = self.__account.make_call(
                 sip_uri,
                 self.current_callcallback
@@ -199,7 +240,7 @@ class Pjsua(SipphoneAbstractBaseClass):
             try:
                 # self.current_call.hangup()
                 self.lib.hangup_all()
-            except pj.Error, e:
+            except pj.Error as e:
                 logger.exception("Exception: %s", str(e))
             self.call(Number)
 
@@ -218,9 +259,22 @@ class Pjsua(SipphoneAbstractBaseClass):
 
         possible_admin_numbers = DoorPi().config.get_keys('AdminNumbers')
         for admin_number in possible_admin_numbers:
+            if admin_number == "*":
+                logger.info("admin numbers are deactivated by using '*' as single number")
+                return True
             if "sip:"+admin_number+"@" in remote_uri:
                 logger.debug("%s is an adminnumber", remote_uri)
                 return True
-
+            if "sip:"+admin_number is remote_uri:
+                logger.debug("%s is adminnumber %s", remote_uri, admin_number)
+                return True
         logger.debug("%s is not an adminnumber", remote_uri)
         return False
+
+    def hangup(self):
+        if self.current_call:
+            logger.debug("Received hangup request, cancelling current call")
+            self.lib.hangup_all()
+        else:
+            logger.debug("Ignoring hangup request as there is no ongoing call")
+

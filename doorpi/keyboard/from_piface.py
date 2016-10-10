@@ -5,31 +5,34 @@ import logging
 logger = logging.getLogger(__name__)
 logger.debug("%s loaded", __name__)
 
-import pifacedigitalio as p # basic for PiFce control
-
-from keyboard.AbstractBaseClass import KeyboardAbstractBaseClass, HIGH_LEVEL, LOW_LEVEL
+import pifacedigitalio as p  # basic for PiFce control
+from doorpi.keyboard.AbstractBaseClass import KeyboardAbstractBaseClass, HIGH_LEVEL, LOW_LEVEL
 import doorpi
 
+
 def get(**kwargs): return PiFace(**kwargs)
+
+
 class PiFace(KeyboardAbstractBaseClass):
 
-    def __init__(self, input_pins, output_pins, keyboard_name, bouncetime, polarity = 0, *args, **kwargs):
+    def __init__(self, input_pins, output_pins, keyboard_name, bouncetime,
+                 polarity=0, pressed_on_key_down=True, *args, **kwargs):
         logger.debug("__init__(input_pins = %s, output_pins = %s, polarity = %s)",
                      input_pins, output_pins, polarity)
         self.keyboard_name = keyboard_name
         self._polarity = polarity
         self._InputPins = map(int, input_pins)
         self._OutputPins = map(int, output_pins)
+        self._pressed_on_key_down = pressed_on_key_down
 
         p.init()
-
         self.__listener = p.InputEventListener()
         for input_pin in self._InputPins:
             self.__listener.register(
-                pin_num = input_pin,
-                direction  = p.IODIR_BOTH,
-                callback  = self.event_detect,
-                settle_time = bouncetime
+                pin_num=input_pin,
+                direction=p.IODIR_BOTH,
+                callback=self.event_detect,
+                settle_time=bouncetime / 1000  # from milliseconds to seconds
             )
             self._register_EVENTS_for_pin(input_pin, __name__)
         self.__listener.activate()
@@ -38,7 +41,11 @@ class PiFace(KeyboardAbstractBaseClass):
         for output_pin in self._OutputPins:
             self.set_output(output_pin, 0, False)
 
+        self.register_destroy_action()
+
     def destroy(self):
+        if self.is_destroyed:
+            return
         logger.debug("destroy")
         
         # shutdown listener
@@ -49,13 +56,17 @@ class PiFace(KeyboardAbstractBaseClass):
             self.set_output(output_pin, 0, False)
         p.deinit()
         doorpi.DoorPi().event_handler.unregister_source(__name__, True)
+        self.__destroyed = True
 
     def event_detect(self, event):
         if self.status_input(event.pin_num):
             self._fire_OnKeyDown(event.pin_num, __name__)
-            self._fire_OnKeyPressed(event.pin_num, __name__)
+            if self._pressed_on_key_down:  # issue 134
+                self._fire_OnKeyPressed(event.pin_num, __name__)
         else:
             self._fire_OnKeyUp(event.pin_num, __name__)
+            if not self._pressed_on_key_down:  # issue 134
+                self._fire_OnKeyPressed(event.pin_num, __name__)
 
     def status_input(self, pin):
         if self._polarity is 0:

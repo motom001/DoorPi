@@ -5,7 +5,7 @@ import logging
 logger = logging.getLogger(__name__)
 logger.debug("%s loaded", __name__)
 
-from action.base import SingleAction
+from doorpi.action.base import SingleAction
 import doorpi
 
 def write_status_watchdog(watchdog_path, timeout):
@@ -14,7 +14,7 @@ def write_status_watchdog(watchdog_path, timeout):
     try:
         watchdog = open(watchdog_path, "w+")
     except:
-        logger.warning("while action write_status_watchdog - error to open watchdog")
+        logger.warning("while action write_status_watchdog - error opening watchdog file")
         return False
 
     try:

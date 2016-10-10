@@ -1,0 +1,122 @@
+=============
+Changelog
+=============
+
+Legend:
++ add
+- remove
+~ change
+/ reference to commit
+! fix issue or kown bug
+
+Version: 2.5.1 (2016-08-01)
+-------------------------------
+~ version to 2.5.1
++ add bouncetime to pn532 keyboard (#167)
+! flapping pn532 keyboard (#167)
+! Adjusted a few minot things to make doorpi work with pjsua again (#163)
+! fix record_filename bug (#166)
+
+Version: 2.5.0.4 (2016-05-23)
+-------------------------------
++ add missing changelog entries for Version: 2.5.0.3 (2016-05-23)
+
+Version: 2.5.0.3 (2016-05-23)
+-------------------------------
++ new action url_call to *surprise*surprise* call a url 
+```
+[EVENT_OnKeyDown_prod.1]
+10 = url_call:http://192.168.178.200/config/xmlapi/statechange.cgi?ise_id=12345&new_value=1
+```
+by https://www.doorpi.org/forum/thread/25-http-request
+
++ new keyboard PN532 to read NFC Tags
+see https://github.com/motom001/DoorPi/blob/master/doorpi/keyboard/from_pn532.py for more informations
+
+Version: 2.5.0.2 (2016-04-07)
+-------------------------------
++ pifacecommon to requirements.txt
+
++ signature config for mailto action (default is epilog from metadata) - leave blank to disable signature
+settings for SMTP (checked with 1&1 SMTP-Account):
+```
+[SMTP]
+server = smtp.1und1.de
+port = 587
+username = email@doorpi.org
+password = password
+from = email@doorpi.org
+use_ssl = false
+use_tls = true
+need_login = true
+signature = sent from DoorPi
+```
+
+
+Version: 2.5.0.1 (2016-03-17)
+-------------------------------
+! fix bug for mailto an take_snapshot
+send Mail with new pic from PiCam:
+```
+[EVENT_AfterStartup]
+10 = take_snapshot
+20 = mailto:motom001@gmail.com,Mailversand mit Bild,Das ist das Bild als Mailtext,true
+```
+
+send Mail with new pic from Webcam:
+```
+[EVENT_AfterStartup]
+10 = take_snapshot:https://www.vvo-online.de/img/webcamimages/carolabruecke-4.jpg
+20 = mailto:motom001@gmail.com,Mailversand mit Bild,Das ist das Bild als Mailtext,true
+```
+  
+and settings for SMTP (checked with 1&1 SMTP-Account):
+```
+[SMTP]
+server = smtp.1und1.de
+port = 587
+username = email@doorpi.org
+password = password
+from = email@doorpi.org
+use_ssl = false
+use_tls = true
+need_login = true
+```
+
+Version: 2.4.1.8 (2016-03-12)
+-------------------------------
+/ 20895649e196795734acd9b5016684e7dd6af0f8
+~ BASE_PATH set to /usr/local/etc/DoorPi
+
+/ 598f559cb9cfab3fe5533d2cd2ba2d04c6fc6ce1
+~ daemon file template with exitcode (for jessie) (thx to Postler)
+
+/ 5f681f10b18fcfcdac84ab06e9ae9a500549450c
+! fix "Exception NameError: 'bool' object has no attribute 'upper'" @ doorpi/keyboard/from_gpio.py (thx to cubeschrauber)
+
+/ f24ac1b8df34bfe17f08b3ae78558ab10af2c22d
++ add cat of logfile for test @ travis
+
+/ 047aa727da62262f5b0815222d65ffec123af549
+~ change code to PEP8 style
++ add changelog reference to README.rst
+~ change behavior of restart daemon: check until doorpi is stopped before to start it again (default sleep between 2 sec) #132
+- remove of duplicate parameter start in daemonfile doorpi/docs/daemon/doorpi.tpl
+~ change doorpi/docs/daemon/README.md
+~ change behavior of doorpi_base_path - is now only /usr/local/etc/DoorPi on posix systems and raise exception if this couldn't create
++ add mkdir and chmod to .travis/install.sh to preserve error on new doorpi_base_path behavior
+- remove useless logline when stopping doorpi
+
+/ 7119caffd79cd02322a224df8ae102e1096e9e8a
++ add changelog to README.rst
++ config property keyboard piface pressed_on_keydown #134
+~ ATTENTION: changed behavior of keyboard piface event OnKeyPressed from fire with OnKeyUp to fire with OnKeyDown #134
++ config property keyboard gpio pressed_on_keydown #134
++ config property keyboard gpio mode
++ config property keyboard gpio pull_up_down #134
++ config property keyboard filesystem pressed_on_keydown #134
+~ try to register keyboard gpio inputpins as list but except TypeError and register it as int (old gpio behavior) #133
+~ change code to PEP8 style
+
+/ 50943b5c30cbe5a10678b5ea929afa200916d9a5
+- remove sudo for `doorpi_cli --trace --test` for test @ travis in application mode

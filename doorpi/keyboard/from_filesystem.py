@@ -12,7 +12,7 @@ from time import sleep
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 
-from keyboard.AbstractBaseClass import KeyboardAbstractBaseClass, HIGH_LEVEL, LOW_LEVEL
+from doorpi.keyboard.AbstractBaseClass import KeyboardAbstractBaseClass, HIGH_LEVEL, LOW_LEVEL
 import doorpi
 
 def path_leaf(path):
@@ -36,18 +36,18 @@ class FileSystem(KeyboardAbstractBaseClass, FileSystemEventHandler):
 
         section_name = conf_pre+'keyboard'+conf_post
         self.__reset_input = doorpi.DoorPi().config.get_bool(section_name, 'reset_input', True)
-        self.__base_path_input = doorpi.DoorPi().config.get(section_name, 'base_path_input')
-        self.__base_path_output = doorpi.DoorPi().config.get(section_name, 'base_path_output')
+        self.__base_path_input = doorpi.DoorPi().config.get_string_parsed(section_name, 'base_path_input')
+        self.__base_path_output = doorpi.DoorPi().config.get_string_parsed(section_name, 'base_path_output')
 
         if self.__base_path_input == '': raise MissingMandatoryParameter('base_path_input in %s '%section_name)
         if self.__base_path_output == '': raise MissingMandatoryParameter('base_path_output in %s '%section_name)
 
         if not os.path.exists(os.path.dirname(self.__base_path_input)):
-            logger.info('Path %s not exists - create it now', os.path.dirname(self.__base_path_input))
+            logger.info('Path %s does not exist - creating it now', os.path.dirname(self.__base_path_input))
             os.makedirs(os.path.dirname(self.__base_path_input))
 
         if not os.path.exists(os.path.dirname(self.__base_path_output)):
-            logger.info('Path %s not exists - create it now', os.path.dirname(self.__base_path_output))
+            logger.info('Path %s does not exist - creating it now', os.path.dirname(self.__base_path_output))
             os.makedirs(os.path.dirname(self.__base_path_output))
 
         for input_pin in self._InputPins:
@@ -62,7 +62,10 @@ class FileSystem(KeyboardAbstractBaseClass, FileSystemEventHandler):
         for output_pin in self._OutputPins:
             self.set_output(output_pin, 0, False)
 
+        self.register_destroy_action()
+
     def destroy(self):
+        if self.is_destroyed: return
         logger.debug("destroy")
 
         self.__observer.stop()
@@ -74,6 +77,7 @@ class FileSystem(KeyboardAbstractBaseClass, FileSystemEventHandler):
             os.remove(os.path.join(self.__base_path_output, output_pin))
 
         doorpi.DoorPi().event_handler.unregister_source(__name__, True)
+        self.__destroyed = True
 
     def status_input(self, pin):
         f = open(os.path.join(self.__base_path_input, pin), 'r')
@@ -94,7 +98,7 @@ class FileSystem(KeyboardAbstractBaseClass, FileSystemEventHandler):
 
     def __set_input(self, file, value = False):
         self.__write_file(file, value)
-        os.chmod(file, 0666)
+        os.chmod(file, 0o666)
 
     def set_output(self, pin, value, log_output = True):
         parsed_pin = doorpi.DoorPi().parse_string("!"+str(pin)+"!")

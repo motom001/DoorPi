@@ -5,9 +5,9 @@ import logging
 logger = logging.getLogger(__name__)
 logger.debug("%s loaded", __name__)
 
-from action.base import SingleAction
+from doorpi.action.base import SingleAction
 import doorpi
-from out_triggered import get as fallback_out_triggered
+from doorpi.action.SingleActions.out_triggered import get as fallback_out_triggered
 
 def get(parameters):
     parameter_list = parameters.split(',')

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """provide intercomstation to the doorstation by VoIP"""
 
-from doorpi import metadata
+from doorpi import metadata, DoorPi
 
 
 __version__ = metadata.version

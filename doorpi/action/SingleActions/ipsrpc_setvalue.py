@@ -17,7 +17,7 @@ def ips_rpc_create_config():
     config['username'] = doorpi.DoorPi().config.get('IP-Symcon', 'username')
     config['password'] = doorpi.DoorPi().config.get('IP-Symcon', 'password')
     config['jsonrpc'] = doorpi.DoorPi().config.get('IP-Symcon', 'jsonrpc', '2.0')
-    config['headers'] = {'content-type': 'application/json'}
+    config['headers'] = {'Content-Type': 'application/json'}
     return config
 
 def ips_rpc_fire(method, config, *parameters):
@@ -27,29 +27,41 @@ def ips_rpc_fire(method, config, *parameters):
        "jsonrpc": config['jsonrpc'],
        "id": 0,
     }
-    return requests.post(
+    logger.debug("IPS JSON: %s",json.dumps(payload))
+    out = requests.post(
         config['webservice_url'],
         headers = config['headers'],
         auth = HTTPBasicAuth(config['username'], config['password']),
         data = json.dumps(payload)
     )
+    if out.status_code != 200:
+	logger.exception("IPS HTTP POST ERROR: %s",out)
+    else:
+    	logger.debug("IPS HTTP POST JSON: %s",out.json())
+    return out
 
 def ips_rpc_check_variable_exists(key, config = None):
     if config is None: config = ips_rpc_create_config()
     response = ips_rpc_fire('IPS_VariableExists', config, key)
+    logger.debug("IPS VarExists: %s",response)
     return response.json['result']
 
 def ips_rpc_get_variable_type(key, config = None):
     if config is None: config = ips_rpc_create_config()
-    response = ips_rpc_fire('IPS_GetVariable', config, key)
-    return response.json['result']['VariableValue']['ValueType']
+    resp = ips_rpc_fire('IPS_GetVariable', config, key)
+    response = json.loads(resp.text)
+    logger.debug("getVar res: %s",response)
+    logger.debug("getVar result: %s",response['result'])
+    logger.debug("getVar ValueType: %s",response['result']['VariableType'])
+    return response['result']['VariableType']
 
 def ips_rpc_set_value(key, value, config = None):
     try:
         if config is None: config = ips_rpc_create_config()
-        if ips_rpc_check_variable_exists(key, config) is not True: raise Exception("var %s doesn't exist", key)
+        #if ips_rpc_check_variable_exists(key, config) is not True: raise Exception("var %s doesn't exist", key)
         type = ips_rpc_get_variable_type(key, config)
-        if type is None: raise Exception("type of var %s couldn't find", key)
+        if type is None: 
+        	raise Exception("type of var %s couldn't find", key)
         # http://www.ip-symcon.de/service/dokumentation/befehlsreferenz/variablenverwaltung/ips-getvariable/
         # Variablentyp (0: Boolean, 1: Integer, 2: Float, 3: String)
         elif type == 0:

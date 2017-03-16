@@ -31,8 +31,7 @@ class PiFace(KeyboardAbstractBaseClass):
             self.__listener.register(
                 pin_num=input_pin,
                 direction=p.IODIR_BOTH,
-                callback=self.event_detect,
-                settle_time=bouncetime / 1000  # from milliseconds to seconds
+                callback=self.event_detect
             )
             self._register_EVENTS_for_pin(input_pin, __name__)
         self.__listener.activate()
@@ -47,10 +46,10 @@ class PiFace(KeyboardAbstractBaseClass):
         if self.is_destroyed:
             return
         logger.debug("destroy")
-        
+
         # shutdown listener
         self.__listener.deactivate()
-        
+
         # shutdown all output-pins
         for output_pin in self._OutputPins:
             self.set_output(output_pin, 0, False)
@@ -59,7 +58,7 @@ class PiFace(KeyboardAbstractBaseClass):
         self.__destroyed = True
 
     def event_detect(self, event):
-        if self.status_input(event.pin_num):
+        if event.direction is 0:
             self._fire_OnKeyDown(event.pin_num, __name__)
             if self._pressed_on_key_down:  # issue 134
                 self._fire_OnKeyPressed(event.pin_num, __name__)
@@ -69,10 +68,7 @@ class PiFace(KeyboardAbstractBaseClass):
                 self._fire_OnKeyPressed(event.pin_num, __name__)
 
     def status_input(self, pin):
-        if self._polarity is 0:
-            return str(p.digital_read(int(pin))).lower() in HIGH_LEVEL
-        else:
-            return str(p.digital_read(int(pin))).lower() in LOW_LEVEL
+        pass
 
     def set_output(self, pin, value, log_output = True):
         parsed_pin = doorpi.DoorPi().parse_string("!"+str(pin)+"!")

@@ -20,7 +20,7 @@ class SessionHandler:
     def config(self): return doorpi.DoorPi().config
 
     @property
-    def session_ids(self): return self._Sessions.keys()
+    def session_ids(self): return list(self._Sessions.keys())
 
     @property
     def sessions(self): return self._Sessions

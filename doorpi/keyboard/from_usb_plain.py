@@ -54,8 +54,8 @@ class UsbPlain(KeyboardAbstractBaseClass):
     def __init__(self, input_pins, output_pins, conf_pre, conf_post, keyboard_name, *args, **kwargs):
         logger.debug("FileSystem.__init__(input_pins = %s, output_pins = %s)", input_pins, output_pins)
         self.keyboard_name = keyboard_name
-        self._InputPins = map(str, input_pins)
-        self._OutputPins = map(str, output_pins)
+        self._InputPins = list(map(str, input_pins))
+        self._OutputPins = list(map(str, output_pins))
 
         self._last_received_chars = ""
         self.last_key = ""

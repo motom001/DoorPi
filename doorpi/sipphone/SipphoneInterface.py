@@ -41,7 +41,7 @@ def find_first_installed_sipphone():
     sipphone_status = doorpi.DoorPi().get_status(['environment'], ['sipphone'])
 
     sipphones = sipphone_status.dictionary['environment']['sipphone']['libraries']
-    for sipphone_name in sipphones.keys():
+    for sipphone_name in list(sipphones.keys()):
         if sipphones[sipphone_name]['status']['installed']:
             logger.info('found installed sipphone "%s" and use this as default', sipphone_name)
             return sipphone_name

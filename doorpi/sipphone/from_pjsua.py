@@ -14,7 +14,7 @@ from doorpi.sipphone.pjsua_lib.SipPhoneAccountCallBack import SipPhoneAccountCal
 from doorpi.sipphone.pjsua_lib.SipPhoneCallCallBack import SipPhoneCallCallBack
 from doorpi.sipphone.pjsua_lib.Recorder import PjsuaRecorder
 from doorpi.sipphone.pjsua_lib.Player import PjsuaPlayer
-from AbstractBaseClass import SipphoneAbstractBaseClass
+from .AbstractBaseClass import SipphoneAbstractBaseClass
 
 from doorpi import DoorPi
 

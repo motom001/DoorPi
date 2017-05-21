@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import logging
+import collections
 logger = logging.getLogger(__name__)
 logger.debug("%s loaded", __name__)
 
@@ -13,7 +14,7 @@ import string, random # used by event_id
 import sqlite3
 import os
 
-from base import SingleAction
+from .base import SingleAction
 import doorpi
 
 class EnumWaitSignalsClass():
@@ -317,7 +318,7 @@ class EventHandler:
         try:
             logger.trace("unregister Eventsource %s and force_unregister is %s", event_source, force_unregister)
             if event_source not in self.__Sources: return "event_source %s unknown" % (event_source)
-            for event_name in self.__Events.keys():
+            for event_name in list(self.__Events.keys()):
                 if event_source in self.__Events[event_name] and force_unregister:
                     self.unregister_event(event_name, event_source, False)
                 elif event_source in self.__Events[event_name] and not force_unregister:
@@ -332,9 +333,9 @@ class EventHandler:
             return False
 
     def register_action(self, event_name, action_object, *args, **kwargs):
-        if ismethod(action_object) and callable(action_object):
+        if ismethod(action_object) and isinstance(action_object, collections.Callable):
             action_object = SingleAction(action_object, *args, **kwargs)
-        elif isfunction(action_object) and callable(action_object):
+        elif isfunction(action_object) and isinstance(action_object, collections.Callable):
             action_object = SingleAction(action_object, *args, **kwargs)
         elif not isinstance(action_object, SingleAction):
             action_object = SingleAction.from_string(action_object)
@@ -343,7 +344,7 @@ class EventHandler:
             logger.error('action_object is None')
             return False
 
-        if 'single_fire_action' in kwargs.keys() and kwargs['single_fire_action'] is True:
+        if 'single_fire_action' in list(kwargs.keys()) and kwargs['single_fire_action'] is True:
             action_object.single_fire_action = True
             del kwargs['single_fire_action']
 

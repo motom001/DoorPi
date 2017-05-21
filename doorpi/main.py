@@ -6,8 +6,8 @@ import sys
 import logging
 import logging.handlers
 import os
-import metadata
-import doorpi
+from . import metadata
+from . import doorpi
 from resource import getrlimit, RLIMIT_NOFILE
 
 TRACE_LEVEL = 5
@@ -91,7 +91,7 @@ def files_preserve_by_path(*paths):
             return False
 
     fd_max = getrlimit(RLIMIT_NOFILE)[1]
-    return [fd for fd in xrange(fd_max) if fd_wanted(fd)]
+    return [fd for fd in range(fd_max) if fd_wanted(fd)]
 
 
 def main_as_daemon(argv):
@@ -118,7 +118,7 @@ def main_as_daemon(argv):
 
     logging.getLogger('').addHandler(logrotating)
 
-    print(metadata.epilog)
+    print((metadata.epilog))
 
     from daemon import runner
     from daemon.runner import DaemonRunnerInvalidActionError
@@ -131,13 +131,13 @@ def main_as_daemon(argv):
     try:
         daemon_runner.do_action()
     except DaemonRunnerStopFailureError as ex:
-        print("can't stop DoorPi daemon - maybe it's not running? (Message: %s)" % ex)
+        print(("can't stop DoorPi daemon - maybe it's not running? (Message: %s)" % ex))
         return 1
     except DaemonRunnerStartFailureError as ex:
-        print("can't start DoorPi daemon - maybe it's running already? (Message: %s)" % ex)
+        print(("can't start DoorPi daemon - maybe it's running already? (Message: %s)" % ex))
         return 1
     except Exception as ex:
-        print("Exception NameError: %s" % ex)
+        print(("Exception NameError: %s" % ex))
     finally:
         doorpi.DoorPi().destroy()
     return 0

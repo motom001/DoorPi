@@ -15,15 +15,15 @@ import datetime  # used by: parse_string
 import cgi  # used by: parse_string
 import tempfile
 
-import metadata
-from keyboard.KeyboardInterface import load_keyboard
-from sipphone.SipphoneInterface import load_sipphone
-from status.webserver import load_webserver
-from conf.config_object import ConfigObject
-from action.handler import EventHandler
-from status.status_class import DoorPiStatus
+from . import metadata
+from .keyboard.KeyboardInterface import load_keyboard
+from .sipphone.SipphoneInterface import load_sipphone
+from .status.webserver import load_webserver
+from .conf.config_object import ConfigObject
+from .action.handler import EventHandler
+from .status.status_class import DoorPiStatus
 #from status.webservice import run_webservice, WebService
-from action.base import SingleAction
+from .action.base import SingleAction
 
 
 class DoorPiShutdownAction(SingleAction): pass
@@ -38,9 +38,7 @@ class Singleton(type):
             cls._instances[cls] = super(Singleton, cls).__call__(*args, **kwargs)
         return cls._instances[cls]
 
-class DoorPi(object):
-    __metaclass__ = Singleton
-
+class DoorPi(object, metaclass=Singleton):
     __prepared = False
 
     __config = None
@@ -268,7 +266,7 @@ class DoorPi(object):
             self.additional_informations['LastKey'] = str(self.keyboard.last_key)
 
         infos_as_html = '<table>'
-        for key in self.additional_informations.keys():
+        for key in list(self.additional_informations.keys()):
             infos_as_html += '<tr><td>'
             infos_as_html += '<b>'+key+'</b>'
             infos_as_html += '</td><td>'
@@ -285,7 +283,7 @@ class DoorPi(object):
             'last_tick':        str(self.__last_tick)
         }
 
-        for key in metadata.__dict__.keys():
+        for key in list(metadata.__dict__.keys()):
             if isinstance(metadata.__dict__[key], str):
                 mapping_table[key.upper()] = metadata.__dict__[key]
 
@@ -301,13 +299,13 @@ class DoorPi(object):
                 for output_pin in self.config.get_keys(outputpin_section, log = False):
                     mapping_table[self.config.get(outputpin_section, output_pin, log = False)] = output_pin
 
-        for key in mapping_table.keys():
+        for key in list(mapping_table.keys()):
             parsed_string = parsed_string.replace(
                 "!"+key+"!",
                 mapping_table[key]
             )
 
-        for key in self.additional_informations.keys():
+        for key in list(self.additional_informations.keys()):
             parsed_string = parsed_string.replace(
                 "!"+key+"!",
                 str(self.additional_informations[key])

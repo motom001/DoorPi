@@ -31,8 +31,8 @@ class FileSystem(KeyboardAbstractBaseClass, FileSystemEventHandler):
                      input_pins, output_pins, polarity)
         self.keyboard_name = keyboard_name
         self._polarity = polarity
-        self._InputPins = map(str, input_pins)
-        self._OutputPins = map(str, output_pins)
+        self._InputPins = list(map(str, input_pins))
+        self._OutputPins = list(map(str, output_pins))
 
         section_name = conf_pre+'keyboard'+conf_post
         self.__reset_input = doorpi.DoorPi().config.get_bool(section_name, 'reset_input', True)

@@ -21,8 +21,8 @@ class PiFace(KeyboardAbstractBaseClass):
                      input_pins, output_pins, polarity)
         self.keyboard_name = keyboard_name
         self._polarity = polarity
-        self._InputPins = map(int, input_pins)
-        self._OutputPins = map(int, output_pins)
+        self._InputPins = list(map(int, input_pins))
+        self._OutputPins = list(map(int, output_pins))
         self._pressed_on_key_down = pressed_on_key_down
 
         p.init()

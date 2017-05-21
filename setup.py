@@ -4,7 +4,7 @@ import imp
 import os
 import uuid
 import sys
-import urllib2
+import urllib.request, urllib.error, urllib.parse
 
 # Check for pip, setuptools and wheel
 try:
@@ -12,8 +12,8 @@ try:
     import setuptools
     import wheel
 except ImportError as exp:
-    print("install missing pip now (%s)" % exp)
-    from get_pip import main as check_for_pip
+    print(("install missing pip now (%s)" % exp))
+    from .get_pip import main as check_for_pip
     old_args = sys.argv
     sys.argv = [sys.argv[0]]
     try:
@@ -22,7 +22,7 @@ except ImportError as exp:
         if e.code == 0:
             os.execv(sys.executable, [sys.executable] + old_args)
         else:
-            print("install pip failed with error code %s" % e.code)
+            print(("install pip failed with error code %s" % e.code))
             sys.exit(e.code)
 
 base_path = os.path.dirname(os.path.abspath(__file__))
@@ -115,9 +115,9 @@ def main():
         if os.name == 'posix' and os.geteuid() == 0 and \
                 not os.path.isfile(metadata.daemon_file) and not os.path.exists(metadata.daemon_file):
             with open(metadata.daemon_file, "w") as daemon_file:
-                for line in urllib2.urlopen(metadata.daemon_online_template):
+                for line in urllib.request.urlopen(metadata.daemon_online_template):
                     daemon_file.write(parse_string(line))
-            os.chmod(metadata.daemon_file, 0755)
+            os.chmod(metadata.daemon_file, 0o755)
     except: pass
 
     setup(**setup_dict)

@@ -7,7 +7,7 @@ logger.debug("%s loaded", __name__)
 
 import datetime
 
-from AbstractBaseClass import SipphoneAbstractBaseClass, SIPPHONE_SECTION
+from .AbstractBaseClass import SipphoneAbstractBaseClass, SIPPHONE_SECTION
 import linphone as lin
 
 from doorpi import DoorPi

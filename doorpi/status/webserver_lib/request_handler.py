@@ -7,17 +7,17 @@ logger.debug("%s loaded", __name__)
 
 import os
 from mimetypes import guess_type
-from BaseHTTPServer import BaseHTTPRequestHandler
+from http.server import BaseHTTPRequestHandler
 import cgi # for parsing POST
-from urlparse import urlparse, parse_qs # parsing parameters and url
+from urllib.parse import urlparse, parse_qs # parsing parameters and url
 import re # regex for area
 import json # for virtual resources
-from urllib2 import urlopen as load_online_fallback
-from urllib import unquote_plus
+from urllib.request import urlopen as load_online_fallback
+from urllib.parse import unquote_plus
 
 from doorpi.action.base import SingleAction
 import doorpi
-from request_handler_static_functions import *
+from .request_handler_static_functions import *
 
 VIRTUELL_RESOURCES = [
     '/mirror',
@@ -88,7 +88,7 @@ class DoorPiWebRequestHandler(BaseHTTPRequestHandler):
         logger.debug(json.dumps(para, sort_keys = True, indent = 4))
 
         try:
-            for parameter_name in para.keys():
+            for parameter_name in list(para.keys()):
                 try:                    para[parameter_name] = unquote_plus(para[parameter_name][0])
                 except KeyError:        para[parameter_name] = ''
                 except IndexError:      para[parameter_name] = ''
@@ -132,9 +132,9 @@ class DoorPiWebRequestHandler(BaseHTTPRequestHandler):
         return result_object
 
     def clear_parameters(self, raw_parameters):
-        if 'module' not in raw_parameters.keys(): raw_parameters['module'] = []
-        if 'name' not in raw_parameters.keys(): raw_parameters['name'] = []
-        if 'value' not in raw_parameters.keys(): raw_parameters['value'] = []
+        if 'module' not in list(raw_parameters.keys()): raw_parameters['module'] = []
+        if 'name' not in list(raw_parameters.keys()): raw_parameters['name'] = []
+        if 'value' not in list(raw_parameters.keys()): raw_parameters['value'] = []
         return raw_parameters
 
     def create_virtual_resource(self, path, raw_parameters):
@@ -163,7 +163,7 @@ class DoorPiWebRequestHandler(BaseHTTPRequestHandler):
                 raw_parameters['output'] = "html"
         except Exception as exp: return_object = dict(error_message = str(exp))
 
-        if 'output' not in raw_parameters.keys(): raw_parameters['output'] = ''
+        if 'output' not in list(raw_parameters.keys()): raw_parameters['output'] = ''
         return self.return_virtual_resource(return_object, raw_parameters['output'])
 
     def return_virtual_resource(self, prepared_object, return_type = 'json'):
@@ -399,7 +399,7 @@ class DoorPiWebRequestHandler(BaseHTTPRequestHandler):
             mapping_table['MIN_EXTENSION'] =    '' if logger.getEffectiveLevel() <= 5 else '.min'
 
             #nutze den Hostnamen aus der URL. sonst ist ein erneuter Login nötig
-            if 'host' in self.headers.keys():
+            if 'host' in list(self.headers.keys()):
                 mapping_table['BASE_URL'] =     "http://%s"%self.headers['host']
             else:
                 mapping_table['BASE_URL'] =     "http://%s:%s"%(self.server.server_name, self.server.server_port)
@@ -416,7 +416,7 @@ class DoorPiWebRequestHandler(BaseHTTPRequestHandler):
             mapping_table['TEMPLATE:NAVIGATION'] =      'navigation.html'
 
             for match in matches:
-                if match not in mapping_table.keys(): continue
+                if match not in list(mapping_table.keys()): continue
                 if match.startswith('TEMPLATE:'):
                     try: replace_with = self.read_from_file(self.server.www + '/dashboard/parts/' + mapping_table[match])
                     except IOError:

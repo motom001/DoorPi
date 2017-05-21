@@ -7,10 +7,10 @@ logger.debug("%s loaded", __name__)
 
 import os
 
-import ConfigParser
+import configparser
 import doorpi
 
-from backward_compatibility import BACKWARD_COMPATIBILITY_KEYS
+from .backward_compatibility import BACKWARD_COMPATIBILITY_KEYS
 
 class ConfigObject():
 
@@ -62,7 +62,7 @@ class ConfigObject():
 
     @staticmethod
     def load_config(configfile, search_for_defaults = True):
-        config = ConfigParser.ConfigParser(allow_no_value = True)
+        config = configparser.ConfigParser(allow_no_value = True)
         if search_for_defaults: configfile_name = ConfigObject.find_config(configfile)
         else: configfile_name = configfile
 
@@ -87,7 +87,7 @@ class ConfigObject():
                 logger.info('Path %s does not exist - creating it now', os.path.dirname(configfile))
                 os.makedirs(os.path.dirname(configfile))
             cfgfile = open(configfile,'w')
-            config = ConfigParser.ConfigParser(allow_no_value = True)
+            config = configparser.ConfigParser(allow_no_value = True)
             for section in sorted(self.__sections.keys()):
                 config.add_section(section)
                 for key in sorted(self.__sections[section].keys()):
@@ -107,12 +107,12 @@ class ConfigObject():
         return parsed_string
 
     def set_value(self, section, key, value, log = True, password = False):
-        if section not in self.__sections.keys():
+        if section not in list(self.__sections.keys()):
             self.__sections[section] = {}
 
         password_friendly_value = "*******" if key is 'password' or password else value
 
-        if key not in self.__sections[section].keys():
+        if key not in list(self.__sections[section].keys()):
             if log: logger.debug("create new key %s in section %s with value '%s'",
                                  key, section, password_friendly_value)
         else:

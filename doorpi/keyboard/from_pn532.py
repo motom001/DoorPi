@@ -141,7 +141,7 @@ class pn532(KeyboardAbstractBaseClass):
         # auslesen aus ini:
         section_name = conf_pre+'keyboard'+conf_post
         self._device = doorpi.DoorPi().config.get_string_parsed(section_name, 'device', 'tty:AMA0:pn532')
-        self._InputPins = map(str.upper, input_pins)
+        self._InputPins = list(map(str.upper, input_pins))
         self._InputPairs = {}
         self.__clf = nfc.ContactlessFrontend(self._device) #init nfc-reader
         for input_pin in self._InputPins:

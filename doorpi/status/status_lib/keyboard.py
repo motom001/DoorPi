@@ -30,7 +30,7 @@ def get(*args, **kwargs):
             if name_requested in 'output':
                 status['output'] = keyboard.output_status
                 for value_requested in kwargs['value']:
-                    for output_pin in status['output'].keys():
+                    for output_pin in list(status['output'].keys()):
                         if value_requested not in output_pin:
                             del status['output'][output_pin]
         return status

@@ -5,8 +5,8 @@ import logging
 logger = logging.getLogger(__name__)
 logger.debug("%s loaded", __name__)
 
-from BaseHTTPServer import HTTPServer
-from SocketServer import ThreadingMixIn
+from http.server import HTTPServer
+from socketserver import ThreadingMixIn
 
 from random import randrange
 
@@ -153,7 +153,7 @@ class DoorPiWeb(ThreadingMixIn, HTTPServer):
 
     def fake_request(self):
         try:
-            from urllib2 import urlopen as fake_request
+            from urllib.request import urlopen as fake_request
             fake_request("http://%s:%s/"%(self.server_name, self.server_port), timeout = 0)
         except: pass
 

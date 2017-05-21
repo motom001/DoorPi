@@ -157,7 +157,7 @@ class RDM6300(KeyboardAbstractBaseClass):
     def __init__(self, input_pins, keyboard_name, conf_pre, conf_post, *args, **kwargs):
         logger.debug("__init__ (input_pins = %s)", input_pins)
         self.keyboard_name = keyboard_name
-        self._InputPins = map(int, input_pins)
+        self._InputPins = list(map(int, input_pins))
 
         doorpi.DoorPi().event_handler.register_event('OnFoundTag', __name__)
         doorpi.DoorPi().event_handler.register_event('OnFoundUnknownTag', __name__)

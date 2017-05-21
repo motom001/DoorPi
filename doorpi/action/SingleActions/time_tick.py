@@ -10,8 +10,8 @@ import time
 import datetime
 import doorpi
 
-MINUTE_RANGE = range(0, 60)
-HOUR_RANGE = range(0, 23)
+MINUTE_RANGE = list(range(0, 60))
+HOUR_RANGE = list(range(0, 23))
 
 last_time_tick_second = 0
 

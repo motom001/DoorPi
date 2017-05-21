@@ -11,7 +11,7 @@ import time
 import os
 import pjsua as pj
 from doorpi import DoorPi
-from SipPhoneCallCallBack import SipPhoneCallCallBack as CallCallback
+from .SipPhoneCallCallBack import SipPhoneCallCallBack as CallCallback
 
 class SipPhoneAccountCallBack(pj.AccountCallback):
 

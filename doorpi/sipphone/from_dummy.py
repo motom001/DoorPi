@@ -11,7 +11,7 @@ logger.warning('No sipphone in config - use dummy sipphone without functionality
 
 import datetime
 
-from AbstractBaseClass import SipphoneAbstractBaseClass, RecorderAbstractBaseClass, PlayerAbstractBaseClass
+from .AbstractBaseClass import SipphoneAbstractBaseClass, RecorderAbstractBaseClass, PlayerAbstractBaseClass
 from doorpi import DoorPi
 
 def get(*args, **kwargs): return DummyPhone(*args, **kwargs)

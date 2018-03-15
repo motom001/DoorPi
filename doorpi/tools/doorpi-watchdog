@@ -1,0 +1,6 @@
+#!/bin/bash
+AGE=$(( $(date +%s) - $(date +%s --reference /run/doorpi.watchdog.log) ))
+if [ "$AGE" > "600" ]; then
+	service doorpi stop
+	service doorpi start
+fi

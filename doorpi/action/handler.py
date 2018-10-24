@@ -17,18 +17,6 @@ import os
 from .base import SingleAction
 import doorpi
 
-class EnumWaitSignalsClass():
-    WaitToFinish = True
-    WaitToEnd = True
-    sync = True
-    syncron = True
-
-    DontWaitToFinish = False
-    DontWaitToEnd = False
-    async = False
-    asyncron = False
-EnumWaitSignals = EnumWaitSignalsClass()
-
 ONTIME = 'OnTime'
 
 def id_generator(size = 6, chars = string.ascii_uppercase + string.digits):

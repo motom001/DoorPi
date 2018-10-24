@@ -20,6 +20,7 @@ def destroy_time_tick():
 
 def time_tick(last_tick):
 
+    global last_time_tick_second
     timestamp_now = time.time()
     timestamp_past = last_time_tick_second
 
@@ -64,7 +65,6 @@ def time_tick(last_tick):
         if datetime_now.second % 2 is 0: doorpi.DoorPi().event_handler('OnTimeSecondEvenNumber', __name__)
         else: doorpi.DoorPi().event_handler('OnTimeSecondUnevenNumber', __name__)
 
-    global last_time_tick_second
     last_time_tick_second = timestamp_now
     #doorpi.DoorPi().event_handler('OnTimeTick', __name__)
 

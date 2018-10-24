@@ -1,4 +1,3 @@
-****************************************************
 DoorPi: Open Source VoIP Türsprechanlage
 ****************************************************
 
@@ -9,25 +8,22 @@ DoorPi: Open Source VoIP Türsprechanlage
     :depth: 2
     :backlinks: none
 
-
-=============
 Deutsch
 =============
----------------
+
 Einführung
 ---------------
 Ziel des Projektes DoorPi ist die Steuerung einer Türsprechanlage mittels einem Einplatiniencomputer wie dem Raspberry Pi und dem Kommunikationsprotokoll VoIP.
 
 DoorPi ist ein Event-Action basierendes System. Es gibt Komponenten, die Events auslösen, und Komponenten, die aufgrund dieser Events reagieren. Dazu sollen Ereignisse (Events) wie "Drücken einer Türklingel" oder "RFID Chip xyz vorgehalten" die Auslöser von Aktionen (Actions) wie "Anruf bei Telefon xyz", "E-Mail an xxx" oder "Öffne Tür" sein.
 
----------------
 Event-Quellen
 ---------------
 
 Um diese Events zu registrieren, werden "DoorPi-Keyboards" genutzt, was z.B.:
 
 * die GPIO-Pins
-* ein PiFace 
+* ein PiFace
 * Dateien im Dateisystem des Pi (z.B. für Remote-Befehle über SSH)
 * die serielle Schnittstelle (RDM6300 als NFC Reader)
 * Webservice mit Authentifizierung
@@ -35,9 +31,8 @@ Um diese Events zu registrieren, werden "DoorPi-Keyboards" genutzt, was z.B.:
 
 sein können.
 
-An jedes Event können beliebig viele Actions angefügt werden, die syncron oder asyncron ausgeführt werden. 
+An jedes Event können beliebig viele Actions angefügt werden, die synchron oder asynchron ausgeführt werden.
 
------------------
 Action-Empfänger
 -----------------
 
@@ -53,9 +48,8 @@ Eine nicht vollständige Liste der Actions ist:
 * Werte aus IP-Symcon lesen oder zurück schreiben
 * ...
 
-Durch die Kombination der Events und Actions sind fast alle gewünschten Kombinationen möglich. 
+Durch die Kombination der Events und Actions sind fast alle gewünschten Kombinationen möglich.
 
------------------
 Beispiele
 -----------------
 
@@ -68,15 +62,24 @@ Ein mögliches Szenario ist:
 
 Mittlerweile gibt es auch Video-Support, so dass an der Haustür eine Kamera installiert werden kann und das Bild auf den Innenstationen angesehen werden kann, noch bevor das Gespräch angenommen wird.
 
------------------
 Installation
 -----------------
 
-Die Installationen werden `hier beschrieben <http://www.doorpi.org/forum/board/21-installation/>`_
+* ArchLinuxARM: Ein PKGBUILD ist `im AUR verfügbar <https://aur.archlinux.org/packages/doorpi>`_
+  Gestartet wird mit :code:`systemctl start doorpi.service`
+  Für automatischen Start beim Hochfahren: :code:`systemctl enable doorpi.service`
 
+* Raspbian und andere:
+  Die Installation dieses Forks geschieht mithilfe der python setuptools. Abhängigkeiten müssen gegebenenfalls vorher installiert werden.::
 
------------------
-DoorPi-Hilfe 
+   git clone https://github.com/Wuestengecko/DoorPi.git
+   cd DoorPi
+   python setup.py build
+   sudo python setup.py install --prefix=/usr/local
+
+  Für weitere Informationen siehe `die originalen Installationsanweisungen im Forum <http://www.doorpi.org/forum/board/21-installation/>`_
+
+DoorPi-Hilfe
 -----------------
 
 Link zu Foren mit DoorPi Beiträgen:
@@ -87,15 +90,9 @@ Link zu Foren mit DoorPi Beiträgen:
 
 `DoorPI / VoIP Door-Intercomstation with Raspberry Pi <http://www.ip-symcon.de/forum/threads/26739-DoorPI-VoIP-Door-Intercomstation-with-Raspberry-Pi>`_
 
-
-
-
-=============
 English
 =============
 
-
----------------
 Introduction
 ---------------
 
@@ -103,8 +100,6 @@ Aim of the DoorPi project is the realization of a door intercom station with a s
 
 DoorPi is an event-action based system. There are components which fire events, and components which react on these events. That means that events like "Doorbell pressed" or "RFID chip xyz detected" shall be the trigger for actions like "call telephne xyz", "send email to xyz" or "open door".
 
-
----------------
 Event-Sources
 ---------------
 
@@ -119,8 +114,6 @@ For registering these events, so-called "DoorPi-Keyboards" are used, e.g
 
 To every event, any number of actions can be attached, which are executed synchronously or asynchronously.
 
-
------------------
 Action-Receivers
 -----------------
 
@@ -137,8 +130,6 @@ A non-complete list of actions is:
 
 Via the combination of events and actions, almost all combinations are possible.
 
-
------------------
 Examples
 -----------------
 
@@ -151,18 +142,29 @@ A thinkable scenario is:
 
 Meanwhile there is also video support, so that a camera can be installed at the door, and the image can be watched on the inside station even before the call is accepted
 
-
------------------
 Installation
 -----------------
-Installations are `described here <http://www.doorpi.org/forum/board/21-installation/>`_
 
+* ArchLinuxARM: A PKGBUILD is `available in the AUR <https://aur.archlinux.org/packages/doorpi>`_
+  Start DoorPi with :code:`systemctl start doorpi.service`
+  To automatically start it after booting, use :code:`systemctl enable doorpi.service`
 
-=============
+* Others (including Raspbian):
+  Download and install this fork with python setuptools. You need to take care of dependencies yourself::
+
+   git clone https://github.com/Wuestengecko/DoorPi.git
+   cd DoorPi
+   python setup.py build
+   sudo python setup.py install --prefix=/usr/local
+
+  For more information see `the official forum. <http://www.doorpi.org/forum/board/21-installation/>`_
+
 Changelog
 =============
 
-see `changelog.txt <https://github.com/motom001/DoorPi/blob/master/changelog.txt>`_
+see `changelog.txt <https://github.com/Wuestengecko/DoorPi/blob/master/changelog.txt>`_
+
+for development versions, also see `the commit history <https://github.com/Wuestengecko/DoorPi/commits/master>`_
 
 
 .. |travis_status_master| image:: https://travis-ci.org/motom001/DoorPi.svg?branch=master
@@ -174,7 +176,7 @@ see `changelog.txt <https://github.com/motom001/DoorPi/blob/master/changelog.txt
 
 .. |code_climate_badge| image:: https://scrutinizer-ci.com/g/motom001/DoorPi/badges/quality-score.png?b=master
    :target: https://scrutinizer-ci.com/g/motom001/DoorPi/
-   
+
 .. |pypi_License| image:: https://img.shields.io/pypi/l/DoorPi.svg
     :target: https://creativecommons.org/licenses/by-nc/4.0/
     :alt: CC BY-NC 4.0

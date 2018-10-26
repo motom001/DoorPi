@@ -4,6 +4,8 @@
 Information describing the project.
 """
 import os
+if os.name != 'posix':
+    raise Exception('os unknown')
 
 # The package name, which is also the "UNIX name" for the project.
 package = 'DoorPi'
@@ -53,24 +55,5 @@ Supporter:  {supporters}
         supporters = '\n            '.join(supporters),
         url = url)
 
-
-if os.name == 'posix':
-    doorpi_path = os.path.join('/usr/local/etc', package)
-
-    pidfile = '/var/run/%s.pid' % package.lower()
-
-    daemon_name = package.lower()
-    daemon_folder = '/etc/init.d'
-    daemon_file = os.path.join(daemon_folder, daemon_name)
-
-    daemon_online_template = url_raw+'/master/'+'doorpi/docs/service/doorpi.tpl'
-
-    daemon_args = '--configfile $DOORPI_PATH/conf/doorpi.ini'
-    doorpi_executable = '/usr/local/bin/doorpi_cli'
-    log_folder = '%s/log' % doorpi_path
-    if not os.path.exists(doorpi_path):
-        os.makedirs(doorpi_path)
-else:
-    raise Exception('os unknown')
-
-
+pidfile = "/run/{0}/{0}.pid".format(package.lower())
+log_folder = "/var/log/{0}".format(package.lower())

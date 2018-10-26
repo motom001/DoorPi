@@ -83,7 +83,7 @@ class DoorPi(object, metaclass=Singleton):
     @property
     def shutdown(self): return self.__shutdown
 
-    _base_path = metadata.doorpi_path
+    _base_path = None
     @property
     def base_path(self):
         if self._base_path is None:
@@ -102,7 +102,7 @@ class DoorPi(object, metaclass=Singleton):
         self.stdin_path = '/dev/null'
         self.stdout_path = '/dev/null'
         self.stderr_path = '/dev/null'
-        self.pidfile_path =  '/var/run/doorpi.pid'
+        self.pidfile_path = metadata.pidfile
         self.pidfile_timeout = 5
 
         self.__last_tick = time.time()

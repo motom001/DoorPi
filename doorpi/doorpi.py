@@ -87,13 +87,8 @@ class DoorPi(object, metaclass=Singleton):
     @property
     def base_path(self):
         if self._base_path is None:
-            try:
-                self._base_path = os.path.join(os.path.expanduser('~'), metadata.package)
-                assert os.access(self._base_path, os.W_OK), 'use fallback for base_path (see tmp path)'
-            except Exception as exp:
-                logger.error(exp)
-                import tempfile
-                self._base_path = tempfile.gettempdir()
+            self._base_path = os.path.expanduser('~')
+            logger.info("Selected BasePath {0}".format(self._base_path))
         return self._base_path
 
     def __init__(self, parsed_arguments = None):

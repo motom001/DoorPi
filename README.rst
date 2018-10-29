@@ -4,7 +4,7 @@ DoorPi: Open Source VoIP Türsprechanlage
 
 |pypi_License| |pypi_latest_version| |travis_status_master| |code_climate_badge| |scrutinizer_status_master|
 
-.. contents::
+.. Contents::
     :local:
     :depth: 2
     :backlinks: none

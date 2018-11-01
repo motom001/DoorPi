@@ -25,23 +25,18 @@ DOORPIWEB_SECTION = 'DoorPiWeb'
 CONF_AREA_PREFIX = 'AREA_'
 
 def load_webserver():
-    ip = doorpi.DoorPi().config.get(DOORPIWEB_SECTION, 'ip', '')
-    port = doorpi.DoorPi().config.get_int(DOORPIWEB_SECTION, 'port', 80)
+    ip = doorpi.DoorPi().config.get(DOORPIWEB_SECTION, 'ip', '0.0.0.0')
+    port = doorpi.DoorPi().config.get_int(DOORPIWEB_SECTION, 'port', 50371)
 
-    doorpiweb_object = False
+    doorpiweb_object = None
 
-    possible_ports = [port, 80, 8080, 0]
-    for single_port in possible_ports:
-        try:
-            server_address = (ip, single_port)
-            doorpiweb_object = DoorPiWeb(server_address, DoorPiWebRequestHandler)
-            logger.info('Initiating WebService at ip %s and port %s', ip, single_port)
-            doorpiweb_object.start()
-            if single_port is not port:
-                doorpi.DoorPi().event_handler.register_action('OnTimeSecondEvenNumber', doorpiweb_object.inform_own_url)
-            return doorpiweb_object
-        except Exception as exp:
-            logger.warning('failed to initiating WebService at ip %s and port %s (%s)', ip, single_port, exp)
+    logger.info("Starting WebService at [{ip}]:{port}".format(ip=ip, port=port))
+    try:
+        server_address = (ip, port)
+        doorpiweb_object = DoorPiWeb(server_address, DoorPiWebRequestHandler)
+        doorpiweb_object.start()
+    except Exception as exp:
+        logger.error("Starting WebService at [{ip}]:{port} failed: {msg}".format(ip=ip, port=port, msg=exp))
 
     return doorpiweb_object
 

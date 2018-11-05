@@ -85,10 +85,9 @@ administrator = status, help # Gruppe administrator darf lesend auf die Resource
     configuration = [
         dict( section = DOORPIWEB_SECTION, key = 'ip', type = 'string', default = '', mandatory = False, description = 'IP-Adresse an die der Webserver gebunden werden soll (leer = alle)'),
         dict( section = DOORPIWEB_SECTION, key = 'port', type = 'integer', default = '80', mandatory = False, description = 'Der Port auf den der Webserver lauschen soll. Achtung - kann bei anderen installierten Webservern zu Kollisionen führen!'),
-        dict( section = DOORPIWEB_SECTION, key = 'www', type = 'string', default = '!BASEPATH!/../DoorPiWeb', mandatory = False, description = 'Ablageort der Dateien, die für reale Resourcen genutzt werden soll. Wenn diese nicht gefunden werden wird automatisch der Online-Fallback genutzt.'),
+        dict( section = DOORPIWEB_SECTION, key = 'www', type = 'string', default = '!BASEPATH!/../DoorPiWeb', mandatory = False, description = 'Der Ort, an dem reale Ressourcen (HTML, CSS, JS) installiert wurden.'),
         dict( section = DOORPIWEB_SECTION, key = 'indexfile', type = 'string', default = 'index.html', mandatory = False, description = '[nicht eingebunden]'),
         dict( section = DOORPIWEB_SECTION, key = 'public', type = 'string', default = 'AREA_public', mandatory = False, description = 'Der Name der Public Sektion mit allen öffentlich aufrufbaren Resourcen (z.B. JS- und CSS-Dateien fürs Dashbaord)'),
-        dict( section = DOORPIWEB_SECTION, key = 'online_fallback', type = 'string', default = 'http://motom001.github.io/DoorPiWeb', mandatory = False, description = 'Die Adresse zum Online-Fallback - von hier werden die Daten geladen wenn diese lokal nicht gefunden wurden.'),
         dict( section = 'User', key = '*', type = 'string', default = '', mandatory = False, description = 'Sektion, die alle Benutzer beinhaltet - in der Form [username] = [password]'),
         dict( section = 'Group', key = '*', type = 'string', default = '', mandatory = False, description = 'Sektion die alle Gruppen und deren Mitglieder beinhaltet. Mehrere Nutzer werden durch ein Komma getrennt - in der Form [groupname] = [user1],[user2],...'),
         dict( section = 'ReadPermission', key = '*', type = 'string', default = '', mandatory = False, description = ''),
@@ -140,7 +139,7 @@ administrator = status, help # Gruppe administrator darf lesend auf die Resource
         ),
         urllib2 = dict(
             text_warning =          '',
-            text_description =      'Das Python-Modul urllib2 ermöglicht es, Anfragen an einen Webserver zu stellen. Im DoorPi kommt das einerseits beim Testen des eigenen Webservers (fake_request) und anderseits beim Laden von Quellen aus dem Online-Fallback (load_online_fallback) zum Einsatz.',
+            text_description =      'Das Python-Modul urllib2 ermöglicht es, Anfragen an einen Webserver zu stellen. Im DoorPi kommt das beim Testen des eigenen Webservers (fake_request) zum Einsatz.',
             text_installation =     'Eine Installation ist nicht nötig, da es sich hierbei um eine Python-Standard-Modul handelt.',
             auto_install =          False,
             text_test =             'Der Status kann gestestet werden, in dem im Python-Interpreter <code>import BaseHTTPServer</code> eingeben wird.',

@@ -12,7 +12,6 @@ import cgi # for parsing POST
 from urllib.parse import urlparse, parse_qs # parsing parameters and url
 import re # regex for area
 import json # for virtual resources
-from urllib.request import urlopen as load_online_fallback
 from urllib.parse import unquote_plus
 
 from doorpi.action.base import SingleAction
@@ -193,20 +192,10 @@ class DoorPiWebRequestHandler(BaseHTTPRequestHandler):
         if os.path.isdir(self.server.www + path): return self.list_directory(self.server.www + path)
         try:
             return self.return_file_content(path)
-        except IOError as exp:
-            return self.real_resource_fallback(path, exp)
-        except Exception as exp:
-            logger.exception(exp)
-            return self.send_error(500, str(exp))
-
-    def real_resource_fallback(self, path, previous_exception):
-        try:
-            return self.return_fallback_content(self.server.online_fallback, path)
-        except IOError:
-            return self.send_error(404, str(previous_exception))
-        except Exception as exp:
-            logger.exception(exp)
-            return self.send_error(500, str(exp))
+        except FileNotFoundError as exp:
+            return self.send_error(404)
+        except Exception:
+            raise
 
     def list_directory(self, path):
         dirs = []
@@ -242,37 +231,27 @@ class DoorPiWebRequestHandler(BaseHTTPRequestHandler):
         mime_type = DoorPiWebRequestHandler.get_mime_typ(filename)
         return mime_type in ['text/html']
 
-    def read_from_file(self, url):
+    def read_from_file(self, url, template_recursion=True):
         try:
             read_mode = "r" if self.is_file_parsable(url) else "rb"
             with open(url, read_mode) as file:
                 file_content = file.read()
             if self.is_file_parsable(url):
-                return self.parse_content(file_content)
+                return self.parse_content(file_content, template_recursion=template_recursion)
             else:
-                return self.parse_content(file_content)
+                return self.parse_content(file_content, template_recursion=template_recursion)
         except Exception as exp:
             raise exp
-
-    def read_from_fallback(self, url):
-        response = load_online_fallback(url, timeout = 1)
-        if self.is_file_parsable(url):
-            return self.parse_content(response.read(), True)
-        else:
-            return response.read()
 
     def get_file_content(self, path):
         content = mime = ""
         try:
             content = self.read_from_file(self.server.www + path)
             mime = self.get_mime_typ(self.server.www + path)
-        except Exception as first_exp:
-            try:
-                logger.trace('use onlinefallback - local file  %s not found', self.server.www + path)
-                content = self.read_from_fallback(self.server.online_fallback + path)
-                mime = self.get_mime_typ(self.server.online_fallback + path)
-            except Exception as exp:
-                return self.send_error(404, str(first_exp)+" - "+str(exp))
+        except FileNotFoundError:
+            return self.send_error(404)
+        except Exception:
+            raise
 
         return content, mime
 
@@ -360,12 +339,9 @@ class DoorPiWebRequestHandler(BaseHTTPRequestHandler):
         message = '\r\n'.join(message_parts)
         return message
 
-    def parse_content(self, content, online_fallback = False, **mapping_table):
+    def parse_content(self, content, template_recursion = False, **mapping_table):
         try:
-            matches = re.findall(r"{([^}\s]*)}", content)
-            if not matches: return content
             #http://stackoverflow.com/questions/12897374/get-unique-values-from-a-list-in-python/12897491#12897491
-            matches = list(set(matches))
 
             mapping_table['DOORPI'] =           doorpi.DoorPi().name_and_version
             mapping_table['SERVER'] =           self.server.server_name
@@ -381,34 +357,18 @@ class DoorPiWebRequestHandler(BaseHTTPRequestHandler):
             # Trennung DATA_URL (AJAX) und BASE_URL (Dateien)
             mapping_table['DATA_URL'] = mapping_table['BASE_URL']
 
-            if online_fallback and self.server.online_fallback:
-                mapping_table['BASE_URL'] = self.server.online_fallback
-
             # Templates:
             mapping_table['TEMPLATE:HTML_HEADER'] =     'html.header.html'
             mapping_table['TEMPLATE:HTML_FOOTER'] =     'html.footer.html'
             mapping_table['TEMPLATE:NAVIGATION'] =      'navigation.html'
 
-            for match in matches:
-                if match not in list(mapping_table.keys()): continue
-                if match.startswith('TEMPLATE:'):
-                    try: replace_with = self.read_from_file(self.server.www + '/dashboard/parts/' + mapping_table[match])
-                    except IOError:
-                        if self.server.online_fallback:
-                            replace_with = self.read_from_fallback(
-                                self.server.online_fallback +
-                                '/dashboard/parts/' +
-                                mapping_table[match]
-                            )
-                        else:
-                            replace_with = ""
-                    except Exception: replace_with = ""
-                    content = content.replace(
-                        '{'+match+'}',
-                        replace_with or ""
-                    )
+            for k in list(mapping_table.keys()):
+                # template_recursion: don't process {TEMPLATE:...} if we're inside one
+                if template_recursion and k.startswith('TEMPLATE:'):
+                    # exceptions are deliberately ignored and will result in HTTP error 500
+                    content = content.replace('{'+k+'}', self.read_from_file(os.path.join(self.server.www, 'dashboard', 'parts', mapping_table[k]), template_recursion=False))
                 else:
-                    content = content.replace('{'+match+'}', mapping_table[match])
+                    content = content.replace('{'+k+'}', mapping_table[k])
 
         except Exception as exp:
             logger.exception(exp)

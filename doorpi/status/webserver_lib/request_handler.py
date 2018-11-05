@@ -227,7 +227,7 @@ class DoorPiWebRequestHandler(BaseHTTPRequestHandler):
         if self.is_file_parsable(url):
             return self.parse_content(file_content, template_recursion=template_recursion)
         else:
-            return self.parse_content(file_content, template_recursion=template_recursion)
+            return file_content
 
     def get_file_content(self, path):
         content = mime = ""
@@ -319,7 +319,8 @@ class DoorPiWebRequestHandler(BaseHTTPRequestHandler):
         return message
 
     def parse_content(self, content, template_recursion = False, **mapping_table):
-        #http://stackoverflow.com/questions/12897374/get-unique-values-from-a-list-in-python/12897491#12897491
+        if type(content) != str:
+            raise TypeError("content must be of type str")
 
         mapping_table['DOORPI'] =           doorpi.DoorPi().name_and_version
         mapping_table['SERVER'] =           self.server.server_name

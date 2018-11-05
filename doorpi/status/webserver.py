@@ -96,7 +96,6 @@ class DoorPiWeb(ThreadingMixIn, HTTPServer):
 
     www = None
     indexfile = None
-    loginfile = None
     base_url = None
     area_public_name = None
     online_fallback = None
@@ -130,7 +129,6 @@ class DoorPiWeb(ThreadingMixIn, HTTPServer):
 
         self.www = doorpi.DoorPi().config.get_string_parsed(DOORPIWEB_SECTION, 'www', '!BASEPATH!/../DoorPiWeb')
         self.indexfile = doorpi.DoorPi().config.get_string_parsed(DOORPIWEB_SECTION, 'indexfile', 'index.html')
-        self.loginfile = doorpi.DoorPi().config.get_string_parsed(DOORPIWEB_SECTION, 'loginfile', 'login.html')
         self.area_public_name = doorpi.DoorPi().config.get_string_parsed(DOORPIWEB_SECTION, 'public', 'AREA_public')
         # https://raw.githubusercontent.com/motom001/DoorPiWeb/master/ or http://motom001.github.io/DoorPiWeb/
         self.online_fallback = doorpi.DoorPi().config.get_string_parsed(DOORPIWEB_SECTION, 'online_fallback', 'http://motom001.github.io/DoorPiWeb')

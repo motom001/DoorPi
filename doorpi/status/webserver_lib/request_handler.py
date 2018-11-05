@@ -284,7 +284,6 @@ class DoorPiWebRequestHandler(BaseHTTPRequestHandler):
 
     def return_message(self, message = "", content_type = 'text/plain; charset=utf-8', http_code = 200,):
         self.send_response(http_code)
-        #if login_form:
         self.send_header('WWW-Authenticate', 'Basic realm=\"%s\"' % doorpi.DoorPi().name_and_version)
         self.send_header("Server", doorpi.DoorPi().name_and_version)
         self.send_header("Content-type", content_type)
@@ -293,32 +292,7 @@ class DoorPiWebRequestHandler(BaseHTTPRequestHandler):
         self.wfile.write(message)
 
     def login_form(self):
-        try:
-            login_form_content = self.read_from_file(self.server.www + "/" + self.server.loginfile)
-        except IOError:
-            logger.info('Missing login file: '+ self.server.loginfile)
-            login_form_content = '''
-                <head>
-                <title>Error response</title>
-                </head>
-                <body>
-                <h1>Error response</h1>
-                <p>Error code 401.
-                <p>Message: <a href="http://tools.ietf.org/html/rfc7235#section-3.1">RFC7235 - 401 Unauthorized</a>
-                <p>Error code explanation: 401 = Unauthorized.
-                </body>
-            '''
-        except Exception as exp:
-            logger.exception(exp)
-            self.send_error(500, str(exp))
-            return False
-
-        self.return_message(
-            message = self.parse_content(login_form_content),
-            content_type = 'text/html; charset=utf-8',
-            http_code = 401
-        )
-        return True
+        return self.return_message(http_code = 401)
 
     def authentication_required(self):
         parsed_path = urlparse(self.path)

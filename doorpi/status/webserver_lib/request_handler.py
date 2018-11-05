@@ -30,6 +30,8 @@ VIRTUELL_RESOURCES = [
     '/help/modules.overview.html'
 ]
 
+PARSABLE_FILE_EXTENSIONS = ["html"]
+
 DOORPIWEB_SECTION = 'DoorPiWeb'
 
 class WebServerLoginRequired(Exception): pass
@@ -215,8 +217,8 @@ class DoorPiWebRequestHandler(BaseHTTPRequestHandler):
 
     @staticmethod
     def is_file_parsable(filename):
-        mime_type = DoorPiWebRequestHandler.get_mime_typ(filename)
-        return mime_type in ['text/html']
+        ext = filename.split(".")[-1]
+        return ext in PARSABLE_FILE_EXTENSIONS
 
     def read_from_file(self, url, template_recursion=True):
         read_mode = "r" if self.is_file_parsable(url) else "rb"

@@ -340,37 +340,32 @@ class DoorPiWebRequestHandler(BaseHTTPRequestHandler):
         return message
 
     def parse_content(self, content, template_recursion = False, **mapping_table):
-        try:
-            #http://stackoverflow.com/questions/12897374/get-unique-values-from-a-list-in-python/12897491#12897491
+        #http://stackoverflow.com/questions/12897374/get-unique-values-from-a-list-in-python/12897491#12897491
 
-            mapping_table['DOORPI'] =           doorpi.DoorPi().name_and_version
-            mapping_table['SERVER'] =           self.server.server_name
-            mapping_table['PORT'] =             str(self.server.server_port)
-            mapping_table['MIN_EXTENSION'] =    '' if logger.getEffectiveLevel() <= 5 else '.min'
+        mapping_table['DOORPI'] =           doorpi.DoorPi().name_and_version
+        mapping_table['SERVER'] =           self.server.server_name
+        mapping_table['PORT'] =             str(self.server.server_port)
+        mapping_table['MIN_EXTENSION'] =    '' if logger.getEffectiveLevel() <= 5 else '.min'
 
-            #nutze den Hostnamen aus der URL. sonst ist ein erneuter Login nötig
-            if 'host' in list(self.headers.keys()):
-                mapping_table['BASE_URL'] =     "http://%s"%self.headers['host']
+        #nutze den Hostnamen aus der URL. sonst ist ein erneuter Login nötig
+        if 'host' in list(self.headers.keys()):
+            mapping_table['BASE_URL'] =     "http://%s"%self.headers['host']
+        else:
+            mapping_table['BASE_URL'] =     "http://%s:%s"%(self.server.server_name, self.server.server_port)
+
+        # Trennung DATA_URL (AJAX) und BASE_URL (Dateien)
+        mapping_table['DATA_URL'] = mapping_table['BASE_URL']
+
+        # Templates:
+        mapping_table['TEMPLATE:HTML_HEADER'] =     'html.header.html'
+        mapping_table['TEMPLATE:HTML_FOOTER'] =     'html.footer.html'
+        mapping_table['TEMPLATE:NAVIGATION'] =      'navigation.html'
+
+        for k in list(mapping_table.keys()):
+            # template_recursion: don't process {TEMPLATE:...} if we're inside one
+            if template_recursion and k.startswith('TEMPLATE:'):
+                # exceptions are deliberately ignored and will result in HTTP error 500
+                content = content.replace('{'+k+'}', self.read_from_file(os.path.join(self.server.www, 'dashboard', 'parts', mapping_table[k]), template_recursion=False))
             else:
-                mapping_table['BASE_URL'] =     "http://%s:%s"%(self.server.server_name, self.server.server_port)
-
-            # Trennung DATA_URL (AJAX) und BASE_URL (Dateien)
-            mapping_table['DATA_URL'] = mapping_table['BASE_URL']
-
-            # Templates:
-            mapping_table['TEMPLATE:HTML_HEADER'] =     'html.header.html'
-            mapping_table['TEMPLATE:HTML_FOOTER'] =     'html.footer.html'
-            mapping_table['TEMPLATE:NAVIGATION'] =      'navigation.html'
-
-            for k in list(mapping_table.keys()):
-                # template_recursion: don't process {TEMPLATE:...} if we're inside one
-                if template_recursion and k.startswith('TEMPLATE:'):
-                    # exceptions are deliberately ignored and will result in HTTP error 500
-                    content = content.replace('{'+k+'}', self.read_from_file(os.path.join(self.server.www, 'dashboard', 'parts', mapping_table[k]), template_recursion=False))
-                else:
-                    content = content.replace('{'+k+'}', mapping_table[k])
-
-        except Exception as exp:
-            logger.exception(exp)
-        finally:
-            return content
+                content = content.replace('{'+k+'}', mapping_table[k])
+        return content

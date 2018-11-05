@@ -220,7 +220,7 @@ class DoorPiWebRequestHandler(BaseHTTPRequestHandler):
         ext = filename.split(".")[-1]
         return ext in PARSABLE_FILE_EXTENSIONS
 
-    def read_from_file(self, url, template_recursion=True):
+    def read_from_file(self, url, template_recursion = 5):
         read_mode = "r" if self.is_file_parsable(url) else "rb"
         with open(url, read_mode) as file:
             file_content = file.read()
@@ -318,7 +318,7 @@ class DoorPiWebRequestHandler(BaseHTTPRequestHandler):
         message = '\r\n'.join(message_parts)
         return message
 
-    def parse_content(self, content, template_recursion = False, **mapping_table):
+    def parse_content(self, content, template_recursion = 5, **mapping_table):
         if type(content) != str:
             raise TypeError("content must be of type str")
 
@@ -345,7 +345,7 @@ class DoorPiWebRequestHandler(BaseHTTPRequestHandler):
             # template_recursion: don't process {TEMPLATE:...} if we're inside one
             if template_recursion and k.startswith('TEMPLATE:'):
                 # exceptions are deliberately ignored and will result in HTTP error 500
-                content = content.replace('{'+k+'}', self.read_from_file(os.path.join(self.server.www, 'dashboard', 'parts', mapping_table[k]), template_recursion=False))
+                content = content.replace('{'+k+'}', self.read_from_file(os.path.join(self.server.www, 'dashboard', 'parts', mapping_table[k]), template_recursion=template_recursion-1))
             else:
                 content = content.replace('{'+k+'}', mapping_table[k])
         return content

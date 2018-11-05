@@ -289,7 +289,7 @@ class DoorPiWebRequestHandler(BaseHTTPRequestHandler):
         self.send_header("Content-type", content_type)
         self.send_header('Connection', 'close')
         self.end_headers()
-        self.wfile.write(message)
+        self.wfile.write(message.encode("utf-8") if type(message) is str else message)
 
     def login_form(self):
         return self.return_message(http_code = 401)

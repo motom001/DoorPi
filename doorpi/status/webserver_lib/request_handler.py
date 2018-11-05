@@ -86,47 +86,42 @@ class DoorPiWebRequestHandler(BaseHTTPRequestHandler):
         )
         logger.debug(json.dumps(para, sort_keys = True, indent = 4))
 
-        try:
-            for parameter_name in list(para.keys()):
-                try:                    para[parameter_name] = unquote_plus(para[parameter_name][0])
-                except KeyError:        para[parameter_name] = ''
-                except IndexError:      para[parameter_name] = ''
+        for parameter_name in list(para.keys()):
+            try: para[parameter_name] = unquote_plus(para[parameter_name][0])
+            except LookupError: para[parameter_name] = ''
 
-            if control_order == "trigger_event":
-                result_object['message'] = doorpi.DoorPi().event_handler.fire_event_synchron(**para)
-                if result_object['message'] is True:
-                    result_object['success'] = True
-                    result_object['message'] = "fire Event was success"
-                else:
-                    result_object['success'] = False
-            elif control_order == "config_value_get":
-                # section, key, default, store
+        if control_order == "trigger_event":
+            result_object['message'] = doorpi.DoorPi().event_handler.fire_event_synchron(**para)
+            if result_object['message'] is True:
                 result_object['success'] = True
-                result_object['message'] = control_config_get_value(**para)
-            elif control_order == "config_value_set":
-                # section, key, value, password
-                result_object['success'] = control_config_set_value(**para)
-                result_object['message'] = "config_value_set %s" % (
-                    'success' if result_object['success'] else 'failed'
-                )
-            elif control_order == "config_value_delete":
-                # section and key
-                result_object['success'] = control_config_delete_key(**para)
-                result_object['message'] = "config_value_delete %s" % (
-                    'success' if result_object['success'] else 'failed'
-                )
-            elif control_order == "config_save":
-                # configfile
-                result_object['success'] = control_config_save(**para)
-                result_object['message'] = "config_save %s" % (
-                    'success' if result_object['success'] else 'failed'
-                )
-            elif control_order == "config_get_configfile":
-                result_object['message'] = control_config_get_configfile()
-                result_object['success'] = True if result_object['message'] != "" else False
-
-        except Exception as exp:
-            result_object['message'] = str(exp)
+                result_object['message'] = "fire Event was success"
+            else:
+                result_object['success'] = False
+        elif control_order == "config_value_get":
+            # section, key, default, store
+            result_object['success'] = True
+            result_object['message'] = control_config_get_value(**para)
+        elif control_order == "config_value_set":
+            # section, key, value, password
+            result_object['success'] = control_config_set_value(**para)
+            result_object['message'] = "config_value_set %s" % (
+                'success' if result_object['success'] else 'failed'
+            )
+        elif control_order == "config_value_delete":
+            # section and key
+            result_object['success'] = control_config_delete_key(**para)
+            result_object['message'] = "config_value_delete %s" % (
+                'success' if result_object['success'] else 'failed'
+            )
+        elif control_order == "config_save":
+            # configfile
+            result_object['success'] = control_config_save(**para)
+            result_object['message'] = "config_save %s" % (
+                'success' if result_object['success'] else 'failed'
+            )
+        elif control_order == "config_get_configfile":
+            result_object['message'] = control_config_get_configfile()
+            result_object['success'] = True if result_object['message'] != "" else False
 
         return result_object
 
@@ -138,29 +133,27 @@ class DoorPiWebRequestHandler(BaseHTTPRequestHandler):
 
     def create_virtual_resource(self, path, raw_parameters):
         return_object = {}
-        try:
-            if path.path == '/mirror':
-                return_object = self.create_mirror()
-                raw_parameters['output'] = "string"
-            elif path.path == '/status':
-                raw_parameters = self.clear_parameters(raw_parameters)
-                return_object = doorpi.DoorPi().get_status(
-                    modules = raw_parameters['module'],
-                    name = raw_parameters['name'],
-                    value = raw_parameters['value']
-                ).dictionary
-            elif path.path.startswith('/control/'):
-                return_object = self.do_control(path.path.split('/')[-1], raw_parameters)
-            elif path.path == '/help/modules.overview.html':
-                raw_parameters = self.clear_parameters(raw_parameters)
-                return_object, mime = self.get_file_content('/dashboard/parts/modules.overview.html')
-                return_object = self.parse_content(
-                    return_object,
-                    MODULE_AREA_NAME = raw_parameters['module'][0] or '',
-                    MODULE_NAME = raw_parameters['name'][0] or ''
-                )
-                raw_parameters['output'] = "html"
-        except Exception as exp: return_object = dict(error_message = str(exp))
+        if path.path == '/mirror':
+            return_object = self.create_mirror()
+            raw_parameters['output'] = "string"
+        elif path.path == '/status':
+            raw_parameters = self.clear_parameters(raw_parameters)
+            return_object = doorpi.DoorPi().get_status(
+                modules = raw_parameters['module'],
+                name = raw_parameters['name'],
+                value = raw_parameters['value']
+            ).dictionary
+        elif path.path.startswith('/control/'):
+            return_object = self.do_control(path.path.split('/')[-1], raw_parameters)
+        elif path.path == '/help/modules.overview.html':
+            raw_parameters = self.clear_parameters(raw_parameters)
+            return_object, mime = self.get_file_content('/dashboard/parts/modules.overview.html')
+            return_object = self.parse_content(
+                return_object,
+                MODULE_AREA_NAME = raw_parameters['module'][0] or '',
+                MODULE_NAME = raw_parameters['name'][0] or ''
+            )
+            raw_parameters['output'] = "html"
 
         if 'output' not in list(raw_parameters.keys()): raw_parameters['output'] = ''
         return self.return_virtual_resource(return_object, raw_parameters['output'])
@@ -185,17 +178,11 @@ class DoorPiWebRequestHandler(BaseHTTPRequestHandler):
         else:
             try:    return self.return_message(repr(prepared_object))
             except: return self.return_message(str(prepared_object))
-        pass
 
     def real_resource(self, path):
         #doorpi.DoorPi().event_handler('OnWebServerRealResource', __name__, {'path': path})
         if os.path.isdir(self.server.www + path): return self.list_directory(self.server.www + path)
-        try:
-            return self.return_file_content(path)
-        except FileNotFoundError as exp:
-            return self.send_error(404)
-        except Exception:
-            raise
+        return self.return_file_content(path)
 
     def list_directory(self, path):
         dirs = []
@@ -232,26 +219,18 @@ class DoorPiWebRequestHandler(BaseHTTPRequestHandler):
         return mime_type in ['text/html']
 
     def read_from_file(self, url, template_recursion=True):
-        try:
-            read_mode = "r" if self.is_file_parsable(url) else "rb"
-            with open(url, read_mode) as file:
-                file_content = file.read()
-            if self.is_file_parsable(url):
-                return self.parse_content(file_content, template_recursion=template_recursion)
-            else:
-                return self.parse_content(file_content, template_recursion=template_recursion)
-        except Exception as exp:
-            raise exp
+        read_mode = "r" if self.is_file_parsable(url) else "rb"
+        with open(url, read_mode) as file:
+            file_content = file.read()
+        if self.is_file_parsable(url):
+            return self.parse_content(file_content, template_recursion=template_recursion)
+        else:
+            return self.parse_content(file_content, template_recursion=template_recursion)
 
     def get_file_content(self, path):
         content = mime = ""
-        try:
-            content = self.read_from_file(self.server.www + path)
-            mime = self.get_mime_typ(self.server.www + path)
-        except FileNotFoundError:
-            return self.send_error(404)
-        except Exception:
-            raise
+        content = self.read_from_file(self.server.www + path)
+        mime = self.get_mime_typ(self.server.www + path)
 
         return content, mime
 
@@ -274,40 +253,38 @@ class DoorPiWebRequestHandler(BaseHTTPRequestHandler):
         return self.return_message(http_code = 401)
 
     def authentication_required(self):
-        parsed_path = urlparse(self.path)
-
-        public_resources = self.conf.get_keys(self.server.area_public_name, log = False)
-        for public_resource in public_resources:
-            if re.match(public_resource, parsed_path.path):
-                logger.debug('public resource: %s',parsed_path.path)
-                return False
-
         try:
+            parsed_path = urlparse(self.path)
+
+            public_resources = self.conf.get_keys(self.server.area_public_name, log = False)
+            for public_resource in public_resources:
+                if re.match(public_resource, parsed_path.path):
+                    logger.debug('public resource: %s',parsed_path.path)
+                    return False
+
             username, password = self.headers['authorization'].replace('Basic ', '').decode('base64').split(':', 1)
-        except Exception as exp:
-            logger.debug('no header Authorization object (%s)', exp)
+
+            user_session = self.server.sessions.get_session(username)
+            if not user_session:
+                user_session = self.server.sessions.build_security_object(username, password)
+
+            if not user_session:
+                logger.debug('need authentication (no session): %s', parsed_path.path)
+                return True
+
+            for write_permission in user_session['writepermissions']:
+                if re.match(write_permission, parsed_path.path):
+                    logger.info('user %s has write permissions: %s', user_session['username'], parsed_path.path)
+                    return False
+
+            for read_permission in user_session['readpermissions']:
+                if re.match(read_permission, parsed_path.path):
+                    logger.info('user %s has read permissions: %s', user_session['username'], parsed_path.path)
+                    return False
+
+            logger.warning('user %s has no permissions: %s', user_session['username'], parsed_path.path)
             return True
-
-        user_session = self.server.sessions.get_session(username)
-        if not user_session:
-            user_session = self.server.sessions.build_security_object(username, password)
-
-        if not user_session:
-            logger.debug('need authentication (no session): %s', parsed_path.path)
-            return True
-
-        for write_permission in user_session['writepermissions']:
-            if re.match(write_permission, parsed_path.path):
-                logger.info('user %s has write permissions: %s', user_session['username'], parsed_path.path)
-                return False
-
-        for read_permission in user_session['readpermissions']:
-            if re.match(read_permission, parsed_path.path):
-                logger.info('user %s has read permissions: %s', user_session['username'], parsed_path.path)
-                return False
-
-        logger.warning('user %s has no permissions: %s', user_session['username'], parsed_path.path)
-        return True
+        except: return True
 
     def check_authentication(self):
         if not self.authentication_required(): return True

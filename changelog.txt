@@ -9,6 +9,30 @@ Legend:
 / reference to commit
 ! fix issue or kown bug
 
+Version: 3.0beta1 (2018-11-06)
+-------------------------------
++ Ability to run without root privileges
++ Basic systemd support (see below)
+~ Rewrite setup routines. Allows packaging
+~ Port existing code to Python 3 (not everything tested yet)
+    Some changes here were done by <https://github.com/Python3pkg>)
+~ base_path defaults to current user's $HOME if not yet configured
+~ Web service: new default port 50371 (from 80)
+- Web service no longer tries to fall back to different ports
+- Web service no longer falls back to online resources if local resources are not found
+! Various fixes for random coding-related stuff; see commit history if you're interested in details
+
+Notes about systemd:
+* Some features require systemd >= 235, which is not available on Raspbian Jessie.
+* DoorPi will not run as root anymore. In order to access GPIO pins, the supplementary group `gpio`
+  will be added to the daemon's set of groups. If your system doesn't use this group, or uses a
+  different one, you need to modify the service definition accordingly.
+  **Do NOT just change the User to root.** It should be trivial to find out what kind of permission
+  is needed to access GPIO (if any at all).
+* The systemd service expects the config file to exist at `/etc/doorpi/doorpi.ini`
+  As DoorPi normally does not (and should not!) have write access there, the configuration web
+  interface will not be able to save changes. Do not use it, just write to the file directly.
+
 Version: 2.5.1 (2016-08-01)
 -------------------------------
 ~ version to 2.5.1

@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import os
 import logging
 logger = logging.getLogger(__name__)
 logger.debug("%s loaded", __name__)
@@ -123,19 +124,22 @@ class DoorPiWeb(ThreadingMixIn, HTTPServer):
     def config(self): return doorpi.DoorPi().config
 
     def start(self):
+        logger.info("Starting WebServer")
         doorpi.DoorPi().event_handler.register_event('OnWebServerStart', __name__)
         doorpi.DoorPi().event_handler.register_event('OnWebServerStop', __name__)
 
-        self.www = doorpi.DoorPi().config.get_string_parsed(DOORPIWEB_SECTION, 'www', '!BASEPATH!/../DoorPiWeb')
+        self.www = os.path.realpath(doorpi.DoorPi().config.get_string_parsed(DOORPIWEB_SECTION, 'www', '!BASEPATH!/../DoorPiWeb'))
         self.indexfile = doorpi.DoorPi().config.get_string_parsed(DOORPIWEB_SECTION, 'indexfile', 'index.html')
         self.area_public_name = doorpi.DoorPi().config.get_string_parsed(DOORPIWEB_SECTION, 'public', 'AREA_public')
         check_config(self.config)
+        logger.info("Serving files from {}".format(self.www))
 
         doorpi.DoorPi().event_handler.register_action('OnWebServerStart', WebServerStartupAction(self.handle_while_not_shutdown))
         doorpi.DoorPi().event_handler.register_action('OnShutdown', WebServerShutdownAction(self.init_shutdown))
         doorpi.DoorPi().event_handler('OnWebServerStart', __name__)
 
         DoorPiWebRequestHandler.prepare()
+        logger.info("WebServer started")
         return self
 
     def handle_while_not_shutdown(self):

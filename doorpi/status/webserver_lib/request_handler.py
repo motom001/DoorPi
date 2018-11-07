@@ -221,6 +221,10 @@ class DoorPiWebRequestHandler(BaseHTTPRequestHandler):
         return ext in PARSABLE_FILE_EXTENSIONS
 
     def read_from_file(self, url, template_recursion = 5):
+        # protect against directory traversal
+        url = os.path.realpath(url)
+        if not url.startswith(self.server.www): raise FileNotFoundError
+
         read_mode = "r" if self.is_file_parsable(url) else "rb"
         with open(url, read_mode) as file:
             file_content = file.read()

@@ -331,15 +331,6 @@ class DoorPiWebRequestHandler(BaseHTTPRequestHandler):
         mapping_table['PORT'] =             str(self.server.server_port)
         mapping_table['MIN_EXTENSION'] =    '' if logger.getEffectiveLevel() <= 5 else '.min'
 
-        #nutze den Hostnamen aus der URL. sonst ist ein erneuter Login nötig
-        if 'host' in list(self.headers.keys()):
-            mapping_table['BASE_URL'] =     "http://%s"%self.headers['host']
-        else:
-            mapping_table['BASE_URL'] =     "http://%s:%s"%(self.server.server_name, self.server.server_port)
-
-        # Trennung DATA_URL (AJAX) und BASE_URL (Dateien)
-        mapping_table['DATA_URL'] = mapping_table['BASE_URL']
-
         # Templates:
         mapping_table['TEMPLATE:HTML_HEADER'] =     'html.header.html'
         mapping_table['TEMPLATE:HTML_FOOTER'] =     'html.footer.html'

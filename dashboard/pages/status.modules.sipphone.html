@@ -6,7 +6,7 @@
 					try {
 						clearInterval(refreshIntervalId);
 						refreshIntervalId = 0;
-						$.getJSON("{DATA_URL}/status?module=sipphone&name=current_call&output=json.parsed", function(result) {
+						$.getJSON("/status?module=sipphone&name=current_call&output=json.parsed", function(result) {
 							if (Object.keys(result.sipphone.current_call).length == 0) {
 								result = result.sipphone.current_call;
 								$("#current_call_direction").text("-");

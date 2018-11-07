@@ -37,7 +37,7 @@
 				$(document).ready(function() {
 					$('#idHistoryEventTable').dataTable({
 						ajax: {
-							url: '{DATA_URL}/status?module=history_event',
+							url: '/status?module=history_event',
 							dataSrc: "history_event",
 							displayLength: 100
 						},

@@ -34,11 +34,11 @@
 				}
 				
 				$(document).ready(function() {
-					$.getJSON("{DATA_URL}/status?module=environment&name={MODULE_AREA_NAME}&value={MODULE_NAME}&output=json.parsed", function(result){
+					$.getJSON("/status?module=environment&name={MODULE_AREA_NAME}&value={MODULE_NAME}&output=json.parsed", function(result){
 						
-						var sAutoInstallerPossible = '<p><a href="{DATA_URL}/control/install.html?module={MODULE_AREA_NAME}&name={MODULE_NAME}"><button type="button" class="btn btn-outline btn-danger">Start der automatischen Installation für {MODULE_NAME} ({MODULE_AREA_NAME})</button></a></p>';
+						var sAutoInstallerPossible = '<p><a href="/control/install.html?module={MODULE_AREA_NAME}&name={MODULE_NAME}"><button type="button" class="btn btn-outline btn-danger">Start der automatischen Installation für {MODULE_NAME} ({MODULE_AREA_NAME})</button></a></p>';
 						if (result.environment['{MODULE_AREA_NAME}'].libraries['{MODULE_NAME}'].status.installed)
-							var sAutoInstallerNotPossible = '<p><a href="{DATA_URL}/control/update.html?module={MODULE_AREA_NAME}&name={MODULE_NAME}"><button type="button" class="btn btn-outline btn-danger">Start des automatischen Updates für {MODULE_NAME} ({MODULE_AREA_NAME})</button></a></p>';
+							var sAutoInstallerNotPossible = '<p><a href="/control/update.html?module={MODULE_AREA_NAME}&name={MODULE_NAME}"><button type="button" class="btn btn-outline btn-danger">Start des automatischen Updates für {MODULE_NAME} ({MODULE_AREA_NAME})</button></a></p>';
 						else
 							var sAutoInstallerNotPossible = '<p>Leider ist keine automatische Installation möglich.</p>';
 						

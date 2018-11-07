@@ -19,7 +19,7 @@
 	var current = 0
 	$(document).ready(
 			function() {
-				$.getJSON("{DATA_URL}/status?module=history_snapshot",
+				$.getJSON("/status?module=history_snapshot",
 						function(result) {
 							if (result.history_snapshot != null)
 								files = result.history_snapshot

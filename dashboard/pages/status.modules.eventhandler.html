@@ -103,7 +103,7 @@
 							replace(/%(?:7C|60|5E)/g, unescape);
 				}
 				function GetFireEventUrl (sSourceName, sEventName) {
-					var sFireEventUrl = "{DATA_URL}/control/trigger_event?";
+					var sFireEventUrl = "/control/trigger_event?";
 					sFireEventUrl += "event_name="+encodeRFC5987ValueChars(sEventName)+"&";
 					sFireEventUrl += "event_source="+encodeRFC5987ValueChars(sSourceName);
 					return sFireEventUrl;
@@ -124,7 +124,7 @@
 				}
 				
 				$(document).ready(function() {
-					$.getJSON("{DATA_URL}/status?module=environment&name=event_handler&output=json.parsed", function(result) {
+					$.getJSON("/status?module=environment&name=event_handler&output=json.parsed", function(result) {
 						$("#idEventHandlerDescriptionContent").html(result.environment.event_handler.text_description);
 						
 						var html_button_installed = '<button type="button" class="btn btn-success disabled">installiert</button>';
@@ -144,7 +144,7 @@
 									'modul_name': modul_name,
 									'installed': sSingleModulStatus,
 									'file': ((modul.status.installed) ? modul.status.file : ''),
-									'link': '<a href="{DATA_URL}/help/modules.overview.html?module=' + modul_area_name + '&name=' + modul_name + '&installed=' + modul.status.installed + '">' + '<button type="button" class="btn btn-info">Info</button></a>'
+									'link': '<a href="/help/modules.overview.html?module=' + modul_area_name + '&name=' + modul_name + '&installed=' + modul.status.installed + '">' + '<button type="button" class="btn btn-info">Info</button></a>'
 								})
 							});
 						});
@@ -164,7 +164,7 @@
 					});
 					$('#idEvents').dataTable({
 						"ajax": {
-							"url": "{DATA_URL}/status?module=event_handler&name=actions&output=json",
+							"url": "/status?module=event_handler&name=actions&output=json",
 							"type": "GET",
 							"dataSrc": function ( aSourceObject ) {
 								oConfigObject = aSourceObject.event_handler.actions;
@@ -193,7 +193,7 @@
 					});
 					$('#idActions').dataTable({
 						"ajax": {
-							"url": "{DATA_URL}/status?module=event_handler&name=events_by_source&output=json",
+							"url": "/status?module=event_handler&name=events_by_source&output=json",
 							"type": "GET",
 							"dataSrc": function ( aSourceObject ) {
 								oConfigObject = aSourceObject.event_handler.events_by_source
@@ -246,7 +246,7 @@
 					});
 					$('#idEventHistory').dataTable({
 						"ajax": {
-							"url": '{DATA_URL}/status?module=history_event&output=json',
+							"url": '/status?module=history_event&output=json',
 							"type": "GET",
 							"dataSrc": function ( aSourceObject ) {
 								$.each(aSourceObject.history_event, function ( i, oEventObject ) {
@@ -268,7 +268,7 @@
 					});
 					$('#idThreadsContent').dataTable({
 						"ajax": {
-							"url": '{DATA_URL}/status?module=event_handler&name=threads&output=json',
+							"url": '/status?module=event_handler&name=threads&output=json',
 							"type": "GET",
 							"dataSrc": function ( aSourceObject ) {
 								var aReturnArray = new Array();

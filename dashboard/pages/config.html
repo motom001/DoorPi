@@ -51,7 +51,7 @@
 					$('#idConfigTable').html( '<table class="display table table-bordered table-hover table-striped" id="idConfigTableContent"></table>' );
 					oConfigTable = $('#idConfigTableContent').dataTable({
 						"ajax": {
-							"url": "{DATA_URL}/status?module=config&output=json",
+							"url": "/status?module=config&output=json",
 							"type": "GET",
 							"dataSrc": function ( aSourceObject ) {
 								oConfigObject = aSourceObject.config
@@ -168,7 +168,7 @@
 													});
 												
 													$("#idNewConfigModalButtonSave").click(function() {
-														var sNewConfigUrl = "{DATA_URL}/control/config_value_set";
+														var sNewConfigUrl = "/control/config_value_set";
 														var sSectionName = "";
 														if ($("#idNewConfigSectionSelectVal").val() == "[NEW]") {
 															sSectionName = $("#idNewConfigSectionInputVal").val();
@@ -287,7 +287,7 @@
 													$("#idEditConfigKeyInputVal").change(LoadOldValueBeforeEdit);
 													
 													$("#idEditConfigModalButtonSave").click(function() {
-														var sNewConfigUrl = "{DATA_URL}/control/config_value_set";
+														var sNewConfigUrl = "/control/config_value_set";
 														sNewConfigUrl += "?section=" + encodeRFC5987ValueChars($("#idEditConfigSectionSelectVal").val());
 														sNewConfigUrl += "&key=" + encodeRFC5987ValueChars($("#idEditConfigKeyInputVal").val());
 														sNewConfigUrl += "&value=" + encodeRFC5987ValueChars($("#idEditConfigValueInputVal").val());
@@ -393,7 +393,7 @@
 													$("#idDeleteConfigKeyInputVal").change(LoadOldValueBeforeDelete);
 													
 													$("#idDeleteConfigModalButtonSave").click(function() {
-														var sNewConfigUrl = "{DATA_URL}/control/config_value_delete";
+														var sNewConfigUrl = "/control/config_value_delete";
 														sNewConfigUrl += "?section=" + encodeRFC5987ValueChars($("#idDeleteConfigSectionSelectVal").val());
 														sNewConfigUrl += "&key=" + encodeRFC5987ValueChars($("#idDeleteConfigKeyInputVal").val());
 														
@@ -443,7 +443,7 @@
 												function LoadOldConfigfileBeforeSave () {
 													$('#idCurrentConfigfile').val('');
 													try {
-														$.getJSON("{DATA_URL}/control/config_get_configfile", function( result ){
+														$.getJSON("/control/config_get_configfile", function( result ){
 															if (result.success) {
 																$('#idCurrentConfigfile').html('(current: "'+result.message+'")');
 															} else {
@@ -457,7 +457,7 @@
 												
 												function PrepareSaveConfigModal () {
 													$("#idSaveConfigModalButtonSave").click(function() {
-														var sNewConfigUrl = "{DATA_URL}/control/config_save";
+														var sNewConfigUrl = "/control/config_save";
 														if ($('#idSaveConfigValueInputVal').val() != "")
 															sNewConfigUrl += "?configfile=" + encodeRFC5987ValueChars($("#idSaveConfigValueInputVal").val());
 														

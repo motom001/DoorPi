@@ -188,7 +188,7 @@ class ConfigObject():
         value = self.get_string(section, key, str(default), log = False, store_if_not_exists = store_if_not_exists)
         if value is not '': value = float(value)
         else: value = default
-        if log: logger.trace("get_integer for key %s in section %s (default: %s) returns %s", key, section, default, value)
+        if log: logger.trace("get_float for key %s in section %s (default: %s) returns %s", key, section, default, value)
         return value
 
     def get_integer(self, section, key, default = -1, log = True, store_if_not_exists = True):

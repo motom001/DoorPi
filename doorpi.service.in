@@ -1,6 +1,8 @@
 [Unit]
 Description=DoorPi
 Documentation=https://github.com/motom001/DoorPi/wiki
+Requires=doorpi.socket
+After=doorpi.socket
 
 [Service]
 Type=simple

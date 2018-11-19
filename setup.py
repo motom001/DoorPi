@@ -93,6 +93,6 @@ setup(
         #('/etc/doorpi', []),
         # init script and systemd service
         ('/etc/init.d', ['doorpi.sh']),
-        ('/usr/lib/systemd/system', ['doorpi.service']),
+        ('/usr/lib/systemd/system', ['doorpi.service', 'doorpi.socket']),
     ],
 )

@@ -1,0 +1,6 @@
+[Unit]
+Description=DoorPiWeb
+Documentation=https://github.com/motom001/DoorPi/wiki
+
+[Socket]
+ListenStream=50371

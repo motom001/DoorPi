@@ -8,6 +8,7 @@ logger.debug("%s loaded", __name__)
 
 from http.server import HTTPServer
 from socketserver import ThreadingMixIn
+import socket
 
 from random import randrange
 
@@ -31,13 +32,14 @@ def load_webserver():
 
     doorpiweb_object = None
 
-    logger.info("Starting WebService at [{ip}]:{port}".format(ip=ip, port=port))
+    logger.info("Starting WebService")
     try:
         server_address = (ip, port)
         doorpiweb_object = DoorPiWeb(server_address, DoorPiWebRequestHandler)
         doorpiweb_object.start()
     except Exception as exp:
-        logger.error("Starting WebService at [{ip}]:{port} failed: {msg}".format(ip=ip, port=port, msg=exp))
+        logger.error("Starting WebService failed: {msg}".format(msg=exp))
+        logger.exception(exp)
 
     return doorpiweb_object
 
@@ -124,7 +126,7 @@ class DoorPiWeb(ThreadingMixIn, HTTPServer):
     def config(self): return doorpi.DoorPi().config
 
     def start(self):
-        logger.info("Starting WebServer")
+        logger.info("Starting WebServer on {}".format(self.own_url))
         doorpi.DoorPi().event_handler.register_event('OnWebServerStart', __name__)
         doorpi.DoorPi().event_handler.register_event('OnWebServerStop', __name__)
 
@@ -158,3 +160,22 @@ class DoorPiWeb(ThreadingMixIn, HTTPServer):
         DoorPiWebRequestHandler.destroy()
         self.fake_request()
         doorpi.DoorPi().event_handler.unregister_source(__name__, True)
+
+    def server_bind(self):
+        listen_fds = int(os.environ.get("LISTEN_FDS", 0))
+        if listen_fds > 0:
+            logger.trace("Passed in fds: {}".format(listen_fds))
+            fd = 3 # FIXME don't use a magic number; this is SD_LISTEN_FDS_START in <systemd/sd-daemon.h>
+            self.socket = socket.fromfd(fd, socket.AF_INET, socket.SOCK_STREAM)
+            # fake out some info that isn't readily available in this mode
+            self.server_name = "<your-raspberry-ip>:port"
+            self.server_port = 80
+        else:
+            super().server_bind()
+
+    def server_activate(self):
+        listen_fds = int(os.environ.get("LISTEN_FDS", 0))
+        if listen_fds > 0:
+            pass
+        else:
+            super().server_activate()

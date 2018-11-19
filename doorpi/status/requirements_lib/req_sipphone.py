@@ -9,7 +9,7 @@ from doorpi.sipphone.AbstractBaseClass import SIPPHONE_SECTION
 
 REQUIREMENT = dict(
     fulfilled_with_one = True,
-    text_description = 'Die Aufgabe von einem SIP-Phone innerhalb von DoorPi ist es, die Telefeongespräche (VoIP-Verbindungen) herzustellen. Dazu kann das Sip-Phone entweder mit oder ohne einem SIP-Server (z.B. FritzBox oder Asterisk) zusammen arbeiten.',
+    text_description = 'Die Aufgabe eines SIP-Phones in von DoorPi ist es, die Telefongespräche (VoIP-Verbindungen) herzustellen. Dazu kann das SIP-Phone entweder mit oder ohne SIP-Server (z.B. Fritz!Box oder Asterisk) zusammen arbeiten.',
     events = [
         dict( name = 'OnSipPhoneCreate', description = 'Das SIP-Phone wurde erstellt und kann gestartet werden.'),
         dict( name = 'OnSipPhoneStart', description = 'Das SIP-Phone wurde gestartet und ist jetzt einsatzbereit.'),
@@ -109,10 +109,10 @@ SRTP
 ZRTP
 </ul>
 Für den Betrieb hinter einem NAT-Router steht das STUN-Protokoll zur Verfügung.''',
-            text_installation =     'Die Installation ist sehr gut <a href="https://wiki.linphone.org/wiki/index.php/Raspberrypi:start">im Wiki von linphone</a> beschrieben.</br>',
-            auto_install =          True,
-            text_test = 'Es kann jederzeit der Status manuell gestestet werden, in dem im Python-Interpreter <code>import linphone</code> eingeben wird.',
-            text_configuration = 'Für die Konfiguration von Linphone stehen eine vielzahl an Parametern zur Verfügung, die in dem Abschnitt <a href="http://192.168.178.43/dashboard/pages/config.html">Konfiguration</a> eingesehen werden können.',
+            text_warning =          'Es gibt derzeit keine funktionierende Python3-Version von Linphone.',
+            auto_install =          False,
+            text_test =             'Es kann jederzeit der Status manuell gestestet werden, indem im Python-Interpreter <code>import linphone</code> eingeben wird.',
+            text_configuration =    'Für die Konfiguration von Linphone stehen eine Vielzahl an Parametern zur Verfügung, die im Abschnitt <a href="/dashboard/pages/config.html">Konfiguration</a> eingesehen werden können.',
             configuration = [
                 dict( section = SIPPHONE_SECTION, key = 'echo_cancellation_enabled', type = 'boolean', default = 'False', mandatory = False, description = 'Softwareseitige Echo-Unterdrückung - Achtung: sehr hohe Systemauslastung und nicht empfehlenswert'),
                 dict( section = SIPPHONE_SECTION, key = 'video_display_enabled', type = 'boolean', default = 'False', mandatory = False, description = 'Soll auf der Außenstelle ein Bild auf dem Display angezeigt werden? - Achtung: sehr hohe Systemauslastung und nicht empfehlenswert'),
@@ -137,10 +137,10 @@ Für den Betrieb hinter einem NAT-Router steht das STUN-Protokoll zur Verfügung
             }
         ),
         pjsua = dict(
-            text_warning =          'Das SIP-Phone pjsua wird aktuell nicht mehr im DoorPi Projekt unterstützt. Es wird dringend empfohlen auf <a href="{BASE_URL}/help/modules.overview.html?module=sipphone&name=linphone">linphone</a> zu wechseln.',
+            text_warning =          'Das SIP-Phone pjsua wird aktuell nicht in DoorPi unterstützt.',
             text_description =      '',
             text_installation =     '',
-            text_test =             'Der Status kann gestestet werden, in dem im Python-Interpreter <code>import {MODULE_NAME}</code> eingeben wird.',
+            text_test =             '',
             text_configuration =    '',
             configuration = [],
             text_links = {

@@ -9,7 +9,7 @@ from doorpi.status.webserver import DOORPIWEB_SECTION, CONF_AREA_PREFIX
 
 REQUIREMENT = dict(
     fulfilled_with_one = False,
-    text_description = '''Der Webserver ist Kontroll- und Konfiguration- Oberfläche sowie die Schnittstelle per Webservice.
+    text_description = '''Der Webserver ist Kontroll- und Konfigurationsoberfläche sowie die Schnittstelle per Webservice.
 Es können Dateien angefragt werden (z.B. index.html) die aus dem Dateisystem geladen werden (reale Resourcen).
 Genausogut können aber auch Status Abfragen oder Control Kommandos verarbeitet werden (virtuelle Resourcen).
 
@@ -22,21 +22,21 @@ Die Bereiche (AREA) sind virtuelle und reale Ressourcen, die sich speziell an de
 Die Bestandteile eines Bereiches werden mittels RegEx definiert.
 
 Zuordnung in der Sektion User ist:
-[Benutzername] = [Passwort]
+<code>Benutzername = Passwort</code>
 
 Bei der Group Sektion ist es:
-[GroupName] = [Benutzername1],[Benutzername2],[...]
+<code>GroupName = Benutzername1,Benutzername2,...</code>
 
 Dann gibt es die beiden Sektionen WritePermission und ReadPermission mit der Zuordnung:
-[GroupName] = [AreaName]
+<code>GroupName = AreaName</code>
 
 Ganz unten gibt es dann beliebig viele Areas mit unterschiedlichen Namen. Jeder Area sind RegEx zugeordnet, die gegen die URL geprüft werden.
 Eine Sonderform ist die AREA_public. Diese fasst alle Ressourcen zusammen, die von jedem eingesehen werden dürfen, da es sich hierbei um Javascript,CSS und ähnliche Dateien handelt.
 Nötig wurde das, da die login.html auch Javascript-Dateien geladen hatte. Mitlerweile habe ich mich von der login.html einw enig verabschiedet und bin Richtung HTTP Status-Code 401 mit base64 codiertem Passwort gegangen. Das lässt sich später auch automatisch durchführen, so dass Webservice-Aktionen mit Authentifizierung auf einem sehr einfachen standardisierten Level möglich sind.
 
 Beispiel:
-<code>
-['''+DOORPIWEB_SECTION+''']
+
+<code style="display:block">['''+DOORPIWEB_SECTION+''']
 public = AREA_public # das sind alle Resourcen die jeder sehen darf, auch wenn er sich nicht authentifiziert hat
 
 [User]
@@ -94,73 +94,39 @@ administrator = status, help # Gruppe administrator darf lesend auf die Resource
         dict( section = 'WritePermission', key = '*', type = 'string', default = '', mandatory = False, description = ''),
         dict( section = CONF_AREA_PREFIX+'*', key = '*', type = 'string', default = '', mandatory = False, description = '')
     ],
-    libraries = dict(
-        BaseHTTPServer = dict(
+    libraries = {
+        'http.server': dict(
             text_warning =          '',
-            text_description =      'Das Python-Modul BaseHTTPServer ist mit der Klasse HTTPServer die Grundlage für jeden Webserver.',
-            text_installation =     'Eine Installation ist nicht nötig, da es sich hierbei um eine Python-Standard-Modul handelt.',
+            text_description =      'Das Python-Modul http.server ist mit der Klasse HTTPServer die Grundlage für jeden Webserver.',
+            text_installation =     'Eine Installation ist nicht nötig, da es sich hierbei um ein Python-Standard-Modul handelt.',
             auto_install =          False,
-            text_test =             'Der Status kann gestestet werden, in dem im Python-Interpreter <code>import BaseHTTPServer</code> eingeben wird.',
+            text_test =             'Der Status kann gestestet werden, indem im Python-Interpreter <code>import http.server</code> eingeben wird.',
             text_configuration =    '',
-            configuration = [
-                #dict( section = 'DoorPi', key = 'eventlog', type = 'string', default = '!BASEPATH!/conf/eventlog.db', mandatory = False, description = 'Ablageort der SQLLite Datenbank für den Event-Handler.')
-            ],
+            configuration = [],
             text_links = {
                 'docs.python.org': 'https://docs.python.org/2.7/library/basehttpserver.html'
             }
         ),
-        SocketServer = dict(
+        'urllib': dict(
             text_warning =          '',
-            text_description =      'Das Python-Modul SocketServer stellt die Klasse ThreadingMixIn bereit, mit dessen Hilfe der Webserver mehrere Anfragen gleichzeitig entgegennehmen und verarbeiten kann.',
-            text_installation =     'Eine Installation ist nicht nötig, da es sich hierbei um eine Python-Standard-Modul handelt.',
+            text_description =      'Das Python-Modul urllib wird vom Webserver benötigt, um Anfragen zu verarbeiten.',
+            text_installation =     'Eine Installation ist nicht nötig, da es sich hierbei um ein Python-Standard-Modul handelt.',
             auto_install =          False,
-            text_test =             'Der Status kann gestestet werden, in dem im Python-Interpreter <code>import SocketServer</code> eingeben wird.',
+            text_test =             'Der Status kann gestestet werden, indem im Python-Interpreter <code>import urllib</code> eingeben wird.',
             text_configuration =    '',
-            configuration = [
-                #dict( section = 'DoorPi', key = 'eventlog', type = 'string', default = '!BASEPATH!/conf/eventlog.db', mandatory = False, description = 'Ablageort der SQLLite Datenbank für den Event-Handler.')
-            ],
-            text_links = {
-                'docs.python.org': 'https://docs.python.org/2.7/library/socketserver.html'
-            }
-        ),
-        urlparse = dict(
-            text_warning =          '',
-            text_description =      'Das Python-Modul urlparse stellt die beiden Funktionen urlparse und parse_qs zur Verfügung, mit dessen Hilfe die Parameter eine Webserver-Anfrage gesplittet und verarbeitet werden können.',
-            text_installation =     'Eine Installation ist nicht nötig, da es sich hierbei um eine Python-Standard-Modul handelt.',
-            auto_install =          False,
-            text_test =             'Der Status kann gestestet werden, in dem im Python-Interpreter <code>import urlparse</code> eingeben wird.',
-            text_configuration =    '',
-            configuration = [
-                #dict( section = 'DoorPi', key = 'eventlog', type = 'string', default = '!BASEPATH!/conf/eventlog.db', mandatory = False, description = 'Ablageort der SQLLite Datenbank für den Event-Handler.')
-            ],
-            text_links = {
-                'docs.python.org': 'https://docs.python.org/2.7/library/urlparse.html'
-            }
-        ),
-        urllib2 = dict(
-            text_warning =          '',
-            text_description =      'Das Python-Modul urllib2 ermöglicht es, Anfragen an einen Webserver zu stellen. Im DoorPi kommt das beim Testen des eigenen Webservers (fake_request) zum Einsatz.',
-            text_installation =     'Eine Installation ist nicht nötig, da es sich hierbei um eine Python-Standard-Modul handelt.',
-            auto_install =          False,
-            text_test =             'Der Status kann gestestet werden, in dem im Python-Interpreter <code>import BaseHTTPServer</code> eingeben wird.',
-            text_configuration =    '',
-            configuration = [
-                #dict( section = 'DoorPi', key = 'eventlog', type = 'string', default = '!BASEPATH!/conf/eventlog.db', mandatory = False, description = 'Ablageort der SQLLite Datenbank für den Event-Handler.')
-            ],
+            configuration = [],
             text_links = {
                 'docs.python.org': 'https://docs.python.org/2.7/library/urllib2.html'
             }
         ),
-        mimetypes = dict(
+        'mimetypes': dict(
             text_warning =          '',
             text_description =      'Das Python-Modul mimetypes ermöglicht die Bestimmung des MIME-Typs anhand von Dateiendungen. Wichtig ist das bei der Entscheidung um Platzhalter innerhalb dieser Datei verarbeitet werden sollen (HTML-Template) oder nicht (z.B. Bilddatei).',
-            text_installation =     'Eine Installation ist nicht nötig, da es sich hierbei um eine Python-Standard-Modul handelt.',
+            text_installation =     'Eine Installation ist nicht nötig, da es sich hierbei um ein Python-Standard-Modul handelt.',
             auto_install =          False,
-            text_test =             'Der Status kann gestestet werden, in dem im Python-Interpreter <code>import BaseHTTPServer</code> eingeben wird.',
+            text_test =             'Der Status kann gestestet werden, indem im Python-Interpreter <code>import mimetypes</code> eingeben wird.',
             text_configuration =    '',
-            configuration = [
-                #dict( section = 'DoorPi', key = 'eventlog', type = 'string', default = '!BASEPATH!/conf/eventlog.db', mandatory = False, description = 'Ablageort der SQLLite Datenbank für den Event-Handler.')
-            ],
+            configuration = [],
             text_links = {
                 'docs.python.org': 'https://docs.python.org/2.7/library/mimetypes.html',
                 'MIME-Typen': 'http://wiki.selfhtml.org/wiki/Referenz:MIME-Typen',
@@ -168,6 +134,6 @@ administrator = status, help # Gruppe administrator darf lesend auf die Resource
                 'RFC2616  - Abschnitt 14.17': 'https://tools.ietf.org/html/rfc2616#section-14.17'
             }
         )
-    )
+    }
 )
 

@@ -18,9 +18,6 @@
 					
 					return aMergedArray;
 				}
-				function mod ( floading_text ) {
-					return floading_text.replace(/(\r\n|\n|\r)/g, '<br />');
-				}
 				function HtmlFromLinkTextObject ( link_text_object ) {
 					var return_string = '<ul>';
 					$.each(link_text_object, function ( LinkName, LinkContent ) {
@@ -38,14 +35,14 @@
 						
 						if (result.environment['{MODULE_AREA_NAME}'].libraries['{MODULE_NAME}'].text_warning) {
 							$("#idTextWarningBox").removeClass('hidden');
-							$("#idTextWarning").html(mod(result.environment['{MODULE_AREA_NAME}'].libraries['{MODULE_NAME}'].text_warning));
+							$("#idTextWarning").html(result.environment['{MODULE_AREA_NAME}'].libraries['{MODULE_NAME}'].text_warning);
 						}
 						
-						$("#idTextDescriptionGeneral").html(mod(result.environment['{MODULE_AREA_NAME}'].text_description));
-						$("#idTextDescriptionSpecial").html(mod(result.environment['{MODULE_AREA_NAME}'].libraries['{MODULE_NAME}'].text_description));
+						$("#idTextDescriptionGeneral").html(result.environment['{MODULE_AREA_NAME}'].text_description);
+						$("#idTextDescriptionSpecial").html(result.environment['{MODULE_AREA_NAME}'].libraries['{MODULE_NAME}'].text_description);
 						
-						$("#idTextTest").html(mod(result.environment['{MODULE_AREA_NAME}'].libraries['{MODULE_NAME}'].text_test));
-						$("#idTextConfiguration").html(mod(result.environment['{MODULE_AREA_NAME}'].libraries['{MODULE_NAME}'].text_configuration));
+						$("#idTextTest").html(result.environment['{MODULE_AREA_NAME}'].libraries['{MODULE_NAME}'].text_test);
+						$("#idTextConfiguration").html(result.environment['{MODULE_AREA_NAME}'].libraries['{MODULE_NAME}'].text_configuration);
 						$("#idTextLinks").html( HtmlFromLinkTextObject( result.environment['{MODULE_AREA_NAME}'].libraries['{MODULE_NAME}'].text_links ));
 						
 						$('#idTextConfigurationTable').html( '<table class="display table table-bordered table-hover table-striped" id="idTextConfigurationTableContent"></table>' );

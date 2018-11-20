@@ -20,7 +20,7 @@ Die ausgelösten Events werden in einer Datenbank (SQLite) gespeichert und könn
             text_description =      'Grundmodul für das Threading, also die parallele Ausführung von Events.',
             text_installation =     'Eine Installation ist nicht nötig, da es sich hierbei um ein Python-Standard-Modul handelt.',
             auto_install =          False,
-            text_test =             'Der Status kann gestestet werden, indem im Python-Interpreter <code>import threading</code> eingeben wird.',
+            text_test =             'Der Status kann gestestet werden, indem im Python-Interpreter ``import threading`` eingeben wird.',
             text_links = {
                 'docs.python.org': 'https://docs.python.org/2.7/library/threading.html'
             }
@@ -29,7 +29,7 @@ Die ausgelösten Events werden in einer Datenbank (SQLite) gespeichert und könn
             text_description =      'Das Python-Modul inspect kann den Zustand eines laufenden Programms analysieren und Funktionen bzw. Objekte auswerten. Das wird z.B. bei der Parameterbestimmung der Actions benötigt um die Schnittstelle Event-Handler zu Action so abstrakt wie möglich halten zu können.',
             text_installation =     'Eine Installation ist nicht nötig, da es sich hierbei um ein Python-Standard-Modul handelt.',
             auto_install =          False,
-            text_test =             'Der Status kann gestestet werden, indem im Python-Interpreter <code>import inspect</code> eingeben wird.',
+            text_test =             'Der Status kann gestestet werden, indem im Python-Interpreter ``import inspect`` eingeben wird.',
             text_links = {
                 'docs.python.org': 'https://docs.python.org/2.7/library/inspect.html'
             }
@@ -39,7 +39,7 @@ Die ausgelösten Events werden in einer Datenbank (SQLite) gespeichert und könn
             text_description =      'SQLite is a C library that provides a lightweight disk-based database that doesn’t require a separate server process and allows accessing the database using a nonstandard variant of the SQL query language. Some applications can use SQLite for internal data storage. It’s also possible to prototype an application using SQLite and then port the code to a larger database such as PostgreSQL or Oracle.',
             text_installation =     'Eine Installation ist nicht nötig, da es sich hierbei um ein Python-Standard-Modul handelt.',
             auto_install =          False,
-            text_test =             'Der Status kann gestestet werden, indem im Python-Interpreter <code>import sqlite3</code> eingeben wird.',
+            text_test =             'Der Status kann gestestet werden, indem im Python-Interpreter ``import sqlite3`` eingeben wird.',
             configuration = [
                 dict( section = 'DoorPi', key = 'eventlog', type = 'string', default = '!BASEPATH!/conf/eventlog.db', mandatory = False, description = 'Ablageort der SQLite Datenbank für den Event-Handler.')
             ],

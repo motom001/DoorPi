@@ -77,41 +77,38 @@ Linphone ist eine freie Software für die IP-Telefonie (VoIP), die unter der Liz
 Das Programm ist in einer Linux-, Windows- und OS-X-Version erhältlich, für unixähnliche Betriebssysteme wie FreeBSD kann der frei zugängliche Quelltext genutzt werden. Zudem existieren Clients für Android, iOS, Blackberry und Windows Phone. Neben der GTK+-basierenden grafischen Oberfläche existieren auch zwei Konsolen-Programme.
 
 Das Programm hat folgende Funktionalitäten:
-<ul>
-<li>Internettelefonie – basierend auf dem SIP-Standard</li>
-<li>Bildtelefonie oder Videokonferenz</li>
-<li>Präsenz (man kann feststellen, ob ein Gesprächspartner gerade erreichbar ist)</li>
-<li>Instant Messaging</li>
-<li>Verschlüsselung der Audio- und Video-Übertragung</li>
-</ul>
+
+* Internettelefonie – basierend auf dem SIP-Standard
+* Bildtelefonie oder Videokonferenz
+* Präsenz (man kann feststellen, ob ein Gesprächspartner gerade erreichbar ist)
+* Instant Messaging
+* Verschlüsselung der Audio- und Video-Übertragung
 
 Für die Sprachübertragung stehen folgende Codecs zur Verfügung:
-<ul>
-<li>G.711a bzw. G.711u</li>
-<li>GSM</li>
-<li>Speex</li>
-<li>LPC10-15</li>
-<li>G.722</li>
-<li>Opus</li>
-</ul>
+
+* G.711a bzw. G.711u
+* GSM
+* Speex
+* LPC10-15
+* G.722
+* Opus
 
 Videoübertragungen können mit folgenden Codecs durchgeführt werden:
-<ul>
-<li>H.263 bzw. H.263+</li>
-<li>MPEG4 Part 2</li>
-<li>Theora</li>
-<li>H.264 (mit Plug-in basierend auf x264)</li>
-</ul>
+
+* H.263 bzw. H.263+
+* MPEG4 Part 2
+* Theora
+* H.264 (mit Plug-in basierend auf x264)
 
 Verschlüsselung kann mit folgenden Protokollen durchgeführt werden:
-<ul>
-SRTP
-ZRTP
-</ul>
+
+* SRTP
+* ZRTP
+
 Für den Betrieb hinter einem NAT-Router steht das STUN-Protokoll zur Verfügung.''',
             text_warning =          'Es gibt derzeit keine funktionierende Python3-Version von Linphone.',
             auto_install =          False,
-            text_test =             'Es kann jederzeit der Status manuell gestestet werden, indem im Python-Interpreter <code>import linphone</code> eingeben wird.',
+            text_test =             'Es kann jederzeit der Status manuell gestestet werden, indem im Python-Interpreter ``import linphone`` eingeben wird.',
             text_configuration =    'Für die Konfiguration von Linphone stehen eine Vielzahl an Parametern zur Verfügung, die im Abschnitt <a href="/dashboard/pages/config.html">Konfiguration</a> eingesehen werden können.',
             configuration = [
                 dict( section = SIPPHONE_SECTION, key = 'echo_cancellation_enabled', type = 'boolean', default = 'False', mandatory = False, description = 'Softwareseitige Echo-Unterdrückung - Achtung: sehr hohe Systemauslastung und nicht empfehlenswert'),

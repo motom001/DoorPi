@@ -21,54 +21,55 @@ Diesen Groups sind  Bereiche (AREA) zugeteilt, die lesend oder schreibend genutz
 Die Bereiche (AREA) sind virtuelle und reale Ressourcen, die sich speziell an der URL unterscheiden (daher kam auch die Idee es in Bereiche einzuteilen).
 Die Bestandteile eines Bereiches werden mittels RegEx definiert.
 
-Zuordnung in der Sektion User ist:
-<code>Benutzername = Passwort</code>
+Zuordnung in der Sektion User ist::
 
-Bei der Group Sektion ist es:
-<code>GroupName = Benutzername1,Benutzername2,...</code>
+    Benutzername = Passwort
 
-Dann gibt es die beiden Sektionen WritePermission und ReadPermission mit der Zuordnung:
-<code>GroupName = AreaName</code>
+Bei der Group Sektion ist es::
+
+    GroupName = Benutzername1,Benutzername2,...
+
+Dann gibt es die beiden Sektionen WritePermission und ReadPermission mit der Zuordnung::
+
+    GroupName = AreaName
 
 Ganz unten gibt es dann beliebig viele Areas mit unterschiedlichen Namen. Jeder Area sind RegEx zugeordnet, die gegen die URL geprüft werden.
-Eine Sonderform ist die AREA_public. Diese fasst alle Ressourcen zusammen, die von jedem eingesehen werden dürfen, da es sich hierbei um Javascript,CSS und ähnliche Dateien handelt.
-Nötig wurde das, da die login.html auch Javascript-Dateien geladen hatte. Mitlerweile habe ich mich von der login.html einw enig verabschiedet und bin Richtung HTTP Status-Code 401 mit base64 codiertem Passwort gegangen. Das lässt sich später auch automatisch durchführen, so dass Webservice-Aktionen mit Authentifizierung auf einem sehr einfachen standardisierten Level möglich sind.
+Eine Sonderform ist die AREA_public. Diese fasst alle Ressourcen zusammen, die von jedem eingesehen werden dürfen, da es sich hierbei um Javascript, CSS und ähnliche Dateien handelt.
 
-Beispiel:
+Beispiel::
 
-<code style="display:block">['''+DOORPIWEB_SECTION+''']
-public = AREA_public # das sind alle Resourcen die jeder sehen darf, auch wenn er sich nicht authentifiziert hat
+    ['''+DOORPIWEB_SECTION+''']
+    public = AREA_public # das sind alle Resourcen die jeder sehen darf, auch wenn er sich nicht authentifiziert hat
 
-[User]
-door = pi # Benutzer door mit dem Passwort pi
+    [User]
+    door = pi # Benutzer door mit dem Passwort pi
 
-[Group]
-administrator = door # Benutzer door ist Mitglied der Gruppe administrator
+    [Group]
+    administrator = door # Benutzer door ist Mitglied der Gruppe administrator
 
-[WritePermission]
-administrator = dashboard # Gruppe administrator darf schreibend auf die Resourcen dashboard zugreifen (Sektion "'''+CONF_AREA_PREFIX+'''dashboard")
+    [WritePermission]
+    administrator = dashboard # Gruppe administrator darf schreibend auf die Resourcen dashboard zugreifen (Sektion "'''+CONF_AREA_PREFIX+'''dashboard")
 
-[ReadPermission]
-administrator = status, help # Gruppe administrator darf lesend auf die Resourcen status (Sektion "'''+CONF_AREA_PREFIX+'''status") und help (Sektion "'''+CONF_AREA_PREFIX+'''help") zugreifen
+    [ReadPermission]
+    administrator = status, help # Gruppe administrator darf lesend auf die Resourcen status (Sektion "'''+CONF_AREA_PREFIX+'''status") und help (Sektion "'''+CONF_AREA_PREFIX+'''help") zugreifen
 
-['''+CONF_AREA_PREFIX+'''status]
-/status # alle URL's die mit "/status" übereinstimmen (Parameter der URL sind dabei egal - so ist z.B. "/status?output=plain" möglich)
-/mirror
+    ['''+CONF_AREA_PREFIX+'''status]
+    /status # alle URL's die mit "/status" übereinstimmen (Parameter der URL sind dabei egal - so ist z.B. "/status?output=plain" möglich)
+    /mirror
 
-['''+CONF_AREA_PREFIX+'''dashboard]
-/dashboard/pages/.*html
+    ['''+CONF_AREA_PREFIX+'''dashboard]
+    /dashboard/pages/.*html
 
-['''+CONF_AREA_PREFIX+'''help]
-/help/.*
+    ['''+CONF_AREA_PREFIX+'''help]
+    /help/.*
 
-['''+CONF_AREA_PREFIX+'''public]
-/dashboard/bower_components/.*
-/dashboard/dist/.*
-/dashboard/js/.*
-/dashboard/less/.*
-/login.html
-/favicon.ico
-</code>
+    ['''+CONF_AREA_PREFIX+'''public]
+    /dashboard/bower_components/.*
+    /dashboard/dist/.*
+    /dashboard/js/.*
+    /dashboard/less/.*
+    /login.html
+    /favicon.ico
 ''',
     events = [
         dict( name = 'OnWebServerStart', description = 'Der Webserver ist gestartet. Somit stehen die Webservices und die Weboberfläche zur Verfügung. Standardmäßig wird Port 80 benutzt (Parameter ip und port)'),
@@ -99,7 +100,7 @@ administrator = status, help # Gruppe administrator darf lesend auf die Resource
             text_description =      'Das Python-Modul http.server ist mit der Klasse HTTPServer die Grundlage für jeden Webserver.',
             text_installation =     'Eine Installation ist nicht nötig, da es sich hierbei um ein Python-Standard-Modul handelt.',
             auto_install =          False,
-            text_test =             'Der Status kann gestestet werden, indem im Python-Interpreter <code>import http.server</code> eingeben wird.',
+            text_test =             'Der Status kann gestestet werden, indem im Python-Interpreter ``import http.server`` eingeben wird.',
             text_links = {
                 'docs.python.org': 'https://docs.python.org/2.7/library/basehttpserver.html'
             }
@@ -108,7 +109,7 @@ administrator = status, help # Gruppe administrator darf lesend auf die Resource
             text_description =      'Das Python-Modul urllib wird vom Webserver benötigt, um Anfragen zu verarbeiten.',
             text_installation =     'Eine Installation ist nicht nötig, da es sich hierbei um ein Python-Standard-Modul handelt.',
             auto_install =          False,
-            text_test =             'Der Status kann gestestet werden, indem im Python-Interpreter <code>import urllib</code> eingeben wird.',
+            text_test =             'Der Status kann gestestet werden, indem im Python-Interpreter ``import urllib`` eingeben wird.',
             text_links = {
                 'docs.python.org': 'https://docs.python.org/2.7/library/urllib2.html'
             }
@@ -117,7 +118,7 @@ administrator = status, help # Gruppe administrator darf lesend auf die Resource
             text_description =      'Das Python-Modul mimetypes ermöglicht die Bestimmung des MIME-Typs anhand von Dateiendungen. Wichtig ist das bei der Entscheidung um Platzhalter innerhalb dieser Datei verarbeitet werden sollen (HTML-Template) oder nicht (z.B. Bilddatei).',
             text_installation =     'Eine Installation ist nicht nötig, da es sich hierbei um ein Python-Standard-Modul handelt.',
             auto_install =          False,
-            text_test =             'Der Status kann gestestet werden, indem im Python-Interpreter <code>import mimetypes</code> eingeben wird.',
+            text_test =             'Der Status kann gestestet werden, indem im Python-Interpreter ``import mimetypes`` eingeben wird.',
             text_links = {
                 'docs.python.org': 'https://docs.python.org/2.7/library/mimetypes.html',
                 'MIME-Typen': 'http://wiki.selfhtml.org/wiki/Referenz:MIME-Typen',

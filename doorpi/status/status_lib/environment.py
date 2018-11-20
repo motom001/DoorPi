@@ -5,6 +5,7 @@ import logging
 logger = logging.getLogger(__name__)
 logger.debug("%s loaded", __name__)
 
+import docutils.core
 import importlib
 import json
 
@@ -37,17 +38,40 @@ def check_module_status(module):
 
     return module
 
+def rsttohtml(rst):
+    return docutils.core.publish_parts(rst, writer_name='html', settings_overrides={'input_encoding': 'unicode'})['fragment']
+
 def load_module_status(module_name):
     module = importlib.import_module('doorpi.status.requirements_lib.'+module_name).REQUIREMENT
+
+    # parse reStructuredText descriptions to HTML:
+    # the top-level module.text_description
+    try: module['text_description'] = rsttohtml(module['text_description'])
+    except KeyError: pass
+    # module.libraries.*.[text_description, text_warning, text_test]
+    for lib in module['libraries'].keys():
+        for ent in ['text_description', 'text_warning', 'text_test']:
+            try: module['libraries'][lib][ent] = rsttohtml(module['libraries'][lib][ent])
+            except KeyError: pass
+    # module.[configuration, events].*.description
+    for ent in ['configuration', 'events']:
+        try:
+            for sub in range(len(module[ent])):
+                try:
+                    module[ent][sub]['description'] = rsttohtml(module[ent][sub]['description'])
+                    logger.trace('Parsed {}.{}.{}.description'.format(module_name, ent, sub))
+                except KeyError: pass
+        except KeyError: pass
+
     return check_module_status(module)
 
 REQUIREMENTS_DOORPI = {
     'config':           load_module_status('req_config'),
     'sipphone':         load_module_status('req_sipphone'),
     'event_handler':    load_module_status('req_event_handler'),
-    'webserver':    load_module_status('req_webserver'),
-    'keyboard':    load_module_status('req_keyboard'),
-    'system':    load_module_status('req_system')
+    'webserver':        load_module_status('req_webserver'),
+    'keyboard':         load_module_status('req_keyboard'),
+    'system':           load_module_status('req_system')
 }
 
 def get(*args, **kwargs):

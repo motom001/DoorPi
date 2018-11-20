@@ -54,7 +54,7 @@ Beispiel::
     administrator = status, help # Gruppe administrator darf lesend auf die Resourcen status (Sektion "'''+CONF_AREA_PREFIX+'''status") und help (Sektion "'''+CONF_AREA_PREFIX+'''help") zugreifen
 
     ['''+CONF_AREA_PREFIX+'''status]
-    /status # alle URL's die mit "/status" übereinstimmen (Parameter der URL sind dabei egal - so ist z.B. "/status?output=plain" möglich)
+    /status # alle URLs die mit "/status" übereinstimmen (Parameter der URL sind dabei egal - so ist z.B. "/status?output=plain" möglich)
     /mirror
 
     ['''+CONF_AREA_PREFIX+'''dashboard]

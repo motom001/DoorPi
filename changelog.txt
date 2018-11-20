@@ -9,6 +9,19 @@ Legend:
 / reference to commit
 ! fix issue or kown bug
 
+Version: 3.0beta2 (2018-11-20)
+-----------------------
++ Web service: Use systemd sockets. This allows to use privileged ports (e.g. 80, the old default)
+  without the need to run as root. **Note**: If using systemd, the web server port in `doorpi.ini`
+  is ignored, as it is now up to systemd to set up the socket. Use:
+
+    systemctl edit --full doorpi.socket
+
+  and change the `ListenStream=` line to configure the port.
+~ Web service: Use intra-domain references, instead of wrestling with HTTP headers
+  **Note**: This requires updated DoorPiWeb files
+! Web service: Protect against directory traversal attacks
+
 Version: 3.0beta1 (2018-11-06)
 -------------------------------
 + Ability to run without root privileges

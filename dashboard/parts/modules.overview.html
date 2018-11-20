@@ -36,33 +36,14 @@
 				$(document).ready(function() {
 					$.getJSON("/status?module=environment&name={MODULE_AREA_NAME}&value={MODULE_NAME}&output=json.parsed", function(result){
 						
-						var sAutoInstallerPossible = '<p><a href="/control/install.html?module={MODULE_AREA_NAME}&name={MODULE_NAME}"><button type="button" class="btn btn-outline btn-danger">Start der automatischen Installation für {MODULE_NAME} ({MODULE_AREA_NAME})</button></a></p>';
-						if (result.environment['{MODULE_AREA_NAME}'].libraries['{MODULE_NAME}'].status.installed)
-							var sAutoInstallerNotPossible = '<p><a href="/control/update.html?module={MODULE_AREA_NAME}&name={MODULE_NAME}"><button type="button" class="btn btn-outline btn-danger">Start des automatischen Updates für {MODULE_NAME} ({MODULE_AREA_NAME})</button></a></p>';
-						else
-							var sAutoInstallerNotPossible = '<p>Leider ist keine automatische Installation möglich.</p>';
-						
 						if (result.environment['{MODULE_AREA_NAME}'].libraries['{MODULE_NAME}'].text_warning) {
 							$("#idTextWarningBox").removeClass('hidden');
 							$("#idTextWarning").html(mod(result.environment['{MODULE_AREA_NAME}'].libraries['{MODULE_NAME}'].text_warning));
 						}
 						
-						if (result.environment['{MODULE_AREA_NAME}'].libraries['{MODULE_NAME}'].status.installed) {
-							$("#idInstallationTest").removeClass('panel-yellow').addClass('panel-green');
-							$("#idInstallationTestButton").removeClass('btn-warning').addClass('btn-success').text('{MODULE_NAME} ist korrekt installiert');
-						} else {
-							$("#idInstallationTest").removeClass('panel-yellow').addClass('panel-red');
-							$("#idInstallationTestButton").removeClass('btn-warning').addClass('btn-danger').text('{MODULE_NAME} ist nicht oder fehlerhaft installiert');
-						}
 						$("#idTextDescriptionGeneral").html(mod(result.environment['{MODULE_AREA_NAME}'].text_description));
 						$("#idTextDescriptionSpecial").html(mod(result.environment['{MODULE_AREA_NAME}'].libraries['{MODULE_NAME}'].text_description));
 						
-						$("#idTextInstallation").html(mod(result.environment['{MODULE_AREA_NAME}'].libraries['{MODULE_NAME}'].text_installation));
-						if (!result.environment['{MODULE_AREA_NAME}'].libraries['{MODULE_NAME}'].auto_install == true && result.environment['{MODULE_AREA_NAME}'].libraries['{MODULE_NAME}'].status.installed) {
-							$("#idTextAutoInstallation").html(sAutoInstallerPossible);
-						} else {
-							$("#idTextAutoInstallation").html(sAutoInstallerNotPossible);
-						}
 						$("#idTextTest").html(mod(result.environment['{MODULE_AREA_NAME}'].libraries['{MODULE_NAME}'].text_test));
 						$("#idTextConfiguration").html(mod(result.environment['{MODULE_AREA_NAME}'].libraries['{MODULE_NAME}'].text_configuration));
 						$("#idTextLinks").html( HtmlFromLinkTextObject( result.environment['{MODULE_AREA_NAME}'].libraries['{MODULE_NAME}'].text_links ));
@@ -132,34 +113,6 @@
 						<!-- /.panel-footer -->
                     </div>
                     <!-- /.panel -->
-                    <div class="panel panel-primary">
-                        <div class="panel-heading">
-                            <i class="fa fa-bar-chart-o fa-fw">Installation</i>
-                        </div>
-                        <!-- /.panel-heading -->
-                        <div class="panel-body" id="idTextInstallation">
-						</div>
-                        <!-- /.panel-body -->
-						<div class="panel-footer" id="idTextAutoInstallation">
-						</div>
-						<!-- /.panel-footer -->
-                    </div>
-					<!-- /.panel -->
-					<div class="panel panel-yellow" id="idInstallationTest">
-                        <div class="panel-heading">
-                            <i class="fa fa-bar-chart-o fa-fw">Test</i>
-                        </div>
-                        <!-- /.panel-heading -->
-                        <div class="panel-body">
-                            <p id="idTextTest"></p>
-                        </div>
-                        <!-- /.panel-body -->
-						<div class="panel-footer">
-							<button type="button" class="btn btn-warning disabled" id="idInstallationTestButton">Der automatische Test hat ergeben: Status konnte nicht ermittelt werden</button>
-						</div>
-						<!-- /.panel-footer -->
-                    </div>
-					<!-- /.panel -->
 					<div class="panel panel-primary">
                         <div class="panel-heading">
                             <i class="fa fa-bar-chart-o fa-fw">Konfiguration</i>

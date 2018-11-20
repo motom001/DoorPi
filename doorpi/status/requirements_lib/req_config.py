@@ -9,12 +9,8 @@ logger.debug("%s loaded", __name__)
 
 REQUIREMENT = dict(
     fulfilled_with_one = True,
-    text_description = '',
-    events = [],
-    configuration = [],
     libraries = dict(
         configparser = dict(
-            text_warning =          '',
             text_description =      'Das Config-Modul wird benötigt um alle Einstellungen in einer Datei abspeichern und später wieder laden zu können.',
             text_installation =     'Eine Installation ist nicht nötig, da es sich hierbei um ein Python-Standard-Modul handelt.',
             auto_install =          False,
@@ -32,7 +28,6 @@ Wenn der Parameter wegelassen wird, sucht der ConfigParser automatisch nach folg
 
 Sollte keine Datei vorhanden sein, so wird DoorPi mit Standardwerten gestartet und die Konfigurationsdatei an der ersten möglichen Stelle abgespeichert.
 ''',
-            configuration = [],
             text_links = {
                 'docs.python.org': 'https://docs.python.org/2.7/library/configparser.html'
             }

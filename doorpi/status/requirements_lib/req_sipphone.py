@@ -9,7 +9,7 @@ from doorpi.sipphone.AbstractBaseClass import SIPPHONE_SECTION
 
 REQUIREMENT = dict(
     fulfilled_with_one = True,
-    text_description = 'Die Aufgabe eines SIP-Phones in von DoorPi ist es, die Telefongespräche (VoIP-Verbindungen) herzustellen. Dazu kann das SIP-Phone entweder mit oder ohne SIP-Server (z.B. Fritz!Box oder Asterisk) zusammen arbeiten.',
+    text_description = 'Die Aufgabe eines SIP-Phones in DoorPi ist es, die Telefongespräche (VoIP-Verbindungen) herzustellen. Dazu kann das SIP-Phone entweder mit oder ohne SIP-Server (z.B. Fritz!Box oder Asterisk) zusammen arbeiten.',
     events = [
         dict( name = 'OnSipPhoneCreate', description = 'Das SIP-Phone wurde erstellt und kann gestartet werden.'),
         dict( name = 'OnSipPhoneStart', description = 'Das SIP-Phone wurde gestartet und ist jetzt einsatzbereit.'),
@@ -138,11 +138,11 @@ Für den Betrieb hinter einem NAT-Router steht das STUN-Protokoll zur Verfügung
         ),
         pjsua = dict(
             text_warning =          'Das SIP-Phone pjsua wird aktuell nicht in DoorPi unterstützt.',
-            text_description =      '',
-            text_installation =     '',
-            text_test =             '',
-            text_configuration =    '',
-            configuration = [],
+            #text_description =      '',
+            #text_installation =     '',
+            #text_test =             '',
+            #text_configuration =    '',
+            #configuration = [],
             text_links = {
                 'Homepage Pjsua': 'http://www.pjsip.org/pjsua.htm',
                 'Installationsanleitung PJSIP': 'http://trac.pjsip.org/repos/wiki/Getting-Started'

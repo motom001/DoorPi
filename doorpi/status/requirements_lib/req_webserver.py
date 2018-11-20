@@ -96,37 +96,28 @@ administrator = status, help # Gruppe administrator darf lesend auf die Resource
     ],
     libraries = {
         'http.server': dict(
-            text_warning =          '',
             text_description =      'Das Python-Modul http.server ist mit der Klasse HTTPServer die Grundlage für jeden Webserver.',
             text_installation =     'Eine Installation ist nicht nötig, da es sich hierbei um ein Python-Standard-Modul handelt.',
             auto_install =          False,
             text_test =             'Der Status kann gestestet werden, indem im Python-Interpreter <code>import http.server</code> eingeben wird.',
-            text_configuration =    '',
-            configuration = [],
             text_links = {
                 'docs.python.org': 'https://docs.python.org/2.7/library/basehttpserver.html'
             }
         ),
         'urllib': dict(
-            text_warning =          '',
             text_description =      'Das Python-Modul urllib wird vom Webserver benötigt, um Anfragen zu verarbeiten.',
             text_installation =     'Eine Installation ist nicht nötig, da es sich hierbei um ein Python-Standard-Modul handelt.',
             auto_install =          False,
             text_test =             'Der Status kann gestestet werden, indem im Python-Interpreter <code>import urllib</code> eingeben wird.',
-            text_configuration =    '',
-            configuration = [],
             text_links = {
                 'docs.python.org': 'https://docs.python.org/2.7/library/urllib2.html'
             }
         ),
         'mimetypes': dict(
-            text_warning =          '',
             text_description =      'Das Python-Modul mimetypes ermöglicht die Bestimmung des MIME-Typs anhand von Dateiendungen. Wichtig ist das bei der Entscheidung um Platzhalter innerhalb dieser Datei verarbeitet werden sollen (HTML-Template) oder nicht (z.B. Bilddatei).',
             text_installation =     'Eine Installation ist nicht nötig, da es sich hierbei um ein Python-Standard-Modul handelt.',
             auto_install =          False,
             text_test =             'Der Status kann gestestet werden, indem im Python-Interpreter <code>import mimetypes</code> eingeben wird.',
-            text_configuration =    '',
-            configuration = [],
             text_links = {
                 'docs.python.org': 'https://docs.python.org/2.7/library/mimetypes.html',
                 'MIME-Typen': 'http://wiki.selfhtml.org/wiki/Referenz:MIME-Typen',

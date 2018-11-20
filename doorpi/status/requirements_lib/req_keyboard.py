@@ -93,11 +93,8 @@ Wobei !BASEPATH! für das Home-Verzeichnis von DoorPi steht.
             text_warning =          '''Neben der reinen Installation vom Python-Modul pifacedigitalio ist es auch wichtig SPI am System zu aktivieren (siehe Links).
 Außerdem muss bei Bestellungen darauf geachtet werden, dass es zwei Versionen gibt (<a href="https://www.rasppishop.de/Piface-Digital-Erweiterung-fuer-Raspberry-Pi">PiFace digital 1</a> und <a href="https://www.rasppishop.de/PiFace-Digital-2-Erweiterungsplatine-/-Modul-fuer-den-Raspberry-Pi-Modell-B-">PiFace digital 2</a>)''',
             text_description =      'Das Python-Modul pifacedigitalio ist der "Treiber" für die PiFace Hardware.',
-            text_installation =     '',
             auto_install =          False,
             text_test =             'Der Status kann gestestet werden, indem im Python-Interpreter <code>import pifacedigitalio</code> eingeben wird.',
-            text_configuration =    '',
-            configuration = [],
             text_links = {
                 'docs.python.org': 'https://docs.python.org/2.7/library/configparser.html',
                 'PiFace Beschreibung auf piface.org.uk': 'http://www.piface.org.uk/products/piface_digital/',
@@ -106,13 +103,10 @@ Außerdem muss bei Bestellungen darauf geachtet werden, dass es zwei Versionen g
             }
         ),
         'RPi.GPIO': dict(
-            text_warning =          '',
             text_description =      'RPi.GPIO kümmert sich um die Ein- und Ausgaben der GPIO Schnittstelle eines Raspberry Pi.',
             text_installation =     'Das Modul ist im Paket <code>python3-rpi.gpio</code> (Raspbian) bzw. im AUR-Paket <code>python-rpi.gpio</code> (Arch Linux ARM) enthalten.',
             auto_install =          False,
             text_test =             'Der Status kann gestestet werden, indem im Python-Interpreter <code>import RPi.GPIO</code> eingeben wird.',
-            text_configuration =    '',
-            configuration = [],
             text_links = {
                 'www.raspberrypi.org': {
                     'GPIO Overview': 'https://www.raspberrypi.org/documentation/hardware/raspberrypi/gpio/README.md',
@@ -123,7 +117,6 @@ Außerdem muss bei Bestellungen darauf geachtet werden, dass es zwei Versionen g
             }
         ),
         'serial': dict(
-            text_warning =          '',
             text_description =      '''
 Hier die Beschreibung aus der <code>from_rdm6300.py</code>, die <a href="https://github.com/msmolny">msmolny</a> netterweise erstellt hat.
 
@@ -201,7 +194,6 @@ Hier die Beschreibung aus der <code>from_rdm6300.py</code>, die <a href="https:/
             text_installation =     'Das Modul ist im Paket <code>python3-serial</code> (Raspbian) bzw. <code>python-pyserial</code> (Arch Linux ARM) enthalten.',
             auto_install =          False,
             text_test =             'Der Status kann gestestet werden, indem im Python-Interpreter <code>import serial</code> eingeben wird.',
-            text_configuration =    '',
             configuration = [
                 dict( section = '[KeyboardName]', key = 'port', type = 'string', default = '/dev/ttyAMA0', mandatory = False, description = ''),
                 dict( section = '[KeyboardName]', key = 'baudrate', type = 'integer', default = '9600', mandatory = False, description = ''),
@@ -212,7 +204,7 @@ Hier die Beschreibung aus der <code>from_rdm6300.py</code>, die <a href="https:/
             }
         ),
         'watchdog': dict(
-            text_warning =          'Häufiges Lesen und Schreiben von SD-Karten wie im RPi können deren Verschleiß fördern. Eventuell sollte auf tmpfs Verzeichnisse ausgewichen werden.',
+            text_warning =          'Häufiges Schreiben auf SD-Karten fördert deren Verschleiß! Deshalb sollten Pfade unter <code>/run/doorpi</code> verwendet werden. Mit systemd ist dies der einzig mögliche Ort.',
             text_description =      '''Das Python-Modul watchdog wird genutzt um ein dateibasierendes Keyboard zu erstellen.
 So können entweder zu Testzwecken ohne Hardware-Aufbau Events und Actions getestet werden oder es kann als Schnittstelle zu anderen Systemen dienen,
 die per SSH-Befehle die Dateien schreiben und lesen, die auch vom virtuellen keyboard verarbeitet werden.
@@ -221,7 +213,6 @@ Dabei kann eingestellt werden, in welchem Ordner die Dateien liegen, die jeweils
             text_installation =     'Das Modul ist im Paket <code>python3-watchdog</code> (Raspbian) bzw. <code>python-watchdog</code> (Arch Linux ARM) enthalten.',
             auto_install =          False,
             text_test =             'Der Status kann gestestet werden, indem im Python-Interpreter <code>import watchdog</code> eingeben wird.',
-            text_configuration =    '',
             configuration = [
                 dict( section = '[KeyboardName]', key = 'base_path_input', type = 'string', default = '', mandatory = False, description = 'Der Pfad in dem die Eingangspins angelegt werden'),
                 dict( section = '[KeyboardName]', key = 'base_path_output', type = 'string', default = '', mandatory = False, description = 'Der Pfad in dem die Eingangspins angelegt werden'),

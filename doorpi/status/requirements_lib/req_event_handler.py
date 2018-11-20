@@ -15,29 +15,21 @@ Damit das parallele Ausführen von Actions möglich wird, arbeitet der Event-Han
 
 Die ausgelösten Events werden in einer Datenbank (SQLite) gespeichert und können z.B. in der Weboberfläche ausgewertet werden.
 ''',
-    events = [],
-    configuration = [],
     libraries = dict(
         threading = dict(
-            text_warning =          '',
             text_description =      'Grundmodul für das Threading, also die parallele Ausführung von Events.',
             text_installation =     'Eine Installation ist nicht nötig, da es sich hierbei um ein Python-Standard-Modul handelt.',
             auto_install =          False,
             text_test =             'Der Status kann gestestet werden, indem im Python-Interpreter <code>import threading</code> eingeben wird.',
-            text_configuration =    'Es ist keine Konfiguration vorgesehen.',
-            configuration = [],
             text_links = {
                 'docs.python.org': 'https://docs.python.org/2.7/library/threading.html'
             }
         ),
         inspect = dict(
-            text_warning =          '',
             text_description =      'Das Python-Modul inspect kann den Zustand eines laufenden Programms analysieren und Funktionen bzw. Objekte auswerten. Das wird z.B. bei der Parameterbestimmung der Actions benötigt um die Schnittstelle Event-Handler zu Action so abstrakt wie möglich halten zu können.',
             text_installation =     'Eine Installation ist nicht nötig, da es sich hierbei um ein Python-Standard-Modul handelt.',
             auto_install =          False,
             text_test =             'Der Status kann gestestet werden, indem im Python-Interpreter <code>import inspect</code> eingeben wird.',
-            text_configuration =    'Es ist keine Konfiguration vorgesehen.',
-            configuration = [],
             text_links = {
                 'docs.python.org': 'https://docs.python.org/2.7/library/inspect.html'
             }
@@ -48,7 +40,6 @@ Die ausgelösten Events werden in einer Datenbank (SQLite) gespeichert und könn
             text_installation =     'Eine Installation ist nicht nötig, da es sich hierbei um ein Python-Standard-Modul handelt.',
             auto_install =          False,
             text_test =             'Der Status kann gestestet werden, indem im Python-Interpreter <code>import sqlite3</code> eingeben wird.',
-            text_configuration =    '',
             configuration = [
                 dict( section = 'DoorPi', key = 'eventlog', type = 'string', default = '!BASEPATH!/conf/eventlog.db', mandatory = False, description = 'Ablageort der SQLite Datenbank für den Event-Handler.')
             ],

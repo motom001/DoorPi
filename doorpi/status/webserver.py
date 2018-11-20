@@ -136,16 +136,13 @@ class DoorPiWeb(ThreadingMixIn, HTTPServer):
         check_config(self.config)
         logger.info("Serving files from {}".format(self.www))
 
-        doorpi.DoorPi().event_handler.register_action('OnWebServerStart', WebServerStartupAction(self.handle_while_not_shutdown))
+        doorpi.DoorPi().event_handler.register_action('OnWebServerStart', WebServerStartupAction(self.serve_forever))
         doorpi.DoorPi().event_handler.register_action('OnShutdown', WebServerShutdownAction(self.init_shutdown))
         doorpi.DoorPi().event_handler('OnWebServerStart', __name__)
 
         DoorPiWebRequestHandler.prepare()
         logger.info("WebServer started")
         return self
-
-    def handle_while_not_shutdown(self):
-        while self.keep_running: self.handle_request()
 
     def fake_request(self):
         try:
@@ -155,7 +152,7 @@ class DoorPiWeb(ThreadingMixIn, HTTPServer):
 
     def init_shutdown(self):
         doorpi.DoorPi().event_handler('OnWebServerStop', __name__)
-        self.keep_running = False
+        self.shutdown()
         if self.sessions: self.sessions.destroy()
         DoorPiWebRequestHandler.destroy()
         self.fake_request()

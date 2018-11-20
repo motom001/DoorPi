@@ -1,6 +1,7 @@
 [Unit]
 Description=DoorPiWeb
 Documentation=https://github.com/motom001/DoorPi/wiki
+PartOf=doorpi.service
 
 [Socket]
 ListenStream=50371

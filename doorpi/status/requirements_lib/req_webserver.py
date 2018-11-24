@@ -125,6 +125,16 @@ Beispiel::
                 'Media Types auf iana.org': 'http://www.iana.org/assignments/media-types/media-types.xhtml',
                 'RFC2616  - Abschnitt 14.17': 'https://tools.ietf.org/html/rfc2616#section-14.17'
             }
+        ),
+        'docutils.core': dict(
+            text_description =      'Die docutils werden genutzt, um diese Informationsseiten darzustellen.',
+            text_installation =     'Das Modul ist im Paket ``python3-docutils`` (Raspbian) bzw. ``python-docutils`` (Arch Linux ARM) enthalten.',
+            auto_install =          False,
+            text_test =             'Der Status kann getestet werden, indem im Python-Interpreter ``import docutils.core`` eingegeben wird.',
+            text_links = {
+                'Sourceforge': 'http://docutils.sourceforge.net/',
+                'rst Format-Einführung': 'http://docutils.sourceforge.net/docs/user/rst/quickstart.html'
+            }
         )
     }
 )

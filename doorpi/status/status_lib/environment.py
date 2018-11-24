@@ -5,7 +5,9 @@ import logging
 logger = logging.getLogger(__name__)
 logger.debug("%s loaded", __name__)
 
-import docutils.core
+try: import docutils.core
+except ModuleNotFoundError:
+    logger.error("docutils are not installed; dependency status in web interface will be incomplete")
 import importlib
 import json
 
@@ -39,7 +41,10 @@ def check_module_status(module):
     return module
 
 def rsttohtml(rst):
-    return docutils.core.publish_parts(rst, writer_name='html', settings_overrides={'input_encoding': 'unicode'})['fragment']
+    try:
+        return docutils.core.publish_parts(rst, writer_name='html', settings_overrides={'input_encoding': 'unicode'})['fragment']
+    except NameError: # docutils not installed
+        return "(cannot render text: docutils not installed)"
 
 def load_module_status(module_name):
     module = importlib.import_module('doorpi.status.requirements_lib.'+module_name).REQUIREMENT

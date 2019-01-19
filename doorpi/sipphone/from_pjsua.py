@@ -38,7 +38,8 @@ class Pjsua(SipphoneAbstractBaseClass):
         try:
             all_devices = []
             for sound_device in self.lib.enum_snd_dev():
-                all_devices.append({
+                logger.debug(sound_device)
+		all_devices.append({
                   'name':       sound_device,
                   'capture':    True if sound_device.input_channels > 0 else False,
                   'record':     True if sound_device.output_channels > 0 else False
@@ -51,6 +52,7 @@ class Pjsua(SipphoneAbstractBaseClass):
         try:
             all_codecs = []
             for codec in self.lib.enum_codecs():
+		logger.debug(codec.name)
                 all_codecs.append({
                     'name':         codec.name,
                     'channels':     codec.channel_count,
@@ -87,7 +89,7 @@ class Pjsua(SipphoneAbstractBaseClass):
         DoorPi().event_handler.register_event('BeforeSipPhoneMakeCall', __name__)
         DoorPi().event_handler.register_event('OnSipPhoneMakeCall', __name__)
         DoorPi().event_handler.register_event('AfterSipPhoneMakeCall', __name__)
-        
+
         DoorPi().event_handler.register_event('OnSipPhoneCallTimeoutNoResponse', __name__)
         DoorPi().event_handler.register_event('OnSipPhoneCallTimeoutMaxCalltime', __name__)
 
@@ -97,7 +99,7 @@ class Pjsua(SipphoneAbstractBaseClass):
         self.current_account_callback = None
         self.__recorder = None
         self.__player = None
-
+	self.current_call = None
         self.call_timeout = 30
 
     def start(self):
@@ -186,7 +188,7 @@ class Pjsua(SipphoneAbstractBaseClass):
             if self.current_call.is_valid() is 0:
                 del self.current_callcallback
                 self.current_callcallback = None
-                del self.current_call
+               # del self.current_call
                 self.current_call = None
 
             try:

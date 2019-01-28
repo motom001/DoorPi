@@ -22,6 +22,7 @@ from .status.webserver import load_webserver
 from .conf.config_object import ConfigObject
 from .action.handler import EventHandler
 from .status.status_class import DoorPiStatus
+from .status.systemd import DoorPiSD
 #from status.webservice import run_webservice, WebService
 from .action.base import SingleAction
 
@@ -91,6 +92,10 @@ class DoorPi(object, metaclass=Singleton):
             logger.info("Selected BasePath {0}".format(self._base_path))
         return self._base_path
 
+    __dpsd = None
+    @property
+    def dpsd(self): return self.__dpsd
+
     def __init__(self, parsed_arguments = None):
         self.__parsed_arguments = parsed_arguments
         # for start as daemon - if start as app it will not matter to load this vars
@@ -109,6 +114,7 @@ class DoorPi(object, metaclass=Singleton):
     def prepare(self, parsed_arguments):
         logger.debug("prepare")
         logger.debug("given arguments argv: %s", parsed_arguments)
+        self.__dpsd = DoorPiSD()
 
         self.__config = ConfigObject.load_config(parsed_arguments.configfile)
         self._base_path = self.config.get('DoorPi', 'base_path', self.base_path)
@@ -187,6 +193,7 @@ class DoorPi(object, metaclass=Singleton):
 
     def destroy(self):
         logger.debug('destroy doorpi')
+        self.dpsd.shutdown()
 
         if not self.event_handler or self.event_handler.threads == None:
             DoorPiEventHandlerNotExistsException("don't try to stop, when not prepared")
@@ -228,7 +235,9 @@ class DoorPi(object, metaclass=Singleton):
         self.event_handler.fire_event_synchron('OnStartup', __name__)
         self.event_handler.fire_event('AfterStartup', __name__)
 
-        # self.event_handler.register_action('OnTimeMinuteUnevenNumber', 'doorpi_restart')
+        # signal successful startup and set up watchdog ping
+        self.dpsd.ready()
+        self.event_handler.register_action('OnTimeSecondUnevenNumber', self.dpsd.watchdog)
 
         logger.info('DoorPi started successfully')
         logger.info('BasePath is %s', self.base_path)

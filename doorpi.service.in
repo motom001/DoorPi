@@ -5,11 +5,13 @@ Requires=doorpi.socket
 After=doorpi.socket
 
 [Service]
-Type=simple
+Type=notify
 ExecStart=!!prefix!!/bin/doorpi_cli --configfile /etc/!!package!!/!!package!!.ini
 Environment=HOME=/var/lib/!!package!!
 WorkingDirectory=/var/lib/!!package!!
 Restart=always
+NotifyAccess=main
+WatchdogSec=4s
 
 User=!!package!!
 Group=!!package!!

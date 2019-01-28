@@ -10,7 +10,7 @@ Legend:
 ! fix issue or kown bug
 
 Version: 3.0beta2 (2018-11-20)
------------------------
+------------------------------
 + Web service: Use systemd sockets. This allows to use privileged ports (e.g. 80, the old default)
   without the need to run as root. **Note**: If using systemd, the web server port in `doorpi.ini`
   is ignored, as it is now up to systemd to set up the socket. Use:
@@ -60,7 +60,7 @@ Version: 2.5.0.4 (2016-05-23)
 
 Version: 2.5.0.3 (2016-05-23)
 -------------------------------
-+ new action url_call to *surprise*surprise* call a url 
++ new action url_call to *surprise*surprise* call a url
 ```
 [EVENT_OnKeyDown_prod.1]
 10 = url_call:http://192.168.178.200/config/xmlapi/statechange.cgi?ise_id=12345&new_value=1
@@ -106,7 +106,7 @@ send Mail with new pic from Webcam:
 10 = take_snapshot:https://www.vvo-online.de/img/webcamimages/carolabruecke-4.jpg
 20 = mailto:motom001@gmail.com,Mailversand mit Bild,Das ist das Bild als Mailtext,true
 ```
-  
+
 and settings for SMTP (checked with 1&1 SMTP-Account):
 ```
 [SMTP]
@@ -157,3 +157,5 @@ Version: 2.4.1.8 (2016-03-12)
 
 / 50943b5c30cbe5a10678b5ea929afa200916d9a5
 - remove sudo for `doorpi_cli --trace --test` for test @ travis in application mode
+
+# vim:set ft= sw=2:

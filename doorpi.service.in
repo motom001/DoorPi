@@ -15,6 +15,7 @@ WatchdogSec=4s
 
 User=!!package!!
 Group=!!package!!
+SupplementaryGroups=audio
 SupplementaryGroups=gpio
 DynamicUser=true
 

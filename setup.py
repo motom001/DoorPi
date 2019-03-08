@@ -89,8 +89,8 @@ setup(
         ]
     },
     data_files=[
-        # TODO default config file
-        #('/etc/doorpi', []),
+        # default config file
+        ('/etc/doorpi', ['doorpi.ini']),
         # init script and systemd service
         ('/etc/init.d', ['doorpi.sh']),
         ('/usr/lib/systemd/system', ['doorpi.service', 'doorpi.socket']),

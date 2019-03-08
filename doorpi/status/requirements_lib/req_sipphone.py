@@ -50,7 +50,7 @@ REQUIREMENT = dict(
         dict( name = 'OnRecorderCreated', description = 'Es wurde eine Recorder erstellt wurde und bereit ist Anrufe aufzuzeichnen.')
     ],
     configuration = [
-        dict( section = SIPPHONE_SECTION, key = 'sipphonetyp', type = 'string', default = '', mandatory = False, description = 'Auswahl welches SIP-Phone benutzt werden soll ("linphone" oder "pjsua")'),
+        dict( section = SIPPHONE_SECTION, key = 'sipphonetyp', type = 'string', default = '', mandatory = False, description = 'Auswahl welches SIP-Phone benutzt werden soll. Derzeit wird nur "pjsua2" unterstützt.'),
         dict( section = SIPPHONE_SECTION, key = 'sipphone_server', type = 'string', default = '', mandatory = False, description = 'Wenn eine SIP-Phone Server verwendet werden soll muss dazu der Server, der Benutzername, das Passwort und der Realm angegeben werden.'),
         dict( section = SIPPHONE_SECTION, key = 'sipphone_username', type = 'string', default = '', mandatory = False, description = 'Benutzer zur Anmeldung am SIP-Phone Server'),
         dict( section = SIPPHONE_SECTION, key = 'sipphone_password', type = 'string', default = '', mandatory = False, description = 'Passwort zur Anmeldung am SIP-Phone Server'),
@@ -69,74 +69,10 @@ REQUIREMENT = dict(
         dict( section = SIPPHONE_SECTION, key = 'number_of_snapshots', type = 'integer', default = '10', mandatory = False, description = 'Anzahl der Bilder die gespeichert werden.')
     ],
     libraries = dict(
-        linphone = dict(
-            text_description =      '''
-Linphone ist eine freie Software für die IP-Telefonie (VoIP), die unter der Lizenz GNU GPLv2 verfügbar ist. Es ist ein einfaches und zuverlässiges VoIP-Programm mit Videoübertragung. Wegen der recht guten Videoqualität eignet es sich zum Beispiel auch für Unterhaltungen in Gebärdensprache.
-
-Das Programm ist in einer Linux-, Windows- und OS-X-Version erhältlich, für unixähnliche Betriebssysteme wie FreeBSD kann der frei zugängliche Quelltext genutzt werden. Zudem existieren Clients für Android, iOS, Blackberry und Windows Phone. Neben der GTK+-basierenden grafischen Oberfläche existieren auch zwei Konsolen-Programme.
-
-Das Programm hat folgende Funktionalitäten:
-
-* Internettelefonie – basierend auf dem SIP-Standard
-* Bildtelefonie oder Videokonferenz
-* Präsenz (man kann feststellen, ob ein Gesprächspartner gerade erreichbar ist)
-* Instant Messaging
-* Verschlüsselung der Audio- und Video-Übertragung
-
-Für die Sprachübertragung stehen folgende Codecs zur Verfügung:
-
-* G.711a bzw. G.711u
-* GSM
-* Speex
-* LPC10-15
-* G.722
-* Opus
-
-Videoübertragungen können mit folgenden Codecs durchgeführt werden:
-
-* H.263 bzw. H.263+
-* MPEG4 Part 2
-* Theora
-* H.264 (mit Plug-in basierend auf x264)
-
-Verschlüsselung kann mit folgenden Protokollen durchgeführt werden:
-
-* SRTP
-* ZRTP
-
-Für den Betrieb hinter einem NAT-Router steht das STUN-Protokoll zur Verfügung.''',
-            text_warning =          'Es gibt derzeit keine funktionierende Python3-Version von Linphone.',
-            auto_install =          False,
-            text_test =             'Es kann jederzeit der Status manuell gestestet werden, indem im Python-Interpreter ``import linphone`` eingeben wird.',
-            text_configuration =    'Für die Konfiguration von Linphone stehen eine Vielzahl an Parametern zur Verfügung, die im Abschnitt <a href="/dashboard/pages/config.html">Konfiguration</a> eingesehen werden können.',
-            configuration = [
-                dict( section = SIPPHONE_SECTION, key = 'echo_cancellation_enabled', type = 'boolean', default = 'False', mandatory = False, description = 'Softwareseitige Echo-Unterdrückung - Achtung: sehr hohe Systemauslastung und nicht empfehlenswert'),
-                dict( section = SIPPHONE_SECTION, key = 'video_display_enabled', type = 'boolean', default = 'False', mandatory = False, description = 'Soll auf der Außenstelle ein Bild auf dem Display angezeigt werden? - Achtung: sehr hohe Systemauslastung und nicht empfehlenswert'),
-                dict( section = SIPPHONE_SECTION, key = 'stun_server', type = 'string', default = '', mandatory = False, description = 'STUN Server der genutzt werden soll'),
-                dict( section = SIPPHONE_SECTION, key = 'FirewallPolicy', type = 'string', default = 'PolicyNoFirewall', mandatory = False, description = 'möglich Werte: PolicyNoFirewall, PolicyUseStun, PolicyUseIce und PolicyUseUpnp.'),
-                dict( section = SIPPHONE_SECTION, key = 'video_device', type = 'string', default = '', mandatory = False, description = 'Kamera, die für die Aufnahme genutzt wird - wenn nichts angegeben wird, dann wird die erst Beste genutzt. Bitte dazu in der LOG-Datei nach "possible videodevices:" suchen'),
-                dict( section = SIPPHONE_SECTION, key = 'video_size', type = 'string', default = '', mandatory = False, description = 'möglich Werte: [fehlt noch]'),
-                dict( section = SIPPHONE_SECTION, key = 'video_codecs', type = 'array', default = 'VP8', mandatory = False, description = 'Video-Codecs die aktiviert und genutzt werden können.'),
-                dict( section = SIPPHONE_SECTION, key = 'capture_device', type = 'string', default = '', mandatory = False, description = 'Audiogerät, das für die Aufnahme genutzt wird - wenn nichts angegeben wird, dann wird das erst Beste genutzt. Bitte dazu in der LOG-Datei nach "possible sounddevices:" suchen'),
-                dict( section = SIPPHONE_SECTION, key = 'mic_gain_db', type = 'float', default = '0', mandatory = False, description = 'Zusätzliche Software-Verstärkung der Aufnahme, falls der Pegel vom Mikro auch bei maximaler Mixer-Einstellung zu schwach ist.'),
-                dict( section = SIPPHONE_SECTION, key = 'playback_device', type = 'string', default = '', mandatory = False, description = 'Audiogerät, das für die Aufnahme genutzt wird - wenn nichts angegeben wird, dann wird das erst Beste genutzt. Bitte dazu in der LOG-Datei nach "possible sounddevices:" suchen'),
-                dict( section = SIPPHONE_SECTION, key = 'audio_codecs', type = 'array', default = 'PCMA,PCMU', mandatory = False, description = 'Audio-Codecs die aktiviert und genutzt werden können.'),
-            ],
-            text_links = {
-                'linphone.org': {
-                    'Übersicht Liblinphone': 'http://www.linphone.org/technical-corner/liblinphone/overview',
-                    'Installationsanleitung im Wiki': 'https://wiki.linphone.org/wiki/index.php/Raspberrypi:start',
-                    'News Linphone für Raspberry': 'http://www.linphone.org/news/32/26/Linphone-Python-for-Raspberry-Pi-3-8.html'
-                },
-                'Linphone for Python documentation': 'http://pythonhosted.org/linphone/',
-                'linphone auf wikipedia.de': 'https://de.wikipedia.org/wiki/Linphone'
-            }
-        ),
-        pjsua = dict(
-            text_warning =          'Das SIP-Phone pjsua wird aktuell nicht in DoorPi unterstützt.',
-            #text_description =      '',
-            #text_installation =     '',
-            #text_test =             '',
+        pjsua2 = dict(
+            text_description =      'PJSIP ist eine quelloffene Bibliothek, die Standardprotokolle wie SIP, SDP, RTP, STUN, TURN und ICE implementiert. DoorPi nutzt das zugehörige Python-Modul pjsua2, um VoIP-Verbindungen zwischen der Gegensprechanlage an der Tür und den Innenstationen bzw. Telefonen herzustellen.',
+            text_installation =     'Das Modul ist im Paket ``python-pjproject`` (Arch Linux ARM) enthalten. Für Raspbian existiert derzeit kein offizielles Paket.',
+            text_test =             'Der Status kann gestestet werden, indem im Python-Interpreter ``import pjsua2`` eingeben wird.',
             #text_configuration =    '',
             #configuration = [],
             text_links = {
@@ -146,4 +82,3 @@ Für den Betrieb hinter einem NAT-Router steht das STUN-Protokoll zur Verfügung
         )
     )
 )
-

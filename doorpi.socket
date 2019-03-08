@@ -4,4 +4,5 @@ Documentation=https://github.com/motom001/DoorPi/wiki
 PartOf=doorpi.service
 
 [Socket]
-ListenStream=50371
+BindIPv6Only=both
+ListenStream=[::1]:50371

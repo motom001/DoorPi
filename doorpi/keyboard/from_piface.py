@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 import logging
@@ -47,10 +46,10 @@ class PiFace(KeyboardAbstractBaseClass):
         if self.is_destroyed:
             return
         logger.debug("destroy")
-        
+
         # shutdown listener
         self.__listener.deactivate()
-        
+
         # shutdown all output-pins
         for output_pin in self._OutputPins:
             self.set_output(output_pin, 0, False)

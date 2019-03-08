@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 import logging
@@ -6,7 +5,7 @@ logger = logging.getLogger(__name__)
 logger.debug("%s loaded", __name__)
 
 import threading
-import serial 
+import serial
 import time
 from os import linesep as OS_LINESEP
 

@@ -1,14 +1,12 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 #
 #  Configuration
 #  -------------
 #
 #  1. Define a new keyboard of type 'rdm6300'
 #  2. Define inputPins section for that keyboard
-#  3. Each RFID tag has a decimal number printed 
-#     on the surface. This is the Input PIN number. 
+#  3. Each RFID tag has a decimal number printed
+#     on the surface. This is the Input PIN number.
 #     Define this number and an appropriate action.
 #
 #  Sample:
@@ -45,39 +43,39 @@
 #  |                         |
 #  +-------------------------+
 #
-#  Connect one of the two +5V(DC) and one of the two GND to 
-#  5V (Pin 2 on the RaspberryPi Board) and to GND (Pin 6 on 
-#  the RaspberryPi Board). As I used a ribbon cable, the 
-#  simplest way was to connect to (4) and (5) of P1 from the RDM6300. 
-# 
-#  Then, connect TX (pin (1) of P1) to RXD from the UART (Pin 10 
-#  on the RaspberryPi Board) - BUT NOT DIRECTLY, OTHERWISE YOU 
+#  Connect one of the two +5V(DC) and one of the two GND to
+#  5V (Pin 2 on the RaspberryPi Board) and to GND (Pin 6 on
+#  the RaspberryPi Board). As I used a ribbon cable, the
+#  simplest way was to connect to (4) and (5) of P1 from the RDM6300.
+#
+#  Then, connect TX (pin (1) of P1) to RXD from the UART (Pin 10
+#  on the RaspberryPi Board) - BUT NOT DIRECTLY, OTHERWISE YOU
 #  MIGHT DAMAGE YOUR RASPBERRY PI!!!
-#  The RaspberryPi expects 3,3V level on the UART Pins, but the 
-#  RDM6300 delivers 5V. 
+#  The RaspberryPi expects 3,3V level on the UART Pins, but the
+#  RDM6300 delivers 5V.
 #
 #  Simplest solution for this is a voltage divider via resistors:
 #     RDM6300 P1(1) <--- Resistor R1 ---> RasPi Board(Pin 10)
-#     GND           <--- Resistor R2 ---> RasPi Board(Pin 10) 
-#  Ideal solution: R1=5k, R2=10k, this will deliver exactly 3,3V 
+#     GND           <--- Resistor R2 ---> RasPi Board(Pin 10)
+#  Ideal solution: R1=5k, R2=10k, this will deliver exactly 3,3V
 #                  to RasPi Board(Pin 10)
-#  Alternative solution: As most RaspberryPi bundles only contain 
-#                        10k resistors, you might either use 2 
-#                        10k resistors in parallel to get a 5k 
+#  Alternative solution: As most RaspberryPi bundles only contain
+#                        10k resistors, you might either use 2
+#                        10k resistors in parallel to get a 5k
 #                        resistor, or simply use 10k for R1 instead.
-#                        R1=R2=10k will deliver 2,5V to RasPi 
+#                        R1=R2=10k will deliver 2,5V to RasPi
 #                        Board(Pin 10), but that works also.
 #
-#  Reference: I used this resource to learn how to work with RDM6300, 
+#  Reference: I used this resource to learn how to work with RDM6300,
 #             how to connect it to the RaspberryPi and how to handle
 #             RFID data: http://kampis-elektroecke.de/?page_id=3248
- 
+
 import logging
 logger = logging.getLogger(__name__)
 logger.debug("%s loaded", __name__)
 
 import threading
-import serial 
+import serial
 import time
 
 from doorpi.keyboard.AbstractBaseClass import KeyboardAbstractBaseClass, HIGH_LEVEL, LOW_LEVEL
@@ -153,7 +151,7 @@ class RDM6300(KeyboardAbstractBaseClass):
                 self._UART = None
                 logger.debug("readUART thread ended")
 
-        
+
     def __init__(self, input_pins, keyboard_name, conf_pre, conf_post, *args, **kwargs):
         logger.debug("__init__ (input_pins = %s)", input_pins)
         self.keyboard_name = keyboard_name

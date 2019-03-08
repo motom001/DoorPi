@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 import logging
@@ -89,7 +88,7 @@ def get(parameters):
         smtp_snapshot = parameter_list[3]
     else:
         smtp_snapshot = False
-    
+
     return MailtoAction(fire_action_mail,
                      smtp_to = smtp_to,
                      smtp_subject = smtp_subject,

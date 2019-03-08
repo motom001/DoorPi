@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 import logging
@@ -172,7 +171,7 @@ class ConfigObject():
                 value = self.__sections[section][key]
             except KeyError:
                 pass
-        
+
         if value is None:
             #logger.trace('no value found - use default')
             value = default

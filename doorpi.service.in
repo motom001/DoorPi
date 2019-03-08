@@ -17,6 +17,8 @@ User=!!package!!
 Group=!!package!!
 SupplementaryGroups=audio
 SupplementaryGroups=gpio
+SupplementaryGroups=spi
+SupplementaryGroups=video
 DynamicUser=true
 
 CapabilityBoundingSet=
@@ -31,8 +33,8 @@ LogsDirectory=!!package!!
 ConfigurationDirectory=!!package!!
 
 PrivateTmp=true
-PrivateDevices=true
-ProtectKernelTunables=true
+PrivateDevices=false
+ProtectKernelTunables=false
 ProtectKernelModules=true
 ProtectControlGroups=true
 

@@ -25,7 +25,7 @@ def get(**kwargs): return FileSystem(**kwargs)
 class FileSystem(KeyboardAbstractBaseClass, FileSystemEventHandler):
 
     __reset_file = None
-    
+
     def __init__(self, input_pins, output_pins, conf_pre, conf_post, keyboard_name, polarity = 0, *args, **kwargs):
         logger.debug("FileSystem.__init__(input_pins = %s, output_pins = %s, polarity = %s)",
                      input_pins, output_pins, polarity)
@@ -42,13 +42,13 @@ class FileSystem(KeyboardAbstractBaseClass, FileSystemEventHandler):
         if self.__base_path_input == '': raise MissingMandatoryParameter('base_path_input in %s '%section_name)
         if self.__base_path_output == '': raise MissingMandatoryParameter('base_path_output in %s '%section_name)
 
-        if not os.path.exists(os.path.dirname(self.__base_path_input)):
-            logger.info('Path %s does not exist - creating it now', os.path.dirname(self.__base_path_input))
-            os.makedirs(os.path.dirname(self.__base_path_input))
+        if not os.path.exists(self.__base_path_input):
+            logger.info('Path %s does not exist - creating it now', self.__base_path_input)
+            os.makedirs(self.__base_path_input)
 
-        if not os.path.exists(os.path.dirname(self.__base_path_output)):
-            logger.info('Path %s does not exist - creating it now', os.path.dirname(self.__base_path_output))
-            os.makedirs(os.path.dirname(self.__base_path_output))
+        if not os.path.exists(self.__base_path_output):
+            logger.info('Path %s does not exist - creating it now', self.__base_path_output)
+            os.makedirs(self.__base_path_output)
 
         for input_pin in self._InputPins:
             self.__set_input(os.path.join(self.__base_path_input, input_pin))

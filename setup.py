@@ -71,15 +71,15 @@ setup(
         'Topic :: Utilities'
     ],
     packages=find_packages(exclude=['contrib', 'docs', 'tests*']),
-    install_requires=[
-        'requests>=2.7.0'
-        'RPi.GPIO>=0.5.11'
-        'pifacecommon>=4.1.2'
-        'pifacedigitalio>=3.0.5'
-        'pyserial>=2.7'
-        'watchdog>=0.8.3'
-        'picamera>=1.10'
-    ],
+    install_requires=['requests >= 2.7.0'],
+    extras_require={
+        'gpio': ['RPi.GPIO >= 0.5.11'],
+        'webdoc': ['docutils >= 0.14'],
+        'camera': ['picamera >= 1.10'],
+        'piface': ['pifacecommon >= 4.1.2', 'pifacedigitalio >= 3.0.5'],
+        'rfid': ['pyserial >= 2.7'],
+        'files_pseudokb': ['watchdog >= 0.8.3'],
+    },
     platforms=["any"],
     use_2to3=False,
     zip_safe=False,  # don't use eggs

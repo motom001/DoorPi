@@ -193,7 +193,7 @@ class DoorPi(object, metaclass=Singleton):
 
     def destroy(self):
         logger.debug('destroy doorpi')
-        self.dpsd.shutdown()
+        self.dpsd.stopping()
 
         if not self.event_handler or self.event_handler.threads == None:
             DoorPiEventHandlerNotExistsException("don't try to stop, when not prepared")
@@ -235,16 +235,16 @@ class DoorPi(object, metaclass=Singleton):
         self.event_handler.fire_event_synchron('OnStartup', __name__)
         self.event_handler.fire_event('AfterStartup', __name__)
 
-        # signal successful startup and set up watchdog ping
-        self.dpsd.ready()
-        self.event_handler.register_action('OnTimeSecondUnevenNumber', self.dpsd.watchdog)
-
         logger.info('DoorPi started successfully')
         logger.info('BasePath is %s', self.base_path)
         if self.__webserver:
             logger.info('Weburl is %s', self.__webserver.own_url)
         else:
             logger.info('no Webserver loaded')
+
+        # setup watchdog ping and signal startup success
+        self.event_handler.register_action('OnTimeSecondUnevenNumber', self.dpsd.watchdog)
+        self.dpsd.ready()
 
         time_ticks = 0
 

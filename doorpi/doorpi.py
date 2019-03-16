@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
 
+if __name__ == '__main__':
+    raise Exception('use main.py to start DoorPi')
+
 import logging
 logger = logging.getLogger(__name__)
 logger.debug("%s loaded", __name__)
@@ -315,6 +318,3 @@ class DoorPi(object, metaclass=Singleton):
             )
 
         return parsed_string
-
-if __name__ == '__main__':
-    raise Exception('use main.py to start DoorPi')

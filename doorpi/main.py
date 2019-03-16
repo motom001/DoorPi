@@ -136,7 +136,8 @@ def main_as_daemon(argv):
         print(("can't start DoorPi daemon - maybe it's running already? (Message: %s)" % ex))
         return 1
     except Exception as ex:
-        print(("Exception NameError: %s" % ex))
+        print(("*** UNCAUGHT EXCEPTION: %s" % ex))
+        raise
     finally:
         doorpi.DoorPi().destroy()
     return 0
@@ -148,10 +149,12 @@ def main_as_application(argv):
     logger.info(metadata.epilog)
     logger.debug('loaded with arguments: %s', str(argv))
 
-    try:                        doorpi.DoorPi(parsed_arguments).run()
-    except KeyboardInterrupt:   logger.info("KeyboardInterrupt -> DoorPi will shutdown")
-    except Exception as ex:     logger.exception("Exception NameError: %s", ex)
-    finally:                    doorpi.DoorPi().destroy()
+    try: doorpi.DoorPi(parsed_arguments).run()
+    except KeyboardInterrupt: logger.info("KeyboardInterrupt -> DoorPi will shutdown")
+    except Exception as ex:
+        logger.exception("*** UNCAUGHT EXCEPTION: %s", ex)
+        raise
+    finally: doorpi.DoorPi().destroy()
 
     return 0
 

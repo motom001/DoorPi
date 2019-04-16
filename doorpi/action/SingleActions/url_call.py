@@ -29,13 +29,13 @@ def fire_command(url):
             handler = urllib2.HTTPBasicAuthHandler(p)
             opener = urllib2.build_opener(handler)
             urllib2.install_opener(opener)
-            url = url.replace(" ", "%20")
-            logger.info('url: %s' % url)
-            return urllib2.urlopen(
-                url=url,
-                data=None,
-                timeout=1
-            )
+        url = url.replace(" ", "%20")
+        logger.info('url: %s' % url)
+        return urllib2.urlopen(
+            url=url,
+            data=None,
+            timeout=1
+        )
     except urllib2.HTTPError as exp:
         logger.error('HTTPError: %s - %s' % (exp.code, exp.reason))
     except urllib2.URLError as exp:

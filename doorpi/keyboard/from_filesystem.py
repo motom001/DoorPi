@@ -67,16 +67,19 @@ class FileSystem(KeyboardAbstractBaseClass, FileSystemEventHandler):
         if self.is_destroyed: return
         logger.debug("destroy")
 
+        self.__destroyed = True
+        doorpi.DoorPi().event_handler.unregister_source(__name__, True)
         self.__observer.stop()
         self.__observer.join()
 
         for input_pin in self._InputPins:
-            os.remove(os.path.join(self.__base_path_input, input_pin))
+            try: os.remove(os.path.join(self.__base_path_input, input_pin))
+            except FileNotFoundError: pass
+            except Exception as ex: logger.error('Unable to remove virtual input pin %s: %s', input_pin, ex)
         for output_pin in self._OutputPins:
-            os.remove(os.path.join(self.__base_path_output, output_pin))
-
-        doorpi.DoorPi().event_handler.unregister_source(__name__, True)
-        self.__destroyed = True
+            try: os.remove(os.path.join(self.__base_path_output, output_pin))
+            except FileNotFoundError: pass
+            except Exception as ex: logger.error('Unable to remove virtual output pin %s: %s', output_pin, ex)
 
     def status_input(self, pin):
         f = open(os.path.join(self.__base_path_input, pin), 'r')

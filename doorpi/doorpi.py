@@ -12,6 +12,7 @@ import argparse
 
 import time  # used by: DoorPi.run
 import os  # used by: DoorPi.load_config
+import signal # used by: DoorPi.prepare
 
 import datetime  # used by: parse_string
 import cgi  # used by: parse_string
@@ -82,10 +83,6 @@ class DoorPi(object, metaclass=Singleton):
     @property
     def name_and_version(self): return str(metadata.package) + " - version: " + metadata.version
 
-    __shutdown = False
-    @property
-    def shutdown(self): return self.__shutdown
-
     _base_path = None
     @property
     def base_path(self):
@@ -106,17 +103,28 @@ class DoorPi(object, metaclass=Singleton):
         self.stderr_path = '/dev/null'
         self.pidfile_path = metadata.pidfile
         self.pidfile_timeout = 5
+        self.__shutdown = False
 
         self.__last_tick = time.time()
 
-    def doorpi_shutdown(self, time_until_shutdown=10):
-        time.sleep(time_until_shutdown)
+    def doorpi_shutdown(self, time_until_shutdown=0):
+        if time_until_shutdown > 0: time.sleep(time_until_shutdown)
+        self.__shutdown = True
+
+    def signal_shutdown(self, signum, stackframe):
+        logger.info("Caught deadly signal %d", signum)
         self.__shutdown = True
 
     def prepare(self, parsed_arguments):
         logger.debug("prepare")
         logger.debug("given arguments argv: %s", parsed_arguments)
         self.__dpsd = DoorPiSD()
+
+        # setup signal handlers for HUP, INT, TERM
+        handler = self.signal_shutdown
+        signal.signal(signal.SIGHUP, handler)
+        signal.signal(signal.SIGINT, handler)
+        signal.signal(signal.SIGTERM, handler)
 
         self.__config = ConfigObject.load_config(parsed_arguments.configfile)
         self._base_path = self.config.get('DoorPi', 'base_path', self.base_path)

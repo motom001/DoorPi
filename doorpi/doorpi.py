@@ -112,7 +112,7 @@ class DoorPi(object, metaclass=Singleton):
         self.__shutdown = True
 
     def signal_shutdown(self, signum, stackframe):
-        logger.info("Caught deadly signal %d", signum)
+        logger.info("Caught deadly signal %s", signal.Signals(signum).name)
         self.__shutdown = True
 
     def prepare(self, parsed_arguments):

@@ -122,14 +122,21 @@ class Pjsua2(AbstractSIPPhone):
         return {}
 
     def hangup(self) -> None:
+        logger.trace("Hanging up all calls")
         with self.__call_lock:
             prm = pj.CallOpParam()
-            if self.current_call is not None:
-                self.current_call.hangup(prm)
+            self.__waiting_calls = []
+
             for c in self.__ringing_calls:
                 c.hangup(prm)
             self.__ringing_calls = []
-            self.__waiting_calls = []
+
+            if self.current_call is not None:
+                self.current_call.hangup(prm)
+            else:
+                # Synthesize a disconnect event
+                DoorPi().event_handler("OnCallDisconnect", EVENT_SOURCE,
+                                       {"remote_uri": "sip:null@null"})
 
     def is_admin(self, uri: str) -> bool:
         try: canonical_uri = self.canonicalize_uri(uri)

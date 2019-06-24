@@ -53,6 +53,7 @@ class CallCallback(pj.Call):
 
         self.__DTMF = ""
         self.__possible_DTMF = DoorPi().config.get_keys("DTMF")
+        self.__fire_disconnect = False
 
     def __getAudioVideoMedia(self):
         """Helper function that returns the first audio and video media"""
@@ -70,6 +71,8 @@ class CallCallback(pj.Call):
     def onCallState(self, prm: pj.OnCallStateParam) -> None:
         ci = self.getInfo()
         sp = DoorPi().sipphone
+        eh = DoorPi().event_handler
+        conf = DoorPi().config
 
         if ci.state == pj.PJSIP_INV_STATE_CALLING:
             logger.debug("Call to %s is now calling", repr(ci.remoteUri))
@@ -81,7 +84,8 @@ class CallCallback(pj.Call):
             logger.debug("Call to %s is now connecting", repr(ci.remoteUri))
         elif ci.state == pj.PJSIP_INV_STATE_CONFIRMED:
             logger.info("Call to %s was accepted", repr(ci.remoteUri))
-            DoorPi().event_handler("OnCallConnect", EVENT_SOURCE, {"remote_uri": ci.remoteUri})
+            eh("OnCallConnect", EVENT_SOURCE, {"remote_uri": ci.remoteUri})
+            self.__fire_disconnect = True
             with sp._Pjsua2__call_lock:
                 prm = pj.CallOpParam()
                 if sp.current_call is not None:
@@ -97,12 +101,19 @@ class CallCallback(pj.Call):
         elif ci.state == pj.PJSIP_INV_STATE_DISCONNECTED:
             logger.info("Call to %s disconnected after %d seconds (%d total)",
                         repr(ci.remoteUri), ci.connectDuration.sec, ci.totalDuration.sec)
-            DoorPi().event_handler("OnCallDisconnect", EVENT_SOURCE, {"remote_uri": ci.remoteUri})
             with sp._Pjsua2__call_lock:
                 if sp.current_call == self:
                     sp.current_call = None
                 elif self in sp._Pjsua2__ringing_calls:
                     sp._Pjsua2__ringing_calls.remove(self)
+
+                if self.__fire_disconnect:
+                    logger.trace("Firing disconnect event for call to %s", repr(ci.remoteUri))
+                    eh("OnCallDisconnect", EVENT_SOURCE, {"remote_uri": ci.remoteUri})
+                elif len(sp._Pjsua2__ringing_calls) == 0:
+                    logger.trace("Last ringing call disconnected, synthesizing disconnect")
+                    eh("OnCallDisconnect", EVENT_SOURCE, {"remote_uri": "sip:null@null"})
+                else: logger.trace("Skipping disconnect event for call to %s", repr(ci.remoteUri))
         else:
             logger.warning("Call to %s: unknown state %d", repr(ci.remoteUri), ci.state)
 

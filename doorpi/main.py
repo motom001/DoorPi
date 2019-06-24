@@ -10,7 +10,10 @@ from . import doorpi
 from resource import getrlimit, RLIMIT_NOFILE
 
 TRACE_LEVEL = 5
-LOG_FORMAT = '%(asctime)s [%(levelname)s]  \t[%(name)s] %(message)s'
+# Regular log format
+LOG_FORMAT = "%(asctime)s [%(levelname)s]  \t[%(name)s] %(message)s"
+# Format when logging to the journal
+LOG_FORMAT_JOURNAL = "[%(levelname)s][%(name)s] %(message)s"
 
 logger = logging.getLogger(__name__)
 
@@ -30,16 +33,18 @@ def init_logger(arguments):
     add_trace_level()
 
     global log_level
-    if '--debug' in arguments: log_level = logging.DEBUG
-    if '--trace' in arguments: log_level = TRACE_LEVEL
+    if "--debug" in arguments: log_level = logging.DEBUG
+    if "--trace" in arguments: log_level = TRACE_LEVEL
 
-    logging.basicConfig(
-        level = log_level,
-        format = LOG_FORMAT
-    #    datefmt = '%m/%d/%Y %I:%M:%S %p'
-    )
+    # check if we're connected to the journal
+    journal = False
+    expected_fd = os.environ.get("JOURNAL_STREAM", "").split(":")
+    if len(expected_fd) == 2:
+        stat = os.fstat(1)  # stdout
+        try: journal = stat.st_dev == int(expected_fd[0]) and stat.st_ino == int(expected_fd[1])
+        except ValueError: journal = False
 
-    return logging.getLogger(__name__)
+    logging.basicConfig(level=log_level, format=LOG_FORMAT_JOURNAL if journal else LOG_FORMAT)
 
 
 def parse_arguments(argv):

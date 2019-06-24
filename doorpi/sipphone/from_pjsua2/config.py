@@ -70,6 +70,14 @@ class Config:
         ep_cfg.logConfig.msgLogging = False  # Don't log full SIP messages
         ep_cfg.logConfig.level = 5
         ep_cfg.logConfig.consoleLevel = 4
+        ep_cfg.logConfig.decor = False
+
+        logwriter = DoorPiLogWriter(logger.getChild("native"))
+        ep_cfg.logConfig.writer = logwriter
+        # Bind the LogWriter's lifetime to the sipphone object, so that
+        # it won't be garbage-collected prematurely.
+        DoorPi().sipphone.__logwriter = logwriter
+
         return ep_cfg
 
     @staticmethod
@@ -180,3 +188,16 @@ class Config:
         else:
             logger.trace("Disabling echo cancellation")
             adm.setEcOptions(0, 0)
+
+
+class DoorPiLogWriter(pj.LogWriter):
+    def __init__(self, logger):
+        super().__init__()
+        self.__logger = logger
+
+    def write(self, e):
+        if e.level <= 1: self.__logger.error("%s", e.msg)
+        elif e.level <= 2: self.__logger.warning("%s", e.msg)
+        elif e.level <= 3: self.__logger.info("%s", e.msg)
+        elif e.level <= 4: self.__logger.debug("%s", e.msg)
+        else: self.__logger.trace("[level %d] %s", e.level, e.msg)

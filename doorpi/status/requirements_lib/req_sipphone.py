@@ -1,53 +1,28 @@
 # -*- coding: utf-8 -*-
 
 import logging
+
+from doorpi.sipphone import SIPPHONE_SECTION
+
 logger = logging.getLogger(__name__)
 logger.debug("%s loaded", __name__)
 
-from doorpi.sipphone.AbstractBaseClass import SIPPHONE_SECTION
 
 REQUIREMENT = dict(
-    fulfilled_with_one = True,
-    text_description = 'Die Aufgabe eines SIP-Phones in DoorPi ist es, die Telefongespräche (VoIP-Verbindungen) herzustellen. Dazu kann das SIP-Phone entweder mit oder ohne SIP-Server (z.B. Fritz!Box oder Asterisk) zusammen arbeiten.',
-    events = [
-        dict( name = 'OnSipPhoneCreate', description = 'Das SIP-Phone wurde erstellt und kann gestartet werden.'),
-        dict( name = 'OnSipPhoneStart', description = 'Das SIP-Phone wurde gestartet und ist jetzt einsatzbereit.'),
-        dict( name = 'OnSipPhoneDestroy', description = 'Das SIP-Phone soll beendet werden.'),
-        dict( name = 'OnSipPhoneRecorderCreate', description = 'Es wurde eine Recorder erstellt wurde und bereit ist Anrufe aufzuzeichnen.'),
-        dict( name = 'OnSipPhoneRecorderDestroy', description = 'Es wurde ein Recorder gestoppt und es sind keine weiteren Aufnamen möglich.'),
-        dict( name = 'BeforeSipPhoneMakeCall', description = 'Kurz bevor ein Gespräch von DoorPi aus gestartet wird.'),
-        dict( name = 'OnSipPhoneMakeCall', description = 'Es wird ein Gespräch von DoorPi aus gestartet.'),
-        dict( name = 'OnSipPhoneMakeCallFailed', description = 'Es ist ein Fehler aufgetreten, als ein Gespräch von DoorPi aus gestartet werden sollte.'),
-        dict( name = 'AfterSipPhoneMakeCall', description = 'Das Gespräch wurde hergestellt und es klingelt an der Gegenstelle'),
-        dict( name = 'OnSipPhoneCallTimeoutNoResponse', description = 'Das Gespräch wurde beendet, da die Gegenstelle nicht abgenommen hat (Parameter call_timeout)'),
-        dict( name = 'OnSipPhoneCallTimeoutMaxCalltime', description = 'Das Gespräch wurde beendet, da das Gespräch länger als erlaubt lief (Parameter max_call_time)'),
-        dict( name = 'OnPlayerCreated', description = 'Es wurde ein Player erstellt und es kann beim nächsten Anruf eine Sounddatei als Wartemusik abgespielt werden (Parameter dialtone)'),
-        dict( name = 'OnCallMediaStateChange', description = 'Die Nutzung der Ein- un Ausgabegeräte (Audio und Video) hat sich geändert.'),
-        dict( name = 'OnMediaRequired', description = 'Es existiert ein Call und es wird das Media-Gerät benötigt. Kann z.B. genutzt werden um Verstärker zu aktivieren.'),
-        dict( name = 'OnMediaNotRequired', description = 'Es existiert kein Call (mehr) und es wird das Media-Gerät nicht (mehr) benötigt. Kann z.B. genutzt werden um Verstärker zu deaktivieren.'),
-        dict( name = 'OnCallStateChange', description = 'Der Status eines Anrufs hat sich verändert'),
-        dict( name = 'OnCallStateConnect', description = 'Der Stauts eines Gespräches ist jetzt wieder auf verbunden (Connected, Resuming oder Updating)'),
-        dict( name = 'AfterCallStateConnect', description = 'Das Gespräch wurde aufgebaut, die Media-Verbindung besteht'),
-        dict( name = 'OnCallStateDisconnect', description = 'Das Gespräch wurde beendet'),
-        dict( name = 'AfterCallStateDisconnect', description = '[nicht mehr belegt]'),
-        dict( name = 'OnCallStateDismissed', description = 'Es sollte angerufen werden, jedoch sit die Gegenstelle besetzt.'),
-        dict( name = 'OnCallStateReject', description = 'Das Gespräch wurde von der Gegenstelle abgelehnt.'),
-        dict( name = 'OnCallStart', description = 'Initialisierung der Call-Back Funktionen'),
-        dict( name = 'OnDTMF', description = 'Es wurden DTMF-Signale empfangen. Es wird zusätzlich ein Event in der Form ´OnDTMF_"#"´ ausglöst (wenn # gedrückt wurde), wenn das empfangene DTMF-Signal in der Config definiert und somit erwartet wurde.'),
-        dict( name = 'BeforeCallIncoming', description = 'Wenn ein Gespräch ankommt, und noch nicht weiter bearbeitet wurde'),
-        dict( name = 'OnCallReconnect', description = 'Wenn bereits ein Gespräch exisitert und ein Gespräch zur gleichen Nummer erneut aufgebaut wird.'),
-        dict( name = 'AfterCallReconnect', description = 'Nachdem bereits ein Gespräch exisitert hat und ein Gespräch zur gleichen Nummer erneut aufgebaut wurde.'),
-        dict( name = 'OnCallBusy', description = 'Wenn DoorPi gerade beschäftigt ist und kein weitere Gespräch annehmen kann.'),
-        dict( name = 'AfterCallBusy', description = 'Nachdem DoorPi ein ankommendes Gespräch abgelehnt hat, da bereits ein anderes Gespräch geführt wird.'),
-        dict( name = 'OnCallIncoming', description = 'Bevor ein ankommendes Gespräch angenommen wird (ist eine Admin-Nummer)'),
-        dict( name = 'AfterCallIncoming', description = 'Nachdem ein ankommendes Gespräch angenommen wurde (ist eine Admin-Nummer)'),
-        dict( name = 'OnCallReject', description = 'Bevor ein ankommendes Gespräch abgelehnt wird (keine Admin-Nummer)'),
-        dict( name = 'AfterCallReject', description = 'Nachdem ein ankommendes Gespräch abgelehnt wurde (keine Admin-Nummer)'),
-        dict( name = 'OnPlayerStarted', description = 'Die Wiedergabe vom DialTone wurde gestartet'),
-        dict( name = 'OnPlayerStopped', description = 'Die Wiedergabe vom DialTone wurde gestoppt'),
-        dict( name = 'OnRecorderStarted', description = 'Die Aufnahme des Gespräches wurde gestartet'),
-        dict( name = 'OnRecorderStopped', description = 'Die Aufnahme des Gespräches wurde gestoppt'),
-        dict( name = 'OnRecorderCreated', description = 'Es wurde eine Recorder erstellt wurde und bereit ist Anrufe aufzuzeichnen.')
+    fulfilled_with_one=True,
+    text_description="Das SIP-Phone-Modul stellt die VoIP-Verbindungen her. Dazu verbindet es sich mit einem bestehenden SIP-Server (z.B. Asterisk oder FRITZ!Box).",
+    events=[
+        {"name": "OnSIPPhoneCreate", "description": "Das SIP-Phone wurde erstellt, aber noch nicht gestartet."},
+        {"name": "OnSIPPhoneStart", "description": "Das SIP-Phone wurde gestartet und ist einsatzbereit."},
+        {"name": "OnSIPPhoneDestroy", "description": "Das SIP-Phone wird gestoppt."},
+        {"name": "OnCallOutgoing", "description": "Ein Anruf wird von DoorPi aus aufgebaut."},
+        {"name": "OnCallConnect", "description": "Ein Anruf wurde verbunden (angenommen)."},
+        {"name": "OnCallDisconnect", "description": "Ein Anruf wurde aufgelegt."},
+        {"name": "BeforeCallIncoming", "description": "Ein externer Anruf kommt an, unabhängig von DoorPis momentanem Zustand."},
+        {"name": "OnCallIncoming", "description": "Ein externer Anruf wurde angenommen."},
+        {"name": "OnCallRejected", "description": "Ein externer Anruf wurde abgewiesen, weil die Nummer nicht als Administrator registriert ist."},
+        {"name": "OnCallBusy", "description": "Ein externer Anruf wurde abgewiesen, weil ein anderer Anruf gerade aktiv ist."},
+        {"name": "OnDTMF_<Sequenz>", "description": "Die DTMF-Sequenz <Sequenz> wurde empfangen."},
     ],
     configuration = [
         dict( section = SIPPHONE_SECTION, key = 'sipphonetyp', type = 'string', default = '', mandatory = False, description = 'Auswahl welches SIP-Phone benutzt werden soll. Derzeit wird nur "pjsua2" unterstützt.'),

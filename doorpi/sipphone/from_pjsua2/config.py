@@ -32,11 +32,14 @@ class Config:
         sip_user = conf.get_string(SIPPHONE_SECTION, "sipserver_username")
         sip_pass = conf.get_string(SIPPHONE_SECTION, "sipserver_password", password=True)
         sip_realm = conf.get_string(SIPPHONE_SECTION, "sipserver_realm", sip_server)
-        if not identity: raise ValueError(f"No identity given in [{SIPPHONE_SECTION}]")
         if not sip_user: raise ValueError(f"No username given in [{SIPPHONE_SECTION}]")
         if not sip_server: raise ValueError(f"No server given in [{SIPPHONE_SECTION}]")
 
-        acfg.idUri = f"sip:{sip_user}@{sip_server}"
+        if identity:
+            identity = identity.replace("\\", "\\\\").replace("\"", "\\\"")
+            acfg.idUri = f"\"{identity}\" <sip:{sip_user}@{sip_server}>"
+        else:
+            acfg.idUri = f"sip:{sip_user}@{sip_server}"
 
         acfg.regConfig.registrarUri = f"sip:{sip_server}"
         acfg.regConfig.registerOnAdd = True

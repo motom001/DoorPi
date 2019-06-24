@@ -23,7 +23,7 @@ class Pjsua2(AbstractSIPPhone):
                 "OnCallOutgoing",
                 # Fired by AccountCallback
                 "BeforeCallIncoming", "OnCallIncoming", "OnCallBusy", "OnCallReject",
-                # Fired by CallCallback
+                # Fired by CallCallback (all) and Worker (disconnect)
                 "OnCallConnect", "OnCallDisconnect",
         ]:
             eh.register_event(ev, EVENT_SOURCE)

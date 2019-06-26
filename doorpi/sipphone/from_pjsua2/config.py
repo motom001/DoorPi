@@ -4,7 +4,7 @@ import pjsua2 as pj
 from doorpi import DoorPi
 from doorpi.sipphone import SIPPHONE_SECTION
 
-from . import EVENT_SOURCE, logger
+from . import logger
 
 
 conf = DoorPi().config

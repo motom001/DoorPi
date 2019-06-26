@@ -6,7 +6,7 @@ import time
 from doorpi import DoorPi
 from doorpi.sipphone import SIPPHONE_SECTION
 
-from . import EVENT_SOURCE, logger
+from . import fire_event, logger
 from .callbacks import AccountCallback, CallCallback
 from .config import Config
 
@@ -99,8 +99,7 @@ class Worker():
                 self.current_call.hangup(prm)
             else:
                 # Synthesize a disconnect event
-                DoorPi().event_handler("OnCallDisconnect", EVENT_SOURCE,
-                                       {"remote_uri": "sip:null@null"})
+                fire_event("OnCallDisconnect", remote_uri="sip:null@null")
             self.ready.release(self.hangup)
             self.hangup = 0
 
@@ -136,7 +135,7 @@ class Worker():
                         synthetic_disconnect = True
                 if synthetic_disconnect and len(self.__phone._Pjsua2__ringing_calls) == 0:
                     # All calls went unanswered. Synthesize a disconnect event.
-                    eh("OnCallDisconnect", EVENT_SOURCE, {"remote_uri": "sip:null@null"})
+                    fire_event("OnCallDisconnect", remote_uri="sip:null@null")
 
     def createCalls(self):
         """Create requested outbound calls"""
@@ -145,6 +144,8 @@ class Worker():
 
         with self.__phone._Pjsua2__call_lock:
             for uri in self.__phone._Pjsua2__waiting_calls:
+                logger.info("Calling %s", uri)
+                fire_event("OnCallOutgoing", remote_uri=uri)
                 call = CallCallback(self.__account)
                 callprm = pj.CallOpParam(True)
                 try: call.makeCall(uri, callprm)

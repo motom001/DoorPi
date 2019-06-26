@@ -6,7 +6,7 @@ import threading
 from doorpi import DoorPi
 from doorpi.sipphone.abc import AbstractSIPPhone
 
-from . import EVENT_SOURCE, logger
+from . import EVENT_SOURCE, fire_event, logger
 from .config import Config
 from .worker import Worker
 
@@ -20,11 +20,13 @@ class Pjsua2(AbstractSIPPhone):
         for ev in [
                 # Fired by this class
                 "OnSIPPhoneCreate", "OnSIPPhoneStart", "OnSIPPhoneDestroy",
-                "OnCallOutgoing",
+                "OnCallOutgoing", "OnCallOutgoing_S",
                 # Fired by AccountCallback
                 "BeforeCallIncoming", "OnCallIncoming", "OnCallBusy", "OnCallReject",
+                "BeforeCallIncoming_S", "OnCallIncoming_S", "OnCallBusy_S", "OnCallReject_S",
                 # Fired by CallCallback (all) and Worker (disconnect)
                 "OnCallConnect", "OnCallDisconnect",
+                "OnCallConnect_S", "OnCallDisconnect_S",
         ]:
             eh.register_event(ev, EVENT_SOURCE)
 
@@ -43,12 +45,12 @@ class Pjsua2(AbstractSIPPhone):
         # need our own worker.
         self.__worker = None
         self.__worker_thread = None
-        eh("OnSIPPhoneCreate", EVENT_SOURCE)
+        fire_event("OnSIPPhoneCreate", async_only=True)
         eh.register_action("OnShutdown", self.__del__)
 
     def __del__(self):
         logger.debug("Destroying PJSUA2 SIP phone")
-        DoorPi().event_handler("OnSIPPhoneDestroy", EVENT_SOURCE)
+        fire_event("OnSIPPhoneDestroy", async_only=True)
 
         with self.__call_lock:
             if self.__worker is not None:
@@ -73,7 +75,7 @@ class Pjsua2(AbstractSIPPhone):
 
         self.__ep = pj.Endpoint.instance()
 
-        DoorPi().event_handler("OnSIPPhoneStart", EVENT_SOURCE)
+        fire_event("OnSIPPhoneStart", async_only=True)
         logger.info("Start successful")
 
     def self_check(self):
@@ -94,9 +96,6 @@ class Pjsua2(AbstractSIPPhone):
             if canonical_uri in self.__waiting_calls \
                 + [c.getInfo().remoteUri for c in self.__ringing_calls]:
                 return False
-
-            logger.info("Calling %s (%s)", uri, canonical_uri)
-            DoorPi().event_handler("OnCallOutgoing", EVENT_SOURCE, {"number": uri})
 
             # Dispatch creation of the call to the worker thread. This
             # prevents PJSIP from permanently allocating memory to

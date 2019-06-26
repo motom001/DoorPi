@@ -3,7 +3,7 @@ import pjsua2 as pj
 from doorpi import DoorPi
 from doorpi.sipphone import SIPPHONE_SECTION
 
-from . import EVENT_SOURCE, logger
+from . import fire_event, logger
 
 
 class AccountCallback(pj.Account):
@@ -12,14 +12,13 @@ class AccountCallback(pj.Account):
         pj.Account.__init__(self)
 
     def onIncomingCall(self, iprm: pj.OnIncomingCallParam) -> None:
-        eh = DoorPi().event_handler
         sp = DoorPi().sipphone
         call = CallCallback(self, iprm.callId)
         callInfo = call.getInfo()
         oprm = pj.CallOpParam(False)
         event = None
 
-        eh("BeforeCallIncoming", EVENT_SOURCE, {"remote_uri": callInfo.remoteUri})
+        fire_event("BeforeCallIncoming", remote_uri=callInfo.remoteUri)
 
         try:
             if not sp.is_admin(callInfo.remoteUri):
@@ -42,7 +41,7 @@ class AccountCallback(pj.Account):
                     return
         finally:
             call.answer(oprm)
-            eh(event, EVENT_SOURCE, {"remote_uri": callInfo.remoteUri})
+            fire_event(event, remote_uri=callInfo.remoteUri)
 
 
 class CallCallback(pj.Call):
@@ -84,7 +83,6 @@ class CallCallback(pj.Call):
             logger.debug("Call to %s is now connecting", repr(ci.remoteUri))
         elif ci.state == pj.PJSIP_INV_STATE_CONFIRMED:
             logger.info("Call to %s was accepted", repr(ci.remoteUri))
-            eh("OnCallConnect", EVENT_SOURCE, {"remote_uri": ci.remoteUri})
             self.__fire_disconnect = True
             with sp._Pjsua2__call_lock:
                 prm = pj.CallOpParam()
@@ -98,6 +96,7 @@ class CallCallback(pj.Call):
                     if self != ring: ring.hangup(prm)
                 sp._Pjsua2__ringing_calls = []
                 sp._Pjsua2__waiting_calls = []
+                fire_event("OnCallConnect", remote_uri=ci.remoteUri)
         elif ci.state == pj.PJSIP_INV_STATE_DISCONNECTED:
             logger.info("Call to %s disconnected after %d seconds (%d total)",
                         repr(ci.remoteUri), ci.connectDuration.sec, ci.totalDuration.sec)
@@ -109,10 +108,10 @@ class CallCallback(pj.Call):
 
                 if self.__fire_disconnect:
                     logger.trace("Firing disconnect event for call to %s", repr(ci.remoteUri))
-                    eh("OnCallDisconnect", EVENT_SOURCE, {"remote_uri": ci.remoteUri})
+                    fire_event("OnCallDisconnect", remote_uri=ci.remoteUri)
                 elif len(sp._Pjsua2__ringing_calls) == 0:
                     logger.trace("Last ringing call disconnected, synthesizing disconnect")
-                    eh("OnCallDisconnect", EVENT_SOURCE, {"remote_uri": "sip:null@null"})
+                    fire_event("OnCallDisconnect", remote_uri="sip:null@null")
                 else: logger.trace("Skipping disconnect event for call to %s", repr(ci.remoteUri))
         else:
             logger.warning("Call to %s: unknown state %d", repr(ci.remoteUri), ci.state)
@@ -158,9 +157,8 @@ class CallCallback(pj.Call):
                     prefix = True
 
             if exact:
-                DoorPi().event_handler(
-                    f"OnDTMF_{self.__DTMF}", EVENT_SOURCE,
-                    {"remote_uri": self.getInfo().remoteUri})
+                remoteUri = self.getInfo().remoteUri
+                fire_event(f"OnDTMF_{self.__DTMF}", async_only=True, remote_uri=remoteUri)
                 self.dialDtmf("11")
 
             if not prefix:

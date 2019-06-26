@@ -40,6 +40,7 @@ class Pjsua2(AbstractSIPPhone):
         self.__ringing_calls = []  # outgoing calls that are currently ringing
         self.__call_lock = threading.Lock()
         self.current_call = None
+        self.dialtone = None
 
         # Python doesn't like being called from native threads, so we
         # need our own worker.
@@ -56,6 +57,9 @@ class Pjsua2(AbstractSIPPhone):
             if self.__worker is not None:
                 self.__worker.running = False
                 self.__worker_thread.join()
+            if self.dialtone is not None:
+                self.dialtone.stop()
+                self.dialtone._DialTonePlayer__player = None
             del self.__worker_thread
             del self.__worker
         DoorPi().event_handler.unregister_source(EVENT_SOURCE, True)

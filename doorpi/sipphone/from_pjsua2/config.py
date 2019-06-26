@@ -56,6 +56,15 @@ class Config:
         return acfg
 
     @staticmethod
+    def dialtone_config() -> dict:
+        conf = DoorPi().config
+        return {
+            "filename": conf.get_string_parsed(SIPPHONE_SECTION, "dialtone",
+                                               "!BASEPATH!/media/dialtone.wav"),
+            "loudness": conf.get_float(SIPPHONE_SECTION, "dialtone_loudness", 1.0)
+        }
+
+    @staticmethod
     def endpoint_config() -> pj.EpConfig:
         logger.trace("Creating endpoint config")
         ep_cfg = pj.EpConfig()

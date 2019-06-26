@@ -71,7 +71,6 @@ class Pjsua2(AbstractSIPPhone):
             self.__worker_thread.join()
             raise RuntimeError("PJSUA2 initialization failed") from self.__worker.error
 
-        del self.__worker.ready
         self.__ep = pj.Endpoint.instance()
 
         DoorPi().event_handler("OnSIPPhoneStart", EVENT_SOURCE)
@@ -124,19 +123,10 @@ class Pjsua2(AbstractSIPPhone):
     def hangup(self) -> None:
         logger.trace("Hanging up all calls")
         with self.__call_lock:
-            prm = pj.CallOpParam()
-            self.__waiting_calls = []
-
-            for c in self.__ringing_calls:
-                c.hangup(prm)
-            self.__ringing_calls = []
-
-            if self.current_call is not None:
-                self.current_call.hangup(prm)
-            else:
-                # Synthesize a disconnect event
-                DoorPi().event_handler("OnCallDisconnect", EVENT_SOURCE,
-                                       {"remote_uri": "sip:null@null"})
+            self.__worker.hangup += 1
+        with self.__worker.wake:
+            self.__worker.wake.notify()
+        self.__worker.ready.wait()
 
     def is_admin(self, uri: str) -> bool:
         try: canonical_uri = self.canonicalize_uri(uri)

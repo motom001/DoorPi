@@ -24,6 +24,7 @@ class Worker():
         self.error = None
         self.ready = threading.Semaphore(0)
         self.wake = threading.Condition()
+        self.hangup = 0
 
     def __call__(self):
         try: self.pjInit()
@@ -36,6 +37,7 @@ class Worker():
         try:
             while self.running:
                 self.handleNativeEvents()
+                self.checkHangupAll()
                 self.checkCallTime()
                 self.createCalls()
                 with self.wake: self.wake.wait(0.05)
@@ -79,6 +81,28 @@ class Worker():
         if e < 0:
             raise RuntimeError("Error while handling PJSUA2 native events: {msg} ({errno})"
                                .format(errno=-e, msg=self.__ep.utilStrError(-e)))
+
+    def checkHangupAll(self):
+        """Check if hanging up all calls was requested"""
+
+        if self.hangup < 1: return
+
+        with self.__phone._Pjsua2__call_lock:
+            prm = pj.CallOpParam()
+            self.__waiting_calls = []
+
+            for c in self.__ringing_calls:
+                c.hangup(prm)
+            self.__ringing_calls = []
+
+            if self.current_call is not None:
+                self.current_call.hangup(prm)
+            else:
+                # Synthesize a disconnect event
+                DoorPi().event_handler("OnCallDisconnect", EVENT_SOURCE,
+                                       {"remote_uri": "sip:null@null"})
+            self.ready.release(self.hangup)
+            self.hangup = 0
 
     def checkCallTime(self):
         """Check all current calls and enforce call time restrictions"""

@@ -90,6 +90,15 @@ class Config:
         return ep_cfg
 
     @staticmethod
+    def recorder_config() -> dict:
+        conf = DoorPi().config
+        return {
+            "path": conf.get_string_parsed(SIPPHONE_SECTION, "record_path", ""),
+            "early": conf.get_bool(SIPPHONE_SECTION, "record_while_dialing", True),
+            "keep": conf.get_int(SIPPHONE_SECTION, "record_keep", 10),
+        }
+
+    @staticmethod
     def transport_config() -> pj.TransportConfig:
         logger.trace("Creating transport config")
         t_cfg = pj.TransportConfig()

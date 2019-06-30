@@ -9,7 +9,7 @@ from doorpi.sipphone import SIPPHONE_SECTION
 from . import fire_event, logger
 from .callbacks import AccountCallback, CallCallback
 from .config import Config
-from .fileio import DialTonePlayer
+from .fileio import DialTonePlayer, CallRecorder
 
 
 class Worker():
@@ -69,6 +69,7 @@ class Worker():
         self.__account.create(Config.account_config())
 
         self.__phone.dialtone = DialTonePlayer(**Config.dialtone_config())
+        self.__phone.recorder = CallRecorder(**Config.recorder_config())
 
         # Make sure the library can fully start up
         while True:

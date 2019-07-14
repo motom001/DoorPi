@@ -45,9 +45,13 @@ class Worker():
         except Exception as ex:
             self.error = ex
             return
+        finally:
+            self.ready.release()
 
     def __del__(self):
         self.running = False
+        with self.wake: self.wake.notify()
+        self.ready.acquire()
         self.__ep.libDestroy()
 
     def pjInit(self):

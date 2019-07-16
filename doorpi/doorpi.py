@@ -20,7 +20,7 @@ import tempfile
 
 from . import metadata
 from .keyboard.KeyboardInterface import load_keyboard
-from .sipphone.SipphoneInterface import load_sipphone
+from doorpi import sipphone
 from .status.webserver import load_webserver
 from .conf.config_object import ConfigObject
 from .action.handler import EventHandler
@@ -154,7 +154,7 @@ class DoorPi(object, metaclass=Singleton):
         # register modules
         self.__webserver    = load_webserver()
         self.__keyboard     = load_keyboard()
-        self.__sipphone     = load_sipphone()
+        self.__sipphone     = sipphone.load()
         self.sipphone.start()
 
         # register eventbased actions from configfile

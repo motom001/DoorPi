@@ -1,56 +1,31 @@
 # -*- coding: utf-8 -*-
 
 import logging
+
+from doorpi.sipphone import SIPPHONE_SECTION
+
 logger = logging.getLogger(__name__)
 logger.debug("%s loaded", __name__)
 
-from doorpi.sipphone.AbstractBaseClass import SIPPHONE_SECTION
 
 REQUIREMENT = dict(
-    fulfilled_with_one = True,
-    text_description = 'Die Aufgabe eines SIP-Phones in DoorPi ist es, die Telefongespräche (VoIP-Verbindungen) herzustellen. Dazu kann das SIP-Phone entweder mit oder ohne SIP-Server (z.B. Fritz!Box oder Asterisk) zusammen arbeiten.',
-    events = [
-        dict( name = 'OnSipPhoneCreate', description = 'Das SIP-Phone wurde erstellt und kann gestartet werden.'),
-        dict( name = 'OnSipPhoneStart', description = 'Das SIP-Phone wurde gestartet und ist jetzt einsatzbereit.'),
-        dict( name = 'OnSipPhoneDestroy', description = 'Das SIP-Phone soll beendet werden.'),
-        dict( name = 'OnSipPhoneRecorderCreate', description = 'Es wurde eine Recorder erstellt wurde und bereit ist Anrufe aufzuzeichnen.'),
-        dict( name = 'OnSipPhoneRecorderDestroy', description = 'Es wurde ein Recorder gestoppt und es sind keine weiteren Aufnamen möglich.'),
-        dict( name = 'BeforeSipPhoneMakeCall', description = 'Kurz bevor ein Gespräch von DoorPi aus gestartet wird.'),
-        dict( name = 'OnSipPhoneMakeCall', description = 'Es wird ein Gespräch von DoorPi aus gestartet.'),
-        dict( name = 'OnSipPhoneMakeCallFailed', description = 'Es ist ein Fehler aufgetreten, als ein Gespräch von DoorPi aus gestartet werden sollte.'),
-        dict( name = 'AfterSipPhoneMakeCall', description = 'Das Gespräch wurde hergestellt und es klingelt an der Gegenstelle'),
-        dict( name = 'OnSipPhoneCallTimeoutNoResponse', description = 'Das Gespräch wurde beendet, da die Gegenstelle nicht abgenommen hat (Parameter call_timeout)'),
-        dict( name = 'OnSipPhoneCallTimeoutMaxCalltime', description = 'Das Gespräch wurde beendet, da das Gespräch länger als erlaubt lief (Parameter max_call_time)'),
-        dict( name = 'OnPlayerCreated', description = 'Es wurde ein Player erstellt und es kann beim nächsten Anruf eine Sounddatei als Wartemusik abgespielt werden (Parameter dialtone)'),
-        dict( name = 'OnCallMediaStateChange', description = 'Die Nutzung der Ein- un Ausgabegeräte (Audio und Video) hat sich geändert.'),
-        dict( name = 'OnMediaRequired', description = 'Es existiert ein Call und es wird das Media-Gerät benötigt. Kann z.B. genutzt werden um Verstärker zu aktivieren.'),
-        dict( name = 'OnMediaNotRequired', description = 'Es existiert kein Call (mehr) und es wird das Media-Gerät nicht (mehr) benötigt. Kann z.B. genutzt werden um Verstärker zu deaktivieren.'),
-        dict( name = 'OnCallStateChange', description = 'Der Status eines Anrufs hat sich verändert'),
-        dict( name = 'OnCallStateConnect', description = 'Der Stauts eines Gespräches ist jetzt wieder auf verbunden (Connected, Resuming oder Updating)'),
-        dict( name = 'AfterCallStateConnect', description = 'Das Gespräch wurde aufgebaut, die Media-Verbindung besteht'),
-        dict( name = 'OnCallStateDisconnect', description = 'Das Gespräch wurde beendet'),
-        dict( name = 'AfterCallStateDisconnect', description = '[nicht mehr belegt]'),
-        dict( name = 'OnCallStateDismissed', description = 'Es sollte angerufen werden, jedoch sit die Gegenstelle besetzt.'),
-        dict( name = 'OnCallStateReject', description = 'Das Gespräch wurde von der Gegenstelle abgelehnt.'),
-        dict( name = 'OnCallStart', description = 'Initialisierung der Call-Back Funktionen'),
-        dict( name = 'OnDTMF', description = 'Es wurden DTMF-Signale empfangen. Es wird zusätzlich ein Event in der Form ´OnDTMF_"#"´ ausglöst (wenn # gedrückt wurde), wenn das empfangene DTMF-Signal in der Config definiert und somit erwartet wurde.'),
-        dict( name = 'BeforeCallIncoming', description = 'Wenn ein Gespräch ankommt, und noch nicht weiter bearbeitet wurde'),
-        dict( name = 'OnCallReconnect', description = 'Wenn bereits ein Gespräch exisitert und ein Gespräch zur gleichen Nummer erneut aufgebaut wird.'),
-        dict( name = 'AfterCallReconnect', description = 'Nachdem bereits ein Gespräch exisitert hat und ein Gespräch zur gleichen Nummer erneut aufgebaut wurde.'),
-        dict( name = 'OnCallBusy', description = 'Wenn DoorPi gerade beschäftigt ist und kein weitere Gespräch annehmen kann.'),
-        dict( name = 'AfterCallBusy', description = 'Nachdem DoorPi ein ankommendes Gespräch abgelehnt hat, da bereits ein anderes Gespräch geführt wird.'),
-        dict( name = 'OnCallIncoming', description = 'Bevor ein ankommendes Gespräch angenommen wird (ist eine Admin-Nummer)'),
-        dict( name = 'AfterCallIncoming', description = 'Nachdem ein ankommendes Gespräch angenommen wurde (ist eine Admin-Nummer)'),
-        dict( name = 'OnCallReject', description = 'Bevor ein ankommendes Gespräch abgelehnt wird (keine Admin-Nummer)'),
-        dict( name = 'AfterCallReject', description = 'Nachdem ein ankommendes Gespräch abgelehnt wurde (keine Admin-Nummer)'),
-        dict( name = 'OnPlayerStarted', description = 'Die Wiedergabe vom DialTone wurde gestartet'),
-        dict( name = 'OnPlayerStopped', description = 'Die Wiedergabe vom DialTone wurde gestoppt'),
-        dict( name = 'OnRecorderStarted', description = 'Die Aufnahme des Gespräches wurde gestartet'),
-        dict( name = 'OnRecorderStopped', description = 'Die Aufnahme des Gespräches wurde gestoppt'),
-        dict( name = 'OnRecorderCreated', description = 'Es wurde eine Recorder erstellt wurde und bereit ist Anrufe aufzuzeichnen.')
+    fulfilled_with_one=True,
+    text_description="Das SIP-Phone-Modul stellt die VoIP-Verbindungen her. Dazu verbindet es sich mit einem bestehenden SIP-Server (z.B. Asterisk oder FRITZ!Box).",
+    events=[
+        {"name": "OnSIPPhoneCreate", "description": "Das SIP-Phone wurde erstellt, aber noch nicht gestartet."},
+        {"name": "OnSIPPhoneStart", "description": "Das SIP-Phone wurde gestartet und ist einsatzbereit."},
+        {"name": "OnSIPPhoneDestroy", "description": "Das SIP-Phone wird gestoppt."},
+        {"name": "OnCallOutgoing", "description": "Ein Anruf wird von DoorPi aus aufgebaut."},
+        {"name": "OnCallConnect", "description": "Ein Anruf wurde verbunden (angenommen)."},
+        {"name": "OnCallDisconnect", "description": "Ein Anruf wurde aufgelegt."},
+        {"name": "BeforeCallIncoming", "description": "Ein externer Anruf kommt an, unabhängig von DoorPis momentanem Zustand."},
+        {"name": "OnCallIncoming", "description": "Ein externer Anruf wurde angenommen."},
+        {"name": "OnCallRejected", "description": "Ein externer Anruf wurde abgewiesen, weil die Nummer nicht als Administrator registriert ist."},
+        {"name": "OnCallBusy", "description": "Ein externer Anruf wurde abgewiesen, weil ein anderer Anruf gerade aktiv ist."},
+        {"name": "OnDTMF_<Sequenz>", "description": "Die DTMF-Sequenz <Sequenz> wurde empfangen."},
     ],
     configuration = [
-        dict( section = SIPPHONE_SECTION, key = 'sipphonetyp', type = 'string', default = '', mandatory = False, description = 'Auswahl welches SIP-Phone benutzt werden soll ("linphone" oder "pjsua")'),
+        dict( section = SIPPHONE_SECTION, key = 'sipphonetyp', type = 'string', default = '', mandatory = False, description = 'Auswahl welches SIP-Phone benutzt werden soll. Derzeit wird nur "pjsua2" unterstützt.'),
         dict( section = SIPPHONE_SECTION, key = 'sipphone_server', type = 'string', default = '', mandatory = False, description = 'Wenn eine SIP-Phone Server verwendet werden soll muss dazu der Server, der Benutzername, das Passwort und der Realm angegeben werden.'),
         dict( section = SIPPHONE_SECTION, key = 'sipphone_username', type = 'string', default = '', mandatory = False, description = 'Benutzer zur Anmeldung am SIP-Phone Server'),
         dict( section = SIPPHONE_SECTION, key = 'sipphone_password', type = 'string', default = '', mandatory = False, description = 'Passwort zur Anmeldung am SIP-Phone Server'),
@@ -69,74 +44,10 @@ REQUIREMENT = dict(
         dict( section = SIPPHONE_SECTION, key = 'number_of_snapshots', type = 'integer', default = '10', mandatory = False, description = 'Anzahl der Bilder die gespeichert werden.')
     ],
     libraries = dict(
-        linphone = dict(
-            text_description =      '''
-Linphone ist eine freie Software für die IP-Telefonie (VoIP), die unter der Lizenz GNU GPLv2 verfügbar ist. Es ist ein einfaches und zuverlässiges VoIP-Programm mit Videoübertragung. Wegen der recht guten Videoqualität eignet es sich zum Beispiel auch für Unterhaltungen in Gebärdensprache.
-
-Das Programm ist in einer Linux-, Windows- und OS-X-Version erhältlich, für unixähnliche Betriebssysteme wie FreeBSD kann der frei zugängliche Quelltext genutzt werden. Zudem existieren Clients für Android, iOS, Blackberry und Windows Phone. Neben der GTK+-basierenden grafischen Oberfläche existieren auch zwei Konsolen-Programme.
-
-Das Programm hat folgende Funktionalitäten:
-
-* Internettelefonie – basierend auf dem SIP-Standard
-* Bildtelefonie oder Videokonferenz
-* Präsenz (man kann feststellen, ob ein Gesprächspartner gerade erreichbar ist)
-* Instant Messaging
-* Verschlüsselung der Audio- und Video-Übertragung
-
-Für die Sprachübertragung stehen folgende Codecs zur Verfügung:
-
-* G.711a bzw. G.711u
-* GSM
-* Speex
-* LPC10-15
-* G.722
-* Opus
-
-Videoübertragungen können mit folgenden Codecs durchgeführt werden:
-
-* H.263 bzw. H.263+
-* MPEG4 Part 2
-* Theora
-* H.264 (mit Plug-in basierend auf x264)
-
-Verschlüsselung kann mit folgenden Protokollen durchgeführt werden:
-
-* SRTP
-* ZRTP
-
-Für den Betrieb hinter einem NAT-Router steht das STUN-Protokoll zur Verfügung.''',
-            text_warning =          'Es gibt derzeit keine funktionierende Python3-Version von Linphone.',
-            auto_install =          False,
-            text_test =             'Es kann jederzeit der Status manuell gestestet werden, indem im Python-Interpreter ``import linphone`` eingeben wird.',
-            text_configuration =    'Für die Konfiguration von Linphone stehen eine Vielzahl an Parametern zur Verfügung, die im Abschnitt <a href="/dashboard/pages/config.html">Konfiguration</a> eingesehen werden können.',
-            configuration = [
-                dict( section = SIPPHONE_SECTION, key = 'echo_cancellation_enabled', type = 'boolean', default = 'False', mandatory = False, description = 'Softwareseitige Echo-Unterdrückung - Achtung: sehr hohe Systemauslastung und nicht empfehlenswert'),
-                dict( section = SIPPHONE_SECTION, key = 'video_display_enabled', type = 'boolean', default = 'False', mandatory = False, description = 'Soll auf der Außenstelle ein Bild auf dem Display angezeigt werden? - Achtung: sehr hohe Systemauslastung und nicht empfehlenswert'),
-                dict( section = SIPPHONE_SECTION, key = 'stun_server', type = 'string', default = '', mandatory = False, description = 'STUN Server der genutzt werden soll'),
-                dict( section = SIPPHONE_SECTION, key = 'FirewallPolicy', type = 'string', default = 'PolicyNoFirewall', mandatory = False, description = 'möglich Werte: PolicyNoFirewall, PolicyUseStun, PolicyUseIce und PolicyUseUpnp.'),
-                dict( section = SIPPHONE_SECTION, key = 'video_device', type = 'string', default = '', mandatory = False, description = 'Kamera, die für die Aufnahme genutzt wird - wenn nichts angegeben wird, dann wird die erst Beste genutzt. Bitte dazu in der LOG-Datei nach "possible videodevices:" suchen'),
-                dict( section = SIPPHONE_SECTION, key = 'video_size', type = 'string', default = '', mandatory = False, description = 'möglich Werte: [fehlt noch]'),
-                dict( section = SIPPHONE_SECTION, key = 'video_codecs', type = 'array', default = 'VP8', mandatory = False, description = 'Video-Codecs die aktiviert und genutzt werden können.'),
-                dict( section = SIPPHONE_SECTION, key = 'capture_device', type = 'string', default = '', mandatory = False, description = 'Audiogerät, das für die Aufnahme genutzt wird - wenn nichts angegeben wird, dann wird das erst Beste genutzt. Bitte dazu in der LOG-Datei nach "possible sounddevices:" suchen'),
-                dict( section = SIPPHONE_SECTION, key = 'mic_gain_db', type = 'float', default = '0', mandatory = False, description = 'Zusätzliche Software-Verstärkung der Aufnahme, falls der Pegel vom Mikro auch bei maximaler Mixer-Einstellung zu schwach ist.'),
-                dict( section = SIPPHONE_SECTION, key = 'playback_device', type = 'string', default = '', mandatory = False, description = 'Audiogerät, das für die Aufnahme genutzt wird - wenn nichts angegeben wird, dann wird das erst Beste genutzt. Bitte dazu in der LOG-Datei nach "possible sounddevices:" suchen'),
-                dict( section = SIPPHONE_SECTION, key = 'audio_codecs', type = 'array', default = 'PCMA,PCMU', mandatory = False, description = 'Audio-Codecs die aktiviert und genutzt werden können.'),
-            ],
-            text_links = {
-                'linphone.org': {
-                    'Übersicht Liblinphone': 'http://www.linphone.org/technical-corner/liblinphone/overview',
-                    'Installationsanleitung im Wiki': 'https://wiki.linphone.org/wiki/index.php/Raspberrypi:start',
-                    'News Linphone für Raspberry': 'http://www.linphone.org/news/32/26/Linphone-Python-for-Raspberry-Pi-3-8.html'
-                },
-                'Linphone for Python documentation': 'http://pythonhosted.org/linphone/',
-                'linphone auf wikipedia.de': 'https://de.wikipedia.org/wiki/Linphone'
-            }
-        ),
-        pjsua = dict(
-            text_warning =          'Das SIP-Phone pjsua wird aktuell nicht in DoorPi unterstützt.',
-            #text_description =      '',
-            #text_installation =     '',
-            #text_test =             '',
+        pjsua2 = dict(
+            text_description =      'PJSIP ist eine quelloffene Bibliothek, die Standardprotokolle wie SIP, SDP, RTP, STUN, TURN und ICE implementiert. DoorPi nutzt das zugehörige Python-Modul pjsua2, um VoIP-Verbindungen zwischen der Gegensprechanlage an der Tür und den Innenstationen bzw. Telefonen herzustellen.',
+            text_installation =     'Das Modul ist im Paket ``python-pjproject`` (Arch Linux ARM) enthalten. Für Raspbian existiert derzeit kein offizielles Paket.',
+            text_test =             'Der Status kann gestestet werden, indem im Python-Interpreter ``import pjsua2`` eingeben wird.',
             #text_configuration =    '',
             #configuration = [],
             text_links = {
@@ -146,4 +57,3 @@ Für den Betrieb hinter einem NAT-Router steht das STUN-Protokoll zur Verfügung
         )
     )
 )
-

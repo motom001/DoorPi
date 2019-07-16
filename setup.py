@@ -94,5 +94,7 @@ setup(
         # init script and systemd service
         ('/etc/init.d', ['doorpi.sh']),
         ('/usr/lib/systemd/system', ['doorpi.service', 'doorpi.socket']),
+        # default dialtone
+        ('/usr/share/doorpi', ['data/dialtone.wav']),
     ],
 )

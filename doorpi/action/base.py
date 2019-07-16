@@ -58,6 +58,7 @@ class SingleAction:
     def from_string(config_string):
         try:
             action_name = config_string.split(':', 1)[0]
+            if not action_name: return None
             try: parameters = config_string.split(':', 1)[1]
             except: parameters = ""
             return importlib.import_module('doorpi.action.SingleActions.'+action_name).get(

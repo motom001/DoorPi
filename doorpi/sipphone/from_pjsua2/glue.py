@@ -24,9 +24,12 @@ class Pjsua2(AbstractSIPPhone):
                 # Fired by AccountCallback
                 "BeforeCallIncoming", "OnCallIncoming", "OnCallBusy", "OnCallReject",
                 "BeforeCallIncoming_S", "OnCallIncoming_S", "OnCallBusy_S", "OnCallReject_S",
-                # Fired by CallCallback (all) and Worker (disconnect)
-                "OnCallConnect", "OnCallDisconnect",
-                "OnCallConnect_S", "OnCallDisconnect_S",
+                # Fired by CallCallback (all) / Worker (unanswered)
+                "OnCallConnect", "OnCallUnanswered",
+                "OnCallConnect_S", "OnCallUnanswered_S",
+                # Fired by Worker
+                "OnCallDisconnect", "OnCallTimeExceeded",
+                "OnCallDisconnect_S", "OnCallTimeExceeded_S",
         ]:
             eh.register_event(ev, EVENT_SOURCE)
 

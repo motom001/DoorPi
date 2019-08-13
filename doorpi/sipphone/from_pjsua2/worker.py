@@ -127,6 +127,7 @@ class Worker():
                     and ci.connectDuration.sec >= self.__max_call_time:
                     logger.info("Hanging up call to %s after %d seconds",
                                 repr(ci.remoteUri), self.__max_call_time)
+                    fire_event("OnCallTimeExceeded")
                     prm = pj.CallOpParam()
                     c.hangup(prm)
                     self.__phone.current_call = None
@@ -142,8 +143,8 @@ class Worker():
                         self.__phone._Pjsua2__ringing_calls.remove(c)
                         synthetic_disconnect = True
                 if synthetic_disconnect and len(self.__phone._Pjsua2__ringing_calls) == 0:
-                    # All calls went unanswered. Synthesize a disconnect event.
-                    fire_event("OnCallDisconnect", remote_uri="sip:null@null")
+                    # Last ringing call was cancelled
+                    fire_event("OnCallUnanswered")
 
     def createCalls(self):
         """Create requested outbound calls"""

@@ -110,8 +110,8 @@ class CallCallback(pj.Call):
                     logger.trace("Firing disconnect event for call to %s", repr(ci.remoteUri))
                     fire_event("OnCallDisconnect", remote_uri=ci.remoteUri)
                 elif len(sp._Pjsua2__ringing_calls) == 0:
-                    logger.trace("Last ringing call disconnected, synthesizing disconnect")
-                    fire_event("OnCallDisconnect", remote_uri="sip:null@null")
+                    logger.info("No call was answered")
+                    fire_event("OnCallUnanswered")
                 else: logger.trace("Skipping disconnect event for call to %s", repr(ci.remoteUri))
         else:
             logger.warning("Call to %s: unknown state %d", repr(ci.remoteUri), ci.state)

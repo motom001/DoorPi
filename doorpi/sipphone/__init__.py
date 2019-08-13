@@ -33,6 +33,14 @@ A proper SIP phone module will fire these events during its life cycle:
   (remote hung up), respectively.
   Arguments:
     - "uri": The remote end's URI (canonicalized)
+- OnCallUnanswered:
+  Fired when all outgoing calls went unanswered (or were rejected) by
+  all recipients.
+- OnCallTimeExceeded:
+  Fired when a call was hung up because the maximum configured call
+  time was exceeded, in addition to the regular OnCallDisconnect.
+  Arguments:
+    - "uri": The remote end's URI (canonicalized)
 - OnCallIncoming:
   Fired when an external call comes in. This event is fired
   regardless of whether the call is accepted, rejected, or

@@ -20,7 +20,12 @@ def get(parameters):
     else:
         log_output = parameter_list[2]
 
-    return OutAction(doorpi.DoorPi().keyboard.set_output, pin = pin, value = value, log_output = log_output)
+    return OutAction(do_output, pin, value)
+
+
+def do_output(pin, value):
+    return doorpi.DoorPi().keyboard.output(pin, value)
+
 
 class OutAction(SingleAction):
     pass

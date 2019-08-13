@@ -19,8 +19,7 @@ import cgi  # used by: parse_string
 import tempfile
 
 from . import metadata
-from .keyboard.KeyboardInterface import load_keyboard
-from doorpi import sipphone
+from doorpi import keyboard, sipphone
 from .status.webserver import load_webserver
 from .conf.config_object import ConfigObject
 from .action.handler import EventHandler
@@ -153,7 +152,7 @@ class DoorPi(object, metaclass=Singleton):
 
         # register modules
         self.__webserver    = load_webserver()
-        self.__keyboard     = load_keyboard()
+        self.__keyboard     = keyboard.load()
         self.__sipphone     = sipphone.load()
         self.sipphone.start()
 
@@ -164,20 +163,6 @@ class DoorPi(object, metaclass=Singleton):
             for action in sorted(self.config.get_keys(event_section)):
                 logger.info("registering action '%s' for event '%s'", action, event_name)
                 self.event_handler.register_action(event_name, self.config.get(event_section, action))
-
-        # register actions for inputpins
-        if 'KeyboardHandler' not in self.keyboard.name:
-            section_name = 'InputPins'
-            for input_pin in sorted(self.config.get_keys(section_name)):
-                self.event_handler.register_action('OnKeyPressed_'+input_pin, self.config.get(section_name, input_pin))
-        else:
-            for keyboard_name in self.keyboard.loaded_keyboards:
-                section_name = keyboard_name+'_InputPins'
-                for input_pin in self.config.get_keys(section_name, log = False):
-                    self.event_handler.register_action(
-                        'OnKeyPressed_'+keyboard_name+'.'+input_pin,
-                        self.config.get(section_name, input_pin)
-                    )
 
         # register actions for DTMF
         section_name = 'DTMF'
@@ -305,13 +290,9 @@ class DoorPi(object, metaclass=Singleton):
             mapping_table.update({
                 'LAST_SNAPSHOT':    str(self.config.get_string('DoorPi', 'last_snapshot', log=False))
             })
-        if self.keyboard and 'KeyboardHandler' not in self.keyboard.name:
-            for output_pin in self.config.get_keys('OutputPins', log = False):
-                mapping_table[self.config.get('OutputPins', output_pin, log = False)] = output_pin
-        elif self.keyboard and 'KeyboardHandler' in self.keyboard.name:
-            for outputpin_section in self.config.get_sections('_OutputPins', False):
-                for output_pin in self.config.get_keys(outputpin_section, log = False):
-                    mapping_table[self.config.get(outputpin_section, output_pin, log = False)] = output_pin
+
+        if self.keyboard:
+            mapping_table.update(self.keyboard._enumerate_outputs())
 
         for key in list(mapping_table.keys()):
             parsed_string = parsed_string.replace(

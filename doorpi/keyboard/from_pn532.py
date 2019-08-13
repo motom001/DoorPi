@@ -1,172 +1,159 @@
-# -*- coding: utf-8 -*-
-#
-#  Configuration
-#  -------------
-#
-#  1. Define a new keyboard of type 'pn532'
-#  2. Define inputPins section for that keyboard
-#
-#  Sample:
-#
-#  [keyboards]
-#  nfcreader = pn532
-#
-#  [nfcreader_keyboard]
-#  TODO
-#  device = tty:AMA0:pn532  
-#
-#  [nfcreader_InputPins]
-#  1234 = **623
-#  #calls **623 when tag-ID 1234 is scanned, logs user1 for this action (NOT the ID itself unless you are using debug mode)
-#
-#  [EVENT_OnKeyPressed_nfcreader.1234]
-#  00 = call:**622
-#
-#  /TODO
-#  That's all...
-#
-#  Hardware Connections
-#  --------------------
-#
-#  For this keyboard we are using UART connection
-#  Connect pn532 and Raspberry Pi as follows:
-#  PN532   --   Raspberry Pi
-#  VCC -- 5V
-#  GND -- GND
-#  RX -- GPIO 14 (TX)
-#  TX -- GPIO 15 (RX)
-#
-#  IMPORTANT  --- IMPORTANT  ---- IMPORTANT  --- IMPORTANT  ---- IMPORTANT  --- IMPORTANT
-#  TODO
-#  you will also need the libnfc and nfcpy for this to work
-#  
-#  1) libnfc:  
-#     sudo apt-get install autoconf libtool libpcsclite-dev libusb-dev
-#     cd /home/pi
-#     mkdir src
-#     cd src
-#     wget https://github.com/nfc-tools/libnfc/archive/master.zip
-#     rename master.zip libnfc.zip
-#     unzip libnfc.zip
-#     cd libnfc --> ANPASSEN!!!!
-#     sudo mkdir /etc/nfc
-#     sudo mkdir /etc/nfc/devices.d
-#     sudo cp contrib/libnfc/pn532_uart_on_rpi.conf.sample /etc/nfc/devices.d/pn532_uart_on_rpi.conf
-#     add the line 
-#            allow_intrusive_scan = true  <-- checken, ob das wirklich gebraucht wird und was das macht
-#     to file /etc/nfc/devices.d/pn532_uart_on_rpi.conf
-#     cd /home/pi/src/libnfc <-- anpassen
-#     touch NEWS
-#     touch README
-#     autoreconf -vis
-#     ./configure --with-drivers=pn532_uart --sysconfdir=/etc --prefix=/usr
-#     sudo make clean
-#     sudo make install all
-#     cd examples
-#     sudo ./nfc-poll
-#     hold a tag near the reader and you should get an output similar to this:
-#                 SAMPLE-OUTPUT einfügen
-#  2) nfcpy
-#     install following this: http://nfcpy.org/latest/topics/get-started.html#installation
-#     be sure that serial console is deactivated in kernel (cmdline.txt or raspi-config)
-#     test nfcpy using
-#         python tagtool.py --device tty:AMA0:pn532
-#     you should see output similar to
-#                 SAMPLE-OUTPUT einfügen
-#     copy source-dir to pythons libdir:
-#     sudo cp -r nfc /usr/local/lib/python2.7/dist-packages/nfc   <--- CHECKEN!
-#  /TODO
+"""PN532 NFC keyboard module
+
+> **Warning**: This keyboard module has not yet been extensively
+> tested. Use at your own risk.
+
+> **Warning**: The following documentation IS OUTDATED, follow it at
+> your own risk.
+
+Configuration
+-------------
+
+1. Define a new keyboard of type 'pn532'
+2. Define inputPins section for that keyboard
+
+Sample:
+
+[keyboards]
+nfcreader = pn532
+
+[nfcreader_keyboard]
+TODO
+device = tty:AMA0:pn532
+
+[nfcreader_InputPins]
+1234 = **623
+#calls **623 when tag-ID 1234 is scanned, logs user1 for this action (NOT the ID itself unless you are using debug mode)
+
+[EVENT_OnKeyPressed_nfcreader.1234]
+00 = call:**622
+
+/TODO
+That's all...
+
+Hardware Connections
+--------------------
+
+For this keyboard we are using UART connection
+Connect pn532 and Raspberry Pi as follows:
+PN532   --   Raspberry Pi
+VCC -- 5V
+GND -- GND
+RX -- GPIO 14 (TX)
+TX -- GPIO 15 (RX)
+
+IMPORTANT  --- IMPORTANT  ---- IMPORTANT  --- IMPORTANT  ---- IMPORTANT  --- IMPORTANT
+TODO
+you will also need the libnfc and nfcpy for this to work
+
+1) libnfc:
+   sudo apt-get install autoconf libtool libpcsclite-dev libusb-dev
+   cd /home/pi
+   mkdir src
+   cd src
+   wget https://github.com/nfc-tools/libnfc/archive/master.zip
+   rename master.zip libnfc.zip
+   unzip libnfc.zip
+   cd libnfc --> ANPASSEN!!!!
+   sudo mkdir /etc/nfc
+   sudo mkdir /etc/nfc/devices.d
+   sudo cp contrib/libnfc/pn532_uart_on_rpi.conf.sample /etc/nfc/devices.d/pn532_uart_on_rpi.conf
+   add the line
+          allow_intrusive_scan = true  <-- checken, ob das wirklich gebraucht wird und was das macht
+   to file /etc/nfc/devices.d/pn532_uart_on_rpi.conf
+   cd /home/pi/src/libnfc <-- anpassen
+   touch NEWS
+   touch README
+   autoreconf -vis
+   ./configure --with-drivers=pn532_uart --sysconfdir=/etc --prefix=/usr
+   sudo make clean
+   sudo make install all
+   cd examples
+   sudo ./nfc-poll
+   hold a tag near the reader and you should get an output similar to this:
+               SAMPLE-OUTPUT einfügen
+2) nfcpy
+   install following this: http://nfcpy.org/latest/topics/get-started.html#installation
+   be sure that serial console is deactivated in kernel (cmdline.txt or raspi-config)
+   test nfcpy using
+       python tagtool.py --device tty:AMA0:pn532
+   you should see output similar to
+               SAMPLE-OUTPUT einfügen
+   copy source-dir to pythons libdir:
+   sudo cp -r nfc /usr/local/lib/python2.7/dist-packages/nfc   <--- CHECKEN!
+/TODO
+"""
 
 import logging
-logger = logging.getLogger(__name__)
-logger.debug("%s loaded", __name__)
-
-import threading
-from doorpi.keyboard.AbstractBaseClass import KeyboardAbstractBaseClass, HIGH_LEVEL, LOW_LEVEL
-import doorpi
 import nfc
+import re
+import threading
 import time
 
-def get(**kwargs): return pn532(**kwargs)
+import doorpi
+
+from . import SECTION_TPL
+from .abc import AbstractKeyboard
+
+logger = logging.getLogger(__name__)
 
 
-class pn532(KeyboardAbstractBaseClass):
-    name = 'pn532 nfc keyboard'
+def instantiate(name): return PN532Keyboard(name)
 
-    @property
-    def current_millisecond_timestamp(self):
-        return int(round(time.time() * 1000))
 
-    @property
-    def in_bouncetime(self):
-        return self.last_key_time + self.bouncetime >= self.current_millisecond_timestamp
+class PN532Keyboard(AbstractKeyboard):
 
-    def pn532_recognized(self, tag):
-        try:
-            if self.in_bouncetime:
-                logger.debug('founded tag while bouncetime -> skip')
-                return
-            self.last_key_time = self.current_millisecond_timestamp
-            logger.debug("tag: %s", tag)
-            hmm = str(tag)
-            ID = str(hmm.split('ID=')[-1:])[2:-2]
-            logger.debug("ID: %s", ID)
-            if ID in self._InputPins:
-                logger.debug("ID gefunden: %s", ID)
-                self.last_key = ID
-                self._fire_OnKeyDown(self.last_key, __name__)
-                self._fire_OnKeyPressed(self.last_key, __name__)
-                self._fire_OnKeyUp(self.last_key, __name__)
-                doorpi.DoorPi().event_handler('OnFoundKnownTag', __name__)
-                logger.debug("last_key is %s", self.last_key)
-        except Exception as ex:
-            logger.exception(ex)
-        finally:
-            logger.debug("pn532_recognized thread ended")
+    def __init__(self, name):
+        super().__init__(name, events=("OnKeyPressed",))
+        doorpi.DoorPi().event_handler.register_event("OnTagUnknown", self._event_source)
+
+        conf = doorpi.DoorPi().config
+        section_name = SECTION_TPL.format(name=name)
+
+        port = conf.get_string(section_name, "port")
+        port = re.sub(r"^/dev/tty", "", port)
+        self.__device = f"tty:{port}:pn532"
+        self.__frontend = nfc.ContactlessFrontend(self.__device)
+
+        self.__exception = None
+        self.__shutdown = False
+
+        self.__thread = threading.Thread(target=self.pn532_read)
+        self.__thread.start()
+
+    def _deactivate(self):
+        self.__shutdown = True
+        self.__frontend.close()
+        self.__thread.join()
+
+    def input(self, tag): return False  # stub
+
+    def output(self, pin): return False  # stub
+
+    def self_check(self):
+        if self.__exception is not None:
+            raise RuntimeError(f"{self.name}: Worker died") from self.__exception
+        if not self.__thread.is_alive():
+            raise RuntimeError(f"{self.name}: Worker found dead without exception information")
 
     def pn532_read(self):
         try:
-            while not self._shutdown:
-                self.__clf.connect(rdwr={'on-connect': self.pn532_recognized})
+            while not self.__shutdown:
+                self.__frontend.connect(rdwr={"on-connect": self.on_connect})
         except Exception as ex:
-            logger.exception(ex)
-        finally:
-            logger.debug("pn532 thread ended")
+            self.__exception = ex
 
-    def __init__(self, input_pins, output_pins, keyboard_name, conf_pre, conf_post, bouncetime, *args, **kwargs):
-        self.keyboard_name = keyboard_name
-        self.last_key = ""
-        self.bouncetime = bouncetime
-        self.last_key_time = self.current_millisecond_timestamp
-        # auslesen aus ini:
-        section_name = conf_pre+'keyboard'+conf_post
-        self._device = doorpi.DoorPi().config.get_string_parsed(section_name, 'device', 'tty:AMA0:pn532')
-        self._InputPins = list(map(str.upper, input_pins))
-        self._InputPairs = {}
-        self.__clf = nfc.ContactlessFrontend(self._device) #init nfc-reader
-        for input_pin in self._InputPins:
-            self._register_EVENTS_for_pin(input_pin, __name__)
-            logger.debug("__init__ (input_pin = %s)", input_pin)
+    def on_connect(self, tag):
+        # debounce
+        now = time.time() * 1000
+        if now - self.last_key_time <= self._bouncetime: return
 
-        #doorpi.DoorPi().event_handler.register_event('OnFoundKnownTag', __name__)
-        self._shutdown = False
-        self._thread = threading.Thread(target = self.pn532_read)
-        self._thread.daemon = True
-        self._thread.start()
-        self.register_destroy_action()
-
-    def destroy(self):
-        if self.is_destroyed: return
-        logger.debug("destroy")
-        self.__clf.close()
-        self.__clf = None
-        self._shutdown = True
-        doorpi.DoorPi().event_handler.unregister_source(__name__, True)
-        self.__destroyed = True
-
-    def status_input(self, tag):
-        logger.debug("status_input for tag %s", tag)
-        if tag == self.last_key:
-            return True
+        self.last_key_time = now
+        tag = str(tag)
+        id_ = str(tag.split("ID=")[-1:])[2:-2]  # TODO wtf?
+        logger.info("%s: Tag connected: %s, ID: %s", self.name, repr(tag), repr(id_))
+        if id_ in self._inputs:
+            self._fire_EVENT("OnKeyPressed", id_)
         else:
-            return False
+            doorpi.DoorPi().event_handler("OnTagUnknown", self._event_source,
+                                          {**self.additional_info, "tag": id_})

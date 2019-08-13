@@ -10,11 +10,11 @@ from doorpi.action.base import SingleAction
 import doorpi
 
 def out_triggered(pin, start_value, end_value, timeout, stop_pin):
-    doorpi.DoorPi().keyboard.set_output(pin, start_value)
+    doorpi.DoorPi().keyboard.output(pin, start_value)
     while timeout > 0 and stop_pin not in doorpi.DoorPi().keyboard.pressed_keys:
         sleep(0.1)
         timeout -= 0.1
-    doorpi.DoorPi().keyboard.set_output(pin, end_value)
+    doorpi.DoorPi().keyboard.output(pin, end_value)
     return True
 
 def get(parameters):

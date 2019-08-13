@@ -6,58 +6,90 @@ logger.debug("%s loaded", __name__)
 
 REQUIREMENT = dict(
     fulfilled_with_one = True,
-    text_description = '''Die Aufgabe von einem Keyboard innerhalb von DoorPi ist es, Eingaben und Ausgaben zu steuern. Keyboard bezieht sich dabei nicht auf die Tastertur, sondern auf ein Brett mit Knöpfen und LEDs.
-DoorPi ist in der Lage mehrere Keyboards gleichzeitig zu verwalten. Dazu muss in der Konfiguration zuerst eine Zuordnung getroffen werden, welchen frei ausgedachten aber eindeutigen Namen das Keyboard bekommmt (KeyboardName) und von welchem Typ das Keyboard ist.
-Diese Zuordnung findet in einer Konfigurations-Sektion "keyboards" statt. Danach kann jedes Keyboard drei weitere Sektionen besitzen:
+    text_description = \
+'''Die Aufgabe von einem Keyboard innerhalb von DoorPi ist es, Eingaben
+und Ausgaben zu steuern. Keyboard bezieht sich dabei nicht auf die
+Tastatur, sondern auf ein Brett mit Knöpfen und LEDs.  DoorPi ist in der
+Lage, mehrere Keyboards gleichzeitig zu verwalten. Dazu muss in der
+Konfiguration zuerst eine Zuordnung getroffen werden, welchen frei
+ausgedachten, aber eindeutigen Namen das Keyboard bekommmt
+(``KeyboardName``) und von welchem Typ das Keyboard ist.  Diese
+Zuordnung findet in einer Konfigurations-Sektion "keyboards" statt.
+Danach kann jedes Keyboard drei weitere Sektionen besitzen:
 
-1. allgemeine und Keyboard-spezifische Konfigurationsparameter (Sektionsname ``[KeyboardName]``)
-2. Auflistung der InputPins (Sektionsname ``[KeyboardName]_InputPins``) - wobei Pin auch eine Zeichenkette sein kann wie im Beispiel vom RFID-Reader
-3. Auflistung der OutputPins (Sektionsname ``[KeyboardName]_OutputPins``) mit Pinnummer und sprechendem Namen
+1. allgemeine und Keyboard-spezifische Konfigurationsparameter
+   (Sektionsname ``keyboard_settings_[KeyboardName]``)
+2. Auflistung der InputPins (Sektionsname
+   ``keyboard_input_[KeyboardName]``), wobei Pin auch eine Zeichenkette
+   sein kann wie im Beispiel vom RFID-Reader.
+3. Auflistung der OutputPins (Sektionsname
+   ``keyboard_output_[KeyboardName]``) mit Pinnummer und sprechendem
+   Namen
 
-Die OutputPins können später entweder mit der Pinnummer oder dem sprechenden Namen angesprochen werden. Deshalb sollte der sprechende Name eindeutig sein.
+Der sprechende Name muss eindeutig sein und wird später genutzt, um die
+Pins in Actions anzusprechen.
 
 Beispiel (alles nach einem # sind Kommentare)::
 
     virtuelles = filesystem
     rfid = rdm6300
 
-    [virtuelles]
-    base_path_input = !BASEPATH!/keyboards/virtuelles/inputpins # Pfad in dem dann die Input-Dateien zu finden sind
-    base_path_output = !BASEPATH!/keyboards/virtuelles/outputpins # Pfad in dem dann die Output-Dateien zu finden sind
-    reset_input = true # Ausgangszustand der Eingabe-Datei soll wiederhergestellt werden, wenn Signal erkannt wurde
+    [keyboard_settings_virtuelles]
+    # Pfad, in dem dann die Input-Dateien zu finden sind
+    base_path_input = !BASEPATH!/keyboards/virtuelles/inputpins
+    # Pfad, in dem dann die Output-Dateien zu finden sind
+    base_path_output = !BASEPATH!/keyboards/virtuelles/outputpins
+    # Ausgangszustand der Eingabe-Datei soll wiederhergestellt werden,
+    # wenn Signal erkannt wurde
+    reset_input = true
 
-    [virtuelles_InputPins]
-    klingel = out:tueroeffner:0,1,3 # Wenn diese Datei eine '1' beinhaltet, dann soll ein Ausgane mit dem Namen tueroeffner gesteuert werden
+    [keyboard_input_virtuelles]
+    # Wenn diese Datei eine '1' beinhaltet, dann soll ein Ausgang mit
+    # dem Namen tueroeffner gesteuert werden
+    klingel = out:tueroeffner:0,1,3
 
-    [virtuelles_OutputPins]
-    ausgang = tueroeffner # die Datei "ausgang" wird Dateisystem angelegt, aber innerhalb von DoorPi mit "tueroeffner" angesprochen
-    ausgang2 = fensteroeffner # die Datei "ausgang2" wird Dateisystem angelegt, aber innerhalb von DoorPi mit "fensteroeffner" angesprochen
+    [keyboard_output_virtuelles]
+    # Die Datei "ausgang" wird im Dateisystem angelegt, aber innerhalb
+    # von DoorPi mit "tueroeffner" angesprochen
+    ausgang = tueroeffner
+    # Die Datei "ausgang2" wird im Dateisystem angelegt, aber innerhalb
+    # von DoorPi mit "fensteroeffner" angesprochen
+    ausgang2 = fensteroeffner
 
-    [rfid]
-    # keine weitere spezielle Konfiguration, da uns die Default-Werte vollkommen ausreichen
-    # theoretisch könnte die ganze Sektion weggelassen werden, da sie leer ist
+    [keyboard_settings_rfid]
+    # Der Port, mit dem der Reader verbunden ist, muss immer mit
+    # angegeben werden.
+    port = /dev/ttyAMA0
 
-    [rfid_InputPins]
+    [keyboard_input_rfid]
     1234567 = out:tueroeffner,1,0,3
     2345678 = out:fensteroeffner,1,0,3
 
-    # eine Sektion [rfid_OutputPins] hat keinen Sinn, da ein RFID-Reader nichts ausgeben kann :)
+    # Eine Sektion [keyboard_output_rfid] hat keinen Sinn, da ein
+    # RFID-Reader nichts ausgeben kann :)
 
 Ergebnis des Beispiels ist, dass:
 
-1. zwei Keyboards innerhalb von DoorPi registiert werden - das eine dateibasierend mit dem Namen "virtuell", das andere ein RFID-Reader mit dem Namen "rfid"
-2. dem virtuellen Keyboard alle nötigen Parameter mitgegeben werden, beim rfid Keyboard nur die Default-Parameter genutzt werden.
+1. zwei Keyboards innerhalb von DoorPi registiert werden - das eine
+   dateibasierend mit dem Namen "virtuelles", das andere ein RFID-Reader
+   mit dem Namen "rfid"
+2. dem virtuellen Keyboard alle nötigen Parameter mitgegeben werden,
+   beim rfid Keyboard nur die Default-Parameter genutzt werden.
 3. ein InputPin für das virtuelle Keyboard angelegt wird
-4. wenn die Datei ``!BASEPATH!/keyboards/virtuelles/inputpins/klingel`` eine 1 als Inhalt bekommt, wird
-    - Ausgang tueroeffner (in dem Fall die Datei !BASEPATH!/keyboards/virtuelles/outputpins/ausgang)
-    - neu geschrieben und bekommt am Anfang den Inhalt 1
-    - es wird drei Sekunden gewartet
-    - und die Datei wird neu geschrieben, diesmal mit dem Inhalt 0
-5. ähnliches für das rfid Keyboard definiert wurde:
-    - der RFID-Chip mit dem Code "1234567" öffnet den tueroeffner
-    - der RFID-Chip mit dem Code "2345678" öffnet den fensteroeffner
+4. wenn die Datei ``!BASEPATH!/keyboards/virtuelles/inputpins/klingel``
+   eine 1 als Inhalt bekommt, wird
 
-Wobei !BASEPATH! für das Home-Verzeichnis von DoorPi steht.
+   - Ausgang tueroeffner (in dem Fall die Datei
+     ``!BASEPATH!/keyboards/virtuelles/outputpins/ausgang``)
+   - neu geschrieben und bekommt den Inhalt "1"
+   - es wird drei Sekunden gewartet
+   - und die Datei wird neu geschrieben, diesmal mit dem Inhalt "0"
+5. ähnliches für das rfid Keyboard definiert wurde:
+
+   - der RFID-Chip mit dem Code "1234567" öffnet den tueroeffner
+   - der RFID-Chip mit dem Code "2345678" öffnet den fensteroeffner
+
+Wobei ``!BASEPATH!`` für das Home-Verzeichnis von DoorPi steht.
 ''',
     events = [
         dict( name = 'OnKeyPressed', description = 'Es wurde eine Taste als betätigt gemeldet. Das kann je nach Keyboard OnKeyUp oder OnKeyDown sein.'),
@@ -79,8 +111,15 @@ Wobei !BASEPATH! für das Home-Verzeichnis von DoorPi steht.
     ],
     libraries = {
         'pifacedigitalio': dict(
-            text_warning =          '''Neben der reinen Installation vom Python-Modul pifacedigitalio ist es auch wichtig SPI am System zu aktivieren (siehe Links).
-Außerdem muss bei Bestellungen darauf geachtet werden, dass es zwei Versionen gibt (<a href="https://www.rasppishop.de/Piface-Digital-Erweiterung-fuer-Raspberry-Pi">PiFace digital 1</a> und <a href="https://www.rasppishop.de/PiFace-Digital-2-Erweiterungsplatine-/-Modul-fuer-den-Raspberry-Pi-Modell-B-">PiFace digital 2</a>)''',
+            text_warning=\
+'''Neben der reinen Installation vom Python-Modul ``pifacedigitalio``
+ist es auch wichtig SPI am System zu aktivieren (siehe Links).  Außerdem
+muss bei Bestellungen darauf geachtet werden, dass es zwei Versionen
+gibt:
+
+- `PiFace digital 1 <https://www.rasppishop.de/Piface-Digital-Erweiterung-fuer-Raspberry-Pi>`__
+- `PiFace digital 2 <https://www.rasppishop.de/PiFace-Digital-2-Erweiterungsplatine-/-Modul-fuer-den-Raspberry-Pi-Modell-B->`__
+''',
             text_description =      'Das Python-Modul pifacedigitalio ist der "Treiber" für die PiFace Hardware.',
             auto_install =          False,
             text_test =             'Der Status kann gestestet werden, indem im Python-Interpreter ``import pifacedigitalio`` eingeben wird.',
@@ -107,7 +146,7 @@ Außerdem muss bei Bestellungen darauf geachtet werden, dass es zwei Versionen g
         ),
         'serial': dict(
             text_description =      '''
-Hier die Beschreibung aus der ``from_rdm6300.py``, die <a href="https://github.com/msmolny">msmolny</a> netterweise erstellt hat::
+Hier die Beschreibung aus der ``from_rdm6300.py``, die `msmolny <https://github.com/msmolny>`__ netterweise erstellt hat::
 
   Configuration
   -------------

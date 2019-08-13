@@ -28,15 +28,15 @@ def read(filename):
 # Hook install command to process template files (*.in)
 class installhook(install):
     def run(self):
-        substkeys={
+        substkeys = {
             "package": metadata.package.lower(),
             "project": metadata.project,
             "prefix": self.prefix,
         }
-        substfiles=[f for f in os.listdir("data") if f.endswith(".in")]
+        substfiles = [f for f in os.listdir("data") if f.endswith(".in")]
         for f in substfiles:
             with open(os.path.join(base_path, "data", f[:-3]), "w") as outfile, \
-                open(os.path.join(base_path, "data", f), "r") as tplfile:
+                    open(os.path.join(base_path, "data", f), "r") as tplfile:
                 content = tplfile.read()
                 for k, v in substkeys.items():
                     content = content.replace(f"!!{k}!!", v)

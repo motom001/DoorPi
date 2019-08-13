@@ -32,24 +32,24 @@ A proper SIP phone module will fire these events during its life cycle:
   Fired when a call is connected (picked up by remote) or disconnected
   (remote hung up), respectively.
   Arguments:
-    - "uri": The remote end's URI
+    - "uri": The remote end's URI (canonicalized)
 - OnCallIncoming:
   Fired when an external call comes in. This event is fired
   regardless of whether the call is accepted, rejected, or
   another call is already active.
   Arguments:
-    - "uri": The caller's URI
+    - "uri": The caller's URI (canonicalized)
 - OnCallAccepted:
   Fired when an incoming call is being accepted.
   Arguments:
-    - "uri": The caller's URI
+    - "uri": The caller's URI (canonicalized)
 - OnCallReject, OnCallBusy:
   Fired when an incoming call rejected due to the caller's URI
   not being a registered administrator or another call being
   currently active, respectively.
   Arguments:
-    - "uri": The caller's URI
-- OnDTMF_<seq>:
+    - "uri": The caller's URI (canonicalized)
+- OnDTMF, OnDTMF_<seq>:
   Fired when the DTMF sequence ``<seq>`` was received.
 """
 

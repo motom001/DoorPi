@@ -132,17 +132,12 @@ class DoorPi(object, metaclass=Singleton):
         if self.config.config_file is None:
             self.event_handler.register_action("AfterStartup",
                                                CallbackAction(self.config.save_config))
-            self.config.get('EVENT_OnStartup', '10', 'sleep:1')
 
         # register own events
-        self.event_handler.register_event("BeforeStartup", __name__)
-        self.event_handler.register_event("OnStartup", __name__)
-        self.event_handler.register_event("AfterStartup", __name__)
-        self.event_handler.register_event("BeforeShutdown", __name__)
-        self.event_handler.register_event("OnShutdown", __name__)
-        self.event_handler.register_event("AfterShutdown", __name__)
-        self.event_handler.register_event("OnTimeTick", __name__)
-        self.event_handler.register_event("OnTimeTickRealtime", __name__)
+        for ev in ["BeforeStartup", "OnStartup", "AfterStartup",
+                   "BeforeShutdown", "OnShutdown", "AfterShutdown",
+                   "OnTimeTick", "OnTimeRapidTick"]:
+            self.event_handler.register_event(ev, __name__)
 
         # register base actions
         self.event_handler.register_action("OnTimeTick", f"time_tick:{self.__last_tick}")
@@ -233,20 +228,38 @@ class DoorPi(object, metaclass=Singleton):
                                            CallbackAction(self.dpsd.watchdog))
         self.dpsd.ready()
 
-        time_ticks = 0
+        tickrate = 0.05  # seconds between OnTimeRapidTick events
+        tickrate_slow = 10  # rapid ticks between OnTimeTick events
+        last = time.time()
+        next_slowtick = 0
 
-        while True and not self.__shutdown:
-            time_ticks += 0.05
-            self.check_time_critical_threads()
-            if time_ticks > 0.5:
+        while not self.__shutdown:
+            self.event_handler.fire_event_sync("OnTimeRapidTick", __name__)
+            next_slowtick -= 1
+
+            if next_slowtick <= 0:
                 self.__last_tick = time.time()
                 self.event_handler.fire_event_sync("OnTimeTick", __name__)
-                time_ticks = 0
-            time.sleep(0.05)
-        return self
+                next_slowtick = tickrate_slow
 
-    def check_time_critical_threads(self):
-        if self.sipphone: self.sipphone.self_check()
+            now = time.time()
+            duration = now - last
+
+            if duration > tickrate:
+                skipped_ticks = int(duration / tickrate)
+                logger.warning("Tick took too long (%.1fms > %.1fms), skipping %d tick(s)",
+                               duration * 1000, tickrate * 1000, skipped_ticks)
+                logger.warning("registered actions for OnTimeRapidTick: %s",
+                               self.event_handler.actions["OnTimeRapidTick"])
+                logger.warning("registered actions for OnTimeTick: %s",
+                               self.event_handler.actions["OnTimeTick"])
+                duration %= tickrate
+                last += skipped_ticks * tickrate
+                next_slowtick -= skipped_ticks
+
+            last += tickrate
+            time.sleep(last - now)
+        return self
 
     def parse_string(self, input_string):
         parsed_string = datetime.datetime.now().strftime(str(input_string))

@@ -20,6 +20,7 @@ class DummyPhone(AbstractSIPPhone):
         for ev in ["OnSIPPhoneCreate", "OnSIPPhoneStart", "OnSIPPhoneDestroy"]:
             eh.register_event(ev, __name__)
         eh("OnSIPPhoneCreate", __name__)
+        eh.register_action("OnTimeRapidTick", CallbackAction(self.self_check))
         eh.register_action("OnShutdown", CallbackAction(self.__del__))
 
     def __del__(self):

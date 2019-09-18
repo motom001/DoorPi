@@ -1,32 +1,25 @@
-# -*- coding: utf-8 -*-
-
-if __name__ == '__main__':
-    raise Exception('use main.py to start DoorPi')
-
-import logging
-logger = logging.getLogger(__name__)
-logger.debug("%s loaded", __name__)
-
-import sys
 import argparse
-
-import time  # used by: DoorPi.run
-import os  # used by: DoorPi.load_config
-import signal # used by: DoorPi.prepare
-
-import datetime  # used by: parse_string
-import cgi  # used by: parse_string
+import cgi
+import datetime
+import logging
+import os
+import signal
+import sys
 import tempfile
+import time
+import traceback
 
 from . import metadata
 from doorpi import keyboard, sipphone
 from doorpi.actions import CallbackAction
-from .status.webserver import load_webserver
-from .conf.config_object import ConfigObject
-from .event.handler import EventHandler
-from .status.status_class import DoorPiStatus
-from .status.systemd import DoorPiSD
-#from status.webservice import run_webservice, WebService
+from doorpi.conf.config_object import ConfigObject
+from doorpi.event.handler import EventHandler
+from doorpi.status.status_class import DoorPiStatus
+from doorpi.status.systemd import DoorPiSD
+from doorpi.status.webserver import load_webserver
+
+
+logger = logging.getLogger(__name__)
 
 DEADLY_SIGNALS_ABORT = 3
 
@@ -321,3 +314,7 @@ class DoorPi(object, metaclass=Singleton):
             )
 
         return parsed_string
+
+
+if __name__ == '__main__':
+    raise Exception("use main.py to start DoorPi")

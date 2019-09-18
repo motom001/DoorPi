@@ -66,7 +66,8 @@ def parse_arguments(argv):
     arg_parser.add_argument(
         '-c', '--configfile',
         help='configfile for DoorPi - https://github.com/motom001/DoorPi/wiki for more help',
-        dest='configfile'
+        dest='configfile',
+        default="/etc/doorpi/doorpi.ini"
     )
     try:
         if len(sys.argv) > 1 and sys.argv[1] in ['start', 'stop', 'restart', 'status']:

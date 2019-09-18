@@ -36,69 +36,49 @@ class Singleton(type):
             cls._instances[cls] = super(Singleton, cls).__call__(*args, **kwargs)
         return cls._instances[cls]
 
-class DoorPi(object, metaclass=Singleton):
-    __prepared = False
 
-    __config = None
-    @property
-    def config(self): return self.__config
-
-    __keyboard = None
-    @property
-    def keyboard(self): return self.__keyboard
-    #def get_keyboard(self): return self.__keyboard
-
-    __sipphone = None
-    @property
-    def sipphone(self): return self.__sipphone
+class DoorPi(metaclass=Singleton):
 
     @property
     def extra_info(self):
         if self.event_handler is None: return {}
         else: return self.event_handler.extra_info
 
-    __event_handler = None
-    @property
-    def event_handler(self): return self.__event_handler
-
-    __webserver = None
-    @property
-    def webserver(self): return self.__webserver
-
     @property
     def status(self): return DoorPiStatus(self)
-    def get_status(self, modules = '', value= '', name = ''): return DoorPiStatus(self, modules, value, name)
+
+    def get_status(self, modules="", value="", name=""):
+        return DoorPiStatus(self, modules, value, name)
 
     @property
     def epilog(self): return metadata.epilog
 
     @property
     def name(self): return str(metadata.package)
-    @property
-    def name_and_version(self): return str(metadata.package) + " - version: " + metadata.version
 
-    _base_path = None
+    @property
+    def name_and_version(self): return f"{metadata.package} - version: {metadata.version}"
+
     @property
     def base_path(self):
         if self._base_path is None:
-            self._base_path = os.path.expanduser('~')
-            logger.info("Selected BasePath {0}".format(self._base_path))
+            self._base_path = os.path.expanduser("~")
+            logger.info("Auto-selected BasePath %s", self._base_path)
         return self._base_path
 
-    __dpsd = None
-    @property
-    def dpsd(self): return self.__dpsd
+    def __init__(self, argv):
+        self.config = None
+        self.dpsd = None
+        self.event_handler = None
+        self.keyboard = None
+        self.sipphone = None
+        self.webserver = None
 
-    def __init__(self, parsed_arguments = None):
-        self.__parsed_arguments = parsed_arguments
-        # for start as daemon - if start as app it will not matter to load this vars
-        self.stdin_path = '/dev/null'
-        self.stdout_path = '/dev/null'
-        self.stderr_path = '/dev/null'
-        self.pidfile_path = metadata.pidfile
-        self.pidfile_timeout = 5
+        self._base_path = None
 
+        self.__argv = argv
         self.__deadlysignals = 0
+        self.__prepared = False
         self.__shutdown = False
 
         self.__last_tick = time.time()
@@ -116,10 +96,10 @@ class DoorPi(object, metaclass=Singleton):
         if self.__deadlysignals >= DEADLY_SIGNALS_ABORT:
             raise Exception("Force-exiting due to signal")
 
-    def prepare(self, parsed_arguments):
+    def prepare(self):
         logger.debug("prepare")
-        logger.debug("given arguments argv: %s", parsed_arguments)
-        self.__dpsd = DoorPiSD()
+        logger.debug("given arguments argv: %s", self.__argv)
+        self.dpsd = DoorPiSD()
 
         # setup signal handlers for HUP, INT, TERM
         handler = self.signal_shutdown
@@ -127,9 +107,9 @@ class DoorPi(object, metaclass=Singleton):
         signal.signal(signal.SIGINT, handler)
         signal.signal(signal.SIGTERM, handler)
 
-        self.__config = ConfigObject.load_config(parsed_arguments.configfile)
-        self._base_path = self.config.get('DoorPi', 'base_path', self.base_path)
-        self.__event_handler = EventHandler()
+        self.config = ConfigObject.load_config(self.__argv.configfile)
+        self._base_path = self.config.get("DoorPi", "base_path", self.base_path)
+        self.event_handler = EventHandler()
 
         if self.config.config_file is None:
             self.event_handler.register_action("AfterStartup",
@@ -145,9 +125,9 @@ class DoorPi(object, metaclass=Singleton):
         self.event_handler.register_action("OnTimeTick", f"time_tick:{self.__last_tick}")
 
         # register modules
-        self.__webserver    = load_webserver()
-        self.__keyboard     = keyboard.load()
-        self.__sipphone     = sipphone.load()
+        self.webserver = load_webserver()
+        self.keyboard = keyboard.load()
+        self.sipphone = sipphone.load()
         self.sipphone.start()
 
         # register eventbased actions from configfile
@@ -212,7 +192,7 @@ class DoorPi(object, metaclass=Singleton):
 
     def run(self):
         logger.debug("run")
-        if not self.__prepared: self.prepare(self.__parsed_arguments)
+        if not self.__prepared: self.prepare()
 
         self.event_handler.fire_event_sync("BeforeStartup", __name__)
         self.event_handler.fire_event_sync("OnStartup", __name__)
@@ -220,8 +200,8 @@ class DoorPi(object, metaclass=Singleton):
 
         logger.info('DoorPi started successfully')
         logger.info('BasePath is %s', self.base_path)
-        if self.__webserver:
-            logger.info('Weburl is %s', self.__webserver.own_url)
+        if self.webserver:
+            self.webserver.inform_own_url()
         else:
             logger.info('no Webserver loaded')
 

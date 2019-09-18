@@ -28,6 +28,8 @@ from .status.status_class import DoorPiStatus
 from .status.systemd import DoorPiSD
 #from status.webservice import run_webservice, WebService
 
+DEADLY_SIGNALS_ABORT = 3
+
 
 class DoorPiNotExistsException(Exception): pass
 class DoorPiEventHandlerNotExistsException(Exception): pass
@@ -102,6 +104,8 @@ class DoorPi(object, metaclass=Singleton):
         self.stderr_path = '/dev/null'
         self.pidfile_path = metadata.pidfile
         self.pidfile_timeout = 5
+
+        self.__deadlysignals = 0
         self.__shutdown = False
 
         self.__last_tick = time.time()
@@ -111,8 +115,13 @@ class DoorPi(object, metaclass=Singleton):
         self.__shutdown = True
 
     def signal_shutdown(self, signum, stackframe):
-        logger.info("Caught deadly signal %s", signal.Signals(signum).name)
         self.__shutdown = True
+        self.__deadlysignals += 1
+        logger.info("Caught deadly signal %s (%d / %d)", signal.Signals(signum).name,
+                    self.__deadlysignals, DEADLY_SIGNALS_ABORT)
+
+        if self.__deadlysignals >= DEADLY_SIGNALS_ABORT:
+            raise Exception("Force-exiting due to signal")
 
     def prepare(self, parsed_arguments):
         logger.debug("prepare")

@@ -1,15 +1,17 @@
-# -*- coding: utf-8 -*-
+#!/usr/bin/env python3
 
 import argparse
 import sys
 import logging
 import logging.handlers
 import os
+
 from . import metadata
 from . import doorpi
 from resource import getrlimit, RLIMIT_NOFILE
 
 TRACE_LEVEL = 5
+
 # Regular log format
 LOG_FORMAT = "%(asctime)s [%(levelname)s]  \t[%(name)s] %(message)s"
 # Format when logging to the journal
@@ -22,10 +24,11 @@ log_level = logging.INFO
 
 def add_trace_level():
     logging.addLevelName(TRACE_LEVEL, "TRACE")
+
     def trace(self, message, *args, **kws):
         if self.isEnabledFor(TRACE_LEVEL):
-            # Yes, logger takes its '*args' as 'args'.
             self._log(TRACE_LEVEL, message, args, **kws)
+
     logging.Logger.trace = trace
 
 
@@ -49,36 +52,27 @@ def init_logger(arguments):
 
 def parse_arguments(argv):
     arg_parser = argparse.ArgumentParser(
-        prog=argv[0],
         formatter_class=argparse.RawDescriptionHelpFormatter,
         description=metadata.description,
-        epilog = metadata.epilog
+        epilog=metadata.epilog
     )
 
-    arg_parser.add_argument(
-        '-V', '--version',
-        action='version',
-        version='{0} {1}'.format(metadata.project, metadata.version)
-    )
-    arg_parser.add_argument('--debug', action="store_true")
-    arg_parser.add_argument('--trace', action="store_true")
-    arg_parser.add_argument('--test', action="store_true")
-    arg_parser.add_argument(
-        '-c', '--configfile',
-        help='configfile for DoorPi - https://github.com/motom001/DoorPi/wiki for more help',
-        dest='configfile',
-        default="/etc/doorpi/doorpi.ini"
-    )
-    try:
-        if len(sys.argv) > 1 and sys.argv[1] in ['start', 'stop', 'restart', 'status']:
-            return arg_parser.parse_args(args=sys.argv[2:])
-        else:
-            return arg_parser.parse_args(args=sys.argv[1:])
-    except IOError:
-        print("EXCEPTION: configfile does not exist or is not readable")
-        print("please refer to the DoorPi wiki for more information ")
-        print("<https://github.com/motom001/DoorPi/wiki>")
-        raise SystemExit(1)
+    arg_parser.add_argument("-V", "--version", action="version",
+                            version=f"{metadata.project} v{metadata.version}")
+    arg_parser.add_argument("--debug", action="store_true", help="Enable debug logging")
+    arg_parser.add_argument("--trace", action="store_true", help="Enable trace logging")
+    arg_parser.add_argument("--test", action="store_true",
+                            help="Enable test mode (exit after 10 seconds)")
+
+    default_cfg = f"{sys.prefix if sys.prefix != '/usr' else ''}/etc/doorpi/doorpi.ini"
+    arg_parser.add_argument("-c", "--configfile",
+                            help=f"Specify configuration file to use (default: {default_cfg})",
+                            default=default_cfg)
+
+    if len(sys.argv) > 1 and sys.argv[1] in ['start', 'stop', 'restart', 'status']:
+        return arg_parser.parse_args(args=sys.argv[2:])
+    else:
+        return arg_parser.parse_args(args=sys.argv[1:])
 
 
 def files_preserve_by_path(*paths):
@@ -114,9 +108,9 @@ def main_as_daemon(argv):
 
     log_file = os.path.join(metadata.log_folder, "doorpi.log")
     logrotating = logging.handlers.RotatingFileHandler(
-          log_file,
-          maxBytes=5000000,
-          backupCount=10
+        log_file,
+        maxBytes=5000000,
+        backupCount=10
     )
     global log_level
     logrotating.setLevel(log_level)
@@ -132,7 +126,7 @@ def main_as_daemon(argv):
     from daemon.runner import DaemonRunnerStopFailureError
 
     daemon_runner = runner.DaemonRunner(doorpi.DoorPi(parsed_arguments))
-    #This ensures that the logger file handle does not get closed during daemonization
+    # This ensures that the logger file handle does not get closed during daemonization
     daemon_runner.daemon_context.files_preserve = files_preserve_by_path(log_file)
     try:
         daemon_runner.do_action()
@@ -176,6 +170,7 @@ def entry_point():
         raise SystemExit(main_as_daemon(sys.argv))
     else:
         raise SystemExit(main_as_application(sys.argv))
+
 
 if __name__ == '__main__':
     entry_point()

@@ -106,9 +106,9 @@ class Config:
         return t_cfg
 
     @staticmethod
-    def list_audio_devices(ep: pj.Endpoint, loglevel: int) -> None:
+    def list_audio_devices(adm: pj.AudDevManager, loglevel: int) -> None:
         if not logger.isEnabledFor(loglevel): return
-        devs = ep.audDevManager().enumDev()
+        devs = adm.enumDev()
         for i in range(len(devs)):
             logger.log(loglevel, f"   {devs[i].driver}:{devs[i].name}")
 
@@ -121,8 +121,8 @@ class Config:
         cls.setup_audio_codecs(ep)
         cls.setup_audio_echo_cancellation(adm)
 
-    @staticmethod
-    def setup_audio_devices(adm: pj.AudDevManager) -> None:
+    @classmethod
+    def setup_audio_devices(cls, adm: pj.AudDevManager) -> None:
         logger.trace("PJSUA2 found %d audio devices", adm.getDevCount())
         if adm.getDevCount() == 0:
             raise RuntimeError("No audio devices found by PJSUA2")
@@ -133,7 +133,7 @@ class Config:
         audio_devices = adm.enumDev()
         if capture_device == "" or playback_device == "":
             logger.critical("No audio devices configured! Detected audio devices:")
-            list_audio_devices(ep, logging.CRITICAL)
+            cls.list_audio_devices(adm, logging.CRITICAL)
             raise ValueError("No audio devices configured (See log for possible options)")
 
         capture_drv = capture_device.split(":")[0]
@@ -144,12 +144,12 @@ class Config:
         try: capture_idx = adm.lookupDev(capture_drv, capture_dev)
         except pj.Error:
             logger.critical("Configured capture device not found! Found devices:")
-            list_audio_devices(ep, logging.CRITICAL)
+            cls.list_audio_devices(adm, logging.CRITICAL)
             raise ValueError(f"Configured capture device could not be found: {capture_device}")
         try: playback_idx = adm.lookupDev(playback_drv, playback_dev)
         except pj.Error:
             logger.critical("Configured playback device not found! Found devices:")
-            list_audio_devices(ep, logging.CRITICAL)
+            cls.list_audio_devices(adm, logging.CRITICAL)
             raise ValueError(f"Configured playback device could not be found: {playback_device}")
         logger.trace("Device indices: capture = %d, playback = %d", capture_idx, playback_idx)
         adm.setCaptureDev(capture_idx)

@@ -23,7 +23,8 @@ device = tty:AMA0:pn532
 
 [nfcreader_InputPins]
 1234 = **623
-#calls **623 when tag-ID 1234 is scanned, logs user1 for this action (NOT the ID itself unless you are using debug mode)
+# calls **623 when tag-ID 1234 is scanned, logs user1 for this action
+# (NOT the ID itself unless you are using debug mode)
 
 [EVENT_OnKeyPressed_nfcreader.1234]
 00 = call:**622
@@ -59,7 +60,7 @@ you will also need the libnfc and nfcpy for this to work
    sudo mkdir /etc/nfc/devices.d
    sudo cp contrib/libnfc/pn532_uart_on_rpi.conf.sample /etc/nfc/devices.d/pn532_uart_on_rpi.conf
    add the line
-          allow_intrusive_scan = true  <-- checken, ob das wirklich gebraucht wird und was das macht
+       allow_intrusive_scan = true  <-- checken, ob das wirklich gebraucht wird und was das macht
    to file /etc/nfc/devices.d/pn532_uart_on_rpi.conf
    cd /home/pi/src/libnfc <-- anpassen
    touch NEWS

@@ -8,6 +8,7 @@ from doorpi.actions import CallbackAction
 
 from . import logger
 
+
 class DialTonePlayer:
     def __init__(self, filename, loudness):
         self.__player = pj.AudioMediaPlayer()
@@ -69,7 +70,7 @@ class CallRecorder:
                 return
             fname = os.path.join(self.__path,
                                  DoorPi().parse_string("recording_%Y-%m-%d_%H-%M-%S.wav"))
-            logger.debug("Starting recording into file %s", fname);
+            logger.debug("Starting recording into file %s", fname)
             try:
                 self.__recorder = pj.AudioMediaRecorder()
                 self.__recorder.createRecorder(fname)
@@ -107,7 +108,7 @@ class CallRecorder:
         files = []
         try:
             with os.scandir(self.__path) as it:
-                files = [f for f in it \
+                files = [f for f in it
                          if f.name.startswith("recording_") and f.name.endswith(".wav")]
         except FileNotFoundError:
             logger.warning("%s does not exist, skipping cleanup", self.__path)

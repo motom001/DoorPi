@@ -123,8 +123,8 @@ class Worker():
             if c is not None:
                 ci = c.getInfo()
                 if self.__max_call_time > 0 \
-                    and ci.state == pj.PJSIP_INV_STATE_CONFIRMED \
-                    and ci.connectDuration.sec >= self.__max_call_time:
+                        and ci.state == pj.PJSIP_INV_STATE_CONFIRMED \
+                        and ci.connectDuration.sec >= self.__max_call_time:
                     logger.info("Hanging up call to %s after %d seconds",
                                 repr(ci.remoteUri), self.__max_call_time)
                     fire_event("OnCallTimeExceeded")

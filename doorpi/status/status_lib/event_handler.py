@@ -1,8 +1,8 @@
-# -*- coding: utf-8 -*-
-
 import logging
+
+
 logger = logging.getLogger(__name__)
-logger.debug("%s loaded", __name__)
+
 
 def get(*args, **kwargs):
     try:
@@ -36,7 +36,8 @@ def get(*args, **kwargs):
         return status
     except Exception as exp:
         logger.exception(exp)
-        return {'Error': 'could not create '+str(__name__)+' object - '+str(exp)}
+        return {'Error': f'could not create {__name__!s} object - {exp!s}'}
+
 
 def is_active(doorpi_object):
     return True if doorpi_object.event_handler else False

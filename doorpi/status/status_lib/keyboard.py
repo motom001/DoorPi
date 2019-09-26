@@ -28,5 +28,4 @@ def get(name=[], value=[], DoorPiObject=[], **kwargs):
 def is_active(doorpi_object):
     try:
         return True if doorpi_object.keyboard.name else False
-    except:
-        return False
+    except Exception: return False

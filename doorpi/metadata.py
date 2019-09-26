@@ -48,12 +48,12 @@ epilog = '''
 Authors:    {authors}
 Supporter:  {supporters}
 '''.format(
-        license = license,
-        project = project,
-        version = version,
-        authors = '\n'.join(author_strings),
-        supporters = '\n            '.join(supporters),
-        url = url)
+    license=license,
+    project=project,
+    version=version,
+    authors='\n'.join(author_strings),
+    supporters='\n            '.join(supporters),
+    url=url)
 
 pidfile = "/run/{0}/{0}.pid".format(package.lower())
 log_folder = "/var/log/{0}".format(package.lower())

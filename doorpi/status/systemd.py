@@ -1,14 +1,14 @@
-# -*- coding: utf-8 -*-
-
 import logging
-logger = logging.getLogger(__name__)
-logger.debug("%s loaded", __name__)
-
 import os
 import socket
 import sys
 
+
+logger = logging.getLogger(__name__)
+
+
 class DoorPiSD:
+
     def __init__(self):
         self.sockaddr = None
         self.socket = None
@@ -26,38 +26,68 @@ class DoorPiSD:
             logger.info("No NOTIFY_SOCKET in environment, sd-notify protocol disabled")
 
     def ready(self):
-        """Tells the service manager that service startup is finished, or the service finished loading its configuration."""
+        """Tell the service manager that we are ready
+
+        Inform the manager that service startup has completed
+        successfully or that the service is done reloading its
+        configuration.
+        """
         return self.__send("READY=1")
 
     def reloading(self):
-        """Tells the service manager that the service is reloading its configuration. Must follow up with ready()"""
+        """Tell the service manager that we are reloading configuration
+
+        Inform the service manager that we have begun reloading our
+        configuration files. Once done, `ready()` must be called again.
+        """
         return self.__send("RELOADING=1")
 
     def stopping(self):
-        """Tells the service manager that the service is beginning its shutdown."""
+        """Tell the service manager that we are shutting down"""
         return self.__send("STOPPING=1")
 
     def status(self, msg):
-        """Passes a human readable, single-line UTF-8 status string back to the service manager that describes the service state."""
+        """Describe the service state for humans
+
+        Passes a human readable, single-line status string back to the
+        service manager that describes the current service state.
+        """
         return self.__send("STATUS={}".format(msg.replace("\n", "\\n")))
 
     def watchdog(self):
-        """Tells the service manager to update the watchdog timestamp. This is the keep-alive ping that services need to issue in regular intervals if WatchdogSec= is enabled for it."""
+        """Tell the service manager that we are still alive
+
+        Tell the manager to update its watchdog timestamp. This is the
+        keep-alive ping that a service needs to issue in regular
+        intervals if WatchdogSec= is enabled for it.
+        """
         return self.__send("WATCHDOG=1")
 
     def get_watchdog_timeout_usec(self):
-        """Returns the configured timeout in microseconds for this service. If watchdog() is not issued within that time after the last invocation, the service manager will fail this service.
-        It is recommended that a daemon sends a keep-alive ping every half of the time returned here.
-        If the watchdog logic is disabled for this service, or the corresponding environment variables were unset, None is returned."""
-        if not "WATCHDOG_USEC" in os.environ or os.environ["WATCHDOG_USEC"] == "0": return None # no timeout given
-        if "WATCHDOG_PID" in os.environ and os.environ["WATCHDOG_PID"] != str(os.getpid()): return None # wrong PID
+        """Get the configured watchdog timeout
+
+        Returns the configured watchdog timeout in microseconds. If
+        `watchdog()` is not issued within that time after the last
+        invocation, the service manager will fail this service. It is
+        recommended that a daemon sends a keep-alive ping every half of
+        the time returned here.
+
+        If the watchdog logic is disabled for this service, or the
+        corresponding environment variables were unset, this function
+        will return None.
+        """
+        if "WATCHDOG_USEC" not in os.environ or os.environ["WATCHDOG_USEC"] == "0":
+            return None  # no timeout given
+        if "WATCHDOG_PID" in os.environ and os.environ["WATCHDOG_PID"] != str(os.getpid()):
+            return None  # wrong PID
         return long(os.environ["WATCHDOG_USEC"])
 
     def __send(self, msg):
         """Actually send the messages to the daemon.
-        This is used internally, and should not be called directly."""
+        This is used internally, and should not be called directly.
+        """
 
-        if self.socket == None or self.sockaddr == None:
+        if self.socket is None or self.sockaddr is None:
             return
         try: self.socket.sendto(msg.encode("utf-8"), self.sockaddr)
         except Exception:

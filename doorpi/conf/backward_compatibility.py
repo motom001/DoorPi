@@ -1,6 +1,6 @@
-# -*- coding: utf-8 -*-
-
 import logging
+
+
 logger = logging.getLogger(__name__)
 logger.debug("%s loaded", __name__)
 
@@ -17,6 +17,7 @@ BACKWARD_COMPATIBILITY_KEYS = {
         'record_while_dialing':         ('DoorPi', 'record_while_dialing')
     }
 }
+
 
 def convert_config_to_json(config_object):
     return config_object

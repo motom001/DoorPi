@@ -1,10 +1,6 @@
-# -*- coding: utf-8 -*-
-
 import os
 import threading
 import logging
-logger = logging.getLogger(__name__)
-logger.debug("%s loaded", __name__)
 
 from http.server import HTTPServer
 from socketserver import ThreadingMixIn
@@ -18,8 +14,11 @@ from doorpi.actions import CallbackAction
 from doorpi.status.webserver_lib.session_handler import SessionHandler
 from doorpi.status.webserver_lib.request_handler import DoorPiWebRequestHandler
 
-DOORPIWEB_SECTION = 'DoorPiWeb'
-CONF_AREA_PREFIX = 'AREA_'
+
+logger = logging.getLogger(__name__)
+DOORPIWEB_SECTION = "DoorPiWeb"
+CONF_AREA = "AREA_{area}"
+
 
 def load_webserver():
     ip = doorpi.DoorPi().config.get(DOORPIWEB_SECTION, 'ip', '0.0.0.0')
@@ -38,6 +37,7 @@ def load_webserver():
 
     return doorpiweb_object
 
+
 def check_config(config):
     errors = []
     warnings = []
@@ -55,39 +55,41 @@ def check_config(config):
         errors.append("no WritePermission found")
 
     for group in groups_with_write_permissions:
-        if group not in groups: warnings.append("group %s doesn't exist but is assigned to WritePermission" % group)
+        if group not in groups:
+            warnings.append("group %s doesn't exist but is assigned to WritePermission" % group)
 
     if len(groups_with_read_permissions) == 0:
         warnings.append("no ReadPermission found")
 
     for group in groups_with_read_permissions:
-        if group not in groups: warnings.append("group %s doesn't exist but is assigned to ReadPermission" % group)
+        if group not in groups:
+            warnings.append("group %s doesn't exist but is assigned to ReadPermission" % group)
 
     for group in groups:
         users_in_group = config.get_list('Group', group)
         for user_in_group in users_in_group:
             if user_in_group not in users:
-                warnings.append("user %s is assigned to group %s but doesn't exist as user" % (user_in_group, group))
+                warnings.append(
+                    "user %s is assigned to group %s but doesn't exist as user"
+                    % (user_in_group, group)
+                )
 
     config_section = config.get_sections()
 
     for group in groups_with_write_permissions:
-        modules = config.get_list('WritePermission', group)
-        for module in modules:
-            if CONF_AREA_PREFIX+module not in config_section:
-                warnings.append("module %s doesn't exist but is assigned to group %s in WritePermission" % (module, group))
-
-    for group in groups_with_read_permissions:
-        modules = config.get_list('ReadPermission', group)
-        for module in modules:
-            if CONF_AREA_PREFIX+module not in config_section:
-                warnings.append("module %s doesn't exist but is assigned to group %s in ReadPermission" % (module, group))
+        for perm in ["WritePermission", "ReadPermission"]:
+            modules = config.get_list(perm, group)
+            for module in modules:
+                if CONF_AREA.format(area=module) not in config_section:
+                    warnings.append("module %s doesn't exist but is assigned to group %s in"
+                                    " %s" % (module, group, perm))
 
     for info in infos: logger.info(info)
     for warning in warnings: logger.error(warning)
     for error in errors: logger.error(error)
 
     return {'infos': infos, 'warnings': warnings, 'errors': errors}
+
 
 class DoorPiWeb(ThreadingMixIn, HTTPServer):
     keep_running = True
@@ -103,9 +105,9 @@ class DoorPiWeb(ThreadingMixIn, HTTPServer):
     @property
     def own_url(self):
         if self.server_port is 80:
-            return "http://%s/"%self.server_name
+            return "http://%s/" % self.server_name
         else:
-            return "http://%s:%s/"%(self.server_name, self.server_port)
+            return "http://%s:%s/" % (self.server_name, self.server_port)
 
     def inform_own_url(self): logger.info('DoorPiWeb URL is %s', self.own_url)
 
@@ -126,9 +128,11 @@ class DoorPiWeb(ThreadingMixIn, HTTPServer):
         eh.register_event("OnWebServerStart", __name__)
         eh.register_event("OnWebServerStop", __name__)
 
-        self.www = os.path.realpath(doorpi.DoorPi().config.get_string_parsed(DOORPIWEB_SECTION, 'www', '!BASEPATH!/../DoorPiWeb'))
-        self.indexfile = doorpi.DoorPi().config.get_string_parsed(DOORPIWEB_SECTION, 'indexfile', 'index.html')
-        self.area_public_name = doorpi.DoorPi().config.get_string_parsed(DOORPIWEB_SECTION, 'public', 'AREA_public')
+        conf = doorpi.DoorPi().config
+        self.www = os.path.realpath(conf.get_string_parsed(DOORPIWEB_SECTION, 'www',
+                                                           '!BASEPATH!/../DoorPiWeb'))
+        self.indexfile = conf.get_string_parsed(DOORPIWEB_SECTION, 'indexfile', 'index.html')
+        self.area_public_name = conf.get_string_parsed(DOORPIWEB_SECTION, 'public', 'AREA_public')
         check_config(self.config)
         logger.info("Serving files from {}".format(self.www))
 
@@ -144,8 +148,8 @@ class DoorPiWeb(ThreadingMixIn, HTTPServer):
     def fake_request(self):
         try:
             from urllib.request import urlopen as fake_request
-            fake_request("http://%s:%s/"%(self.server_name, self.server_port), timeout = 0)
-        except: pass
+            fake_request("http://%s:%s/" % (self.server_name, self.server_port), timeout=0)
+        except Exception: pass
 
     def init_shutdown(self):
         doorpi.DoorPi().event_handler.fire_event_sync("OnWebServerStop", __name__)
@@ -160,7 +164,7 @@ class DoorPiWeb(ThreadingMixIn, HTTPServer):
         listen_fds = int(os.environ.get("LISTEN_FDS", 0))
         if listen_fds > 0:
             logger.trace("Passed in fds: {}".format(listen_fds))
-            fd = 3 # FIXME don't use a magic number; this is SD_LISTEN_FDS_START in <systemd/sd-daemon.h>
+            fd = 3  # defined as SD_LISTEN_FDS_START in <systemd/sd-daemon.h>
             self.socket = socket.fromfd(fd, socket.AF_INET, socket.SOCK_STREAM)
             # fake out some info that isn't readily available in this mode
             self.server_name = "<your-raspberry-ip>:port"
@@ -170,7 +174,5 @@ class DoorPiWeb(ThreadingMixIn, HTTPServer):
 
     def server_activate(self):
         listen_fds = int(os.environ.get("LISTEN_FDS", 0))
-        if listen_fds > 0:
-            pass
-        else:
+        if listen_fds == 0:
             super().server_activate()

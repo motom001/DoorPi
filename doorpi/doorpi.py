@@ -25,12 +25,18 @@ DEADLY_SIGNALS_ABORT = 3
 
 
 class DoorPiNotExistsException(Exception): pass
+
+
 class DoorPiEventHandlerNotExistsException(Exception): pass
+
+
 class DoorPiRestartException(Exception): pass
 
 
 class Singleton(type):
+
     _instances = {}
+
     def __call__(cls, *args, **kwargs):
         if cls not in cls._instances:
             cls._instances[cls] = super(Singleton, cls).__call__(*args, **kwargs)
@@ -253,20 +259,16 @@ class DoorPi(metaclass=Singleton):
 
         infos_as_html = '<table>'
         for key in list(self.extra_info.keys()):
-            infos_as_html += '<tr><td>'
-            infos_as_html += '<b>'+key+'</b>'
-            infos_as_html += '</td><td>'
-            infos_as_html += '<i>'+cgi.escape(
-                str(self.extra_info.get(key)).replace("\r\n", "<br />")
-            )+'</i>'
-            infos_as_html += '</td></tr>'
+            key = cgi.escape(str(key))
+            val = cgi.escape(str(self.extra_info[key])).replace("\r\n", "\n").replace("\n", "<br>")
+            infos_as_html += f"<tr><td><b>{key}</b></td><td><i>{val}</i></td></tr>"
         infos_as_html += '</table>'
 
         mapping_table = {
-            'INFOS_PLAIN':      str(self.extra_info),
-            'INFOS':            infos_as_html,
-            'BASEPATH':         self.base_path,
-            'last_tick':        str(self.__last_tick)
+            'INFOS_PLAIN': str(self.extra_info),
+            'INFOS': infos_as_html,
+            'BASEPATH': self.base_path,
+            'last_tick': str(self.__last_tick)
         }
 
         for key in list(metadata.__dict__.keys()):
@@ -275,7 +277,7 @@ class DoorPi(metaclass=Singleton):
 
         if self.config:
             mapping_table.update({
-                "LAST_SNAPSHOT":    str(self.config.get_string('DoorPi', 'last_snapshot', log=False))
+                "LAST_SNAPSHOT": self.config.get_string("DoorPi", "last_snapshot", log=False)
             })
 
         if self.keyboard:
@@ -283,13 +285,13 @@ class DoorPi(metaclass=Singleton):
 
         for key in list(mapping_table.keys()):
             parsed_string = parsed_string.replace(
-                "!"+key+"!",
+                f"!{key}!",
                 mapping_table[key]
             )
 
         for key in list(self.extra_info.keys()):
             parsed_string = parsed_string.replace(
-                "!"+key+"!",
+                f"!{key}!",
                 str(self.extra_info[key])
             )
 

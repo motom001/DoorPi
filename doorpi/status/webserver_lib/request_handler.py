@@ -1,21 +1,20 @@
-# -*- coding: utf-8 -*-
-
+import cgi
+import json
 import logging
-logger = logging.getLogger(__name__)
-logger.debug("%s loaded", __name__)
-
 import os
-from mimetypes import guess_type
-from http.server import BaseHTTPRequestHandler
-import cgi # for parsing POST
-from urllib.parse import urlparse, parse_qs # parsing parameters and url
-import re # regex for area
-import json # for virtual resources
-from urllib.parse import unquote_plus
+import re
 
-from doorpi.actions import CallbackAction
+from http.server import BaseHTTPRequestHandler
+from mimetypes import guess_type
+from urllib.parse import unquote_plus
+from urllib.parse import urlparse, parse_qs
+
 import doorpi
+
 from .request_handler_static_functions import *
+
+
+logger = logging.getLogger(__name__)
 
 VIRTUELL_RESOURCES = [
     '/mirror',
@@ -30,11 +29,11 @@ VIRTUELL_RESOURCES = [
 ]
 
 PARSABLE_FILE_EXTENSIONS = ["html"]
-
 DOORPIWEB_SECTION = 'DoorPiWeb'
 
+
 class WebServerLoginRequired(Exception): pass
-class WebServerRequestHandlerShutdownAction(CallbackAction): pass
+
 
 class DoorPiWebRequestHandler(BaseHTTPRequestHandler):
 
@@ -42,6 +41,7 @@ class DoorPiWebRequestHandler(BaseHTTPRequestHandler):
     def conf(self): return self.server.config
 
     def log_error(self, format, *args): logger.error("[%s] %s", self.client_address[0], args)
+
     def log_message(self, format, *args): logger.debug("[%s] %s", self.client_address[0], args)
 
     @staticmethod
@@ -59,35 +59,27 @@ class DoorPiWebRequestHandler(BaseHTTPRequestHandler):
 
     @staticmethod
     def destroy():
-        doorpi.DoorPi().event_handler.unregister_source( __name__, force=True)
+        doorpi.DoorPi().event_handler.unregister_source(__name__, force=True)
 
     def do_GET(self):
-        #doorpi.DoorPi().event_handler('OnWebServerRequest', __name__)
         if not self.server.keep_running: return
 
         parsed_path = urlparse(self.path)
-        #doorpi.DoorPi().event_handler('OnWebServerRequest', __name__, {'header': self.headers.items(), 'path': parsed_path})
-        #doorpi.DoorPi().event_handler('OnWebServerRequestGet', __name__, {'header': self.headers.items(), 'path': parsed_path})
 
         if parsed_path.path == "/":
             return self.return_redirection('dashboard/pages/index.html')
 
         if self.authentication_required(): return self.login_form()
 
-        #doorpi.DoorPi().event_handler('OnWebServerRequestGet', __name__)
-
         if parsed_path.path in VIRTUELL_RESOURCES:
             return self.create_virtual_resource(parsed_path, parse_qs(urlparse(self.path).query))
         else: return self.real_resource(parsed_path.path)
 
     def do_control(self, control_order, para):
-        result_object = dict(
-            success = False,
-            message = 'unknown error'
-        )
-        logger.debug(json.dumps(para, sort_keys = True, indent = 4))
+        result_object = {"success": False, "message": "unknown error"}
+        logger.debug(json.dumps(para, sort_keys=True, indent=4))
 
-        for parameter_name in list(para.keys()):
+        for parameter_name in para:
             try: para[parameter_name] = unquote_plus(para[parameter_name][0])
             except LookupError: para[parameter_name] = ''
 
@@ -140,9 +132,9 @@ class DoorPiWebRequestHandler(BaseHTTPRequestHandler):
         elif path.path == '/status':
             raw_parameters = self.clear_parameters(raw_parameters)
             return_object = doorpi.DoorPi().get_status(
-                modules = raw_parameters['module'],
-                name = raw_parameters['name'],
-                value = raw_parameters['value']
+                modules=raw_parameters['module'],
+                name=raw_parameters['name'],
+                value=raw_parameters['value']
             ).dictionary
         elif path.path.startswith('/control/'):
             return_object = self.do_control(path.path.split('/')[-1], raw_parameters)
@@ -151,25 +143,31 @@ class DoorPiWebRequestHandler(BaseHTTPRequestHandler):
             return_object, mime = self.get_file_content('/dashboard/parts/modules.overview.html')
             return_object = self.parse_content(
                 return_object,
-                MODULE_AREA_NAME = raw_parameters['module'][0] or '',
-                MODULE_NAME = raw_parameters['name'][0] or ''
+                MODULE_AREA_NAME=raw_parameters['module'][0] or '',
+                MODULE_NAME=raw_parameters['name'][0] or ''
             )
             raw_parameters['output'] = "html"
 
         if 'output' not in list(raw_parameters.keys()): raw_parameters['output'] = ''
         return self.return_virtual_resource(return_object, raw_parameters['output'])
 
-    def return_virtual_resource(self, prepared_object, return_type = 'json'):
+    def return_virtual_resource(self, prepared_object, return_type='json'):
         if isinstance(return_type, list) and len(return_type) > 0: return_type = return_type[0]
 
         if return_type in ["json", "default"]:
-            return  self.return_message(json.dumps(prepared_object), "application/json; charset=utf-8")
+            return self.return_message(json.dumps(prepared_object),
+                                       "application/json; charset=utf-8")
         if return_type in ["json_parsed", "json.parsed"]:
-            return  self.return_message(self.parse_content(json.dumps(prepared_object)), "application/json; charset=utf-8")
+            return self.return_message(self.parse_content(json.dumps(prepared_object)),
+                                       "application/json; charset=utf-8")
         elif return_type in ["json_beautified", "json.beautified", "beautified.json"]:
-            return  self.return_message(json.dumps(prepared_object, sort_keys=True, indent=4), "application/json; charset=utf-8")
-        elif return_type in ["json_beautified_parsed", "json.beautified.parsed", "beautified.json.parsed", ""]:
-            return  self.return_message(self.parse_content(json.dumps(prepared_object, sort_keys=True, indent=4)), "application/json; charset=utf-8")
+            return self.return_message(json.dumps(prepared_object, sort_keys=True, indent=4),
+                                       "application/json; charset=utf-8")
+        elif return_type in ["json_beautified_parsed", "json.beautified.parsed",
+                             "beautified.json.parsed", ""]:
+            return self.return_message(self.parse_content(json.dumps(prepared_object,
+                                                                     sort_keys=True, indent=4)),
+                                       "application/json; charset=utf-8")
         elif return_type in ["string", "plain", "str"]:
             return self.return_message(str(prepared_object))
         elif return_type in ["repr"]:
@@ -177,12 +175,12 @@ class DoorPiWebRequestHandler(BaseHTTPRequestHandler):
         elif return_type is 'html':
             return self.return_message(prepared_object, 'text/html; charset=utf-8')
         else:
-            try:    return self.return_message(repr(prepared_object))
-            except: return self.return_message(str(prepared_object))
+            try: return self.return_message(repr(prepared_object))
+            except Exception: return self.return_message(str(prepared_object))
 
     def real_resource(self, path):
-        #doorpi.DoorPi().event_handler('OnWebServerRealResource', __name__, {'path': path})
-        if os.path.isdir(self.server.www + path): return self.list_directory(self.server.www + path)
+        if os.path.isdir(self.server.www + path):
+            return self.list_directory(self.server.www + path)
         return self.return_file_content(path)
 
     def list_directory(self, path):
@@ -195,11 +193,10 @@ class DoorPiWebRequestHandler(BaseHTTPRequestHandler):
         return_html = '''<!DOCTYPE html>
             <html lang="en"><head></head><body><a href="..">..</a></br>
         '''
-        for dir in dirs: return_html += '<a href="./{dir}">{dir}</a></br>'.format(dir = dir)
-        for file in files: return_html += '<a href="./{file}">{file}</a></br>'.format(file = file)
+        for dir in dirs: return_html += '<a href="./{dir}">{dir}</a></br>'.format(dir=dir)
+        for file in files: return_html += '<a href="./{file}">{file}</a></br>'.format(file=file)
         return_html += "</body></html>"
         return self.return_message(return_html, 'text/html')
-        #return self.send_error(403)
 
     def return_redirection(self, new_location):
         message = '''
@@ -207,8 +204,8 @@ class DoorPiWebRequestHandler(BaseHTTPRequestHandler):
         <meta http-equiv="refresh" content="0;url={new_location}">
         <a href="{new_location}">{new_location}</a>
         </html>
-        '''.format(new_location = new_location)
-        return self.return_message(message, 'text/html', http_code = 301)
+        '''.format(new_location=new_location)
+        return self.return_message(message, 'text/html', http_code=301)
 
     @staticmethod
     def get_mime_typ(url):
@@ -219,7 +216,7 @@ class DoorPiWebRequestHandler(BaseHTTPRequestHandler):
         ext = filename.split(".")[-1]
         return ext in PARSABLE_FILE_EXTENSIONS
 
-    def read_from_file(self, url, template_recursion = 5):
+    def read_from_file(self, url, template_recursion=5):
         # protect against directory traversal
         url = os.path.realpath(url)
         if not url.startswith(self.server.www): raise FileNotFoundError
@@ -245,9 +242,9 @@ class DoorPiWebRequestHandler(BaseHTTPRequestHandler):
             content, mime
         )
 
-    def return_message(self, message = "", content_type = 'text/plain; charset=utf-8', http_code = 200,):
+    def return_message(self, message="", content_type='text/plain; charset=utf-8', http_code=200):
         self.send_response(http_code)
-        self.send_header('WWW-Authenticate', 'Basic realm=\"%s\"' % doorpi.DoorPi().name_and_version)
+        self.send_header('WWW-Authenticate', 'Basic realm="DoorPi"')
         self.send_header("Server", doorpi.DoorPi().name_and_version)
         self.send_header("Content-type", content_type)
         self.send_header('Connection', 'close')
@@ -255,19 +252,20 @@ class DoorPiWebRequestHandler(BaseHTTPRequestHandler):
         self.wfile.write(message.encode("utf-8") if type(message) is str else message)
 
     def login_form(self):
-        return self.return_message(http_code = 401)
+        return self.return_message(http_code=401)
 
     def authentication_required(self):
         try:
             parsed_path = urlparse(self.path)
 
-            public_resources = self.conf.get_keys(self.server.area_public_name, log = False)
+            public_resources = self.conf.get_keys(self.server.area_public_name, log=False)
             for public_resource in public_resources:
                 if re.match(public_resource, parsed_path.path):
-                    logger.debug('public resource: %s',parsed_path.path)
+                    logger.debug('public resource: %s', parsed_path.path)
                     return False
 
-            username, password = self.headers['authorization'].replace('Basic ', '').decode('base64').split(':', 1)
+            username, password = self.headers['authorization'] \
+                .replace('Basic ', '').decode('base64').split(':', 1)
 
             user_session = self.server.sessions.get_session(username)
             if not user_session:
@@ -279,17 +277,20 @@ class DoorPiWebRequestHandler(BaseHTTPRequestHandler):
 
             for write_permission in user_session['writepermissions']:
                 if re.match(write_permission, parsed_path.path):
-                    logger.info('user %s has write permissions: %s', user_session['username'], parsed_path.path)
+                    logger.info('user %s has write permissions: %s',
+                                user_session['username'], parsed_path.path)
                     return False
 
             for read_permission in user_session['readpermissions']:
                 if re.match(read_permission, parsed_path.path):
-                    logger.info('user %s has read permissions: %s', user_session['username'], parsed_path.path)
+                    logger.info('user %s has read permissions: %s',
+                                user_session['username'], parsed_path.path)
                     return False
 
-            logger.warning('user %s has no permissions: %s', user_session['username'], parsed_path.path)
+            logger.warning('user %s has no permissions: %s',
+                           user_session['username'], parsed_path.path)
             return True
-        except: return True
+        except Exception: return True
 
     def check_authentication(self):
         if not self.authentication_required(): return True
@@ -298,22 +299,22 @@ class DoorPiWebRequestHandler(BaseHTTPRequestHandler):
     def create_mirror(self):
         parsed_path = urlparse(self.path)
         message_parts = [
-                'CLIENT VALUES:',
-                'client_address=%s (%s)' % (self.client_address,
-                                            self.address_string()),
-                'raw_requestline=%s' % self.raw_requestline,
-                'command=%s' % self.command,
-                'path=%s' % self.path,
-                'real path=%s' % parsed_path.path,
-                'query=%s' % parsed_path.query,
-                'request_version=%s' % self.request_version,
-                '',
-                'SERVER VALUES:',
-                'server_version=%s' % self.server_version,
-                'sys_version=%s' % self.sys_version,
-                'protocol_version=%s' % self.protocol_version,
-                '',
-                'HEADERS RECEIVED:',
+            'CLIENT VALUES:',
+            'client_address=%s (%s)' % (self.client_address,
+                                        self.address_string()),
+            'raw_requestline=%s' % self.raw_requestline,
+            'command=%s' % self.command,
+            'path=%s' % self.path,
+            'real path=%s' % parsed_path.path,
+            'query=%s' % parsed_path.query,
+            'request_version=%s' % self.request_version,
+            '',
+            'SERVER VALUES:',
+            'server_version=%s' % self.server_version,
+            'sys_version=%s' % self.sys_version,
+            'protocol_version=%s' % self.protocol_version,
+            '',
+            'HEADERS RECEIVED:',
         ]
         for name, value in sorted(self.headers.items()):
             message_parts.append('%s=%s' % (name, value.rstrip()))
@@ -321,25 +322,28 @@ class DoorPiWebRequestHandler(BaseHTTPRequestHandler):
         message = '\r\n'.join(message_parts)
         return message
 
-    def parse_content(self, content, template_recursion = 5, **mapping_table):
+    def parse_content(self, content, template_recursion=5, **mapping_table):
         if type(content) != str:
             raise TypeError("content must be of type str")
 
-        mapping_table['DOORPI'] =           doorpi.DoorPi().name_and_version
-        mapping_table['SERVER'] =           self.server.server_name
-        mapping_table['PORT'] =             str(self.server.server_port)
-        mapping_table['MIN_EXTENSION'] =    '' if logger.getEffectiveLevel() <= 5 else '.min'
+        mapping_table['DOORPI'] = doorpi.DoorPi().name_and_version
+        mapping_table['SERVER'] = self.server.server_name
+        mapping_table['PORT'] = str(self.server.server_port)
+        mapping_table['MIN_EXTENSION'] = '' if logger.getEffectiveLevel() <= 5 else '.min'
 
         # Templates:
-        mapping_table['TEMPLATE:HTML_HEADER'] =     'html.header.html'
-        mapping_table['TEMPLATE:HTML_FOOTER'] =     'html.footer.html'
-        mapping_table['TEMPLATE:NAVIGATION'] =      'navigation.html'
+        mapping_table['TEMPLATE:HTML_HEADER'] = 'html.header.html'
+        mapping_table['TEMPLATE:HTML_FOOTER'] = 'html.footer.html'
+        mapping_table['TEMPLATE:NAVIGATION'] = 'navigation.html'
 
-        for k in list(mapping_table.keys()):
-            # template_recursion: don't process {TEMPLATE:...} if we're inside one
+        for k in mapping_table:
+            # only process {TEMPLATE:...} up to `template_recursion` levels deep
             if template_recursion and k.startswith('TEMPLATE:'):
                 # exceptions are deliberately ignored and will result in HTTP error 500
-                content = content.replace('{'+k+'}', self.read_from_file(os.path.join(self.server.www, 'dashboard', 'parts', mapping_table[k]), template_recursion=template_recursion-1))
+                content = content.replace('{' + k + '}', self.read_from_file(
+                    os.path.join(self.server.www, 'dashboard', 'parts', mapping_table[k]),
+                    template_recursion=template_recursion - 1)
+                )
             else:
-                content = content.replace('{'+k+'}', mapping_table[k])
+                content = content.replace('{' + k + '}', mapping_table[k])
         return content

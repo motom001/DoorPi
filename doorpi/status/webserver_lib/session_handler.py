@@ -1,14 +1,12 @@
-# -*- coding: utf-8 -*-
-
 import logging
-logger = logging.getLogger(__name__)
-logger.debug("%s loaded", __name__)
-
-import time # session timestamp
+import time
 
 import doorpi
 
+
+logger = logging.getLogger(__name__)
 CONF_AREA_PREFIX = 'AREA_'
+
 
 class SessionHandler:
 
@@ -46,26 +44,20 @@ class SessionHandler:
     def exists_session(self, session_id):
         return session_id in self._Sessions
 
-    def build_security_object(self, username, password, remote_client = ''):
-        if not len(self.config.get_keys('User')):
-            self.config.set_value(section = 'User', key = 'door', value = 'pi', password = True)
-            self.config.set_value(section = 'Group', key = 'administrator', value = 'door')
-            self.config.set_value(section = 'WritePermission', key = 'administrator', value = 'installer')
-            self.config.set_value(section = 'AREA_installer', key = '.*', value = '')
-
+    def build_security_object(self, username, password, remote_client=''):
         groups_with_write_permissions = self.config.get_keys('WritePermission')
         groups_with_read_permissions = self.config.get_keys('ReadPermission')
         groups = self.config.get_keys('Group')
         users = self.config.get_keys('User')
 
-        if not username in users:
+        if username not in users:
             doorpi.DoorPi().event_handler('WebServerAuthUnknownUser', __name__, {
                 'username': username,
                 'remote_client': remote_client
             })
             return None
 
-        real_password = self.config.get('User', username, password = True)
+        real_password = self.config.get('User', username, password=True)
         if real_password != password:
             doorpi.DoorPi().event_handler('WebServerAuthWrongPassword', __name__, {
                 'username': username,
@@ -75,12 +67,12 @@ class SessionHandler:
             return None
 
         web_session = dict(
-            username = username,
-            remote_client = remote_client,
-            session_starttime = time.time(),
-            readpermissions = [],
-            writepermissions = [],
-            groups = []
+            username=username,
+            remote_client=remote_client,
+            session_starttime=time.time(),
+            readpermissions=[],
+            writepermissions=[],
+            groups=[]
         )
 
         for group in groups:
@@ -92,7 +84,7 @@ class SessionHandler:
                 modules = self.config.get_list('ReadPermission', group)
                 for modul in modules:
                     web_session['readpermissions'].extend(
-                        self.config.get_keys(CONF_AREA_PREFIX+modul)
+                        self.config.get_keys(CONF_AREA_PREFIX + modul)
                     )
 
         for group in groups_with_write_permissions:
@@ -100,19 +92,17 @@ class SessionHandler:
                 modules = self.config.get_list('WritePermission', group)
                 for modul in modules:
                     web_session['writepermissions'].extend(
-                        self.config.get_keys(CONF_AREA_PREFIX+modul)
+                        self.config.get_keys(CONF_AREA_PREFIX + modul)
                     )
                     web_session['readpermissions'].extend(
-                        self.config.get_keys(CONF_AREA_PREFIX+modul)
+                        self.config.get_keys(CONF_AREA_PREFIX + modul)
                     )
 
-        web_session['readpermissions'] = list(set(web_session['readpermissions']))
         web_session['readpermissions'].sort()
-        web_session['writepermissions'] = list(set(web_session['writepermissions']))
         web_session['writepermissions'].sort()
 
         doorpi.DoorPi().event_handler('WebServerCreateNewSession', __name__, {
-            'session':  web_session
+            'session': web_session
         })
 
         self._Sessions[web_session['username']] = web_session

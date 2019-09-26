@@ -19,18 +19,18 @@ class Pjsua2(AbstractSIPPhone):
     def __init__(self):
         eh = DoorPi().event_handler
         for ev in [
-                # Fired by this class
-                "OnSIPPhoneCreate", "OnSIPPhoneStart", "OnSIPPhoneDestroy",
-                "OnCallOutgoing", "OnCallOutgoing_S",
-                # Fired by AccountCallback
-                "BeforeCallIncoming", "OnCallIncoming", "OnCallBusy", "OnCallReject",
-                "BeforeCallIncoming_S", "OnCallIncoming_S", "OnCallBusy_S", "OnCallReject_S",
-                # Fired by CallCallback (all) / Worker (unanswered)
-                "OnCallConnect", "OnCallUnanswered",
-                "OnCallConnect_S", "OnCallUnanswered_S",
-                # Fired by Worker
-                "OnCallDisconnect", "OnCallTimeExceeded",
-                "OnCallDisconnect_S", "OnCallTimeExceeded_S",
+            # Fired by this class
+            "OnSIPPhoneCreate", "OnSIPPhoneStart", "OnSIPPhoneDestroy",
+            "OnCallOutgoing", "OnCallOutgoing_S",
+            # Fired by AccountCallback
+            "BeforeCallIncoming", "OnCallIncoming", "OnCallBusy", "OnCallReject",
+            "BeforeCallIncoming_S", "OnCallIncoming_S", "OnCallBusy_S", "OnCallReject_S",
+            # Fired by CallCallback (all) / Worker (unanswered)
+            "OnCallConnect", "OnCallUnanswered",
+            "OnCallConnect_S", "OnCallUnanswered_S",
+            # Fired by Worker
+            "OnCallDisconnect", "OnCallTimeExceeded",
+            "OnCallDisconnect_S", "OnCallTimeExceeded_S",
         ]:
             eh.register_event(ev, EVENT_SOURCE)
 
@@ -103,7 +103,7 @@ class Pjsua2(AbstractSIPPhone):
                 # Another call is already active
                 return False
             if canonical_uri in self.__waiting_calls \
-                + [c.getInfo().remoteUri for c in self.__ringing_calls]:
+                    + [c.getInfo().remoteUri for c in self.__ringing_calls]:
                 return False
 
             # Dispatch creation of the call to the worker thread. This
@@ -147,7 +147,7 @@ class Pjsua2(AbstractSIPPhone):
                 logger.trace("Found '*' in config: everything is an admin number")
                 return True
             elif canonical_uri == self.canonicalize_uri(admin_number) \
-                and conf.get_string(section, admin_number) == "active":
+                    and conf.get_string(section, admin_number) == "active":
                 logger.trace("%s is admin number %s", uri, admin_number)
                 return True
         logger.trace("%s is not an admin number", uri)

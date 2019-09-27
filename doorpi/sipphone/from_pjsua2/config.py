@@ -2,7 +2,7 @@ import logging
 import pjsua2 as pj
 
 from doorpi import DoorPi
-from doorpi.sipphone import SIPPHONE_SECTION
+from doorpi.sipphone import DEFAULT_MEDIA_DIR, SIPPHONE_SECTION
 
 from . import logger
 
@@ -60,7 +60,7 @@ class Config:
         conf = DoorPi().config
         return {
             "filename": conf.get_string_parsed(SIPPHONE_SECTION, "dialtone",
-                                               "!BASEPATH!/media/dialtone.wav"),
+                                               f"{DEFAULT_MEDIA_DIR}/dialtone.wav"),
             "loudness": conf.get_float(SIPPHONE_SECTION, "dialtone_loudness", 1.0)
         }
 

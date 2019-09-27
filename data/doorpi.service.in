@@ -6,7 +6,7 @@ After=doorpi.socket
 
 [Service]
 Type=notify
-ExecStart=!!prefix!!/bin/doorpi_cli --configfile /etc/!!package!!/!!package!!.ini
+ExecStart=!!prefix!!/bin/doorpi_cli --configfile !!cfgdir!!/!!package!!.ini
 Environment=HOME=/var/lib/!!package!!
 WorkingDirectory=/var/lib/!!package!!
 Restart=always

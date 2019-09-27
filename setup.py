@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 
 import os
 import sys
@@ -10,6 +10,7 @@ from setuptools.command.install import install
 
 base_path = os.path.dirname(os.path.abspath(__file__))
 etc = "/etc" if sys.prefix == "/usr" else "etc"
+os.chdir(base_path)
 
 
 # Python version check
@@ -28,10 +29,12 @@ def read(filename):
 # Hook install command to process template files (*.in)
 class installhook(install):
     def run(self):
+        package = metadata.package.lower()
         substkeys = {
-            "package": metadata.package.lower(),
+            "package": package,
             "project": metadata.project,
             "prefix": self.prefix,
+            "cfgdir": f"/etc/{package}" if sys.prefix == "/usr" else f"{self.prefix}/etc/{package}"
         }
         substfiles = [f for f in os.listdir("data") if f.endswith(".in")]
         for f in substfiles:

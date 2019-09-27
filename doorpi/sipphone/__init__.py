@@ -63,12 +63,15 @@ A proper SIP phone module will fire these events during its life cycle:
 
 import importlib
 import logging
+import sys
 
 import doorpi
+from doorpi import metadata
 
+
+DEFAULT_MEDIA_DIR = f"{sys.prefix}/share/{metadata.package.lower()}"
 SIPPHONE_SECTION = 'SIP-Phone'
 logger = logging.getLogger(__name__)
-logger.debug("%s loaded", __name__)
 
 
 def load():

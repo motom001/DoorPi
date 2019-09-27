@@ -22,8 +22,8 @@ def generate_id(size=6, chars=string.ascii_uppercase + string.digits):
 class EventHandler:
 
     def __init__(self):
-        db_path = doorpi.DoorPi().config.get_string_parsed('DoorPi', 'eventlog',
-                                                           '!BASEPATH!/conf/eventlog.db')
+        conf = doorpi.DoorPi().config
+        db_path = conf.get_string_parsed('DoorPi', 'eventlog', '!BASEPATH!/conf/eventlog.db')
         self.db = EventLog(db_path)
 
         self.actions = {}
@@ -31,6 +31,24 @@ class EventHandler:
         self.extra_info = {}
         self.sources = []
         self.__active = True
+
+        # register eventbased actions from configfile
+        section = "EVENT_"
+        for event_section in conf.get_sections(section):
+            event = event_section[len(section):]
+            logger.info("Registering configured actions for %s", event)
+            for key in sorted(conf.get_keys(event_section)):
+                action = conf.get_string(event_section, key)
+                logger.debug("Registering action %s", repr(action))
+                self.register_action(event, action)
+
+        # register configured DTMF actions
+        logger.info("Registering DTMF actions")
+        section = "DTMF"
+        for key in conf.get_keys(section):
+            action = conf.get_string(section, key)
+            logger.debug("Registering action %s for DTMF %s", action, key)
+            self.register_action(f"OnDTMF_{key}", action)
 
     def destroy(self):
         self.__active = False

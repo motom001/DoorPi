@@ -136,19 +136,6 @@ class DoorPi(metaclass=Singleton):
         self.sipphone = sipphone.load()
         self.sipphone.start()
 
-        # register eventbased actions from configfile
-        for event_section in self.config.get_sections('EVENT_'):
-            logger.info("found EVENT_ section '%s' in configfile", event_section)
-            event_name = event_section[len('EVENT_'):]
-            for action in sorted(self.config.get_keys(event_section)):
-                logger.info("registering action '%s' for event '%s'", action, event_name)
-                self.event_handler.register_action(event_name, self.config.get(event_section, action))
-
-        # register actions for DTMF
-        section_name = 'DTMF'
-        for DTMF in sorted(self.config.get_keys(section_name)):
-            self.event_handler.register_action('OnDTMF_'+DTMF, self.config.get(section_name, DTMF))
-
         self.__prepared = True
         return self
 

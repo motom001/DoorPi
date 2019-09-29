@@ -55,15 +55,16 @@ def load_module_status(module_name):
     module = importlib.import_module(f"doorpi.status.requirements_lib.{module_name}").REQUIREMENT
 
     # parse reStructuredText descriptions to HTML:
-    # the top-level module.text_description
-    try:
-        module['text_description'] = rsttohtml(module['text_description'])
-        logger.trace("Parsed %s.text_description", module_name)
-    except KeyError: pass
+    # the top-level module.text_description and _configuration
+    for ent in ['text_description', 'text_configuration']:
+        try:
+            module[ent] = rsttohtml(module[ent])
+            logger.trace("Parsed %s.%s", module_name, ent)
+        except KeyError: pass
 
     # module.libraries.*.[text_description, text_warning, text_test]
     for lib in module['libraries'].keys():
-        for ent in ['text_description', 'text_warning', 'text_test']:
+        for ent in ['text_description', 'text_warning', 'text_test', 'text_configuration']:
             try:
                 module['libraries'][lib][ent] = rsttohtml(module['libraries'][lib][ent])
                 logger.trace("Parsed %s.libraries.%s.%s", module_name, lib, ent)

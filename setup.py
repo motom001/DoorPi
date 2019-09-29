@@ -18,6 +18,7 @@ if sys.version_info[:2] < (3, 6):
     print("*** ERROR: Current python version is too old", file=sys.stderr)
     print("This application requires Python 3.6 or newer", file=sys.stderr)
     print("Please upgrade your Python installation", file=sys.stderr)
+    sys.exit(1)
 
 
 def read(filename):

@@ -241,9 +241,9 @@ class DoorPi(metaclass=Singleton):
             self.extra_info['LastKey'] = str(self.keyboard.last_key)
 
         infos_as_html = '<table>'
-        for key in list(self.extra_info.keys()):
+        for key, val in self.extra_info.items():
             key = cgi.escape(str(key))
-            val = cgi.escape(str(self.extra_info[key])).replace("\r\n", "\n").replace("\n", "<br>")
+            val = cgi.escape(str(val)).replace("\r\n", "\n").replace("\n", "<br>")
             infos_as_html += f"<tr><td><b>{key}</b></td><td><i>{val}</i></td></tr>"
         infos_as_html += '</table>'
 
@@ -254,9 +254,9 @@ class DoorPi(metaclass=Singleton):
             'last_tick': str(self.__last_tick)
         }
 
-        for key in list(metadata.__dict__.keys()):
-            if isinstance(metadata.__dict__[key], str):
-                mapping_table[key.upper()] = metadata.__dict__[key]
+        for key, val in metadata.__dict__.items():
+            if isinstance(val, str):
+                mapping_table[key.upper()] = val
 
         if self.config:
             mapping_table.update({
@@ -266,17 +266,11 @@ class DoorPi(metaclass=Singleton):
         if self.keyboard:
             mapping_table.update(self.keyboard._enumerate_outputs())
 
-        for key in list(mapping_table.keys()):
-            parsed_string = parsed_string.replace(
-                f"!{key}!",
-                mapping_table[key]
-            )
+        for key, val in mapping_table.items():
+            parsed_string = parsed_string.replace(f"!{key}!", val)
 
-        for key in list(self.extra_info.keys()):
-            parsed_string = parsed_string.replace(
-                f"!{key}!",
-                str(self.extra_info[key])
-            )
+        for key, val in self.extra_info.items():
+            parsed_string = parsed_string.replace(f"!{key}!", str(val))
 
         return parsed_string
 

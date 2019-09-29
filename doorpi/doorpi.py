@@ -27,9 +27,6 @@ DEADLY_SIGNALS_ABORT = 3
 class DoorPiNotExistsException(Exception): pass
 
 
-class DoorPiEventHandlerNotExistsException(Exception): pass
-
-
 class DoorPiRestartException(Exception): pass
 
 
@@ -136,20 +133,14 @@ class DoorPi(metaclass=Singleton):
         return self
 
     def __del__(self):
-        return self.destroy()
-
-    @property
-    def modules_destroyed(self):
-        if len(self.event_handler.sources) > 1: return False
-        return self.event_handler.idle
+        self.destroy()
 
     def destroy(self):
-        logger.debug('destroy doorpi')
+        logger.debug("Shutting down DoorPi")
+        self.__shutdown = True
         self.dpsd.stopping()
 
-        if not self.event_handler or self.event_handler.threads == None:
-            DoorPiEventHandlerNotExistsException("don't try to stop, when not prepared")
-            return False
+        if not self.__prepared: return
 
         logger.debug("Threads before starting shutdown: %s", self.event_handler.threads)
 
@@ -159,21 +150,20 @@ class DoorPi(metaclass=Singleton):
 
         timeout = 5
         waiting_between_checks = 0.5
-        time.sleep(waiting_between_checks)
-        while timeout > 0 and self.modules_destroyed is not True:
-            # while not self.event_handler.idle and timeout > 0 and len(self.event_handler.sources) > 1:
-            logger.debug('wait %s seconds for threads %s and %s event',
-                         timeout, len(self.event_handler.threads[1:]), len(self.event_handler.sources))
-            logger.trace('still existing threads:       %s', self.event_handler.threads)
-            logger.trace('still existing event sources: %s', self.event_handler.sources)
+
+        while timeout > 0 and not self.event_handler.idle:
+            logger.debug("Waiting %s seconds for %d events to finish",
+                         timeout, len(self.event_handler.threads))
+            logger.trace("Still existing event threads: %s", self.event_handler.threads)
+            logger.trace("Still existing event sources: %s", self.event_handler.sources)
             time.sleep(waiting_between_checks)
             timeout -= waiting_between_checks
 
-        if timeout <= 0:
-            logger.warning("waiting for threads to time out - there are still threads: %s", self.event_handler.threads)
+        if len(self.event_handler.sources) > 1:
+            logger.warning("Some event sources did not shut down properly: %s",
+                           self.event_handler.sources[1:])
 
-        logger.info('======== DoorPi successfully shutdown ========')
-        return True
+        logger.info("======== DoorPi completed shutting down ========")
 
     def restart(self):
         if self.destroy(): self.run()

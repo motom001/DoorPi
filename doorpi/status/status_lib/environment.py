@@ -15,7 +15,7 @@ except ModuleNotFoundError:
 
 def check_module_status(module):
     module['is_fulfilled'] = False if module['fulfilled_with_one'] else True
-    for module_name in list(module['libraries'].keys()):
+    for module_name in module['libraries']:
         status = {}
         try:
             package = importlib.import_module(module_name)
@@ -102,7 +102,7 @@ def get(*args, **kwargs):
 
         status = {}
         for name_requested in kwargs['name']:
-            for possible_name in list(REQUIREMENTS_DOORPI.keys()):
+            for possible_name in REQUIREMENTS_DOORPI:
                 if name_requested in possible_name:
                     status[possible_name] = REQUIREMENTS_DOORPI[possible_name]
 

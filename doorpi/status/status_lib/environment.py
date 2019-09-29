@@ -1,6 +1,7 @@
 import importlib
 import json
 import logging
+import time
 
 
 logger = logging.getLogger(__name__)
@@ -50,16 +51,22 @@ def rsttohtml(rst):
 
 
 def load_module_status(module_name):
+    logger.debug("Parsing requirements texts for %s", module_name)
     module = importlib.import_module(f"doorpi.status.requirements_lib.{module_name}").REQUIREMENT
 
     # parse reStructuredText descriptions to HTML:
     # the top-level module.text_description
-    try: module['text_description'] = rsttohtml(module['text_description'])
+    try:
+        module['text_description'] = rsttohtml(module['text_description'])
+        logger.trace("Parsed %s.text_description", module_name)
     except KeyError: pass
+
     # module.libraries.*.[text_description, text_warning, text_test]
     for lib in module['libraries'].keys():
         for ent in ['text_description', 'text_warning', 'text_test']:
-            try: module['libraries'][lib][ent] = rsttohtml(module['libraries'][lib][ent])
+            try:
+                module['libraries'][lib][ent] = rsttohtml(module['libraries'][lib][ent])
+                logger.trace("Parsed %s.libraries.%s.%s", module_name, lib, ent)
             except KeyError: pass
     # module.[configuration, events].*.description
     for ent in ['configuration', 'events']:
@@ -67,13 +74,14 @@ def load_module_status(module_name):
             for sub in range(len(module[ent])):
                 try:
                     module[ent][sub]['description'] = rsttohtml(module[ent][sub]['description'])
-                    logger.trace('Parsed {}.{}.{}.description'.format(module_name, ent, sub))
+                    logger.trace("Parsed %s.%s.%s.description", module_name, ent, sub)
                 except KeyError: pass
         except KeyError: pass
 
     return check_module_status(module)
 
 
+starttime = time.time()
 REQUIREMENTS_DOORPI = {
     'config': load_module_status('req_config'),
     'sipphone': load_module_status('req_sipphone'),
@@ -82,6 +90,8 @@ REQUIREMENTS_DOORPI = {
     'keyboard': load_module_status('req_keyboard'),
     'system': load_module_status('req_system')
 }
+endtime = time.time()
+logger.debug("Parsing requirements texts took %dms", int((endtime - starttime) * 1000))
 
 
 def get(*args, **kwargs):

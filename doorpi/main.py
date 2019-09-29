@@ -69,7 +69,7 @@ def parse_arguments(argv):
                             help=f"Specify configuration file to use (default: {default_cfg})",
                             default=default_cfg)
 
-    if len(sys.argv) > 1 and sys.argv[1] in ['start', 'stop', 'restart', 'status']:
+    if len(sys.argv) > 1 and sys.argv[1] in ['start', 'stop', 'status']:
         return arg_parser.parse_args(args=sys.argv[2:])
     else:
         return arg_parser.parse_args(args=sys.argv[1:])
@@ -95,9 +95,6 @@ def files_preserve_by_path(*paths):
 
 
 def main_as_daemon(argv):
-    if argv[1] is 'reload':
-        print('not implemeted yet - use restart instead')
-        return 1
     if argv[1] in ['stop']:
         parsed_arguments = None
     else:
@@ -166,7 +163,7 @@ def entry_point():
     """Zero-argument entry point for use with setuptools/distribute."""
     if len(sys.argv) > 1 and sys.argv[1] in ['status']:
         raise SystemExit(get_status_from_doorpi(sys.argv))
-    elif len(sys.argv) > 1 and sys.argv[1] in ['start', 'stop', 'restart', 'reload']:
+    elif len(sys.argv) > 1 and sys.argv[1] in ['start', 'stop', 'reload']:
         raise SystemExit(main_as_daemon(sys.argv))
     else:
         raise SystemExit(main_as_application(sys.argv))

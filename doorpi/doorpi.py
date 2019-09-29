@@ -27,9 +27,6 @@ DEADLY_SIGNALS_ABORT = 3
 class DoorPiNotExistsException(Exception): pass
 
 
-class DoorPiRestartException(Exception): pass
-
-
 class Singleton(type):
 
     _instances = {}
@@ -164,10 +161,6 @@ class DoorPi(metaclass=Singleton):
                            self.event_handler.sources[1:])
 
         logger.info("======== DoorPi completed shutting down ========")
-
-    def restart(self):
-        if self.destroy(): self.run()
-        else: raise DoorPiRestartException()
 
     def run(self):
         logger.debug("run")

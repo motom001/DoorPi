@@ -9,7 +9,7 @@ pressed, and to drive output pins as reaction to other events.
   output requests to the appropriate keyboard instance.
 * `abc.py`: Contains an abstract base class with some helpful methods
   for implementing new keyboard modules.
-* `from_*`: Contain the actual keyboard implementations.
+* `from_*.py`: Contain the actual keyboard implementations.
 
 The `*` in the keyboard module name is replaced by the "keyboard type",
 which is used in the configuration file to select an implementation.

@@ -258,7 +258,7 @@ class DoorPiWebRequestHandler(BaseHTTPRequestHandler):
         try:
             parsed_path = urlparse(self.path)
 
-            public_resources = self.conf.get_keys(self.server.area_public_name, log=False)
+            public_resources = self.conf.get_keys(self.server.area_public_name)
             for public_resource in public_resources:
                 if re.match(public_resource, parsed_path.path):
                     logger.debug('public resource: %s', parsed_path.path)

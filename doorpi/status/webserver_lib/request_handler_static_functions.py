@@ -10,7 +10,6 @@ def control_config_get_value(section, key, default='', store='True'):
         section=section,
         key=key,
         default=default,
-        store_if_not_exists=True if store.lower() == 'true' else False
     )
 
 
@@ -19,7 +18,6 @@ def control_config_set_value(section, key, value, password='False'):
         section=section,
         key=key,
         value=value,
-        password=True if password.lower() == 'true' else False
     )
 
 

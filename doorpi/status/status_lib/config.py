@@ -15,7 +15,8 @@ def get(*args, **kwargs):
                 return_dict[section] = {}
                 for value_request in kwargs['value']:
                     for key in kwargs['DoorPiObject'].config.get_keys(section, value_request):
-                        return_dict[section][key] = kwargs['DoorPiObject'].config.get(section, key)
+                        return_dict[section][key] = kwargs['DoorPiObject'].config \
+                            .get_string(section, key)
 
         for section in list(return_dict.keys()):
             if len(return_dict[section]) == 0: del return_dict[section]

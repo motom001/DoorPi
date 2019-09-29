@@ -22,7 +22,7 @@ class MailAction(Action):
         self.__host = cfg.get_string("SMTP", "server")
         self.__port = cfg.get_int("SMTP", "port", 0)
 
-        need_login = cfg.get_boolean("SMTP", "need_login", True)
+        need_login = cfg.get_bool("SMTP", "need_login", True)
         if need_login:
             self.__user = cfg.get_string("SMTP", "username")
             self.__pass = cfg.get_string("SMTP", "password")
@@ -30,8 +30,8 @@ class MailAction(Action):
             self.__user = self.__pass = None
 
         self.__from = cfg.get_string("SMTP", "from", f"\"DoorPi\" <{self.__user}@{self.__host}>")
-        self.__ssl = cfg.get_boolean("SMTP", "use_ssl", False)
-        self.__starttls = cfg.get_boolean("SMTP", "use_tls", True)
+        self.__ssl = cfg.get_bool("SMTP", "use_ssl", False)
+        self.__starttls = cfg.get_bool("SMTP", "use_tls", True)
         self.__signature = cfg.get_string("SMTP", "signature", "!EPILOG!")  # not parsed yet
 
         if text.startswith("/"):

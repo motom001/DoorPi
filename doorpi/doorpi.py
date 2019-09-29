@@ -113,13 +113,9 @@ class DoorPi(metaclass=Singleton):
         signal.signal(signal.SIGINT, handler)
         signal.signal(signal.SIGTERM, handler)
 
-        self.config = ConfigObject.load_config(self.__argv.configfile)
-        self._base_path = self.config.get("DoorPi", "base_path", self.base_path)
+        self.config = ConfigObject(self.__argv.configfile)
+        self._base_path = self.config.get_string("DoorPi", "base_path", self.base_path)
         self.event_handler = EventHandler()
-
-        if self.config.config_file is None:
-            self.event_handler.register_action("AfterStartup",
-                                               CallbackAction(self.config.save_config))
 
         # register own events
         for ev in ["BeforeStartup", "OnStartup", "AfterStartup",
@@ -264,7 +260,7 @@ class DoorPi(metaclass=Singleton):
 
         if self.config:
             mapping_table.update({
-                "LAST_SNAPSHOT": self.config.get_string("DoorPi", "last_snapshot", log=False)
+                "LAST_SNAPSHOT": self.config.get_string("DoorPi", "last_snapshot")
             })
 
         if self.keyboard:

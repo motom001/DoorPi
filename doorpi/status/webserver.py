@@ -21,7 +21,7 @@ CONF_AREA = "AREA_{area}"
 
 
 def load_webserver():
-    ip = doorpi.DoorPi().config.get(DOORPIWEB_SECTION, 'ip', '0.0.0.0')
+    ip = doorpi.DoorPi().config.get_string(DOORPIWEB_SECTION, 'ip', '0.0.0.0')
     port = doorpi.DoorPi().config.get_int(DOORPIWEB_SECTION, 'port', 50371)
 
     doorpiweb_object = None

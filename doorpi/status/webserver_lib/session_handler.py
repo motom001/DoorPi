@@ -57,7 +57,7 @@ class SessionHandler:
             })
             return None
 
-        real_password = self.config.get('User', username, password=True)
+        real_password = self.config.get_string('User', username)
         if real_password != password:
             doorpi.DoorPi().event_handler('WebServerAuthWrongPassword', __name__, {
                 'username': username,

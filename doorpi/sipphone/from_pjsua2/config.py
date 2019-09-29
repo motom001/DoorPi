@@ -30,7 +30,7 @@ class Config:
         identity = conf.get_string(SIPPHONE_SECTION, "identity", "DoorPi")
         sip_server = Config.sipphone_server()
         sip_user = conf.get_string(SIPPHONE_SECTION, "sipserver_username")
-        sip_pass = conf.get_string(SIPPHONE_SECTION, "sipserver_password", password=True)
+        sip_pass = conf.get_string(SIPPHONE_SECTION, "sipserver_password")
         sip_realm = conf.get_string(SIPPHONE_SECTION, "sipserver_realm", sip_server)
         if not sip_user: raise ValueError(f"No username given in [{SIPPHONE_SECTION}]")
         if not sip_server: raise ValueError(f"No server given in [{SIPPHONE_SECTION}]")
@@ -199,7 +199,7 @@ class Config:
 
     @staticmethod
     def setup_audio_echo_cancellation(adm: pj.AudDevManager) -> None:
-        if conf.get_boolean(SIPPHONE_SECTION, "echo_cancellation_enabled", False):
+        if conf.get_bool(SIPPHONE_SECTION, "echo_cancellation_enabled", False):
             tail = conf.get_int(SIPPHONE_SECTION, "echo_cancellation_tail", 250)
             logger.trace("Setting echo cancellation tail length to %dms", tail)
             adm.setEcOptions(tail, 0)

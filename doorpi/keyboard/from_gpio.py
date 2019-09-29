@@ -34,7 +34,7 @@ class GPIOKeyboard(AbstractKeyboard):
         else:
             raise ValueError(f"{self.name}: Invalid address mode (must be BOARD or BCM)")
 
-        pull = conf.get(section_name, "pull_up_down", "OFF")
+        pull = conf.get_string(section_name, "pull_up_down", "OFF")
         if pull == "OFF":
             pull = gpio.PUD_OFF
         elif pull == "UP":

@@ -75,7 +75,7 @@ logger = logging.getLogger(__name__)
 
 
 def load():
-    sipphone_name = doorpi.DoorPi().config.get("SIP-Phone", "type", "dummy")
+    sipphone_name = doorpi.DoorPi().config.get_string("SIP-Phone", "type", "dummy")
     try:
         return importlib.import_module(f"doorpi.sipphone.from_{sipphone_name}").instantiate()
     except ImportError as err:

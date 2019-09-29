@@ -5,9 +5,12 @@ logger = logging.getLogger(__name__)
 logger.debug("%s loaded", __name__)
 
 
-def get(DoorPiObject, name, *args, **kwargs):
+def get(DoorPiObject, name=[], *args, **kwargs):
     logger.trace("Requested sipphone status with name=%s", name)
     try:
+        if len(name) == 0:
+            name = ["name", "current_call"]
+
         sipphone = DoorPiObject.sipphone
         status = {}
 
@@ -19,7 +22,7 @@ def get(DoorPiObject, name, *args, **kwargs):
 
         return status
     except Exception as ex:
-        logger.exception(ex)
+        logger.exception("Could not collect status for sipphone")
         return {"Error": f"Could not create {__name__} object: {str(ex)}"}
 
 

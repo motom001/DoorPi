@@ -119,9 +119,9 @@ class DoorPiWebRequestHandler(BaseHTTPRequestHandler):
         return result_object
 
     def clear_parameters(self, raw_parameters):
-        if 'module' not in list(raw_parameters.keys()): raw_parameters['module'] = []
-        if 'name' not in list(raw_parameters.keys()): raw_parameters['name'] = []
-        if 'value' not in list(raw_parameters.keys()): raw_parameters['value'] = []
+        if 'module' not in raw_parameters: raw_parameters['module'] = []
+        if 'name' not in raw_parameters: raw_parameters['name'] = []
+        if 'value' not in raw_parameters: raw_parameters['value'] = []
         return raw_parameters
 
     def create_virtual_resource(self, path, raw_parameters):
@@ -148,7 +148,7 @@ class DoorPiWebRequestHandler(BaseHTTPRequestHandler):
             )
             raw_parameters['output'] = "html"
 
-        if 'output' not in list(raw_parameters.keys()): raw_parameters['output'] = ''
+        if 'output' not in raw_parameters: raw_parameters['output'] = ''
         return self.return_virtual_resource(return_object, raw_parameters['output'])
 
     def return_virtual_resource(self, prepared_object, return_type='json'):

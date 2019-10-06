@@ -38,8 +38,6 @@ class Pjsua2(AbstractSIPPhone):
         for dtmf in DoorPi().config.get_keys("DTMF"):
             eh.register_event(f"OnDTMF_{dtmf}", EVENT_SOURCE)
 
-        self.__ep = None
-
         self.__waiting_calls = []  # outgoing calls that are not yet connected
         self.__ringing_calls = []  # outgoing calls that are currently ringing
         self.__call_lock = threading.Lock()
@@ -82,8 +80,6 @@ class Pjsua2(AbstractSIPPhone):
             self.__worker_thread.join()
             raise RuntimeError("PJSUA2 initialization failed") from self.__worker.error
 
-        self.__ep = pj.Endpoint.instance()
-
         fire_event("OnSIPPhoneStart", async_only=True)
         logger.info("Start successful")
 
@@ -101,9 +97,6 @@ class Pjsua2(AbstractSIPPhone):
         with self.__call_lock:
             if self.current_call is not None:
                 # Another call is already active
-                return False
-            if canonical_uri in self.__waiting_calls \
-                    + [c.getInfo().remoteUri for c in self.__ringing_calls]:
                 return False
 
             # Dispatch creation of the call to the worker thread. This
@@ -171,10 +164,4 @@ class Pjsua2(AbstractSIPPhone):
         if "@" not in canonical_uri:
             canonical_uri = canonical_uri + "@" + Config.sipphone_server()
         logger.trace("Canonicalized URI '%s' as '%s'", uri, canonical_uri)
-
-        uri_status = self.__ep.utilVerifySipUri(canonical_uri)
-        if uri_status != pj.PJ_SUCCESS:
-            msg = f"Unable to form a valid URI from {uri}"
-            logger.error(msg)
-            raise ValueError(msg)
         return canonical_uri

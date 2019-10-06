@@ -17,6 +17,12 @@ class OutAction(Action):
         if not doorpi.DoorPi().keyboard.output(self._pin, value):
             raise RuntimeError(f"Cannot set pin {self._pin} to {value}")
 
+    def __str__(self):
+        return f"Set {self._pin} to {self._value}"
+
+    def __repr__(self):
+        return f"{__name__.split('.')[-1]}:{self._pin},{self._value}"
+
 
 class TriggeredOutAction(OutAction):
 
@@ -37,6 +43,14 @@ class TriggeredOutAction(OutAction):
 
     def interrupt(self, event_id, extra):
         self._int.set()
+
+    def __str__(self):
+        return f"Hold {self._pin} at {self._value} for {self._holdtime}s" \
+            + f" or until {self._intpin} is pressed" if self._intpin else ""
+
+    def __repr__(self):
+        return f"{__name__.split('.')[-1]}:{self._pin},{self._value},{self._stopval}," \
+            f"{self._holdtime}{',' + self._intpin if self._intpin is not None else ''}"
 
 
 def instantiate(*args):

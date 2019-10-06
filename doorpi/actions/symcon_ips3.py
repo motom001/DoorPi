@@ -88,6 +88,12 @@ class IPSSetValueAction(IPSConnector, Action):
     def __call__(self, event_id, extra):
         self.set_value(self.__key, doorpi.DoorPi().parse_string(self.__value))
 
+    def __str__(self):
+        return f"Set IPS variable {self.__key} to {self.__value}"
+
+    def __repr__(self):
+        return f"{__name__.split('.')[-1]}:set,{self.__key},{self.__value}"
+
 
 class IPSCallFromVariableAction(IPSConnector, Action):
 
@@ -102,6 +108,12 @@ class IPSCallFromVariableAction(IPSConnector, Action):
 
         logger.info("[%s] Got phone number %s from variable %s", event_id, repr(uri), self.__key)
         doorpi.DoorPi().sipphone.call(uri)
+
+    def __str__(self):
+        return f"Call the number stored in IPS variable {self.__key}"
+
+    def __repr__(self):
+        return f"{__name__.split('.')[-1]}:call,{self.__key}"
 
 
 def instantiate(action, *params):

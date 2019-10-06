@@ -23,5 +23,11 @@ class CallFromFileAction(Action):
         except OSError as err:
             raise RuntimeError(f"Cannot read target URL from file {self.__filename}") from err
 
+    def __str__(self):
+        return f"Call the number stored in {self.__filename}"
+
+    def __repr__(self):
+        return f"{__name__.split('.')[-1]}:{self.__url}"
+
 
 instantiate = CallFromFileAction

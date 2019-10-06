@@ -36,9 +36,12 @@ class MailAction(Action):
 
         if text.startswith("/"):
             # Read actual text from file
+            self.__textfile = text
             with open(text, "rt") as f:
                 self.__text = f.read()
-        else: self.__text = text
+        else:
+            self.__textfile = None
+            self.__text = text
 
         if not self.__host: raise ValueError("No SMTP host set")
         if self.__port < 0 or self.__port > 65535: raise ValueError("Invalid SMTP port")
@@ -88,6 +91,14 @@ class MailAction(Action):
             smtp.starttls()
         if self.__user:
             smtp.login(self.__user, self.__pass)
+
+    def __str__(self):
+        return f"Send a mail to {self.__to}"
+
+    def __repr__(self):
+        return f"{__name__.split('.')[-1]}:{self.__to},{self.__subject}," \
+            f"{self.__textfile if self.__textfile is not None else self.__text}," \
+            f"{self.__snap}"
 
 
 instantiate = MailAction

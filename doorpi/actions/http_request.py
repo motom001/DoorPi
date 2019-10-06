@@ -27,5 +27,11 @@ class HTTPRequestAction(Action):
 
         logger.info("[%s] Server response: %d %s", event_id, r.status_code, r.reason)
 
+    def __str__(self):
+        return f"HTTP Request to {self.__url}"
+
+    def __repr__(self):
+        return f"{__name__.split('.')[-1]}:{self.__url}"
+
 
 instantiate = HTTPRequestAction

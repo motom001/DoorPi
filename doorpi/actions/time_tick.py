@@ -56,5 +56,11 @@ class TickAction(Action):
         self.fire_event(ev, num)
         doorpi.DoorPi().event_handler(f"OnTime{ev}{num:02}", __name__)
 
+    def __str__(self):
+        return "Perform regular housekeeping tasks"
+
+    def __repr__(self):
+        return "<internal tick>"
+
 
 instantiate = TickAction

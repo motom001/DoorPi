@@ -59,6 +59,12 @@ class URLSnapshotAction(SnapshotAction):
 
         self.cleanup()
 
+    def __str__(self):
+        return f"Save the image from {self.__url} as snapshot"
+
+    def __repr__(self):
+        return f"{__name__.split('.')[-1]}:{self.__url}"
+
 
 class PicamSnapshotAction(SnapshotAction):
 
@@ -74,6 +80,12 @@ class PicamSnapshotAction(SnapshotAction):
             cam.capture(self.get_next_path())
 
         self.cleanup()
+
+    def __str__(self):
+        return f"Take a snapshot from the Pi Camera"
+
+    def __repr__(self):
+        return f"{__name__.split('.')[-1]}"
 
 
 def instantiate(url=None):

@@ -34,8 +34,26 @@ class Action(metaclass=ABCMeta):
         """
         pass
 
+    @abstractmethod
     def __str__(self):
-        return self.__class__.__name__
+        """A human readable representation of this action
+
+        str(some_action) should result in a human-readable string that
+        accurately describes the action, which will be used in user
+        facing applications (e.g. logs or the web UI).
+        """
+        return None
+
+    @abstractmethod
+    def __repr__(self):
+        """Form an action string
+
+        repr(some_action) should reassemble the string which originally
+        constructed this action, or a string equal to that.
+        For actions which cannot be serialized that way,
+        a string beginning with "<internal " should be returned.
+        """
+        return ""
 
 
 class CallbackAction(Action):
@@ -55,6 +73,13 @@ class CallbackAction(Action):
 
     def __call__(self, event_id, extra):
         self.__callback(*self.__args, **self.__kw)
+
+    def __str__(self):
+        return f"CallbackAction for {self.__callback!r} (args={self.__args}, kwargs={self.__kw})"
+
+    def __repr__(self):
+        return "<internal callback to" \
+               f" {self.__callback!r} (args={self.__args}, kwargs={self.__kw})>"
 
 
 def from_string(s):

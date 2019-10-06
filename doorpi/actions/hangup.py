@@ -21,5 +21,11 @@ class HangupAction(Action):
         logger.info("[%s] Hanging up all calls", event_id)
         doorpi.DoorPi().sipphone.hangup()
 
+    def __str__(self):
+        return "Hang up all calls"
+
+    def __repr__(self):
+        return __name__.split(".")[-1]
+
 
 instantiate = HangupAction

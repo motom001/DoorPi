@@ -22,5 +22,11 @@ class OSExecuteAction(Action):
         else:
             logger.info("[%s] Command returned with code %d", event_id, result.returncode)
 
+    def __str__(self):
+        return f"Run shell code {self.__cmd}"
+
+    def __repr__(self):
+        return f"{__name__.split('.')[-1]}:{self.__cmd}"
+
 
 instantiate = OSExecuteAction

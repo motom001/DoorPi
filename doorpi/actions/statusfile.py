@@ -36,7 +36,10 @@ class StatusfileAction(Action):
             f.write(content)
 
     def __str__(self):
-        return f"{self.__class__.__name__} ({self.__filename})"
+        return f"Write current status into {self.__filename}"
+
+    def __repr__(self):
+        return f"{__name__.split('.')[-1]}:{self.__filename},{self.__content.strip()}"
 
 
 instantiate = StatusfileAction

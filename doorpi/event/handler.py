@@ -146,8 +146,9 @@ class EventHandler:
                 action(event_id, extra)
                 if not suppress_logs: self.db.log_action(event_id, str(action), start_time)
             except Exception:
-                logger.exception("[%s] Error executing action '%s' for event %s",
-                                 event_id, repr(action), event)
+                try: logger.exception("[%s] Error executing action '%s' for event %s",
+                                      event_id, repr(action), event)
+                except Exception: logger.exception("[%s] Error executing an action")
 
             if "oneshot" in action.__dict__ and action.oneshot:
                 oneshot_actions.append(action)

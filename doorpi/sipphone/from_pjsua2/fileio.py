@@ -16,10 +16,13 @@ class DialTonePlayer:
         self.__level = loudness
 
         eh = DoorPi().event_handler
-        eh.register_action("OnCallOutgoing_S", CallbackAction(self.start))
-        eh.register_action("OnCallConnect_S", CallbackAction(self.stop))
+        ac_start = CallbackAction(self.start)
+        ac_stop = CallbackAction(self.stop)
+
+        eh.register_action("OnCallOutgoing_S", ac_start)
+        eh.register_action("OnCallConnect_S", ac_stop)
         # Catch synthetic disconnects if no call was established
-        eh.register_action("OnCallDisconnect_S", CallbackAction(self.stop))
+        eh.register_action("OnCallDisconnect_S", ac_stop)
 
         try: self.__player.createPlayer(filename)
         except pj.Error as err:

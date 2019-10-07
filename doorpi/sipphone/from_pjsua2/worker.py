@@ -160,6 +160,5 @@ class Worker():
                 try: call.makeCall(uri, callprm)
                 except pj.Error as err:
                     logger.error("Error making a call: %s", err.info())
-                    raise
                 self.__phone._Pjsua2__ringing_calls += [call]
             self.__phone._Pjsua2__waiting_calls = []

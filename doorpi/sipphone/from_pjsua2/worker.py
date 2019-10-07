@@ -6,7 +6,7 @@ import time
 from doorpi import DoorPi
 from doorpi.sipphone import SIPPHONE_SECTION
 
-from . import fire_event, logger
+from . import EVENT_SOURCE, fire_event, logger
 from .callbacks import AccountCallback, CallCallback
 from .config import Config
 from .fileio import DialTonePlayer, CallRecorder
@@ -28,7 +28,9 @@ class Worker():
         self.hangup = 0
 
     def __call__(self):
-        try: self.pjInit()
+        try:
+            self.pjInit()
+            DoorPi().event_handler.fire_event_sync("OnSIPPhoneStart", EVENT_SOURCE)
         except Exception as ex:
             self.error = ex
             return
@@ -46,6 +48,7 @@ class Worker():
             self.error = ex
             return
         finally:
+            DoorPi().event_handler.fire_event_sync("OnSIPPhoneDestroy", EVENT_SOURCE)
             self.ready.release()
 
     def __del__(self):

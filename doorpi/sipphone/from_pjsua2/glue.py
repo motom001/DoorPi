@@ -20,7 +20,7 @@ class Pjsua2(AbstractSIPPhone):
         eh = DoorPi().event_handler
         for ev in [
             # Fired by this class
-            "OnSIPPhoneCreate", "OnSIPPhoneStart", "OnSIPPhoneDestroy",
+            "OnSIPPhoneCreate",
             "OnCallOutgoing", "OnCallOutgoing_S",
             # Fired by AccountCallback
             "BeforeCallIncoming", "OnCallIncoming", "OnCallBusy", "OnCallReject",
@@ -29,6 +29,7 @@ class Pjsua2(AbstractSIPPhone):
             "OnCallConnect", "OnCallUnanswered",
             "OnCallConnect_S", "OnCallUnanswered_S",
             # Fired by Worker
+            "OnSIPPhoneStart", "OnSIPPhoneDestroy",
             "OnCallDisconnect", "OnCallTimeExceeded",
             "OnCallDisconnect_S", "OnCallTimeExceeded_S",
         ]:
@@ -54,7 +55,6 @@ class Pjsua2(AbstractSIPPhone):
 
     def __del__(self):
         logger.debug("Destroying PJSUA2 SIP phone")
-        fire_event("OnSIPPhoneDestroy", async_only=True)
 
         with self.__call_lock:
             if self.__worker is not None:
@@ -80,7 +80,6 @@ class Pjsua2(AbstractSIPPhone):
             self.__worker_thread.join()
             raise RuntimeError("PJSUA2 initialization failed") from self.__worker.error
 
-        fire_event("OnSIPPhoneStart", async_only=True)
         logger.info("Start successful")
 
     def self_check(self):

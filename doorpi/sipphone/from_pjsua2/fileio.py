@@ -21,8 +21,8 @@ class DialTonePlayer:
 
         eh.register_action("OnCallOutgoing_S", ac_start)
         eh.register_action("OnCallConnect_S", ac_stop)
-        # Catch synthetic disconnects if no call was established
         eh.register_action("OnCallDisconnect_S", ac_stop)
+        eh.register_action("OnCallUnanswered_S", ac_stop)
 
         try: self.__player.createPlayer(filename)
         except pj.Error as err:

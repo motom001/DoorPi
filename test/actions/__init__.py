@@ -1,0 +1,2 @@
+EVENT_ID = "00TEST"
+EVENT_EXTRA = {}

@@ -16,7 +16,7 @@ class DoorPiSD:
             logger.info("Enabling sd-notify protocol")
             self.sockaddr = os.environ["NOTIFY_SOCKET"]
             if self.sockaddr.startswith("@"):
-                self.sockaddr[0] = "\0"
+                self.sockaddr = "\0" + self.sockaddr[1:]
 
             # open notify socket
             try: self.socket = socket.socket(family=socket.AF_UNIX, type=socket.SOCK_DGRAM)
@@ -80,7 +80,7 @@ class DoorPiSD:
             return None  # no timeout given
         if "WATCHDOG_PID" in os.environ and os.environ["WATCHDOG_PID"] != str(os.getpid()):
             return None  # wrong PID
-        return long(os.environ["WATCHDOG_USEC"])
+        return int(os.environ["WATCHDOG_USEC"])
 
     def __send(self, msg):
         """Actually send the messages to the daemon.

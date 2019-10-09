@@ -7,23 +7,19 @@ logger.debug("%s loaded", __name__)
 
 def get(DoorPiObject, name=[], *args, **kwargs):
     logger.trace("Requested sipphone status with name=%s", name)
-    try:
-        if len(name) == 0:
-            name = ["name", "current_call"]
+    if len(name) == 0:
+        name = ["name", "current_call"]
 
-        sipphone = DoorPiObject.sipphone
-        status = {}
+    sipphone = DoorPiObject.sipphone
+    status = {}
 
-        if "name" in name:
-            status["name"] = sipphone.get_name()
+    if "name" in name:
+        status["name"] = sipphone.get_name()
 
-        if "current_call" in name:
-            status["current_call"] = sipphone.dump_call()
+    if "current_call" in name:
+        status["current_call"] = sipphone.dump_call()
 
-        return status
-    except Exception as ex:
-        logger.exception("Could not collect status for sipphone")
-        return {"Error": f"Could not create {__name__} object: {str(ex)}"}
+    return status
 
 
 def is_active(doorpi_object):

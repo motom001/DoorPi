@@ -96,20 +96,16 @@ logger.debug("Parsing requirements texts took %dms", int((endtime - starttime) *
 
 
 def get(*args, **kwargs):
-    try:
-        if len(kwargs['name']) == 0: kwargs['name'] = ['']
-        if len(kwargs['value']) == 0: kwargs['value'] = ['']
+    if len(kwargs['name']) == 0: kwargs['name'] = ['']
+    if len(kwargs['value']) == 0: kwargs['value'] = ['']
 
-        status = {}
-        for name_requested in kwargs['name']:
-            for possible_name in REQUIREMENTS_DOORPI:
-                if name_requested in possible_name:
-                    status[possible_name] = REQUIREMENTS_DOORPI[possible_name]
+    status = {}
+    for name_requested in kwargs['name']:
+        for possible_name in REQUIREMENTS_DOORPI:
+            if name_requested in possible_name:
+                status[possible_name] = REQUIREMENTS_DOORPI[possible_name]
 
-        return status
-    except Exception as exp:
-        logger.exception(exp)
-        return {'Error': f'could not create {__name__!s} object - {exp!s}'}
+    return status
 
 
 def is_active(doorpi_object):

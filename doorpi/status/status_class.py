@@ -55,9 +55,9 @@ class DoorPiStatus:
                         value=value,
                         DoorPiObject=DoorPiObject
                 )
-            except Exception as ex:
+            except Exception:
                 logger.exception("Cannot collect status information for %s", module)
-                self.__status[module] = {"Error": f"Could not collect information: {ex!s}"}
+                self.__status[module] = {"Error": f"Could not collect information about {module}"}
 
 
 collect_status = DoorPiStatus

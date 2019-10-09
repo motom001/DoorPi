@@ -2,7 +2,7 @@ import importlib
 import logging
 
 import doorpi
-from doorpi.actions import CallbackAction
+from doorpi.actions import CheckAction
 
 from . import SECTION_KEYBOARDS, SECTION_TPL_IN, SECTION_TPL_OUT
 
@@ -57,7 +57,7 @@ class KeyboardHandler:
         num_fail = len(kbnames) - len(self.__keyboards)
         if num_fail != 0: raise RuntimeError(f"Failed to instantiate {num_fail} keyboards")
 
-        eh.register_action("OnTimeTick", CallbackAction(self.self_check))
+        eh.register_action("OnTimeTick", CheckAction(self.self_check))
 
     def input(self, pinpath):
         try:

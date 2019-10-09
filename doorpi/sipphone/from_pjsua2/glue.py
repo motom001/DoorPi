@@ -4,7 +4,7 @@ import pjsua2 as pj
 import threading
 
 from doorpi import DoorPi
-from doorpi.actions import CallbackAction
+from doorpi.actions import CallbackAction, CheckAction
 from doorpi.sipphone.abc import AbstractSIPPhone
 
 from . import EVENT_SOURCE, fire_event, logger
@@ -50,7 +50,7 @@ class Pjsua2(AbstractSIPPhone):
         self.__worker = None
         self.__worker_thread = None
         fire_event("OnSIPPhoneCreate", async_only=True)
-        eh.register_action("OnTimeRapidTick", CallbackAction(self.self_check))
+        eh.register_action("OnTimeRapidTick", CheckAction(self.self_check))
         eh.register_action("OnShutdown", CallbackAction(self.__del__))
 
     def __del__(self):

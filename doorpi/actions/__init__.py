@@ -1,5 +1,11 @@
 from abc import ABCMeta, abstractmethod
 
+import logging
+import doorpi
+
+
+logger = logging.getLogger(__name__)
+
 
 class Action(metaclass=ABCMeta):
 
@@ -75,11 +81,30 @@ class CallbackAction(Action):
         self.__callback(*self.__args, **self.__kw)
 
     def __str__(self):
-        return f"CallbackAction for {self.__callback!r} (args={self.__args}, kwargs={self.__kw})"
+        return f"{self.__class__.__name__} for {self.__callback!r}"
 
     def __repr__(self):
         return "<internal callback to" \
                f" {self.__callback!r} (args={self.__args}, kwargs={self.__kw})>"
+
+
+class CheckAction(CallbackAction):
+    """A CallbackAction which aborts program execution on errors.
+
+    Callbacks wrapped by this action are expected to raise an
+    appropriate exception in case an internal error is detected. The
+    exception will be logged and DoorPi will shut down.
+    """
+
+    def __call__(self, event_id, extra):
+        try:
+            super().__call__(event_id, extra)
+        except Exception:
+            logger.exception("[%s] *** UNCAUGHT EXCEPTION: Internal self check failed", event_id)
+            doorpi.DoorPi().doorpi_shutdown()
+
+    def __repr__(self):
+        return f"<internal self-check with {self._CallbackAction__callback!r}>"
 
 
 def from_string(s):

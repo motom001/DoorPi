@@ -130,7 +130,8 @@ def from_string(s):
     if not atype: return None
     if atype.startswith("_"):
         raise ValueError("Action types cannot start with an underscore")
-    args = s[len(atype) + 1:].split(",")
+    args = s[len(atype) + 1:]
+    args = args.split(",") if len(args) > 0 else []
 
     try:
         return importlib.import_module(f"doorpi.actions.{atype}").instantiate(*args)

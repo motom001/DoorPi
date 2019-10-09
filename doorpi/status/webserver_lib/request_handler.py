@@ -211,15 +211,26 @@ class DoorPiWebRequestHandler(BaseHTTPRequestHandler):
     def get_mime_typ(url):
         return guess_type(url)[0] or ""
 
+    def canonicalize_filename(self, url):
+        """Canonicalize and validate the requested filename"""
+
+        url = os.path.realpath(url)
+        if url.startswith(self.server.www): return url
+
+        snapshot_base = os.path.realpath(doorpi.DoorPi().config.get_string_parsed(
+            "DoorPi", "snapshot_path", "!BASEPATH!/../DoorPiWeb/snapshots"))
+        if url.startswith(snapshot_base): return url
+
+        # Path is not on whitelist
+        raise FileNotFoundError(url)
+
     @staticmethod
     def is_file_parsable(filename):
         ext = filename.split(".")[-1]
         return ext in PARSABLE_FILE_EXTENSIONS
 
     def read_from_file(self, url, template_recursion=5):
-        # protect against directory traversal
-        url = os.path.realpath(url)
-        if not url.startswith(self.server.www): raise FileNotFoundError
+        url = self.canonicalize_filename(url)
 
         read_mode = "r" if self.is_file_parsable(url) else "rb"
         with open(url, read_mode) as file:

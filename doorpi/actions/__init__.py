@@ -1,3 +1,19 @@
+"""Actions that DoorPi can perform in response to events.
+
+Submodules of `doorpi.actions` implement actions usable from the
+configuration file. The module name is used to determine the action's
+name in the configuration file. Example: `doorpi.actions.out` is
+configured as `out:<params>`.
+
+Each submodule must provide a top-level callable named `instantiate`,
+which will be passed all parameters specified in the configuration file,
+and must return a concrete subclass of `Action` (the abstract base class
+defined in this file). For more details see `Action.__init__` below.
+
+For more details of the required methods on action classes, see the
+definition of `Action` below.
+"""
+
 from abc import ABCMeta, abstractmethod
 
 import logging
@@ -14,9 +30,9 @@ class Action(metaclass=ABCMeta):
         """Construct the action with the given arguments.
 
         Arguments are taken from the config file and split at commas.
-        __init__ should validate the passed arguments (as far as
-        reasonable), in order to detect configuration errors as soon
-        as possible.
+        Since all arguments are passed as `str`, `__init__` should
+        validate the passed arguments (as far as reasonable), in order
+        to detect configuration errors as soon as possible.
 
         If the action intends to take the entire argument string as
         one, without handling commas specially, it must rejoin the
@@ -55,9 +71,9 @@ class Action(metaclass=ABCMeta):
         """Form an action string
 
         repr(some_action) should reassemble the string which originally
-        constructed this action, or a string equal to that.
-        For actions which cannot be serialized that way,
-        a string beginning with "<internal " should be returned.
+        constructed this action, or a string equal to that. For actions
+        which cannot be serialized that way, a string beginning with
+        "<internal " should be returned.
         """
         return ""
 

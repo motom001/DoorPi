@@ -20,7 +20,6 @@ class DummyPhone(AbstractSIPPhone):
         for ev in ["OnSIPPhoneCreate", "OnSIPPhoneStart", "OnSIPPhoneDestroy"]:
             eh.register_event(ev, __name__)
         eh("OnSIPPhoneCreate", __name__)
-        eh.register_action("OnTimeRapidTick", CheckAction(self.self_check))
         eh.register_action("OnShutdown", CallbackAction(self.__del__))
 
     def __del__(self):
@@ -32,9 +31,6 @@ class DummyPhone(AbstractSIPPhone):
     def start(self):
         logger.info("Starting dummy phone")
         doorpi.DoorPi().event_handler("OnSIPPhoneStart", __name__)
-
-    def self_check(self):
-        return
 
     def call(self, uri):
         logger.info("Starting call to %s", repr(uri))

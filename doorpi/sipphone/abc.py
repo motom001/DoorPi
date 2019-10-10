@@ -50,22 +50,6 @@ class AbstractSIPPhone(metaclass=ABCMeta):
         return
 
     @abstractmethod
-    def self_check(self) -> None:
-        """Checks whether this phone module is still functional.
-
-        This function is called periodically by DoorPi's core to make
-        sure that the SIP phone module is still fully functional. Which
-        kind of check to perform depends on the module's specifics. An
-        example would be checking if a worker thread is still alive.
-
-        If this function detects errors in the module that prevent it
-        from functioning, it should raise an exception with an
-        appropriate error message. This message will be logged and
-        DoorPi will shut down.
-        """
-        return
-
-    @abstractmethod
     def call(self, uri: str) -> bool:
         """Make a call to the specified uri.
 

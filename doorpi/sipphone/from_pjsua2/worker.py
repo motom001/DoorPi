@@ -76,11 +76,11 @@ class Worker():
 
         with self.__phone._Pjsua2__call_lock:
             prm = pj.CallOpParam()
-            self.__waiting_calls = []
+            self.__phone._Pjsua2__waiting_calls = []
 
-            for c in self.__ringing_calls:
+            for c in self.__phone._Pjsua2__ringing_calls:
                 c.hangup(prm)
-            self.__ringing_calls = []
+            self.__phone._Pjsua2__ringing_calls = []
 
             if self.current_call is not None:
                 self.current_call.hangup(prm)

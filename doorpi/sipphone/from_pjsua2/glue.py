@@ -45,25 +45,17 @@ class Pjsua2(AbstractSIPPhone):
         self.current_call = None
         self.dialtone = None
 
-        # Python doesn't like being called from native threads, so we
-        # need our own worker.
         self.__worker = None
-        self.__worker_thread = None
         fire_event("OnSIPPhoneCreate", async_only=True)
-        eh.register_action("OnTimeRapidTick", CheckAction(self.self_check))
         eh.register_action("OnShutdown", CallbackAction(self.__del__))
 
     def __del__(self):
         logger.debug("Destroying PJSUA2 SIP phone")
 
         with self.__call_lock:
-            if self.__worker is not None:
-                self.__worker.running = False
-                self.__worker_thread.join()
             if self.dialtone is not None:
                 self.dialtone.stop()
                 self.dialtone._DialTonePlayer__player = None
-            del self.__worker_thread
             del self.__worker
         DoorPi().event_handler.unregister_source(EVENT_SOURCE, force=True)
 
@@ -71,22 +63,8 @@ class Pjsua2(AbstractSIPPhone):
         logger.info("Starting PJSUA2 SIP phone")
         logger.trace("Starting worker thread")
         self.__worker = Worker(self)
-        self.__worker_thread = threading.Thread(target=self.__worker)
-        self.__worker_thread.name = "pjworker"
-        self.__worker_thread.start()
-        self.__worker.ready.acquire()  # wait for thread startup
-
-        if self.__worker.error is not None:
-            self.__worker_thread.join()
-            raise RuntimeError("PJSUA2 initialization failed") from self.__worker.error
-
+        self.__worker.setup()
         logger.info("Start successful")
-
-    def self_check(self):
-        if self.__worker is None:
-            raise RuntimeError("self_check() called, but PJSUA2 module was not start()ed yet")
-        if self.__worker.error is not None:
-            raise RuntimeError("PJSUA2 python worker died") from self.__worker.error
 
     def call(self, uri):
         try: canonical_uri = self.canonicalize_uri(uri)
@@ -98,12 +76,8 @@ class Pjsua2(AbstractSIPPhone):
                 # Another call is already active
                 return False
 
-            # Dispatch creation of the call to the worker thread. This
-            # prevents PJSIP from permanently allocating memory to
-            # track short lived event threads.
+            # Dispatch creation of the call to the main thread
             self.__waiting_calls += [canonical_uri]
-            with self.__worker.wake:
-                self.__worker.wake.notify()
             return True
 
     def dump_call(self) -> dict:
@@ -123,10 +97,7 @@ class Pjsua2(AbstractSIPPhone):
     def hangup(self) -> None:
         logger.trace("Hanging up all calls")
         with self.__call_lock:
-            self.__worker.hangup += 1
-        with self.__worker.wake:
-            self.__worker.wake.notify()
-        self.__worker.ready.wait()
+            self.__worker.hangup = True
 
     def is_admin(self, uri: str) -> bool:
         try: canonical_uri = self.canonicalize_uri(uri)

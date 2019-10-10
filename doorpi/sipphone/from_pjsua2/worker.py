@@ -1,9 +1,8 @@
 import logging
 import pjsua2 as pj
-import threading
-import time
 
 from doorpi import DoorPi
+from doorpi.actions import CheckAction
 from doorpi.sipphone import SIPPHONE_SECTION
 
 from . import EVENT_SOURCE, fire_event, logger
@@ -21,44 +20,13 @@ class Worker():
         self.__call_timeout = conf.get_int(SIPPHONE_SECTION, "call_timeout", 15)
         self.__max_call_time = conf.get_int(SIPPHONE_SECTION, "max_call_time", 120)
 
-        self.running = True
-        self.error = None
-        self.ready = threading.Semaphore(0)
-        self.wake = threading.Condition()
-        self.hangup = 0
-
-    def __call__(self):
-        try:
-            self.pjInit()
-            DoorPi().event_handler.fire_event_sync("OnSIPPhoneStart", EVENT_SOURCE)
-        except Exception as ex:
-            self.error = ex
-            return
-        finally:
-            self.ready.release()
-
-        try:
-            while self.running:
-                self.handleNativeEvents()
-                self.checkHangupAll()
-                self.checkCallTime()
-                self.createCalls()
-                with self.wake: self.wake.wait(0.05)
-        except Exception as ex:
-            self.error = ex
-            return
-        finally:
-            DoorPi().event_handler.fire_event_sync("OnSIPPhoneDestroy", EVENT_SOURCE)
-            self.ready.release()
+        self.hangup = False
 
     def __del__(self):
-        self.running = False
-        with self.wake: self.wake.notify()
-        self.ready.acquire()
+        DoorPi().event_handler.fire_event_sync("OnSIPPhoneStart", EVENT_SOURCE)
         self.__ep.libDestroy()
 
-    def pjInit(self):
-        """Initialize the PJSIP library. Called once by the worker thread."""
+    def setup(self):
         logger.info("Initializing native library")
         self.__ep = pj.Endpoint()
         # N.B.: from PJSIP's perspective, the thread that calls
@@ -85,6 +53,14 @@ class Worker():
             if e < 0:
                 raise RuntimeError("Error while initializing PJSUA2: {msg} ({errno})"
                                    .format(errno=-e, msg=self.__ep.utilStrError(-e)))
+
+        # register tick actions
+        eh = DoorPi().event_handler
+        eh.register_action("OnTimeRapidTick", CheckAction(self.handleNativeEvents))
+        eh.register_action("OnTimeTick", CheckAction(self.checkHangupAll))
+        eh.register_action("OnTimeTick", CheckAction(self.checkCallTime))
+        eh.register_action("OnTimeRapidTick", CheckAction(self.createCalls))
+        eh.fire_event_sync("OnSIPPhoneStart", EVENT_SOURCE)
         logger.debug("Initialization complete")
 
     def handleNativeEvents(self):
@@ -96,7 +72,7 @@ class Worker():
     def checkHangupAll(self):
         """Check if hanging up all calls was requested"""
 
-        if self.hangup < 1: return
+        if not self.hangup: return
 
         with self.__phone._Pjsua2__call_lock:
             prm = pj.CallOpParam()
@@ -111,8 +87,7 @@ class Worker():
             else:
                 # Synthesize a disconnect event
                 fire_event("OnCallDisconnect", remote_uri="sip:null@null")
-            self.ready.release(self.hangup)
-            self.hangup = 0
+            self.hangup = False
 
     def checkCallTime(self):
         """Check all current calls and enforce call time restrictions"""

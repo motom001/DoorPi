@@ -32,12 +32,12 @@ def add_trace_level():
     logging.Logger.trace = trace
 
 
-def init_logger(arguments):
+def init_logger(args):
     add_trace_level()
 
     global log_level
-    if "--debug" in arguments: log_level = logging.DEBUG
-    if "--trace" in arguments: log_level = TRACE_LEVEL
+    if args.debug: log_level = logging.DEBUG
+    if args.trace: log_level = TRACE_LEVEL
 
     # check if we're connected to the journal
     journal = False
@@ -50,7 +50,7 @@ def init_logger(arguments):
     logging.basicConfig(level=log_level, format=LOG_FORMAT_JOURNAL if journal else LOG_FORMAT)
 
 
-def parse_arguments(argv):
+def parse_arguments():
     arg_parser = argparse.ArgumentParser(
         formatter_class=argparse.RawDescriptionHelpFormatter,
         description=metadata.description,
@@ -70,9 +70,9 @@ def parse_arguments(argv):
                             default=default_cfg)
 
     if len(sys.argv) > 1 and sys.argv[1] in ['start', 'stop', 'status']:
-        return arg_parser.parse_args(args=sys.argv[2:])
+        return (sys.argv[1], arg_parser.parse_args(args=sys.argv[2:]))
     else:
-        return arg_parser.parse_args(args=sys.argv[1:])
+        return (None, arg_parser.parse_args(args=sys.argv[1:]))
 
 
 def files_preserve_by_path(*paths):
@@ -94,11 +94,9 @@ def files_preserve_by_path(*paths):
     return [fd for fd in range(fd_max) if fd_wanted(fd)]
 
 
-def main_as_daemon(argv):
-    if argv[1] in ['stop']:
-        parsed_arguments = None
-    else:
-        parsed_arguments = parse_arguments(argv)
+def main_as_daemon(action, args):
+    if action == "stop":
+        args = None
 
     if not os.path.exists(metadata.log_folder):
         os.makedirs(metadata.log_folder)
@@ -122,7 +120,7 @@ def main_as_daemon(argv):
     from daemon.runner import DaemonRunnerStartFailureError
     from daemon.runner import DaemonRunnerStopFailureError
 
-    daemon_runner = runner.DaemonRunner(doorpi.DoorPi(parsed_arguments))
+    daemon_runner = runner.DaemonRunner(doorpi.DoorPi(args))
     # This ensures that the logger file handle does not get closed during daemonization
     daemon_runner.daemon_context.files_preserve = files_preserve_by_path(log_file)
     try:
@@ -141,13 +139,11 @@ def main_as_daemon(argv):
     return 0
 
 
-def main_as_application(argv):
-
-    parsed_arguments = parse_arguments(argv)
+def main_as_application(args):
     logger.info(metadata.epilog)
-    logger.debug('loaded with arguments: %s', str(argv))
+    logger.debug('loaded with arguments: %s', args)
 
-    try: doorpi.DoorPi(parsed_arguments).run()
+    try: doorpi.DoorPi(args).run()
     except KeyboardInterrupt: logger.info("KeyboardInterrupt -> DoorPi will shutdown")
     except Exception as ex:
         logger.exception("*** UNCAUGHT EXCEPTION: %s", ex)
@@ -158,15 +154,17 @@ def main_as_application(argv):
 
 
 def entry_point():
-    init_logger(sys.argv)
-
     """Zero-argument entry point for use with setuptools/distribute."""
-    if len(sys.argv) > 1 and sys.argv[1] in ['status']:
-        raise SystemExit(get_status_from_doorpi(sys.argv))
-    elif len(sys.argv) > 1 and sys.argv[1] in ['start', 'stop', 'reload']:
-        raise SystemExit(main_as_daemon(sys.argv))
+
+    action, args = parse_arguments()
+    init_logger(args)
+
+    if action is None:
+        raise SystemExit(main_as_application(args))
+    elif action == "status":
+        raise SystemExit(get_status_from_doorpi(args))
     else:
-        raise SystemExit(main_as_application(sys.argv))
+        raise SystemExit(main_as_daemon(action, args))
 
 
 if __name__ == '__main__':

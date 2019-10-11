@@ -35,10 +35,6 @@ def add_trace_level():
 def init_logger(args):
     add_trace_level()
 
-    global log_level
-    if args.debug: log_level = logging.DEBUG
-    if args.trace: log_level = TRACE_LEVEL
-
     # check if we're connected to the journal
     journal = False
     expected_fd = os.environ.get("JOURNAL_STREAM", "").split(":")
@@ -48,6 +44,11 @@ def init_logger(args):
         except ValueError: journal = False
 
     logging.basicConfig(level=log_level, format=LOG_FORMAT_JOURNAL if journal else LOG_FORMAT)
+
+    if args.debug is not None:
+        for lg in args.debug: logging.getLogger(lg).setLevel(logging.DEBUG)
+    if args.trace is not None:
+        for lg in args.trace: logging.getLogger(lg).setLevel(TRACE_LEVEL)
 
 
 def parse_arguments():
@@ -59,8 +60,10 @@ def parse_arguments():
 
     arg_parser.add_argument("-V", "--version", action="version",
                             version=f"{metadata.project} v{metadata.version}")
-    arg_parser.add_argument("--debug", action="store_true", help="Enable debug logging")
-    arg_parser.add_argument("--trace", action="store_true", help="Enable trace logging")
+    arg_parser.add_argument("--debug", action="append", nargs="?", const="",
+                            help="Enable debug logging (optionally on a specific component)")
+    arg_parser.add_argument("--trace", action="append", nargs="?", const="",
+                            help="Enable trace logging (optionally on a specific component)")
     arg_parser.add_argument("--test", action="store_true",
                             help="Enable test mode (exit after 10 seconds)")
 

@@ -5,7 +5,6 @@ import smtplib
 
 import doorpi
 from . import Action
-from .take_snapshot import SnapshotAction
 
 
 logger = logging.getLogger(__name__)
@@ -65,14 +64,16 @@ class MailAction(Action):
         msg.set_content(doorpi.DoorPi().parse_string(text))
 
         if self.__snap:
-            snapfile = SnapshotAction.last_path()
-            try:
-                with open(snapfile, "rb") as f:
-                    snap_data = f.read()
-                msg.add_attachment(snap_data, "application", "octet-stream", cte="base64",
-                                   disposition="attachment", filename=os.path.basename(snapfile))
-            except Exception:
-                logger.exception("[%s] Cannot attach snapshot to email", event_id)
+            snapfile = doorpi.DoorPi().config.get_string_parsed("DoorPi", "last_snapshot")
+            if snapfile:
+                try:
+                    with open(snapfile, "rb") as f:
+                        snap_data = f.read()
+                    msg.add_attachment(snap_data, "application", "octet-stream", cte="base64",
+                                       disposition="attachment",
+                                       filename=os.path.basename(snapfile))
+                except Exception:
+                    logger.exception("[%s] Cannot attach snapshot to email", event_id)
 
         with smtplib.SMTP_SSL(self.__host, self.__port) if self.__ssl \
                 else smtplib.SMTP(self.__host, self.__port) as smtp:

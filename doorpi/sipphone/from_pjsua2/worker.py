@@ -79,7 +79,11 @@ class Worker():
             self.__phone._Pjsua2__waiting_calls = []
 
             for c in self.__phone._Pjsua2__ringing_calls:
-                c.hangup(prm)
+                try:
+                    c.hangup(prm)
+                except pj.Error as err:
+                    if err.reason.endswith("(PJSIP_ESESSIONTERMINATED)"): continue
+                    logger.exception("Error hanging up a call: %s (ignored)", err.reason)
             self.__phone._Pjsua2__ringing_calls = []
 
             if self.current_call is not None:
@@ -113,13 +117,20 @@ class Worker():
                 synthetic_disconnect = False
                 prm = pj.CallOpParam()
                 for c in self.__phone._Pjsua2__ringing_calls:
-                    ci = c.getInfo()
-                    if ci.totalDuration.sec >= self.__call_timeout:
-                        logger.info("Call to %s unanswered after %d seconds, giving up",
-                                    repr(ci.remoteUri), self.__call_timeout)
-                        c.hangup(prm)
+                    try:
+                        ci = c.getInfo()
+                        if ci.totalDuration.sec >= self.__call_timeout:
+                            logger.info("Call to %s unanswered after %d seconds, giving up",
+                                        repr(ci.remoteUri), self.__call_timeout)
+                            c.hangup(prm)
+                            self.__phone._Pjsua2__ringing_calls.remove(c)
+                            synthetic_disconnect = True
+                    except pj.Error as err:
+                        if err.reason.endswith("(PJSIP_ESESSIONTERMINATED)"):
+                            logger.warning("Found a call that was already dead, removing it")
+                        else:
+                            logger.exception("Can't get info for a call: %s", err.reason)
                         self.__phone._Pjsua2__ringing_calls.remove(c)
-                        synthetic_disconnect = True
                 if synthetic_disconnect and len(self.__phone._Pjsua2__ringing_calls) == 0:
                     # Last ringing call was cancelled
                     fire_event("OnCallUnanswered")

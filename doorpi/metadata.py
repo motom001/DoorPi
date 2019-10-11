@@ -4,8 +4,12 @@
 Information describing the project.
 """
 import os
+import sys as _sys
+
 if os.name != 'posix':
     raise Exception('os unknown')
+
+_prefix = "" if _sys.prefix == "/usr" else _sys.prefix
 
 # The package name, which is also the "UNIX name" for the project.
 package = 'DoorPi'
@@ -56,4 +60,4 @@ Supporter:  {supporters}
     url=url)
 
 pidfile = "/run/{0}/{0}.pid".format(package.lower())
-log_folder = "/var/log/{0}".format(package.lower())
+log_folder = "{}/var/log/{}".format(_prefix, package.lower())

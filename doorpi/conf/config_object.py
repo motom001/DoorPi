@@ -14,12 +14,19 @@ class ConfigObject:
         self.__path = path
         self.__config = ConfigParser(allow_no_value=True, strict=True,
                                      interpolation=ExtendedInterpolation())
-        with open(self.__path, "rt") as f:
-            self.__config.read_file(f)
+        try:
+            with open(self.__path, "rt") as f:
+                self.__config.read_file(f)
+        except FileNotFoundError: self.save_config()
+        except Exception as ex:
+            logger.error("Cannot load configuration file: %s", ex)
 
     def save_config(self):
-        with open(self.__path, "w") as f:
-            self.__config.write(f)
+        try:
+            with open(self.__path, "w") as f:
+                self.__config.write(f)
+        except Exception as ex:
+            logger.error("Cannot write configuration file: %s", ex)
 
     def set_value(self, section, key, value):
         if section == "DEFAULT":

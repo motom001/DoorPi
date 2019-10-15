@@ -1,4 +1,6 @@
 import logging
+import os
+import os.path
 from configparser import ConfigParser, ExtendedInterpolation
 
 import doorpi
@@ -10,6 +12,7 @@ logger = logging.getLogger(__name__)
 class ConfigObject:
 
     def __init__(self, path):
+        path = os.path.abspath(path)
         logger.info("Loading configuration from %s", path)
         self.__path = path
         self.__config = ConfigParser(allow_no_value=True, strict=True,
@@ -23,6 +26,7 @@ class ConfigObject:
 
     def save_config(self):
         try:
+            os.makedirs(os.path.dirname(self.__path), exist_ok=True)
             with open(self.__path, "w") as f:
                 self.__config.write(f)
         except Exception as ex:

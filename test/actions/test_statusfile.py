@@ -26,18 +26,16 @@ class TestActionStatusfile(DoorPiTestCase):
 
     @patch('doorpi.DoorPi', DoorPi)
     def test_action(self):
-        with tempfile.NamedTemporaryFile(mode="w+") as tmpfile:
-            tmpfile.write("some initial garbage content")
-            tmpfile.flush()
-            tmpfile.seek(0)
+        with open("status.txt", "w") as f:
+            f.write("some initial garbage content")
 
-            ac = action.instantiate(tmpfile.name, CONTENT)
-            self.assertEqual(tmpfile.read(), "")
-            tmpfile.seek(0)
+        ac = action.instantiate(os.path.join(os.getcwd(), "status.txt"), CONTENT)
+        with open("status.txt", "r") as f:
+            self.assertEqual(f.read(), "")
 
-            ac(EVENT_ID, EVENT_EXTRA)
-            self.assertEqual(tmpfile.read(), CONTENT.strip() + "\n")
-            tmpfile.seek(0)
+        ac(EVENT_ID, EVENT_EXTRA)
+        with open("status.txt", "r") as f:
+            self.assertEqual(f.read(), CONTENT.strip() + "\n")
 
     @patch('doorpi.DoorPi', DoorPi)
     def test_noperm(self):

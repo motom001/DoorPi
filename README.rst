@@ -1,7 +1,8 @@
 DoorPi: Open Source VoIP Türsprechanlage
 ****************************************************
 
-|pypi_License| |pypi_latest_version| |travis_status_master| |code_climate_badge| |scrutinizer_status_master|
+|pypi_License| |pypi_latest_version| |travis_status_master|
+|scrutinizer_status_master| |code_climate_badge|
 
 .. contents::
     :local:
@@ -167,16 +168,6 @@ see `changelog.txt <https://github.com/Wuestengecko/DoorPi/blob/master/changelog
 for development versions, also see `the commit history <https://github.com/Wuestengecko/DoorPi/commits/master>`_
 
 
-.. |travis_status_master| image:: https://travis-ci.org/motom001/DoorPi.svg?branch=master
-    :target: https://travis-ci.org/motom001/DoorPi
-
-.. |scrutinizer_status_master| image:: https://codeclimate.com/github/motom001/DoorPi/badges/gpa.svg
-   :target: https://codeclimate.com/github/motom001/DoorPi
-   :alt: Code Climate
-
-.. |code_climate_badge| image:: https://scrutinizer-ci.com/g/motom001/DoorPi/badges/quality-score.png?b=master
-   :target: https://scrutinizer-ci.com/g/motom001/DoorPi/
-
 .. |pypi_License| image:: https://img.shields.io/pypi/l/DoorPi.svg
     :target: https://creativecommons.org/licenses/by-nc/4.0/
     :alt: CC BY-NC 4.0
@@ -184,3 +175,13 @@ for development versions, also see `the commit history <https://github.com/Wuest
 .. |pypi_latest_version| image:: https://img.shields.io/pypi/v/DoorPi.svg?label=latest%20version
     :target: https://pypi.python.org/pypi/DoorPi
     :alt: Download
+
+.. |travis_status_master| image:: https://travis-ci.org/motom001/DoorPi.svg?branch=master
+    :target: https://travis-ci.org/motom001/DoorPi
+
+.. |scrutinizer_status_master| image:: https://scrutinizer-ci.com/g/motom001/DoorPi/badges/quality-score.png?b=master
+   :target: https://scrutinizer-ci.com/g/motom001/DoorPi/
+
+.. |code_climate_badge| image:: https://codeclimate.com/github/motom001/DoorPi/badges/gpa.svg
+   :target: https://codeclimate.com/github/motom001/DoorPi
+   :alt: Code Climate

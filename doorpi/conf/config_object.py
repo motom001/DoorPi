@@ -2,6 +2,7 @@ import logging
 import os
 import os.path
 from configparser import ConfigParser, ExtendedInterpolation
+from pathlib import Path
 
 import doorpi
 
@@ -44,6 +45,11 @@ class ConfigObject:
 
     def get_string_parsed(self, section, key, default=""):
         return doorpi.DoorPi().parse_string(self.get_string(section, key, default))
+
+    def get_path(self, section, key, default=""):
+        val = self.get_string_parsed(section, key, default)
+        if val: return Path(val)
+        else: return None
 
     def get_string(self, section, key, default=""):
         try: return self.__config[section].get(key, default)

@@ -4,6 +4,7 @@ import pjsua2 as pj
 import threading
 
 from doorpi import DoorPi
+from doorpi.actions import CallbackAction
 from doorpi.sipphone.abc import AbstractSIPPhone
 
 from . import EVENT_SOURCE, fire_event, logger
@@ -50,7 +51,7 @@ class Pjsua2(AbstractSIPPhone):
         self.__worker = None
         self.__worker_thread = None
         fire_event("OnSIPPhoneCreate", async_only=True)
-        eh.register_action("OnShutdown", self.__del__)
+        eh.register_action("OnShutdown", CallbackAction(self.__del__))
 
     def __del__(self):
         logger.debug("Destroying PJSUA2 SIP phone")
@@ -65,7 +66,7 @@ class Pjsua2(AbstractSIPPhone):
                 self.dialtone._DialTonePlayer__player = None
             del self.__worker_thread
             del self.__worker
-        DoorPi().event_handler.unregister_source(EVENT_SOURCE, True)
+        DoorPi().event_handler.unregister_source(EVENT_SOURCE, force=True)
 
     def start(self):
         logger.info("Starting PJSUA2 SIP phone")

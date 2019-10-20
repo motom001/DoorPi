@@ -13,7 +13,7 @@ def get(*args, **kwargs):
         try: max_count = int(kwargs['value'][0])
         except: max_count = 100
 
-        return kwargs['DoorPiObject'].event_handler.db.get_event_log_entries(max_count, filter)
+        return kwargs['DoorPiObject'].event_handler.db.get_event_log(max_count, filter)
     except Exception as exp:
         logger.exception(exp)
         return {'Error': 'could not create '+str(__name__)+' object - '+str(exp)}

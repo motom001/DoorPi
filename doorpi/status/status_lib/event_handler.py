@@ -18,7 +18,10 @@ def get(*args, **kwargs):
             if name_requested in 'events':
                 status['events'] = event_handler.events
             if name_requested in 'events_by_source':
-                status['events_by_source'] = event_handler.events_by_source
+                status['events_by_source'] = {
+                    source: event_handler.get_events_by_source(source)
+                    for source in event_handler.sources
+                }
             if name_requested in 'actions':
                 status['actions'] = {}
                 for event in event_handler.actions:

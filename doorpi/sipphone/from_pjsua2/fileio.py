@@ -4,6 +4,7 @@ import os
 import pjsua2 as pj
 
 from doorpi import DoorPi
+from doorpi.actions import CallbackAction
 
 from . import logger
 
@@ -14,10 +15,10 @@ class DialTonePlayer:
         self.__level = loudness
 
         eh = DoorPi().event_handler
-        eh.register_action("OnCallOutgoing_S", self.start)
-        eh.register_action("OnCallConnect_S", self.stop)
+        eh.register_action("OnCallOutgoing_S", CallbackAction(self.start))
+        eh.register_action("OnCallConnect_S", CallbackAction(self.stop))
         # Catch synthetic disconnects if no call was established
-        eh.register_action("OnCallDisconnect_S", self.stop)
+        eh.register_action("OnCallDisconnect_S", CallbackAction(self.stop))
 
         try: self.__player.createPlayer(filename)
         except pj.Error as err:
@@ -50,10 +51,10 @@ class CallRecorder:
         self.__recorder = None
 
         eh = DoorPi().event_handler
-        eh.register_action("OnCallOutgoing_S", self.startEarly)
-        eh.register_action("OnCallConnect_S", self.start)
-        eh.register_action("OnCallDisconnect_S", self.stop)
-        eh.register_action("OnCallDisconnect", self.cleanup)
+        eh.register_action("OnCallOutgoing_S", CallbackAction(self.startEarly))
+        eh.register_action("OnCallConnect_S", CallbackAction(self.start))
+        eh.register_action("OnCallDisconnect_S", CallbackAction(self.stop))
+        eh.register_action("OnCallDisconnect", CallbackAction(self.cleanup))
         if self.__path:
             logger.debug("Call recording destination: %s", self.__path)
 

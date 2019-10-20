@@ -13,7 +13,7 @@ import re # regex for area
 import json # for virtual resources
 from urllib.parse import unquote_plus
 
-from doorpi.action.base import SingleAction
+from doorpi.actions import CallbackAction
 import doorpi
 from .request_handler_static_functions import *
 
@@ -34,7 +34,7 @@ PARSABLE_FILE_EXTENSIONS = ["html"]
 DOORPIWEB_SECTION = 'DoorPiWeb'
 
 class WebServerLoginRequired(Exception): pass
-class WebServerRequestHandlerShutdownAction(SingleAction): pass
+class WebServerRequestHandlerShutdownAction(CallbackAction): pass
 
 class DoorPiWebRequestHandler(BaseHTTPRequestHandler):
 
@@ -59,7 +59,7 @@ class DoorPiWebRequestHandler(BaseHTTPRequestHandler):
 
     @staticmethod
     def destroy():
-        doorpi.DoorPi().event_handler.unregister_source( __name__, True)
+        doorpi.DoorPi().event_handler.unregister_source( __name__, force=True)
 
     def do_GET(self):
         #doorpi.DoorPi().event_handler('OnWebServerRequest', __name__)

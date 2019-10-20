@@ -20,19 +20,19 @@ import tempfile
 
 from . import metadata
 from doorpi import keyboard, sipphone
+from doorpi.actions import CallbackAction
 from .status.webserver import load_webserver
 from .conf.config_object import ConfigObject
-from .action.handler import EventHandler
+from .event.handler import EventHandler
 from .status.status_class import DoorPiStatus
 from .status.systemd import DoorPiSD
 #from status.webservice import run_webservice, WebService
-from .action.base import SingleAction
 
 
-class DoorPiShutdownAction(SingleAction): pass
 class DoorPiNotExistsException(Exception): pass
 class DoorPiEventHandlerNotExistsException(Exception): pass
 class DoorPiRestartException(Exception): pass
+
 
 class Singleton(type):
     _instances = {}
@@ -58,9 +58,9 @@ class DoorPi(object, metaclass=Singleton):
     def sipphone(self): return self.__sipphone
 
     @property
-    def additional_informations(self):
+    def extra_info(self):
         if self.event_handler is None: return {}
-        else: return self.event_handler.additional_informations
+        else: return self.event_handler.extra_info
 
     __event_handler = None
     @property
@@ -130,25 +130,22 @@ class DoorPi(object, metaclass=Singleton):
         self.__event_handler = EventHandler()
 
         if self.config.config_file is None:
-            self.event_handler.register_action('AfterStartup', self.config.save_config)
+            self.event_handler.register_action("AfterStartup",
+                                               CallbackAction(self.config.save_config))
             self.config.get('EVENT_OnStartup', '10', 'sleep:1')
 
-        if 'test' in parsed_arguments and parsed_arguments.test is True:
-            logger.warning('using only test-mode and destroy after 5 seconds')
-            self.event_handler.register_action('AfterStartup', DoorPiShutdownAction(self.doorpi_shutdown))
-
         # register own events
-        self.event_handler.register_event('BeforeStartup', __name__)
-        self.event_handler.register_event('OnStartup', __name__)
-        self.event_handler.register_event('AfterStartup', __name__)
-        self.event_handler.register_event('BeforeShutdown', __name__)
-        self.event_handler.register_event('OnShutdown', __name__)
-        self.event_handler.register_event('AfterShutdown', __name__)
-        self.event_handler.register_event('OnTimeTick', __name__)
-        self.event_handler.register_event('OnTimeTickRealtime', __name__)
+        self.event_handler.register_event("BeforeStartup", __name__)
+        self.event_handler.register_event("OnStartup", __name__)
+        self.event_handler.register_event("AfterStartup", __name__)
+        self.event_handler.register_event("BeforeShutdown", __name__)
+        self.event_handler.register_event("OnShutdown", __name__)
+        self.event_handler.register_event("AfterShutdown", __name__)
+        self.event_handler.register_event("OnTimeTick", __name__)
+        self.event_handler.register_event("OnTimeTickRealtime", __name__)
 
         # register base actions
-        self.event_handler.register_action('OnTimeTick', 'time_tick:!last_tick!')
+        self.event_handler.register_action("OnTimeTick", f"time_tick:{self.__last_tick}")
 
         # register modules
         self.__webserver    = load_webserver()
@@ -168,12 +165,6 @@ class DoorPi(object, metaclass=Singleton):
         section_name = 'DTMF'
         for DTMF in sorted(self.config.get_keys(section_name)):
             self.event_handler.register_action('OnDTMF_'+DTMF, self.config.get(section_name, DTMF))
-
-        # register keep_alive_led
-        is_alive_led = self.config.get('DoorPi', 'is_alive_led', '')
-        if is_alive_led is not '':
-            self.event_handler.register_action('OnTimeSecondEvenNumber', 'out:%s,HIGH,False'%is_alive_led)
-            self.event_handler.register_action('OnTimeSecondUnevenNumber', 'out:%s,LOW,False'%is_alive_led)
 
         self.__prepared = True
         return self
@@ -196,9 +187,9 @@ class DoorPi(object, metaclass=Singleton):
 
         logger.debug("Threads before starting shutdown: %s", self.event_handler.threads)
 
-        self.event_handler.fire_event('BeforeShutdown', __name__)
-        self.event_handler.fire_event_synchron('OnShutdown', __name__)
-        self.event_handler.fire_event('AfterShutdown', __name__)
+        self.event_handler.fire_event_sync("BeforeShutdown", __name__)
+        self.event_handler.fire_event_sync("OnShutdown", __name__)
+        self.event_handler.fire_event_sync("AfterShutdown", __name__)
 
         timeout = 5
         waiting_between_checks = 0.5
@@ -207,13 +198,13 @@ class DoorPi(object, metaclass=Singleton):
             # while not self.event_handler.idle and timeout > 0 and len(self.event_handler.sources) > 1:
             logger.debug('wait %s seconds for threads %s and %s event',
                          timeout, len(self.event_handler.threads[1:]), len(self.event_handler.sources))
-            logger.trace('still existing threads:       %s', self.event_handler.threads[1:])
+            logger.trace('still existing threads:       %s', self.event_handler.threads)
             logger.trace('still existing event sources: %s', self.event_handler.sources)
             time.sleep(waiting_between_checks)
             timeout -= waiting_between_checks
 
         if timeout <= 0:
-            logger.warning("waiting for threads to time out - there are still threads: %s", self.event_handler.threads[1:])
+            logger.warning("waiting for threads to time out - there are still threads: %s", self.event_handler.threads)
 
         logger.info('======== DoorPi successfully shutdown ========')
         return True
@@ -226,9 +217,9 @@ class DoorPi(object, metaclass=Singleton):
         logger.debug("run")
         if not self.__prepared: self.prepare(self.__parsed_arguments)
 
-        self.event_handler.fire_event('BeforeStartup', __name__)
-        self.event_handler.fire_event_synchron('OnStartup', __name__)
-        self.event_handler.fire_event('AfterStartup', __name__)
+        self.event_handler.fire_event_sync("BeforeStartup", __name__)
+        self.event_handler.fire_event_sync("OnStartup", __name__)
+        self.event_handler.fire_event_sync("AfterStartup", __name__)
 
         logger.info('DoorPi started successfully')
         logger.info('BasePath is %s', self.base_path)
@@ -238,7 +229,8 @@ class DoorPi(object, metaclass=Singleton):
             logger.info('no Webserver loaded')
 
         # setup watchdog ping and signal startup success
-        self.event_handler.register_action('OnTimeSecondUnevenNumber', self.dpsd.watchdog)
+        self.event_handler.register_action("OnTimeSecondUnevenNumber",
+                                           CallbackAction(self.dpsd.watchdog))
         self.dpsd.ready()
 
         time_ticks = 0
@@ -248,7 +240,7 @@ class DoorPi(object, metaclass=Singleton):
             self.check_time_critical_threads()
             if time_ticks > 0.5:
                 self.__last_tick = time.time()
-                self.__event_handler.fire_event_asynchron('OnTimeTick', __name__)
+                self.event_handler.fire_event_sync("OnTimeTick", __name__)
                 time_ticks = 0
             time.sleep(0.05)
         return self
@@ -260,23 +252,23 @@ class DoorPi(object, metaclass=Singleton):
         parsed_string = datetime.datetime.now().strftime(str(input_string))
 
         if self.keyboard is None or self.keyboard.last_key is None:
-            self.additional_informations['LastKey'] = "NotSetYet"
+            self.extra_info['LastKey'] = "NotSetYet"
         else:
-            self.additional_informations['LastKey'] = str(self.keyboard.last_key)
+            self.extra_info['LastKey'] = str(self.keyboard.last_key)
 
         infos_as_html = '<table>'
-        for key in list(self.additional_informations.keys()):
+        for key in list(self.extra_info.keys()):
             infos_as_html += '<tr><td>'
             infos_as_html += '<b>'+key+'</b>'
             infos_as_html += '</td><td>'
             infos_as_html += '<i>'+cgi.escape(
-                str(self.additional_informations.get(key)).replace("\r\n", "<br />")
+                str(self.extra_info.get(key)).replace("\r\n", "<br />")
             )+'</i>'
             infos_as_html += '</td></tr>'
         infos_as_html += '</table>'
 
         mapping_table = {
-            'INFOS_PLAIN':      str(self.additional_informations),
+            'INFOS_PLAIN':      str(self.extra_info),
             'INFOS':            infos_as_html,
             'BASEPATH':         self.base_path,
             'last_tick':        str(self.__last_tick)
@@ -288,7 +280,7 @@ class DoorPi(object, metaclass=Singleton):
 
         if self.config:
             mapping_table.update({
-                'LAST_SNAPSHOT':    str(self.config.get_string('DoorPi', 'last_snapshot', log=False))
+                "LAST_SNAPSHOT":    str(self.config.get_string('DoorPi', 'last_snapshot', log=False))
             })
 
         if self.keyboard:
@@ -300,10 +292,10 @@ class DoorPi(object, metaclass=Singleton):
                 mapping_table[key]
             )
 
-        for key in list(self.additional_informations.keys()):
+        for key in list(self.extra_info.keys()):
             parsed_string = parsed_string.replace(
                 "!"+key+"!",
-                str(self.additional_informations[key])
+                str(self.extra_info[key])
             )
 
         return parsed_string

@@ -6,7 +6,6 @@ logger.debug("%s loaded", __name__)
 
 import time # session timestamp
 
-from doorpi.action.base import SingleAction
 import doorpi
 
 CONF_AREA_PREFIX = 'AREA_'
@@ -30,7 +29,7 @@ class SessionHandler:
         doorpi.DoorPi().event_handler.register_event('WebServerAuthWrongPassword', __name__)
 
     def destroy(self):
-        doorpi.DoorPi().event_handler.unregister_source(__name__, True)
+        doorpi.DoorPi().event_handler.unregister_source(__name__, force=True)
 
     __del__ = destroy
 

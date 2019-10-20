@@ -25,8 +25,8 @@ def fire_event(event_name, async_only=False, *, remote_uri=None):
     synchronous version, whose name is suffixed with "_S".
     """
     eh = DoorPi().event_handler
-    kwargs = {"remote_uri": remote_uri} if remote_uri is not None else {}
+    extra = {"remote_uri": remote_uri} if remote_uri is not None else {}
 
-    eh.fire_event_asynchron(event_name, EVENT_SOURCE, kwargs=kwargs)
+    eh.fire_event(event_name, EVENT_SOURCE, extra=extra)
     if not async_only:
-        eh.fire_event_synchron(f"{event_name}_S", EVENT_SOURCE, kwargs=kwargs)
+        eh.fire_event_sync(f"{event_name}_S", EVENT_SOURCE, extra=extra)

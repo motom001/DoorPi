@@ -4,6 +4,8 @@ from abc import ABCMeta, abstractmethod
 
 import doorpi
 
+from doorpi.actions import CallbackAction
+
 from . import SECTION_TPL
 from . import SECTION_TPL_IN
 from . import SECTION_TPL_OUT
@@ -78,17 +80,18 @@ class AbstractKeyboard(metaclass=ABCMeta):
 
         eh = doorpi.DoorPi().event_handler
         eh.register_source(self._event_source)
+        for ev in events:
+            eh.register_event(ev, self._event_source)
         for pin in self._inputs:
             for ev in events:
-                eh.register_event(ev, self._event_source)
                 eh.register_event(f"{ev}_{pin}", self._event_source)
                 eh.register_event(f"{ev}_{self.name}.{pin}", self._event_source)
 
-        eh.register_action("BeforeShutdown", self._deactivate)
+        eh.register_action("OnShutdown", CallbackAction(self.__del__))
 
     def __del__(self):
         self._deactivate()
-        doorpi.DoorPi().event_handler.unregister_source(self._event_source, True)
+        doorpi.DoorPi().event_handler.unregister_source(self._event_source, force=True)
 
     def __str__(self): return f"{self.name} keyboard ({self.type})"
 
@@ -183,9 +186,9 @@ class AbstractKeyboard(metaclass=ABCMeta):
         dp.keyboard.last_key = self.last_key = f"{self.name}.{pin}"
 
         extra = self.additional_info
-        dp.event_handler(event_name, self._event_source, extra)
-        dp.event_handler(f"{event_name}_{pin}", self._event_source, extra)
-        dp.event_handler(f"{event_name}_{self.name}.{pin}", self._event_source, extra)
+        dp.event_handler(event_name, self._event_source, extra=extra)
+        dp.event_handler(f"{event_name}_{pin}", self._event_source, extra=extra)
+        dp.event_handler(f"{event_name}_{self.name}.{pin}", self._event_source, extra=extra)
 
     def _fire_OnKeyUp(self, pin):
         self._fire_EVENT("OnKeyUp", pin)

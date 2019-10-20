@@ -2,6 +2,7 @@ import logging
 
 import doorpi
 
+from doorpi.actions import CallbackAction
 from doorpi.sipphone.abc import AbstractSIPPhone
 
 logger = logging.getLogger(__name__)
@@ -19,13 +20,13 @@ class DummyPhone(AbstractSIPPhone):
         for ev in ["OnSIPPhoneCreate", "OnSIPPhoneStart", "OnSIPPhoneDestroy"]:
             eh.register_event(ev, __name__)
         eh("OnSIPPhoneCreate", __name__)
-        eh.register_action("OnShutdown", self.__del__)
+        eh.register_action("OnShutdown", CallbackAction(self.__del__))
 
     def __del__(self):
         logger.info("Deleting dummy phone")
         eh = doorpi.DoorPi().event_handler
         eh("OnSIPPhoneDestroy", __name__)
-        eh.unregister_source(__name__, True)
+        eh.unregister_source(__name__, force=True)
 
     def start(self):
         logger.info("Starting dummy phone")

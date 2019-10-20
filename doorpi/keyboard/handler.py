@@ -2,6 +2,7 @@ import importlib
 import logging
 
 import doorpi
+from doorpi.actions import CallbackAction
 
 from . import SECTION_KEYBOARDS, SECTION_TPL_IN, SECTION_TPL_OUT
 

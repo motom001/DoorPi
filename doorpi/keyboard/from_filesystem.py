@@ -108,7 +108,7 @@ class FilesystemKeyboard(AbstractKeyboard, watchdog.events.FileSystemEventHandle
 
     def __del__(self):
         self._deactivate()
-        doorpi.DoorPi().event_handler.unregister_source(self._event_source, True)
+        doorpi.DoorPi().event_handler.unregister_source(self._event_source, force=True)
 
         for pin in self._inputs:
             try: os.remove(os.path.join(self.__base_path_input, pin))

@@ -1,8 +1,6 @@
 import logging
-import os
-import os.path
-
 import doorpi
+from pathlib import Path
 
 from doorpi.actions import Action
 from doorpi.status.status_class import DoorPiStatus
@@ -14,12 +12,12 @@ logger = logging.getLogger(__name__)
 class StatusfileAction(Action):
 
     def __init__(self, filename, content):
-        self.__filename = doorpi.DoorPi().parse_string(filename)
+        self.__filename = Path(doorpi.DoorPi().parse_string(filename))
         self.__content = content.strip() + "\n"
 
-        os.makedirs(os.path.dirname(self.__filename), exist_ok=True)
+        self.__filename.parent.mkdir(parents=True, exist_ok=True)
         # create / truncate the file; also makes sure we have write permission
-        open(self.__filename, "w").close()
+        self.__filename.open("w").close()
 
     def __call__(self, event_id, extra):
         content = doorpi.DoorPi().parse_string(self.__content)
@@ -32,7 +30,7 @@ class StatusfileAction(Action):
             logger.exception("[%s] Error fetching status information for file %s",
                              event_id, self.__filename)
 
-        with open(self.__filename, "w") as f:
+        with self.__filename.open("w") as f:
             f.write(content)
 
     def __str__(self):

@@ -1,6 +1,6 @@
+from pathlib import Path
 import json
 import logging
-import os
 import sqlite3
 
 
@@ -13,9 +13,10 @@ class EventLog:
         if not sqlite3.threadsafety:
             raise RuntimeError("Your version of SQLite is not compiled thread-safe!")
 
-        os.makedirs(os.path.dirname(db), exist_ok=True)
+        db = Path(db)
+        db.parent.mkdir(parents=True, exist_ok=True)
         self._db = sqlite3.connect(
-            database=db,
+            database=str(db),
             timeout=1,
             isolation_level=None,
             check_same_thread=False

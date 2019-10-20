@@ -2,12 +2,12 @@ import argparse
 import cgi
 import datetime
 import logging
-import os
 import signal
 import sys
 import tempfile
 import time
 import traceback
+from pathlib import Path
 
 from . import metadata
 from doorpi import keyboard, sipphone
@@ -62,7 +62,7 @@ class DoorPi(metaclass=Singleton):
     @property
     def base_path(self):
         if self._base_path is None:
-            self._base_path = os.path.expanduser("~")
+            self._base_path = Path.home()
             logger.info("Auto-selected BasePath %s", self._base_path)
         return self._base_path
 
@@ -233,7 +233,7 @@ class DoorPi(metaclass=Singleton):
         mapping_table = {
             'INFOS_PLAIN': str(self.extra_info),
             'INFOS': infos_as_html,
-            'BASEPATH': self.base_path,
+            'BASEPATH': str(self.base_path),
             'last_tick': str(self.__last_tick)
         }
 

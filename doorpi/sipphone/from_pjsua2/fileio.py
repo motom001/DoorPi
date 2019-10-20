@@ -1,6 +1,6 @@
 """File I/O related stuff, i.e. the dial tone player and call recorder"""
 
-import os
+from pathlib import Path
 import pjsua2 as pj
 
 from doorpi import DoorPi
@@ -24,7 +24,7 @@ class DialTonePlayer:
         eh.register_action("OnCallDisconnect_S", ac_stop)
         eh.register_action("OnCallUnanswered_S", ac_stop)
 
-        try: self.__player.createPlayer(filename)
+        try: self.__player.createPlayer(str(filename))
         except pj.Error as err:
             logger.error("Unable to create dial tone player: %s", err.info())
             self.__player = None
@@ -67,16 +67,15 @@ class CallRecorder:
 
         if self.__recorder is None:
             if not self.__path: return
-            try: os.makedirs(self.__path, exist_ok=True)
+            try: self.__path.mkdir(parents=True, exist_ok=True)
             except OSError:
                 logger.exception("Cannot create recording directory, unable to record call")
                 return
-            fname = os.path.join(self.__path,
-                                 DoorPi().parse_string("recording_%Y-%m-%d_%H-%M-%S.wav"))
+            fname = self.__path / DoorPi().parse_string("recording_%Y-%m-%d_%H-%M-%S.wav")
             logger.debug("Starting recording into file %s", fname)
             try:
                 self.__recorder = pj.AudioMediaRecorder()
-                self.__recorder.createRecorder(fname)
+                self.__recorder.createRecorder(str(fname))
             except pj.Error as err:
                 logger.error("Unable to start recording: %s", err.info())
                 self.__recorder = None
@@ -110,7 +109,7 @@ class CallRecorder:
 
         files = []
         try:
-            with os.scandir(self.__path) as it:
+            with self.__path.iterdir() as it:
                 files = [f for f in it
                          if f.name.startswith("recording_") and f.name.endswith(".wav")]
         except FileNotFoundError:
@@ -121,9 +120,9 @@ class CallRecorder:
         logger.debug("%s holds %d recordings", self.__path, len(files))
         if len(files) <= self.__keep: return
 
-        files.sort(key=lambda x: x.name)
+        files.sort()
         for f in files[:-10]:
             logger.info("Removing old recording %s", repr(f.name))
-            try: os.remove(f.path)
+            try: f.unlink()
             except FileNotFoundError: pass
             except OSError: logger.exception("Cannot remove old recording %s", f.name)

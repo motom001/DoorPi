@@ -59,8 +59,8 @@ class Config:
     def dialtone_config() -> dict:
         conf = DoorPi().config
         return {
-            "filename": conf.get_string_parsed(SIPPHONE_SECTION, "dialtone",
-                                               f"{DEFAULT_MEDIA_DIR}/dialtone.wav"),
+            "filename": conf.get_path(SIPPHONE_SECTION, "dialtone",
+                                      f"{DEFAULT_MEDIA_DIR}/dialtone.wav"),
             "loudness": conf.get_float(SIPPHONE_SECTION, "dialtone_loudness", 1.0)
         }
 
@@ -93,7 +93,7 @@ class Config:
     def recorder_config() -> dict:
         conf = DoorPi().config
         return {
-            "path": conf.get_string_parsed(SIPPHONE_SECTION, "record_path", ""),
+            "path": conf.get_path(SIPPHONE_SECTION, "record_path"),
             "early": conf.get_bool(SIPPHONE_SECTION, "record_while_dialing", True),
             "keep": conf.get_int(SIPPHONE_SECTION, "record_keep", 10),
         }

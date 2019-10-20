@@ -1,6 +1,4 @@
 import logging
-import os
-import os.path
 from configparser import ConfigParser, ExtendedInterpolation
 from pathlib import Path
 
@@ -13,22 +11,21 @@ logger = logging.getLogger(__name__)
 class ConfigObject:
 
     def __init__(self, path):
-        path = os.path.abspath(path)
-        logger.info("Loading configuration from %s", path)
-        self.__path = path
+        self.__path = Path(path).resolve()
         self.__config = ConfigParser(allow_no_value=True, strict=True,
                                      interpolation=ExtendedInterpolation())
+        logger.info("Loading configuration from %s", self.__path)
         try:
-            with open(self.__path, "rt") as f:
+            with self.__path.open("r") as f:
                 self.__config.read_file(f)
         except FileNotFoundError: self.save_config()
         except Exception as ex:
-            logger.error("Cannot load configuration file: %s", ex)
+            logger.error("Cannot load configuration from %s: %s", self.__path, ex)
 
     def save_config(self):
         try:
-            os.makedirs(os.path.dirname(self.__path), exist_ok=True)
-            with open(self.__path, "w") as f:
+            self.__path.parent.mkdir(parents=True, exist_ok=True)
+            with self.__path.open("w") as f:
                 self.__config.write(f)
         except Exception as ex:
             logger.error("Cannot write configuration file: %s", ex)

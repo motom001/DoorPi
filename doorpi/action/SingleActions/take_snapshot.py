@@ -64,12 +64,35 @@ def get_snapshot_from_url(snapshot_path, url):
     return filename
 
 
+def get_snapshot_from_stream(snapshot_path, url):
+    import cv2
+    filename = get_next_filename(snapshot_path)
+    cap = cv2.VideoCapture(url)
+    if cap.isOpened():
+        ret, frame = cap.read()
+        if ret:
+            cv2.imwrite(filename, frame)
+
+    cap.release()
+    conf.set_value(DOORPI_SECTION, 'last_snapshot', filename)
+    return filename
+
+
 def get(parameters=""):
     snapshot_path = conf.get_string_parsed(DOORPI_SECTION, 'snapshot_path', '/tmp')
-    if parameters == "":
+    if parameters == "": 
         return SnapShotAction(get_snapshot_from_picam, snapshot_path=snapshot_path)
+ 
+    parameter_list = parameters.split(',')
+    if len(parameter_list) is not 2: return None
+
+    type = parameter_list[0]
+    url = parameter_list[1]
+
+    if type.upper() == "STREAM":
+        return SnapShotAction(get_snapshot_from_stream, snapshot_path=snapshot_path, url=url)
     else:
-        return SnapShotAction(get_snapshot_from_url, snapshot_path=snapshot_path, url=parameters)
+        return SnapShotAction(get_snapshot_from_url, snapshot_path=snapshot_path, url=url)
 
 
 class SnapShotAction(SingleAction):

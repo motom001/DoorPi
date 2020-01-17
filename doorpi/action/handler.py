@@ -133,6 +133,8 @@ class EventLog(object):
             additional_infos = str(additional_infos).replace('"', "'")
         )
         self.execute_sql(sql_statement)
+        try: self._db.commit()
+        except: pass
 
     def insert_action_log(self, event_id, action_name, start_time, action_result):
         sql_statement = '''
@@ -146,6 +148,8 @@ class EventLog(object):
             action_result = str(action_result).replace('"', "'")
         )
         self.execute_sql(sql_statement)
+        try: self._db.commit()
+        except: pass
 
     def update_event_log(self):
         pass

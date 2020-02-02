@@ -49,26 +49,27 @@ def fire_action_mail(smtp_to, smtp_subject, smtp_text, smtp_snapshot):
         msg['From'] = smtp_from
         msg['To'] = COMMASPACE.join(smtp_tolist)
         msg['Subject'] = doorpi.DoorPi().parse_string(smtp_subject)
-        msg.attach(MIMEText(doorpi.DoorPi().parse_string(smtp_text), 'html'))
+        msg.attach(MIMEText(doorpi.DoorPi().parse_string(smtp_text), 'html', 'utf-8'))
         if email_signature and len(email_signature) > 0:
-            msg.attach(MIMEText('\nsent by:\n'+doorpi.DoorPi().epilog, 'plain'))
+            msg.attach(MIMEText('\nsent by:\n'+doorpi.DoorPi().epilog, 'plain', 'utf-8'))
 
+        ## Snapshot hinzufuegen? Ggf. an MIMEFile an Multipart anhaengen.
         if smtp_snapshot:
             smtp_snapshot = doorpi.DoorPi().parse_string(smtp_snapshot)
             if not os.path.exists(smtp_snapshot):
                 smtp_snapshot = get_last_snapshot()
 
-        try:
-            with open(smtp_snapshot, "rb") as snapshot_file:
-                part = MIMEBase('application',"octet-stream")
-                part.set_payload(snapshot_file.read())
-                Encoders.encode_base64(part)
-                part.add_header(
-                    'Content-Disposition',
-                    'attachment; filename="%s"' % os.path.basename(smtp_snapshot))
-                msg.attach(part)
-        except Exception as exp:
-            logger.exception("send not attachment for this mail: %s" % exp)
+            try:
+                with open(smtp_snapshot, "rb") as snapshot_file:
+                    part = MIMEBase('application',"octet-stream")
+                    part.set_payload(snapshot_file.read())
+                    Encoders.encode_base64(part)
+                    part.add_header(
+                        'Content-Disposition',
+                        'attachment; filename="%s"' % os.path.basename(smtp_snapshot))
+                    msg.attach(part)
+            except Exception as exp:
+                logger.exception("could not send mail attachment: %s" % exp)
 
         server.sendmail(smtp_from, smtp_tolist, msg.as_string())
         server.quit()

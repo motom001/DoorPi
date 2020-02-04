@@ -51,7 +51,7 @@ def fire_action_mail(smtp_to, smtp_subject, smtp_text, smtp_snapshot):
         msg['Subject'] = doorpi.DoorPi().parse_string(smtp_subject)
         msg.attach(MIMEText(doorpi.DoorPi().parse_string(smtp_text), 'html', 'utf-8'))
         if email_signature and len(email_signature) > 0:
-            msg.attach(MIMEText('\nsent by:\n'+doorpi.DoorPi().epilog, 'plain', 'utf-8'))
+            msg.attach(MIMEText('\nsent by:\n' + doorpi.DoorPi().epilog, 'plain', 'utf-8'))
 
         # Snapshot hinzufuegen? Ggf. an MIMEFile an Multipart anhaengen.
         if smtp_snapshot:
@@ -69,12 +69,12 @@ def fire_action_mail(smtp_to, smtp_subject, smtp_text, smtp_snapshot):
                         'attachment; filename="%s"' % os.path.basename(smtp_snapshot))
                     msg.attach(part)
             except Exception as exp:
-                logger.exception("could not send mail attachment: %s" % exp)
+                logger.exception('could not send mail attachment: %s' % exp)
 
         server.sendmail(smtp_from, smtp_tolist, msg.as_string())
         server.quit()
     except:
-        logger.exception("couldn't send email")
+        logger.exception('error sending mail')
         return False
     return True
 

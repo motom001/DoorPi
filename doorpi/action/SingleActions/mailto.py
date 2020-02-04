@@ -1,22 +1,22 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
-import logging
-logger = logging.getLogger(__name__)
-logger.debug("%s loaded", __name__)
-
-import smtplib # used by: fire_action_mail
-from email.mime.multipart import MIMEMultipart # used by: fire_action_mail
-from email.mime.text import MIMEText # used by: fire_action_mail
-from email.MIMEBase import MIMEBase # used by: fire_action_mail
-from email import Encoders # used by: fire_action_mail
-from email.Utils import COMMASPACE # used by: fire_action_mail
-
 from doorpi.action.base import SingleAction
 import doorpi
 import os
 from take_snapshot import get_last_snapshot
 import subprocess as sub
+
+import smtplib  # used by: fire_action_mail
+from email.mime.multipart import MIMEMultipart  # used by: fire_action_mail
+from email.mime.text import MIMEText  # used by: fire_action_mail
+from email.MIMEBase import MIMEBase  # used by: fire_action_mail
+from email import Encoders  # used by: fire_action_mail
+from email.Utils import COMMASPACE  # used by: fire_action_mail
+
+import logging
+logger = logging.getLogger(__name__)
+logger.debug("%s loaded", __name__)
+
 
 def fire_action_mail(smtp_to, smtp_subject, smtp_text, smtp_snapshot):
     try:
@@ -53,15 +53,15 @@ def fire_action_mail(smtp_to, smtp_subject, smtp_text, smtp_snapshot):
         if email_signature and len(email_signature) > 0:
             msg.attach(MIMEText('\nsent by:\n'+doorpi.DoorPi().epilog, 'plain', 'utf-8'))
 
-        ## Snapshot hinzufuegen? Ggf. an MIMEFile an Multipart anhaengen.
+        # Snapshot hinzufuegen? Ggf. an MIMEFile an Multipart anhaengen.
         if smtp_snapshot:
             smtp_snapshot = doorpi.DoorPi().parse_string(smtp_snapshot)
             if not os.path.exists(smtp_snapshot):
                 smtp_snapshot = get_last_snapshot()
 
             try:
-                with open(smtp_snapshot, "rb") as snapshot_file:
-                    part = MIMEBase('application',"octet-stream")
+                with open(smtp_snapshot, 'rb') as snapshot_file:
+                    part = MIMEBase('application', 'octet-stream')
                     part.set_payload(snapshot_file.read())
                     Encoders.encode_base64(part)
                     part.add_header(
@@ -81,7 +81,8 @@ def fire_action_mail(smtp_to, smtp_subject, smtp_text, smtp_snapshot):
 
 def get(parameters):
     parameter_list = parameters.split(',')
-    if len(parameter_list) < 3 or len(parameter_list) > 4: return None
+    if len(parameter_list) < 3 or len(parameter_list) > 4:
+        return None
 
     smtp_to = parameter_list[0]
     smtp_subject = parameter_list[1]
@@ -90,12 +91,12 @@ def get(parameters):
         smtp_snapshot = parameter_list[3]
     else:
         smtp_snapshot = False
-    
+
     return MailtoAction(fire_action_mail,
-                     smtp_to = smtp_to,
-                     smtp_subject = smtp_subject,
-                     smtp_text = smtp_text,
-                     smtp_snapshot = smtp_snapshot)
+                        smtp_to=smtp_to,
+                        smtp_subject=smtp_subject,
+                        smtp_text=smtp_text,
+                        smtp_snapshot=smtp_snapshot)
 
 
 class MailtoAction(SingleAction):

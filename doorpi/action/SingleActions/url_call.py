@@ -27,7 +27,7 @@ def fire_command(url):
             opener = urllib2.build_opener(handler)
             urllib2.install_opener(opener)
         else:
-            url = url.replace(" ", "%20")
+            url = url.replace(' ', '%20')
 
         logger.debug('url: %s' % url)
         return urllib2.urlopen(

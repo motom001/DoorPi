@@ -11,7 +11,9 @@ import logging
 logger = logging.getLogger(__name__)
 logger.debug("%s loaded", __name__)
 
+
 def get(**kwargs): return Wiegand(**kwargs)
+
 
 class Wiegand(KeyboardAbstractBaseClass):
 
@@ -26,14 +28,14 @@ class Wiegand(KeyboardAbstractBaseClass):
 
         # read config file
         section_name = conf_pre + 'keyboard' + conf_post
-        self._data0 = doorpi.DoorPi().config.get(section_name, 'data0') # w0 - data signal
-        self._data1 = doorpi.DoorPi().config.get(section_name, 'data1') # w1 - data signal
-        self._timeout = doorpi.DoorPi().config.get(section_name, 'timeout', 0.25) # time for reading data signal
+        self._data0 = doorpi.DoorPi().config.get(section_name, 'data0')  # w0 - data signal
+        self._data1 = doorpi.DoorPi().config.get(section_name, 'data1')  # w1 - data signal
+        self._timeout = doorpi.DoorPi().config.get(section_name, 'timeout', 0.25)  # time for reading data signal
 
         # init vars
-        self._nextInput = '' # stores input until timeout
-        self._validInput = False # true if valid input found
-        self._lastValidInput = { 'fc': -1, 'value': -1 } # stores last valid input and facility code
+        self._nextInput = ''  # stores input until timeout
+        self._validInput = False  # true if valid input found
+        self._lastValidInput = {'fc': -1, 'value': -1}  # stores last valid input and facility code
 
         # GPIO pin mapping mode (ATTENTION: from_gpio must be same)
         if doorpi.DoorPi().config.get(section_name, 'mode', "BOARD").upper() == "BOARD":
@@ -52,9 +54,6 @@ class Wiegand(KeyboardAbstractBaseClass):
         # register input events (eg. for signal from wiegand device like rfid card)
         for input_pin in self._InputPins:
             self._register_EVENTS_for_pin(input_pin, __name__)
-
-        self._thread = threading.Timer(self._timeout, self._processData)
-        self._thread.start()
 
     def _onDataLow(self):
         if not self._nextInput:
@@ -99,7 +98,7 @@ class Wiegand(KeyboardAbstractBaseClass):
         elif signalLength == 26 and self._verify26Bit(self._nextInput):
             self._lastValidInput = self._interpret26Bit(self._nextInput)
             self._validInput = True
-        else
+        else:
             logger.debug('input: unknown or invalid format')
             self._validInput = False
 
@@ -119,7 +118,7 @@ class Wiegand(KeyboardAbstractBaseClass):
         # reset input signal
         self._nextInput = ''
 
-    def _verifyParity(evenParity, oddParity)
+    def _verifyParity(evenParity, oddParity):
         bitsEven = evenParity.count('1')
         bitsOdd = oddParity.count('1')
         return (bitsEven % 2 == 0) and (bitsOdd % 2 == 1)
@@ -152,7 +151,7 @@ class Wiegand(KeyboardAbstractBaseClass):
     def _interpret8Bit(input):
         # IIIICCCC signal format (I = inverse)
         value = int(intput, 2) & 0x0F
-        return { 'fc': -1, 'value': value}
+        return {'fc': -1, 'value': value}
 
     def _interpret26Bit(input):
         # PFFFFFFFFCCCCCCCCCCCCCCCCP signal format
@@ -165,7 +164,7 @@ class Wiegand(KeyboardAbstractBaseClass):
 
     def _interpret32Bit(input):
         value = int(input, 2)
-        return { 'fc': -1, 'value': value}
+        return {'fc': -1, 'value': value}
 
     def _interpret34Bit(input):
         # PFFFFFFFFFFFFFFFFCCCCCCCCCCCCCCCCP signal format
@@ -186,6 +185,8 @@ class Wiegand(KeyboardAbstractBaseClass):
             return
 
         self._shutdown = True
+        GPIO.remove_event_detect(self._data0)
+        GPIO.remove_event_detect(self._data1)
         doorpi.DoorPi().event_handler.unregister_source(__name__, True)
         self.__destroyed = True
 
@@ -193,4 +194,4 @@ class Wiegand(KeyboardAbstractBaseClass):
         return (tag == self.last_key)
 
     def set_output(self, pin, value, log_output=True):
-        return pin in self._OutputPins:
+        return pin in self._OutputPins

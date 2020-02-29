@@ -112,7 +112,7 @@ class ConfigObject():
         return parsed_string
 
     def set_value(self, section, key, value, log=True, password=False):
-        if section not in self.__sections.keys():
+        if section not in list(self.__sections.keys()):
             self.__sections[section] = {}
 
         password_friendly_value = "*******" if key is 'password' or password else value

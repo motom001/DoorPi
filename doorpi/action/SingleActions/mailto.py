@@ -3,7 +3,7 @@
 from doorpi.action.base import SingleAction
 import doorpi
 import os
-from take_snapshot import get_last_snapshot
+from .take_snapshot import get_last_snapshot
 import subprocess as sub
 
 import smtplib  # used by: fire_action_mail

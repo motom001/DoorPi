@@ -219,7 +219,7 @@ class DoorPi(object, metaclass=Singleton):
             DoorPiEventHandlerNotExistsException("don't try to stop, when not prepared")
             return False
 
-        logger.debug("Threads before starting shutdown: %s", self.event_handler.threads)
+        logger.debug('Threads before starting shutdown: %s', self.event_handler.threads)
 
         self.event_handler.fire_event('BeforeShutdown', __name__)
         self.event_handler.fire_event_synchron('OnShutdown', __name__)
@@ -296,19 +296,17 @@ class DoorPi(object, metaclass=Singleton):
         for key in list(self.additional_informations.keys()):
             infos_as_html += '<tr><td>'
             infos_as_html += '<b>'+key+'</b>'
-            infos_as_html += '</td><td>'
-            infos_as_html += '<i>'+cgi.escape(
-                str(self.additional_informations.get(key)).replace("\r\n", "<br />")
-            )+'</i>'
-            infos_as_html += '</td></tr>'
+            infos_as_html += '</td><td><i>'
+            infos_as_html += cgi.escape(
+                str(self.additional_informations.get(key)).replace('\r\n', '<br />'))
+            infos_as_html += '</i></td></tr>'
         infos_as_html += '</table>'
 
         mapping_table = {
-            'INFOS_PLAIN':      str(self.additional_informations),
-            'INFOS':            infos_as_html,
-            'BASEPATH':         self.base_path,
-            'last_tick':        str(self.__last_tick)
-        }
+            'INFOS_PLAIN': str(self.additional_informations),
+            'INFOS': infos_as_html,
+            'BASEPATH': self.base_path,
+            'last_tick': str(self.__last_tick)}
 
         for key in list(metadata.__dict__.keys()):
             if isinstance(metadata.__dict__[key], str):
@@ -333,8 +331,7 @@ class DoorPi(object, metaclass=Singleton):
         for key in list(self.additional_informations.keys()):
             parsed_string = parsed_string.replace(
                 '!' + key + '!',
-                str(self.additional_informations[key])
-            )
+                str(self.additional_informations[key]))
 
         return parsed_string
 

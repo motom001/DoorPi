@@ -413,9 +413,9 @@ class DoorPiWebRequestHandler(BaseHTTPRequestHandler):
 
             # nutze den Hostnamen aus der URL. sonst ist ein erneuter Login nötig
             if 'host' in list(self.headers.keys()):
-                mapping_table['BASE_URL'] = ('http://{}').format(self.headers['host'])
+                mapping_table['BASE_URL'] = ('http://{0}').format(self.headers['host'])
             else:
-                mapping_table['BASE_URL'] = ('http://{}:{}').format(self.server.server_name, self.server.server_port)
+                mapping_table['BASE_URL'] = ('http://{0}:{1}').format(self.server.server_name, self.server.server_port)
 
             # Trennung DATA_URL (AJAX) und BASE_URL (Dateien)
             mapping_table['DATA_URL'] = mapping_table['BASE_URL']

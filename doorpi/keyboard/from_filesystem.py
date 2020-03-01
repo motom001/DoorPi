@@ -7,7 +7,7 @@ import os
 import ntpath
 from time import sleep
 from watchdog.observers import Observer
-from watchdog.events import FileSystemEventHandler
+import watchdog.events
 
 import logging
 logger = logging.getLogger(__name__)
@@ -27,7 +27,6 @@ def get(**kwargs): return FileSystem(**kwargs)
 
 
 class FileSystem(KeyboardAbstractBaseClass, FileSystemEventHandler):
-
     __reset_file = None
 
     def __init__(self, input_pins, output_pins, conf_pre, conf_post, keyboard_name, polarity=0, *args, **kwargs):
@@ -48,13 +47,8 @@ class FileSystem(KeyboardAbstractBaseClass, FileSystemEventHandler):
         if not self.__base_path_output:
             raise MissingMandatoryParameter(('base_path_output in {}}').format(section_name))
 
-        if not os.path.exists(os.path.dirname(self.__base_path_input)):
-            logger.info('Path %s does not exist - creating it now', os.path.dirname(self.__base_path_input))
-            os.makedirs(os.path.dirname(self.__base_path_input))
-
-        if not os.path.exists(os.path.dirname(self.__base_path_output)):
-            logger.info('Path %s does not exist - creating it now', os.path.dirname(self.__base_path_output))
-            os.makedirs(os.path.dirname(self.__base_path_output))
+        os.makedirs(os.path.dirname(self.__base_path_input), exist_ok=True)
+        os.makedirs(os.path.dirname(self.__base_path_output), exist_ok=True)
 
         for input_pin in self._InputPins:
             self.__set_input(os.path.join(self.__base_path_input, input_pin))
@@ -98,6 +92,8 @@ class FileSystem(KeyboardAbstractBaseClass, FileSystemEventHandler):
 
 
     def status_input(self, pin):
+        if pin not in self._InputPins:
+            return False
         with open(os.path.join(self.__base_path_input, pin), 'r') as file
             plain_value = file.readline().rstrip()
             if self._polarity is 0:
@@ -121,11 +117,11 @@ class FileSystem(KeyboardAbstractBaseClass, FileSystemEventHandler):
         if parsed_pin != ('!' + str(pin) + '!'):
             pin = parsed_pin
 
-        value = str(value).lower() in HIGH_LEVEL
-        log_output = str(log_output).lower() in HIGH_LEVEL
-
         if pin not in self._OutputPins:
             return False
+        
+        value = str(value).lower() in HIGH_LEVEL
+        log_output = str(log_output).lower() in HIGH_LEVEL
         written_value = self.__write_file(os.path.join(self.__base_path_output, pin), value)
         if log_output:
             logger.debug('out(pin = %s, value = %s, log_output = %s)', pin, written_value, log_output)
@@ -134,7 +130,7 @@ class FileSystem(KeyboardAbstractBaseClass, FileSystemEventHandler):
         return True
 
     def on_modified(self, event):
-        if 'FileModifiedEvent' not in str(event):
+        if not isinstance(event, watchdog.events.FileModifiedEvent):
             return
         if self.__reset_file:
             if self.__reset_file == event.src_path:

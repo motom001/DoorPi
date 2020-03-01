@@ -1,19 +1,20 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+from datetime import datetime
 
 import logging
 logger = logging.getLogger(__name__)
 logger.debug("%s loaded", __name__)
 
-from datetime import datetime
 
 def get(*args, **kwargs):
     try:
-        if len(kwargs['name']) == 0: kwargs['name'] = ['']
-        if len(kwargs['value']) == 0: kwargs['value'] = ['']
+        if len(kwargs['name']) == 0:
+            kwargs['name'] = ['']
+        if len(kwargs['value']) == 0:
+            kwargs['value'] = ['']
 
         keyboard = kwargs['DoorPiObject'].keyboard
-
         status = {}
 
         for name_requested in kwargs['name']:
@@ -30,14 +31,15 @@ def get(*args, **kwargs):
             if name_requested in 'output':
                 status['output'] = keyboard.output_status
                 for value_requested in kwargs['value']:
-                    for output_pin in status['output'].keys():
+                    for output_pin in list(status['output'].keys()):
                         if value_requested not in output_pin:
                             del status['output'][output_pin]
         return status
 
     except Exception as exp:
         logger.exception(exp)
-        return {'Error': 'could not create keyboard object - '+str(exp)}
+        return {'Error': 'could not create keyboard object - ' + str(exp)}
+
 
 def is_active(doorpi_object):
     try:

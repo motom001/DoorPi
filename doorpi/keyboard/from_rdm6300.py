@@ -93,9 +93,11 @@ class RDM6300(KeyboardAbstractBaseClass):
         return checkSum
 
     @staticmethod
-    def check_checksum(string):
-        given_checksum = (int(string[11], 16) << 4) + int(string[12], 16)
-        return given_checksum == RDM6300.calculate_checksum(string)
+    def check_checksum(buffer):
+        # signal format: ttttiiiiiicc (t = tag, i = id, c = checksum) in hexa-system
+        # -> compare to bit 11 + 12
+        checksum = (int(buffer[11], 16) << 4) + int(buffer[12], 16)
+        return (checksum == RDM6300.calculate_checksum(buffer))
 
     def readUART(self):
         while not self._shutdown:
@@ -129,7 +131,7 @@ class RDM6300(KeyboardAbstractBaseClass):
                                 # call Handler for unspecific found tag
                                 doorpi.DoorPi().event_handler('OnFoundTag', __name__)
                                 # signal format: ttttiiiiiicc (t = tag, i = id, c = checksum) in hexa-system
-                                self.last_key = int(chars[5:-3], 16)
+                                self.last_key = int(buffer[5:-3], 16)
                                 self.last_key_time = now
                                 logger.debug('id is %s', self.last_key)
                                 # card uid registered as input pin?

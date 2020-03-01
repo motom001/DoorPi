@@ -1,18 +1,17 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from doorpi.keyboard.AbstractBaseClass import KeyboardAbstractBaseClass, HIGH_LEVEL, LOW_LEVEL
 import doorpi
+from doorpi.keyboard.AbstractBaseClass import KeyboardAbstractBaseClass, HIGH_LEVEL, LOW_LEVEL
 
 import os
 import ntpath
 from time import sleep
-
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 
 import logging
 logger = logging.getLogger(__name__)
-logger.debug("%s loaded", __name__)
+logger.debug('%s loaded', __name__)
 
 
 def path_leaf(path):
@@ -74,35 +73,43 @@ class FileSystem(KeyboardAbstractBaseClass, FileSystemEventHandler):
     def destroy(self):
         if self.is_destroyed:
             return
-        logger.debug('destroy')
+        
+        # remove all doorpi events for this keyboard
+        doorpi.DoorPi().event_handler.unregister_source(__name__, True)
+        self.__destroyed = True
 
         self.__observer.stop()
         self.__observer.join()
 
         for input_pin in self._InputPins:
-            os.remove(os.path.join(self.__base_path_input, input_pin))
+            try:
+                os.remove(os.path.join(self.__base_path_input, input_pin))
+            except FileNotFoundError:
+                pass
+            except Exception as ex:
+                logger.error('Unable to remove virtual input pin %s: %s', input_pin, ex)
         for output_pin in self._OutputPins:
-            os.remove(os.path.join(self.__base_path_output, output_pin))
+            try:
+                os.remove(os.path.join(self.__base_path_output, output_pin))
+            except FileNotFoundError:
+                pass
+            except Exception as ex:
+                logger.error('Unable to remove virtual output pin %s: %s', output_pin, ex)
 
-        doorpi.DoorPi().event_handler.unregister_source(__name__, True)
-        self.__destroyed = True
 
     def status_input(self, pin):
-        f = open(os.path.join(self.__base_path_input, pin), 'r')
-        plain_value = f.readline().rstrip()
-        f.close()
-        if self._polarity is 0:
-            return str(plain_value).lower() in HIGH_LEVEL
-        else:
+        with open(os.path.join(self.__base_path_input, pin), 'r') as file
+            plain_value = file.readline().rstrip()
+            if self._polarity is 0:
+                return str(plain_value).lower() in HIGH_LEVEL
             return str(plain_value).lower() in LOW_LEVEL
 
     def __write_file(self, file, value=False):
-        f = open(file, 'w')
-        value = str(value).lower() in HIGH_LEVEL
-        if self._polarity is 1:
-            value = not value
-        f.write(str(value) + '\r\n')
-        f.close()
+        with open(file, 'w') as f
+            value = str(value).lower() in HIGH_LEVEL
+            if self._polarity is 1:
+                value = not value
+            f.write(str(value) + '\r\n')
         return value
 
     def __set_input(self, file, value=False):

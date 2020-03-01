@@ -63,8 +63,8 @@
 #                        Board(Pin 10), but that works also.
 #
 #  RFID data: http://kampis-elektroecke.de/?page_id=3248
-from doorpi.keyboard.AbstractBaseClass import KeyboardAbstractBaseClass, HIGH_LEVEL, LOW_LEVEL
 import doorpi
+from doorpi.keyboard.AbstractBaseClass import KeyboardAbstractBaseClass, HIGH_LEVEL, LOW_LEVEL
 
 import threading
 import serial
@@ -72,11 +72,7 @@ import time
 
 import logging
 logger = logging.getLogger(__name__)
-logger.debug("%s loaded", __name__)
-
-START_FLAG = '\x02'
-STOP_FLAG = '\x03'
-MAX_LENGTH = 14
+logger.debug('%s loaded', __name__)
 
 
 def get(**kwargs): return RDM6300(**kwargs)
@@ -87,33 +83,33 @@ class RDM6300(KeyboardAbstractBaseClass):
 
     @staticmethod
     def calculate_checksum(string):
-        checkSum = 0
+        checksum = 0
         for i in range(1, 10, 2):
-            checkSum = checkSum ^ ((int(string[i], 16)) << 4) + int(string[i+1], 16)
-        return checkSum
+            checksum ^= ((int(string[i], 16)) << 4) + int(string[i + 1], 16)
+        return checksum
 
-    @staticmethod
-    def check_checksum(buffer):
+    @classmethod
+    def verify_checksum(cls, buffer):
         # signal format: ttttiiiiiicc (t = tag, i = id, c = checksum) in hexa-system
         # -> compare to bit 11 + 12
         checksum = (int(buffer[11], 16) << 4) + int(buffer[12], 16)
-        return (checksum == RDM6300.calculate_checksum(buffer))
+        return (checksum == cls.calculate_checksum(buffer))
 
-    def readUART(self):
+    def read_serial(self):
         while not self._shutdown:
             # initialize UART
-            self._UART = serial.Serial(self.__port, self.__baudrate)
-            self._UART.timeout = 1
+            self._serial = serial.Serial(self.__port, self.__baudrate)
+            self._serial.timeout = 1
             # make sure that terminal via UART is disabled
-            self._UART.close()
-            self._UART.open()
+            self._serial.close()
+            self._serial.open()
 
             try:
                 buffer = ''
 
                 while not self._shutdown:
                     # read next char from uart
-                    input = self._UART.read()
+                    input = self._serial.read()
                     if not input:
                         continue
 
@@ -121,9 +117,11 @@ class RDM6300(KeyboardAbstractBaseClass):
                     buffer += str(input)
 
                     # check for end of signal flag
-                    if (input == STOP_FLAG):
+                    if (input == self._input_stop_flag):
                         # check signal format
-                        if buffer[0] == START_FLAG and len(buffer) == MAX_LENGTH and RDM6300.check_checksum(buffer):
+                        if buffer.startswith(self._input_start_flag) and \
+                           len(buffer) == self._input_frame_size and \ 
+                           RDM6300.verify_checksum(buffer):
                             logger.debug('found tag, checking dismisstime')
                             # signal format ok - to fast?
                             now = time.time()
@@ -147,16 +145,15 @@ class RDM6300(KeyboardAbstractBaseClass):
                         # reset buffer after stop flag
                         buffer = ''
                     # signal to long? reset
-                    elif len(buffer) > MAX_LENGTH:
+                    elif len(buffer) > self._input_frame_size:
                         logger.debug('invalid signal length')
                         buffer = ''
-
             except Exception as ex:
                 logger.exception(ex)
             finally:
                 # shutdown the UART
-                self._UART.close()
-                self._UART = None
+                self._serial.close()
+                self._serial = None
 
     def __init__(self, input_pins, keyboard_name, conf_pre, conf_post, *args, **kwargs):
         logger.debug('__init__ (input_pins = %s)', input_pins)
@@ -177,6 +174,9 @@ class RDM6300(KeyboardAbstractBaseClass):
         self.__port = doorpi.DoorPi().config.get(section_name, 'port', '/dev/ttyAMA0')
         self.__baudrate = doorpi.DoorPi().config.get_int(section_name, 'baudrate', 9600)
         self.__dismisstime = doorpi.DoorPi().config.get_int(section_name, 'dismisstime', 5)
+        self._input_start_flag = '\x02'
+        self._input_stop_flag = '\x03'
+        self._input_frame_size = 14
 
         # register events for uids specified in config
         for input_pin in self._InputPins:
@@ -184,7 +184,7 @@ class RDM6300(KeyboardAbstractBaseClass):
 
         # call read function in thread to unblock main thread
         self._shutdown = False
-        self._thread = threading.Thread(target=self.readUART)
+        self._thread = threading.Thread(target=self.read_serial)
         self._thread.daemon = True
         self._thread.start()
 

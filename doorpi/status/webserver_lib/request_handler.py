@@ -400,6 +400,9 @@ class DoorPiWebRequestHandler(BaseHTTPRequestHandler):
         return message
 
     def parse_content(self, content, online_fallback=False, **mapping_table):
+        if type(content) != str:
+            raise TypeError('content must be of type str')
+            
         try:
             matches = re.findall(r"{([^}\s]*)}", content)
             if not matches:

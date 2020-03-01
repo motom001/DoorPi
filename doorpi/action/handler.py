@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from .base import SingleAction
 import doorpi
@@ -14,7 +13,7 @@ import os
 
 import logging
 logger = logging.getLogger(__name__)
-logger.debug("%s loaded", __name__)
+logger.debug('%s loaded', __name__)
 
 
 class EnumWaitSignalsClass():
@@ -27,8 +26,8 @@ class EnumWaitSignalsClass():
     DontWaitToEnd = False
     async = False
     asyncron = False
-EnumWaitSignals = EnumWaitSignalsClass()
 
+EnumWaitSignals = EnumWaitSignalsClass()
 ONTIME = 'OnTime'
 
 
@@ -37,24 +36,21 @@ def id_generator(size=6, chars=string.ascii_uppercase + string.digits):
 
 
 class EventLog(object):
-
     _db = False
 
     # doorpi.DoorPi().conf.get_string_parsed('DoorPi', 'eventlog', '!BASEPATH!/conf/eventlog.db')
     def __init__(self, file_name):
-
         if not file_name:
             return
         try:
             if not os.path.exists(os.path.dirname(file_name)):
                 logger.info('Path %s does not exist - creating it now', os.path.dirname(file_name))
                 os.makedirs(os.path.dirname(file_name))
-            # https://docs.python.org/2/library/sqlite3.html#sqlite3.connect
+
             self._db = sqlite3.connect(
                 database=file_name,
                 timeout=1,
-                check_same_thread=False
-            )
+                check_same_thread=False)
 
             self.execute_sql('''
                 CREATE TABLE IF NOT EXISTS event_log (
@@ -120,7 +116,6 @@ class EventLog(object):
     def execute_sql(self, sql):
         if not self._db:
             return None
-        # logger.trace('fire sql: %s', sql)
         return self._db.execute(sql)
 
     def insert_event_log(self, event_id, fired_by, event_name, start_time, additional_infos):
@@ -169,11 +164,9 @@ class EventLog(object):
 
 
 class EventHandler:
-
     __Sources = []  # Auflistung Sources
     __Events = {}  # Zuordnung Event zu Sources (1 : n)
     __Actions = {}  # Zuordnung Event zu Actions (1: n)
-
     __additional_informations = {}
 
     @property
@@ -262,7 +255,7 @@ class EventHandler:
         t = threading.Thread(
             target=self.fire_event_synchron,
             args=(event_name, event_source, kwargs),
-            name=('daemon {} from {}').format(event_name, event_source))
+            name=('daemon {0} from {1}').format(event_name, event_source))
         t.daemon = True
         t.start()
 
@@ -288,15 +281,14 @@ class EventHandler:
         if event_name not in self.__Actions:
             if not silent:
                 logger.debug('no actions for event %s - skip fire_event %s from %s', event_name, event_name, event_source)
-            return "no actions for this event"
+            return 'no actions for this event'
 
         if kwargs is None:
             kwargs = {}
         kwargs.update({
             'last_fired': str(start_time),
             'last_fired_from': event_source,
-            'event_fire_id': event_fire_id
-        })
+            'event_fire_id': event_fire_id })
 
         self.__additional_informations[event_name] = kwargs
         if 'last_finished' not in self.__additional_informations[event_name]:
@@ -323,27 +315,27 @@ class EventHandler:
                 logger.info('[%s] Detected KeyboardInterrupt and shutdown DoorPi (Message: %s)', event_fire_id, exp)
                 doorpi.DoorPi().destroy()
             except:
-                logger.exception("[%s] error while fire action %s for event_name %s", event_fire_id, action, event_name)
+                logger.exception('[%s] error while fire action %s for event_name %s', event_fire_id, action, event_name)
         if not silent:
-            logger.trace("[%s] finished fire_event for event_name %s", event_fire_id, event_name)
+            logger.trace('[%s] finished fire_event for event_name %s', event_fire_id, event_name)
         self.__additional_informations[event_name]['last_finished'] = str(time.time())
         self.__additional_informations[event_name]['last_duration'] = str(time.time() - start_time)
         return True
 
     def unregister_event(self, event_name, event_source, delete_source_when_empty=True):
         try:
-            logger.trace("unregister Event %s from %s ", event_name, event_source)
+            logger.trace('unregister Event %s from %s', event_name, event_source)
             if event_name not in self.__Events:
-                return "event unknown"
+                return 'event unknown'
             if event_source not in self.__Events[event_name]:
-                return "source not know for this event"
+                return 'source not know for this event'
             self.__Events[event_name].remove(event_source)
             if len(self.__Events[event_name]) is 0:
                 del self.__Events[event_name]
-                logger.debug("no more sources for event %s - remove event too", event_name)
+                logger.debug('no more sources for event %s - remove event too', event_name)
             if delete_source_when_empty:
                 self.unregister_source(event_source)
-            logger.trace("event_source %s was removed for event %s", event_source, event_name)
+            logger.trace('event_source %s was removed for event %s', event_source, event_name)
             return True
         except Exception as exp:
             logger.error('failed to unregister event %s with error message %s', event_name, exp)
@@ -351,18 +343,17 @@ class EventHandler:
 
     def unregister_source(self, event_source, force_unregister=False):
         try:
-            logger.trace("unregister Eventsource %s and force_unregister is %s", event_source, force_unregister)
+            logger.trace('unregister Eventsource %s and force_unregister is %s', event_source, force_unregister)
             if event_source not in self.__Sources:
-                return "event_source %s unknown" % (event_source)
+                return ('event_source {0} unknown').format(event_source)
             for event_name in list(self.__Events.keys()):
                 if event_source in self.__Events[event_name] and force_unregister:
                     self.unregister_event(event_name, event_source, False)
                 elif event_source in self.__Events[event_name] and not force_unregister:
-                    return "couldn't unregister event_source %s because it is used for event %s" % (event_source, event_name)
+                    return ('unregister event_source {0} failed because it is used for event {1}').format(event_source, event_name)
             if event_source in self.__Sources:
-                # sollte nicht nötig sein, da es entfernt wird, wenn das letzte Event dafür gelöscht wird
                 self.__Sources.remove(event_source)
-            logger.trace("event_source %s was removed", event_source)
+            logger.trace('event_source %s was removed', event_source)
             return True
         except Exception as exp:
             logger.exception('failed to unregister source %s with error message %s', event_source, exp)

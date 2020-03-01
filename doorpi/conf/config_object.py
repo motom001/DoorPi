@@ -104,8 +104,8 @@ class ConfigObject():
             logger.exception(exp)
             return False
 
-    def get_string_parsed(self, section, key, default='', log=True):
-        raw_string = self.get_string(section, key, default, log)
+    def get_string_parsed(self, section, key, default='', log=True, store_if_not_exists=True):
+        raw_string = self.get_string(section, key, default, log, store_if_not_exists=store_if_not_exists)
         parsed_string = doorpi.DoorPi().parse_string(raw_string)
         logger.debug('parse string "%s" to "%s"', raw_string, parsed_string)
         return parsed_string

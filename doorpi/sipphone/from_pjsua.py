@@ -95,7 +95,7 @@ class Pjsua(SipphoneAbstractBaseClass):
         self.current_account_callback = None
         self.__recorder = None
         self.__player = None
-
+        self.current_call = None
         self.call_timeout = 30
 
     def start(self):

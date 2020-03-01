@@ -260,6 +260,11 @@ class DoorPiWebRequestHandler(BaseHTTPRequestHandler):
         return mime_type in ['text/html']
 
     def read_from_file(self, url):
+        # protect against directory traversal
+        url = os.path.realpath(url)
+        if not url.startswith(self.server.www):
+            raise FileNotFoundError
+
         try:
             read_mode = 'r' if self.is_file_parsable(url) else 'rb'
             with open(url, read_mode) as file:

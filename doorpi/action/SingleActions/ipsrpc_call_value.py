@@ -21,34 +21,32 @@ def ips_rpc_create_config():
     return config
 
 def ips_rpc_fire(method, config, *parameters):
-    payload = {
+    payload = json.dumps({
        'method': method,
        'params': parameters,
        'jsonrpc': config['jsonrpc'],
-       'id': 0, }
-    return requests.post(
+       'id': 0 }).encode('utf-8')
+    response = requests.post(
         config['webservice_url'],
         headers = config['headers'],
         auth = HTTPBasicAuth(config['username'], config['password']),
-        data = json.dumps(payload))
+        data = payload)
+    return json.loads(response.content.decode('utf-8'))
 
 def ips_rpc_check_variable_exists(key, config=None):
     if config is None:
         config = ips_rpc_create_config()
-    response = ips_rpc_fire('IPS_VariableExists', config, key)
-    return response.json['result']
+    return ips_rpc_fire('IPS_VariableExists', config, key)['result']
 
 def ips_rpc_get_variable_type(key, config=None):
     if config is None:
         config = ips_rpc_create_config()
-    response = ips_rpc_fire('IPS_GetVariable', config, key)
-    return response.json['result']['VariableValue']['ValueType']
+    return ips_rpc_fire('IPS_GetVariable', config, key)['result']['VariableValue']['ValueType']
 
 def ips_rpc_get_variable_value(key, config=None):
     if config is None:
         config = ips_rpc_create_config()
-    response = ips_rpc_fire('GetValue', config, key)
-    return response.json['result']
+    return ips_rpc_fire('GetValue', config, key)['result']
 
 def ips_rpc_call_phonenumber_from_variable(key, config=None):
     try:
@@ -78,8 +76,8 @@ def get(parameters):
         return None
 
     key = int(parameter_list[0])
-    return IpsRpcCallPhonenumberFromVariableAction(ips_rpc_call_phonenumber_from_variable, key)
+    return IPSRpcCallPhonenumberFromVariableAction(ips_rpc_call_phonenumber_from_variable, key)
 
 
-class IpsRpcCallPhonenumberFromVariableAction(SingleAction):
+class IPSRpcCallPhonenumberFromVariableAction(SingleAction):
     pass

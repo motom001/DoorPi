@@ -1,14 +1,15 @@
 # -*- coding: utf-8 -*-
-from doorpi.action.base import SingleAction
 import doorpi
+from doorpi.action.base import SingleAction
 
-import urllib.request, urllib.error, urllib.parse
-import ssl
+import urllib.request
+import urllib.error
 import urllib.parse
+import ssl
 
 import logging
 logger = logging.getLogger(__name__)
-logger.debug("%s loaded", __name__)
+logger.debug('%s loaded', __name__)
 
 
 def fire_command(url):
@@ -29,15 +30,12 @@ def fire_command(url):
         else:
             url = url.replace(' ', '%20')
 
-        logger.debug('url: %s' % url)
-        return urllib.request.urlopen(
-            url=url,
-            data=None,
-            timeout=1)
+        logger.debug(('url: {0}').format(url))
+        return urllib.request.urlopen(url=url, data=None, timeout=1)
     except urllib.request.HTTPError as exp:
-        logger.error('HTTPError: %s - %s' % (exp.code, exp.reason))
+        logger.error(('HTTPError: {0} - {1}').format(exp.code, exp.reason))
     except urllib.request.URLError as exp:
-        logger.error('URLError: %s' % exp.reason)
+        logger.error(('URLError: {0}').format(exp.reason))
     return False
 
 def get(parameters):

@@ -8,6 +8,7 @@ import os  # used by: DoorPi.load_config
 import datetime  # used by: parse_string
 import cgi  # used by: parse_string
 import tempfile
+import signal
 
 from . import metadata
 from .keyboard.KeyboardInterface import load_keyboard
@@ -16,7 +17,6 @@ from .status.webserver import load_webserver
 from .conf.config_object import ConfigObject
 from .action.handler import EventHandler
 from .status.status_class import DoorPiStatus
-# from .status.webservice import run_webservice, WebService
 from .action.base import SingleAction
 
 import logging
@@ -50,7 +50,6 @@ class Singleton(type):
 
 
 class DoorPi(object, metaclass=Singleton):
-
     __prepared = False
     __config = None
 
@@ -61,7 +60,6 @@ class DoorPi(object, metaclass=Singleton):
 
     @property
     def keyboard(self): return self.__keyboard
-    # def get_keyboard(self): return self.__keyboard
 
     __sipphone = None
 
@@ -128,6 +126,11 @@ class DoorPi(object, metaclass=Singleton):
         self.pidfile_timeout = 5
 
         self.__last_tick = time.time()
+        self.__shutdown = False
+        
+    def signal_shutdown(self, signum, stackframe):
+        logger.info('Caught deadly signal %d', signum)
+        self.__shutdown = True
 
     def doorpi_shutdown(self, time_until_shutdown=10):
         time.sleep(time_until_shutdown)
@@ -136,6 +139,11 @@ class DoorPi(object, metaclass=Singleton):
     def prepare(self, parsed_arguments):
         logger.debug('prepare')
         logger.debug('given arguments argv: %s', parsed_arguments)
+        
+        # setup signal handlers for HUP, INT, TERM
+        signal.signal(signal.SIGHUP, self.signal_shutdown)
+        signal.signal(signal.SIGINT, self.signal_shutdown)
+        signal.signal(signal.SIGTERM, self.signal_shutdown)
 
         self.__config = ConfigObject.load_config(parsed_arguments.configfile)
         self._base_path = self.config.get('DoorPi', 'base_path', self.base_path)
@@ -216,7 +224,7 @@ class DoorPi(object, metaclass=Singleton):
         logger.debug('destroy doorpi')
 
         if not self.event_handler or self.event_handler.threads is None:
-            DoorPiEventHandlerNotExistsException("don't try to stop, when not prepared")
+            DoorPiEventHandlerNotExistsException('don\'t try to stop, when not prepared')
             return False
 
         logger.debug('Threads before starting shutdown: %s', self.event_handler.threads)
@@ -251,7 +259,7 @@ class DoorPi(object, metaclass=Singleton):
             raise DoorPiRestartException()
 
     def run(self):
-        logger.debug("run")
+        logger.debug('run')
         if not self.__prepared:
             self.prepare(self.__parsed_arguments)
 

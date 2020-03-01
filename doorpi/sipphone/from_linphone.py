@@ -233,7 +233,7 @@ class LinPhone(SipphoneAbstractBaseClass):
         logger.info('found %s possible videodevices', len(self.core.video_devices))
         # no video device or video not enabled?
         if (len(self.core.video_devices) == 0 or
-           not conf.get_boolean(SIPPHONE_SECTION, 'video_stream', False)):
+           not conf.get_boolean(SIPPHONE_SECTION, 'video', False)):
             self.core.video_capture_enabled = False
         else:
             logger.debug('| name')
@@ -284,7 +284,7 @@ class LinPhone(SipphoneAbstractBaseClass):
             auth_info = self.core.create_auth_info(username, None, password, None, None, realm)
             self.core.add_auth_info(auth_info)
         else:
-            logger.info('using DoorPi without SIP-Server')
+            logger.info('using DoorPi without SIP-Server? Okay...')
             proxy_cfg = self.core.create_proxy_config()
             proxy_cfg.register_enabled = False
             self.core.add_proxy_config(proxy_cfg)

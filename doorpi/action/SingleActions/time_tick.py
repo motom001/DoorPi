@@ -91,38 +91,17 @@ def get(parameters):
     last_tick = parameter_list[0]
 
     # register timebased_events
-    doorpi.DoorPi().event_handler.register_event('OnTimeSecond', __name__)
-    doorpi.DoorPi().event_handler.register_event('OnTimeSecondEvenNumber', __name__)
-    doorpi.DoorPi().event_handler.register_event('OnTimeSecondUnevenNumber', __name__)
+    for i in ('Second', 'Minute', 'Hour', 'Day', 'Week', 'Month', 'Year'):
+        doorpi.DoorPi().event_handler.register_event(f'OnTime{i}', __name__)
+        doorpi.DoorPi().event_handler.register_event(f'OnTime{i}EvenNumber', __name__)
+        doorpi.DoorPi().event_handler.register_event(f'OnTime{i}UnevenNumber', __name__)
 
-    doorpi.DoorPi().event_handler.register_event('OnTimeMinute', __name__)
-    doorpi.DoorPi().event_handler.register_event('OnTimeMinuteEvenNumber', __name__)
-    doorpi.DoorPi().event_handler.register_event('OnTimeMinuteUnevenNumber', __name__)
     for minute in MINUTE_RANGE:
         doorpi.DoorPi().event_handler.register_event(('OnTimeMinute{0}').format(minute), __name__)
     doorpi.DoorPi().event_handler.register_event('OnTimeMinuteEvery5', __name__)
 
-    doorpi.DoorPi().event_handler.register_event('OnTimeHour', __name__)
-    doorpi.DoorPi().event_handler.register_event('OnTimeHourEvenNumber', __name__)
-    doorpi.DoorPi().event_handler.register_event('OnTimeHourUnevenNumber', __name__)
     for hour in HOUR_RANGE:
         doorpi.DoorPi().event_handler.register_event(('OnTimeHour{0}').format(hour), __name__)
-
-    doorpi.DoorPi().event_handler.register_event('OnTimeDay', __name__)
-    doorpi.DoorPi().event_handler.register_event('OnTimeDayEvenNumber', __name__)
-    doorpi.DoorPi().event_handler.register_event('OnTimeDayUnevenNumber', __name__)
-
-    doorpi.DoorPi().event_handler.register_event('OnTimeWeek', __name__)
-    doorpi.DoorPi().event_handler.register_event('OnTimeWeekEvenNumber', __name__)
-    doorpi.DoorPi().event_handler.register_event('OnTimeWeekUnevenNumber', __name__)
-
-    doorpi.DoorPi().event_handler.register_event('OnTimeMonth', __name__)
-    doorpi.DoorPi().event_handler.register_event('OnTimeMonthEvenNumber', __name__)
-    doorpi.DoorPi().event_handler.register_event('OnTimeMonthUnevenNumber', __name__)
-
-    doorpi.DoorPi().event_handler.register_event('OnTimeYear', __name__)
-    doorpi.DoorPi().event_handler.register_event('OnTimeYearEvenNumber', __name__)
-    doorpi.DoorPi().event_handler.register_event('OnTimeYearUnevenNumber', __name__)
 
     doorpi.DoorPi().event_handler.register_action('OnShutdown', TimeTickDestroyAction(destroy_time_tick))
 

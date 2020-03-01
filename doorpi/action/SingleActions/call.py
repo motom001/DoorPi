@@ -1,24 +1,22 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
+import doorpi
+from doorpi.action.base import SingleAction
 
 import logging
 logger = logging.getLogger(__name__)
-logger.debug("%s loaded", __name__)
-
-from doorpi.action.base import SingleAction
-import doorpi
+logger.debug('%s loaded', __name__)
 
 
-def call(number):
-    doorpi.DoorPi().sipphone.call(number)
+def call(number): doorpi.DoorPi().sipphone.call(number)
 
 def get(parameters):
     parameter_list = parameters.split(',')
-    if len(parameter_list) is not 1: return None
+    if len(parameter_list) is not 1:
+        return None
 
     number = parameter_list[0]
+    return CallAction(call, number=number)
 
-    return CallAction(call, number = number)
 
 class CallAction(SingleAction):
     pass

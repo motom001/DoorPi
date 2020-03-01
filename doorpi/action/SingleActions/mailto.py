@@ -19,25 +19,42 @@ logger.debug('%s loaded', __name__)
 
 def fire_action_mail(smtp_to, smtp_subject, smtp_text, smtp_snapshot):
     try:
-        smtp_host = doorpi.DoorPi().config.get('SMTP', 'server', 'smtp.gmail.com')
+        smtp_host = doorpi.DoorPi().config.get('SMTP', 'server')
+        if not smtp_host:
+            logger.error('smtp host not specified')
+            return False
         smtp_port = doorpi.DoorPi().config.get_int('SMTP', 'port', 465)
+        if (smtp_port < 0 or smtp_port > 65535):
+            logger.error('invalid smtp port')
+            return False
         smtp_user = doorpi.DoorPi().config.get('SMTP', 'username')
         smtp_password = doorpi.DoorPi().config.get('SMTP', 'password')
         smtp_from = doorpi.DoorPi().config.get('SMTP', 'from')
-
         smtp_use_tls = doorpi.DoorPi().config.get_boolean('SMTP', 'use_tls', False)
         smtp_use_ssl = doorpi.DoorPi().config.get_boolean('SMTP', 'use_ssl', True)
+        if (smtp_use_tls and smtp_use_ssl):
+            logger.error('can not combine SSL and STARTTLS')
+            return False
         smtp_need_login = doorpi.DoorPi().config.get_boolean('SMTP', 'need_login', True)
+        if (smtp_need_login and (not smtp_user or not smtp_password)):
+            logger.error('login needed but not specified')
+            return False
+        
         smtp_tolist = smtp_to.split()
         email_signature = doorpi.DoorPi().config.get_string_parsed('SMTP', 'signature', '!EPILOG!')
 
+        if smtp_text.startswith('/'):
+            # Read actual text from file
+            with open(smtp_text, 'rt') as file:
+                smtp_text = file.read()
+        
         if smtp_use_ssl:
             server = smtplib.SMTP_SSL(smtp_host, smtp_port)
         else:
             server = smtplib.SMTP(smtp_host, smtp_port)
 
         server.ehlo()
-        if smtp_use_tls and not smtp_use_ssl:
+        if smtp_use_tls:
             server.starttls()
         if smtp_need_login:
             server.login(smtp_user, smtp_password)
@@ -66,7 +83,7 @@ def fire_action_mail(smtp_to, smtp_subject, smtp_text, smtp_snapshot):
                         ('attachment; filename="{0}"').format(os.path.basename(smtp_snapshot)))
                     msg.attach(part)
             except Exception as exp:
-                logger.exception(('could not send mail attachment: {}').format(exp))
+                logger.exception(('could not send mail attachment: {0}').format(exp))
 
         server.sendmail(smtp_from, smtp_tolist, msg.as_string())
         server.quit()

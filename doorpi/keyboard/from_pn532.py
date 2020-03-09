@@ -100,10 +100,10 @@ class pn532(KeyboardAbstractBaseClass):
     def pn532_recognized(self, tag):
         try:
             if self.in_bouncetime:
-                logger.debug('founded tag while bouncetime -> skip')
+                logger.debug('found tag while bouncetime -> skip')
                 return
 
-            self.last_key_time = self.current_millisecond_timestamp
+            self.last_key_time = self.current_millisecond_timestamp()
             logger.debug('tag: %s', tag)
             hmm = str(tag)
             id = str(hmm.split('ID=')[-1:])[2:-2]
@@ -123,7 +123,13 @@ class pn532(KeyboardAbstractBaseClass):
     def pn532_read(self):
         try:
             while not self._shutdown:
+                # Connect with a target card/tag
+                # The calling thread is blocked until the callback function
+                # returns. rdwr = read/write device, no terminate argument
+                # specified.
                 self.__clf.connect(rdwr={'on-connect': self.pn532_recognized})
+                # skip bouncetime ...
+                time.sleep(self.bouncetime)
         except Exception as ex:
             logger.exception(ex)
         finally:
@@ -133,7 +139,7 @@ class pn532(KeyboardAbstractBaseClass):
         self.keyboard_name = keyboard_name
         self.last_key = ''
         self.bouncetime = bouncetime
-        self.last_key_time = self.current_millisecond_timestamp
+        self.last_key_time = 0
 
         section_name = conf_pre + 'keyboard' + conf_post
         self._device = doorpi.DoorPi().config.get_string_parsed(section_name, 'device', 'tty:AMA0:pn532')
@@ -141,8 +147,15 @@ class pn532(KeyboardAbstractBaseClass):
         self._InputPairs = {}
 
         # NFC Reader initialisation
-        self.__clf = nfc.ContactlessFrontend(self._device)
-
+        try:
+            self.__clf = nfc.ContactlessFrontend(self._device)
+            if not self.__clf:
+                logger.error('could not connect to device %s', self._device)
+                return
+        except IOError as ex:
+            logger.exception(ex)
+            return
+        
         # register input pins event (input pin = card uid)
         for input_pin in self._InputPins:
             self._register_EVENTS_for_pin(input_pin, __name__)
@@ -156,7 +169,7 @@ class pn532(KeyboardAbstractBaseClass):
         self._thread = threading.Thread(target=self.pn532_read)
         self._thread.daemon = True
         self._thread.start()
-
+        # register action for safe cleanup / device unlock
         self.register_destroy_action()
 
     def destroy(self):
@@ -166,7 +179,7 @@ class pn532(KeyboardAbstractBaseClass):
         # stop reading thread
         self._shutdown = True
 
-        # stop NFC - Reader
+        # stop/free NFC/RFID - Reader
         self.__clf.close()
         self.__clf = None
 

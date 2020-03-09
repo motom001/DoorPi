@@ -100,14 +100,14 @@ class pn532(KeyboardAbstractBaseClass):
                 logger.debug('found tag while bouncetime -> skip')
                 return
 
-            self.last_key_time = self.current_millisecond_timestamp
-            logger.debug('tag: %s', tag)
             hmm = str(tag)
             id = str(hmm.split('ID=')[-1:])[2:-2]
-            logger.debug('ID: %s', id)
+            logger.debug('Tag: %s ID: %s', tag, id)
+
             if id in self._InputPins:
                 logger.debug('ID %s is registered', id)
                 self.last_key = id
+                self.last_key_time = time.time()
                 self._fire_OnKeyDown(self.last_key, __name__)
                 self._fire_OnKeyPressed(self.last_key, __name__)
                 self._fire_OnKeyUp(self.last_key, __name__)

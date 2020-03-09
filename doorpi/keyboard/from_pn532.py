@@ -91,11 +91,8 @@ class pn532(KeyboardAbstractBaseClass):
     name = 'pn532 nfc keyboard'
 
     @property
-    def current_millisecond_timestamp(self): return int(round(time.time() * 1000))
-
-    @property
     def in_bouncetime(self):
-        return self.last_key_time + self.bouncetime >= self.current_millisecond_timestamp
+        return (self.last_key_time + self.bouncetime) > time.time()
 
     def pn532_recognized(self, tag):
         try:
@@ -103,13 +100,13 @@ class pn532(KeyboardAbstractBaseClass):
                 logger.debug('found tag while bouncetime -> skip')
                 return
 
-            self.last_key_time = self.current_millisecond_timestamp()
+            self.last_key_time = self.current_millisecond_timestamp
             logger.debug('tag: %s', tag)
             hmm = str(tag)
             id = str(hmm.split('ID=')[-1:])[2:-2]
             logger.debug('ID: %s', id)
             if id in self._InputPins:
-                logger.debug('ID %s ist registriert', id)
+                logger.debug('ID %s is registered', id)
                 self.last_key = id
                 self._fire_OnKeyDown(self.last_key, __name__)
                 self._fire_OnKeyPressed(self.last_key, __name__)
@@ -122,7 +119,7 @@ class pn532(KeyboardAbstractBaseClass):
 
     def pn532_read(self):
         try:
-            while not self._shutdown:
+            while not self._shutdown and self.__clf:
                 # Connect with a target card/tag
                 # The calling thread is blocked until the callback function
                 # returns. rdwr = read/write device, no terminate argument
@@ -133,20 +130,21 @@ class pn532(KeyboardAbstractBaseClass):
         except Exception as ex:
             logger.exception(ex)
         finally:
+            # make sure the connection to the device is closed
+            self.__clf.close()
             logger.debug('pn532 thread ended')
 
     def __init__(self, input_pins, output_pins, keyboard_name, conf_pre, conf_post, bouncetime, *args, **kwargs):
         self.keyboard_name = keyboard_name
         self.last_key = ''
-        self.bouncetime = bouncetime
+        self.bouncetime = bouncetime / 1000.0  # convert ms to s
         self.last_key_time = 0
 
         section_name = conf_pre + 'keyboard' + conf_post
         self._device = doorpi.DoorPi().config.get_string_parsed(section_name, 'device', 'tty:AMA0:pn532')
         self._InputPins = list(map(str.upper, input_pins))
-        self._InputPairs = {}
 
-        # NFC Reader initialisation
+        # Contactless Frontend initialisation
         try:
             self.__clf = nfc.ContactlessFrontend(self._device)
             if not self.__clf:
@@ -157,9 +155,9 @@ class pn532(KeyboardAbstractBaseClass):
             return
         
         # register input pins event (input pin = card uid)
-        for input_pin in self._InputPins:
-            self._register_EVENTS_for_pin(input_pin, __name__)
-            logger.debug('__init__ (input_pin = %s)', input_pin)
+        for pin in self._InputPins:
+            self._register_EVENTS_for_pin(pin, __name__)
+            logger.debug('__init__ (input_pin = %s)', pin)
 
         # register special event to handle all cards with registered id (all input pins)
         doorpi.DoorPi().event_handler.register_event('OnFoundKnownTag', __name__)

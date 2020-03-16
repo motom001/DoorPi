@@ -8,9 +8,6 @@ import os
 
 from . import metadata
 from . import doorpi
-from resource import getrlimit, RLIMIT_NOFILE
-
-TRACE_LEVEL = 5
 
 # Regular log format
 LOG_FORMAT = "%(asctime)s [%(levelname)s]  \t[%(name)s] %(message)s"
@@ -78,103 +75,27 @@ def parse_arguments():
                             help=f"Specify configuration file to use (default: {default_cfg})",
                             default=default_cfg)
 
-    if len(sys.argv) > 1 and sys.argv[1] in ['start', 'stop', 'status']:
-        return (sys.argv[1], arg_parser.parse_args(args=sys.argv[2:]))
-    else:
-        return (None, arg_parser.parse_args(args=sys.argv[1:]))
-
-
-def files_preserve_by_path(*paths):
-    wanted = []
-    for path in paths:
-        fd = os.open(path, os.O_RDONLY)
-        try:
-            wanted.append(os.fstat(fd)[1:3])
-        finally:
-            os.close(fd)
-
-    def fd_wanted(fd):
-        try:
-            return os.fstat(fd)[1:3] in wanted
-        except OSError:
-            return False
-
-    fd_max = getrlimit(RLIMIT_NOFILE)[1]
-    return [fd for fd in range(fd_max) if fd_wanted(fd)]
-
-
-def main_as_daemon(action, args):
-    if action == "stop":
-        args = None
-
-    if not os.path.exists(metadata.log_folder):
-        os.makedirs(metadata.log_folder)
-
-    log_file = os.path.join(metadata.log_folder, "doorpi.log")
-    logrotating = logging.handlers.RotatingFileHandler(
-        log_file,
-        maxBytes=5000000,
-        backupCount=10
-    )
-    global log_level
-    logrotating.setLevel(log_level)
-    logrotating.setFormatter(logging.Formatter(LOG_FORMAT))
-
-    logging.getLogger('').addHandler(logrotating)
-
-    print((metadata.epilog))
-
-    from daemon import runner
-    from daemon.runner import DaemonRunnerInvalidActionError
-    from daemon.runner import DaemonRunnerStartFailureError
-    from daemon.runner import DaemonRunnerStopFailureError
-
-    daemon_runner = runner.DaemonRunner(doorpi.DoorPi(args))
-    # This ensures that the logger file handle does not get closed during daemonization
-    daemon_runner.daemon_context.files_preserve = files_preserve_by_path(log_file)
-    try:
-        daemon_runner.do_action()
-    except DaemonRunnerStopFailureError as ex:
-        print(("can't stop DoorPi daemon - maybe it's not running? (Message: %s)" % ex))
-        return 1
-    except DaemonRunnerStartFailureError as ex:
-        print(("can't start DoorPi daemon - maybe it's running already? (Message: %s)" % ex))
-        return 1
-    except Exception as ex:
-        print(("*** UNCAUGHT EXCEPTION: %s" % ex))
-        raise
-    finally:
-        doorpi.DoorPi().destroy()
-    return 0
-
-
-def main_as_application(args):
-    logger.info(metadata.epilog)
-    logger.debug('loaded with arguments: %s', args)
-
-    try: doorpi.DoorPi(args).run()
-    except KeyboardInterrupt: logger.info("KeyboardInterrupt -> DoorPi will shutdown")
-    except Exception as ex:
-        logger.exception("*** UNCAUGHT EXCEPTION: %s", ex)
-        raise
-    finally: doorpi.DoorPi().destroy()
-
-    return 0
+    return arg_parser.parse_args(args=sys.argv[1:])
 
 
 def entry_point():
     """Zero-argument entry point for use with setuptools/distribute."""
 
-    action, args = parse_arguments()
+    args = parse_arguments()
     init_logger(args)
+    logger.info(metadata.epilog)
+    logger.debug("DoorPi starting with arguments: %s", args)
 
-    if action is None:
-        raise SystemExit(main_as_application(args))
-    elif action == "status":
-        raise SystemExit(get_status_from_doorpi(args))
-    else:
-        raise SystemExit(main_as_daemon(action, args))
+    instance = doorpi.DoorPi(args)
+    try:
+        instance.run()
+    except BaseException as e:
+        logger.error("*** UNCAUGHT EXCEPTION: %s: %s", e.__class__.__name__, str(e))
+        logger.error("*** Attempting graceful shutdown...")
+        raise
+    finally:
+        instance.destroy()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     entry_point()

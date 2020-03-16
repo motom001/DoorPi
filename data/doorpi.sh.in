@@ -13,7 +13,7 @@
 
 NAME="!!package!!"
 DESC="!!project!!"
-DAEMON="!!prefix!!/bin/doorpi_cli"
+DAEMON="!!prefix!!/bin/doorpi"
 DAEMON_ARGS="--configfile /etc/doorpi/doorpi.ini --logfile /var/log/doorpi/doorpi.log"
 PIDFILE="/run/doorpi/doorpi.pid"
 

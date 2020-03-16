@@ -1,16 +1,15 @@
 #!/usr/bin/env python3
 
-import os
 import sys
 
 from doorpi import metadata
+from pathlib import Path
 from setuptools import setup, find_packages
 from setuptools.command.install import install
 
 
-base_path = os.path.dirname(os.path.abspath(__file__))
+base_path = Path(__file__).resolve().parent
 etc = "/etc" if sys.prefix == "/usr" else "etc"
-os.chdir(base_path)
 
 
 # Python version check
@@ -21,30 +20,23 @@ if sys.version_info[:2] < (3, 6):
     sys.exit(1)
 
 
-def read(filename):
-    with open(os.path.join(base_path, filename)) as f:
-        file_content = f.read()
-    return file_content
-
-
 # Hook install command to process template files (*.in)
 class installhook(install):
     def run(self):
+        datapath = base_path / "data"
         package = metadata.package.lower()
         substkeys = {
             "package": package,
             "project": metadata.project,
             "prefix": self.prefix,
-            "cfgdir": f"/etc/{package}" if sys.prefix == "/usr" else f"{self.prefix}/etc/{package}"
+            "cfgdir": f"{self.prefix if sys.prefix == '/usr' else ''}/etc/{package}"
         }
-        substfiles = [f for f in os.listdir("data") if f.endswith(".in")]
+        substfiles = [f for f in datapath.iterdir() if f.suffix == ".in"]
         for f in substfiles:
-            with open(os.path.join(base_path, "data", f[:-3]), "w") as outfile, \
-                    open(os.path.join(base_path, "data", f), "r") as tplfile:
-                content = tplfile.read()
-                for k, v in substkeys.items():
-                    content = content.replace(f"!!{k}!!", v)
-                outfile.write(content)
+            content = f.read_text()
+            for k, v in substkeys.items():
+                content = content.replace(f"!!{k}!!", v)
+            f.with_suffix("").write_text(content)
         super().run()
 
 
@@ -60,7 +52,7 @@ setup(
     url=metadata.url,
     keywords=["intercom", "VoIP", "doorstation", "home automation", "IoT"],
     description=metadata.description,
-    long_description=read("README.rst"),
+    long_description=Path("README.rst").read_text(),
     classifiers=[
         "Development Status :: 5 - Production/Stable",
         "Environment :: Console",
@@ -73,6 +65,8 @@ setup(
         "Natural Language :: English",
         "Operating System :: POSIX :: Linux",
         "Programming Language :: Python :: 3.6",
+        "Programming Language :: Python :: 3.7",
+        "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3 :: Only",
         "Topic :: Communications :: Internet Phone",
         "Topic :: Communications :: Telephony",
@@ -98,7 +92,7 @@ setup(
     zip_safe=False,  # don't use eggs
     entry_points={
         "console_scripts": [
-            "doorpi_cli = doorpi.main:entry_point"
+            "doorpi = doorpi.main:entry_point",
         ]
     },
     data_files=[

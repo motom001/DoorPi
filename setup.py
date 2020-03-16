@@ -58,7 +58,7 @@ setup(
     maintainer=metadata.authors[0],
     maintainer_email=metadata.emails[0],
     url=metadata.url,
-    keywords=metadata.keywords,
+    keywords=["intercom", "VoIP", "doorstation", "home automation", "IoT"],
     description=metadata.description,
     long_description=read("README.rst"),
     classifiers=[

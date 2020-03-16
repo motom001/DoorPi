@@ -1,6 +1,6 @@
 import argparse
-import cgi
 import datetime
+import html
 import logging
 import signal
 import sys
@@ -225,8 +225,8 @@ class DoorPi(metaclass=Singleton):
 
         infos_as_html = '<table>'
         for key, val in self.extra_info.items():
-            key = cgi.escape(str(key))
-            val = cgi.escape(str(val)).replace("\r\n", "\n").replace("\n", "<br>")
+            key = html.escape(str(key))
+            val = html.escape(str(val)).replace("\r\n", "\n").replace("\n", "<br>")
             infos_as_html += f"<tr><td><b>{key}</b></td><td><i>{val}</i></td></tr>"
         infos_as_html += '</table>'
 

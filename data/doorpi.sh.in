@@ -14,7 +14,7 @@
 NAME="!!package!!"
 DESC="!!project!!"
 DAEMON="!!prefix!!/bin/doorpi_cli"
-DAEMON_ARGS="--configfile /etc/doorpi/doorpi.ini"
+DAEMON_ARGS="--configfile /etc/doorpi/doorpi.ini --logfile /var/log/doorpi/doorpi.log"
 PIDFILE="/run/doorpi/doorpi.pid"
 
 # Exit if the package is not installed

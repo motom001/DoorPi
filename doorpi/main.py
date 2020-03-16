@@ -23,12 +23,11 @@ log_level = logging.INFO
 
 
 def add_trace_level():
-    logging.addLevelName(TRACE_LEVEL, "TRACE")
-
     def trace(self, message, *args, **kws):
-        if self.isEnabledFor(TRACE_LEVEL):
-            self._log(TRACE_LEVEL, message, args, **kws)
-
+        if self.isEnabledFor(logging.TRACE):
+            self._log(logging.TRACE, message, args, **kws)
+    logging.TRACE = 5
+    logging.addLevelName(logging.TRACE, "TRACE")
     logging.Logger.trace = trace
 
 
@@ -43,12 +42,17 @@ def init_logger(args):
         try: journal = stat.st_dev == int(expected_fd[0]) and stat.st_ino == int(expected_fd[1])
         except ValueError: journal = False
 
-    logging.basicConfig(level=log_level, format=LOG_FORMAT_JOURNAL if journal else LOG_FORMAT)
+    if args.logfile is None:
+        logging.basicConfig(level=log_level, format=LOG_FORMAT_JOURNAL if journal else LOG_FORMAT)
+    else:
+        handler = logging.handlers.RotatingFileHandler(
+            args.logfile, maxBytes=5_000_000, backupCount=10)
+        logging.basicConfig(level=log_level, format=LOG_FORMAT, handlers=(handler,))
 
     if args.debug is not None:
         for lg in args.debug: logging.getLogger(lg).setLevel(logging.DEBUG)
     if args.trace is not None:
-        for lg in args.trace: logging.getLogger(lg).setLevel(TRACE_LEVEL)
+        for lg in args.trace: logging.getLogger(lg).setLevel(logging.TRACE)
 
 
 def parse_arguments():
@@ -66,6 +70,8 @@ def parse_arguments():
                             help="Enable trace logging (optionally on a specific component)")
     arg_parser.add_argument("--test", action="store_true",
                             help="Enable test mode (exit after 10 seconds)")
+    arg_parser.add_argument("--logfile", action="store", nargs=1,
+                            help="Specify file to log into. If unspecified, log to stderr.")
 
     default_cfg = f"{sys.prefix if sys.prefix != '/usr' else ''}/etc/doorpi/doorpi.ini"
     arg_parser.add_argument("-c", "--configfile",

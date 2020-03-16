@@ -10,8 +10,8 @@ class TestEventLog(DoorPiTestCase):
     def test_creation(self):
         el = EventLog("./events.db")
         db = sqlite3.connect("events.db")
-        self.assertEqual("1",
-            db.execute("SELECT value FROM metadata WHERE key = 'db_version'").fetchone()[0])
+        self.assertEqual(
+            "1", db.execute("SELECT value FROM metadata WHERE key = 'db_version'").fetchone()[0])
         db.close()
         el.destroy()
 
@@ -44,7 +44,7 @@ class TestEventLog(DoorPiTestCase):
             "event_name": "OnTimeSecond",
             "start_time": float(eid * 2),
             "additional_infos": '{"more": "\'\\";", "things": true}'
-            } for eid in range(100)))
+        } for eid in range(100)))
 
     def test_get_filter(self):
         el = EventLog("./events.db")
@@ -64,7 +64,7 @@ class TestEventLog(DoorPiTestCase):
             "event_name": "OnTimeHour",
             "start_time": float(i * 2),
             "additional_infos": '{"more": "\'\\";", "things": true}'
-            } for i in range(100)))
+        } for i in range(100)))
 
     def test_log_event(self):
         el = EventLog("./events.db")
@@ -76,8 +76,7 @@ class TestEventLog(DoorPiTestCase):
             "event_name": "OnTest",
             "start_time": 0.0,
             "additional_infos": json.dumps(d, sort_keys=True),
-            },))
-
+        },))
 
     def test_log_action(self):
         el = EventLog("./events.db")

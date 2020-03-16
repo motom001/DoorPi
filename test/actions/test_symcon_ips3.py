@@ -24,7 +24,7 @@ def fake_post(*args, data, **kw):
             "VariableValue": {
                 "ValueType": IPSVariableType.STRING.value,
             },
-            }}).encode("utf-8"))
+        }}).encode("utf-8"))
     elif d["method"] == "GetValue":
         return DummyResponse(json.dumps({"result": "**1"}).encode("utf-8"))
     elif d["method"] == "SetValue":

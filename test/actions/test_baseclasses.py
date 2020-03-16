@@ -35,13 +35,15 @@ class TestCallbackAction(DoorPiTestCase):
 
     def test_callback(self):
         m = MagicMock()
-        ac = doorpi.actions.CallbackAction(m, "some arg", kw="some keyword arg", args=["foo", "bar"])
+        ac = doorpi.actions.CallbackAction(
+            m, "some arg", kw="some keyword arg", args=["foo", "bar"])
         ac(EVENT_ID, EVENT_EXTRA)
         m.assert_called_once_with("some arg", kw="some keyword arg", args=["foo", "bar"])
 
     def test_callback_uncallable(self):
         with self.assertRaises(ValueError):
             doorpi.actions.CallbackAction(None)
+
 
 class TestCheckAction(DoorPiTestCase):
 

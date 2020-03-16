@@ -1,11 +1,11 @@
-from . import EVENT_ID, EVENT_EXTRA
-from ..mocks import DoorPi, DoorPiTestCase
-from unittest.mock import patch
-
 import os
-import os.path
 import tempfile
 
+from pathlib import Path
+from unittest.mock import patch
+
+from . import EVENT_ID, EVENT_EXTRA
+from ..mocks import DoorPi, DoorPiTestCase
 import doorpi
 import doorpi.actions.statusfile as action
 
@@ -26,23 +26,21 @@ class TestActionStatusfile(DoorPiTestCase):
 
     @patch('doorpi.DoorPi', DoorPi)
     def test_action(self):
-        with open("status.txt", "w") as f:
-            f.write("some initial garbage content")
+        sf = Path.cwd() / "status.txt"
+        sf.write_text("some initial garbage content")
 
-        ac = action.instantiate(os.path.join(os.getcwd(), "status.txt"), CONTENT)
-        with open("status.txt", "r") as f:
-            self.assertEqual(f.read(), "")
+        ac = action.instantiate(str(sf), CONTENT)
+        self.assertEqual("", sf.read_text())
 
         ac(EVENT_ID, EVENT_EXTRA)
-        with open("status.txt", "r") as f:
-            self.assertEqual(f.read(), CONTENT.strip() + "\n")
+        self.assertEqual(CONTENT.strip() + "\n", sf.read_text())
 
     @patch('doorpi.DoorPi', DoorPi)
     def test_noperm(self):
         with tempfile.TemporaryDirectory() as tmpdir:
-            fpath = os.path.join(tmpdir, "status.txt")
-            open(fpath, "w").close()
-            os.chmod(fpath, mode=0)
+            sf = Path(tmpdir, "status.txt")
+            sf.open("w").close()
+            sf.chmod(0)
 
             with self.assertRaises(PermissionError):
-                action.instantiate(fpath, CONTENT)
+                action.instantiate(str(sf), CONTENT)

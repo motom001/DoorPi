@@ -1,9 +1,9 @@
-from . import EVENT_ID, EVENT_EXTRA
-from ..mocks import DoorPi, DoorPiTestCase
 from unittest.mock import patch
 
-import doorpi
 import doorpi.actions.sleep as action
+
+from . import EVENT_ID, EVENT_EXTRA
+from ..mocks import DoorPi, DoorPiTestCase
 
 
 EVENT_ID = "ABCDEF"
@@ -22,5 +22,6 @@ class TestActionCall(DoorPiTestCase):
     @patch('doorpi.actions.sleep.sleep')
     @patch('doorpi.DoorPi', DoorPi)
     def test_invalid_value(self, sleep):
+        del sleep
         with self.assertRaises(ValueError):
             action.instantiate("some string")

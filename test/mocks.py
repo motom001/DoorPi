@@ -7,7 +7,6 @@ from unittest.mock import MagicMock
 import doorpi.main
 from doorpi.conf.config_object import ConfigObject
 
-
 doorpi_instance = None
 
 

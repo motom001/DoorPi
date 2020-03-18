@@ -1,9 +1,10 @@
-from . import EVENT_ID, EVENT_EXTRA
-from ..mocks import DoorPi, DoorPiTestCase
 from unittest.mock import patch
 
 import doorpi
 import doorpi.actions.call as action
+
+from . import EVENT_ID, EVENT_EXTRA
+from ..mocks import DoorPi, DoorPiTestCase
 
 
 SIPURL = "sip:null@null"

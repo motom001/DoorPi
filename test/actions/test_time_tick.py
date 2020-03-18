@@ -1,10 +1,10 @@
-from . import EVENT_ID, EVENT_EXTRA
-from ..mocks import DoorPi, DoorPiTestCase
 from unittest.mock import patch, call, Mock
 from datetime import datetime
-import gc
 
 import doorpi.actions.time_tick as action
+
+from . import EVENT_ID, EVENT_EXTRA
+from ..mocks import DoorPi, DoorPiTestCase
 
 
 # The event source

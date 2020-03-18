@@ -1,11 +1,10 @@
-from . import EVENT_ID, EVENT_EXTRA
-from ..mocks import DoorPi, DoorPiTestCase
 from tempfile import NamedTemporaryFile
 from unittest.mock import patch
-import os
 
-import doorpi
 import doorpi.actions.file_call_value as action
+
+from . import EVENT_ID, EVENT_EXTRA
+from ..mocks import DoorPi, DoorPiTestCase
 
 
 SIPURL = "sip:null@null"
@@ -18,8 +17,8 @@ class TestActionFileCallValue(DoorPiTestCase):
         with NamedTemporaryFile(mode="w") as tmpfile:
             tmpfile.write(SIPURL)
 
-            ac = action.instantiate(tmpfile.name)
-            doorpi.DoorPi().sipphone.call.assert_not_called()
+            action.instantiate(tmpfile.name)
+            DoorPi().sipphone.call.assert_not_called()
 
     @patch('doorpi.DoorPi', DoorPi)
     def test_action(self):
@@ -29,7 +28,7 @@ class TestActionFileCallValue(DoorPiTestCase):
 
             ac = action.instantiate(tmpfile.name)
             ac(EVENT_ID, EVENT_EXTRA)
-            doorpi.DoorPi().sipphone.call.assert_called_once_with(SIPURL)
+            DoorPi().sipphone.call.assert_called_once_with(SIPURL)
 
     @patch('doorpi.DoorPi', DoorPi)
     def test_emptyfile(self):

@@ -1,28 +1,28 @@
-from . import EVENT_ID, EVENT_EXTRA
-from ..mocks import DoorPi, DoorPiTestCase
+import textwrap
+from pathlib import Path
 from unittest.mock import patch
 
-import textwrap
-
 import doorpi.actions.mailto as action
+
+from . import EVENT_ID, EVENT_EXTRA
+from ..mocks import DoorPi, DoorPiTestCase
 
 
 class TestMailAction(DoorPiTestCase):
 
     def write_config(self):
-        with open("doorpi.ini", "w") as f:
-            f.write(textwrap.dedent("""\
-                [DoorPi]
-                last_snapshot = /dev/null
+        Path("doorpi.ini").write_text(textwrap.dedent("""\
+            [DoorPi]
+            last_snapshot = /dev/null
 
-                [SMTP]
-                server = localhost
-                port = 0
-                need_login = true
-                username = test
-                password = test
-                signature = !EPILOG!
-                """))
+            [SMTP]
+            server = localhost
+            port = 0
+            need_login = true
+            username = test
+            password = test
+            signature = !EPILOG!
+            """))
 
     @patch('smtplib.SMTP')
     @patch('doorpi.DoorPi', DoorPi)

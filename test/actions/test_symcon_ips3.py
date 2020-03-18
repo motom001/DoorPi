@@ -1,34 +1,34 @@
-from . import EVENT_ID, EVENT_EXTRA
-from ..mocks import DoorPi, DoorPiTestCase
+import json
 from unittest.mock import patch, MagicMock
 
 import doorpi.actions.symcon_ips3 as action
-from doorpi.actions.symcon_ips3 import IPSVariableType
 
-import json
+from . import EVENT_ID, EVENT_EXTRA
+from ..mocks import DoorPi, DoorPiTestCase
 
 
 class DummyResponse:
-
     def __init__(self, content):
         self.content = content
 
 
 def fake_post(*args, data, **kw):
-    d = json.loads(data.decode("utf-8"))
+    del args, kw
+    data = json.loads(data.decode("utf-8"))
 
-    if d["method"] == "IPS_VariableExists":
+    if data["method"] == "IPS_VariableExists":
         return DummyResponse(json.dumps({"result": True}).encode("utf-8"))
-    elif d["method"] == "IPS_GetVariable":
+    if data["method"] == "IPS_GetVariable":
         return DummyResponse(json.dumps({"result": {
             "VariableValue": {
-                "ValueType": IPSVariableType.STRING.value,
+                "ValueType": action.IPSVariableType.STRING.value,
             },
         }}).encode("utf-8"))
-    elif d["method"] == "GetValue":
+    if data["method"] == "GetValue":
         return DummyResponse(json.dumps({"result": "**1"}).encode("utf-8"))
-    elif d["method"] == "SetValue":
+    if data["method"] == "SetValue":
         return DummyResponse(json.dumps({"result": True}).encode("utf-8"))
+    raise ValueError(f"Invalid method {data['method']!r}")
 
 
 class TestIPSRPCSetValueAction(DoorPiTestCase):

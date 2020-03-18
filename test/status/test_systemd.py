@@ -1,10 +1,10 @@
-from ..mocks import DoorPi, DoorPiTestCase
-from unittest.mock import patch
-
 import os
 import socket
+from unittest.mock import patch
 
 from doorpi.status.systemd import DoorPiSD
+
+from ..mocks import DoorPiTestCase
 
 
 SOCKET_PATH = "/tmp/doorpi_test_sdnotify"
@@ -13,7 +13,7 @@ ABSTRACT_SOCKET_PATH = "@sdnotify"
 EXPECTED_ABSTRACT_SOCKET_PATH = "\0sdnotify"
 
 
-class TestDoorPiSD_Inactive(DoorPiTestCase):
+class TestDoorPiSDInactive(DoorPiTestCase):
 
     def setUp(self):
         super().setUp()
@@ -34,6 +34,7 @@ class TestDoorPiSD_Inactive(DoorPiTestCase):
 
     @patch("socket.socket")
     def test_watchdog(self, mocksock):
+        del mocksock
         with self.assertLogs("doorpi.status.systemd", "INFO"):
             dpsd = DoorPiSD()
 
@@ -55,6 +56,7 @@ class TestDoorPiSD(DoorPiTestCase):
 
     @patch("socket.socket")
     def test_watchdog(self, mocksock):
+        del mocksock
         with self.assertLogs("doorpi.status.systemd", "INFO"):
             dpsd = DoorPiSD()
 
@@ -82,7 +84,7 @@ class TestDoorPiSD(DoorPiTestCase):
         ])
 
 
-class TestDoorPiSD_AbstractSocketNamespace(TestDoorPiSD):
+class TestDoorPiSDAbstractSocketNamespace(TestDoorPiSD):
 
     def setUp(self):
         super().setUp()

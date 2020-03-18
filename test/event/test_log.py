@@ -1,8 +1,9 @@
 import json
 import sqlite3
-from ..mocks import DoorPi, DoorPiTestCase
 
 from doorpi.event.log import EventLog
+
+from ..mocks import DoorPiTestCase
 
 
 class TestEventLog(DoorPiTestCase):
@@ -52,9 +53,9 @@ class TestEventLog(DoorPiTestCase):
 
         with db:
             for eid in range(200):
-                for e in ["Minute", "Hour"]:
+                for evt in ["OnTimeMinute", "OnTimeHour"]:
                     db.execute("INSERT INTO event_log VALUES (?, ?, ?, ?, ?)",
-                               (eid, "test", f"OnTime{e}", eid * 2,
+                               (eid, "test", evt, eid * 2,
                                 '{"more": "\'\\";", "things": true}'))
 
         log = el.get_event_log(100, "meH")
@@ -68,14 +69,14 @@ class TestEventLog(DoorPiTestCase):
 
     def test_log_event(self):
         el = EventLog("./events.db")
-        d = {"things": True, "more": '\'\\";'}
-        el.log_event("00TEST", "test", "OnTest", 0, d)
+        extra = {"things": True, "more": '\'\\";'}
+        el.log_event("00TEST", "test", "OnTest", 0, extra)
         self.assertEqual(el.get_event_log(), ({
             "event_id": "00TEST",
             "fired_by": "test",
             "event_name": "OnTest",
             "start_time": 0.0,
-            "additional_infos": json.dumps(d, sort_keys=True),
+            "additional_infos": json.dumps(extra, sort_keys=True),
         },))
 
     def test_log_action(self):

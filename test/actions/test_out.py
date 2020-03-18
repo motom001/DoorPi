@@ -1,9 +1,9 @@
-from . import EVENT_ID, EVENT_EXTRA
-from ..mocks import DoorPi, DoorPiTestCase
 from unittest.mock import patch
 
-import doorpi
 import doorpi.actions.out as action
+
+from . import EVENT_ID, EVENT_EXTRA
+from ..mocks import DoorPi, DoorPiTestCase
 
 
 PIN = "kb.pin"
@@ -23,7 +23,7 @@ class TestActionCall(DoorPiTestCase):
     def test_normal(self):
         ac = action.instantiate(PIN, START)
         ac(EVENT_ID, EVENT_EXTRA)
-        doorpi.DoorPi().keyboard.output.assert_called_once_with(PIN, START)
+        DoorPi().keyboard.output.assert_called_once_with(PIN, START)
 
     @patch('threading.Event')
     @patch('doorpi.DoorPi', DoorPi)
@@ -31,9 +31,9 @@ class TestActionCall(DoorPiTestCase):
         ac = action.instantiate(PIN, START, STOP, HOLD)
         ac(EVENT_ID, EVENT_EXTRA)
 
-        o = doorpi.DoorPi().keyboard.output
-        self.assertEqual(o.call_count, 2)
-        self.assertEqual(o.call_args_list, [((PIN, START),), ((PIN, STOP),)])
+        output_method = DoorPi().keyboard.output
+        self.assertEqual(output_method.call_count, 2)
+        self.assertEqual(output_method.call_args_list, [((PIN, START),), ((PIN, STOP),)])
         event.return_value.clear.assert_called_once_with()
         event.return_value.wait.assert_called_once_with(timeout=HOLD)
         event.return_value.set.assert_not_called()

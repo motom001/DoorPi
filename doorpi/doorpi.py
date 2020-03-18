@@ -1,15 +1,12 @@
-import argparse
+"""The main DoorPi module housing the DoorPi class' implementation."""
+
 import datetime
 import html
 import logging
 import signal
-import sys
-import tempfile
 import time
-import traceback
 from pathlib import Path
 
-from . import metadata
 from doorpi import keyboard, sipphone
 from doorpi.actions import CallbackAction
 from doorpi.conf.config_object import ConfigObject
@@ -17,17 +14,16 @@ from doorpi.event.handler import EventHandler
 from doorpi.status.status_class import DoorPiStatus
 from doorpi.status.systemd import DoorPiSD
 from doorpi.status.webserver import load_webserver
+from . import metadata
 
 
-logger = logging.getLogger(__name__)
+LOGGER = logging.getLogger(__name__)
 
 DEADLY_SIGNALS_ABORT = 3
 
 
-class DoorPiNotExistsException(Exception): pass
-
-
 class Singleton(type):
+    """Metaclass that ensures only one instance exists."""
 
     _instances = {}
 
@@ -38,11 +34,12 @@ class Singleton(type):
 
 
 class DoorPi(metaclass=Singleton):
+    """The main DoorPi class that ties everything together."""
 
     @property
     def extra_info(self):
         if self.event_handler is None: return {}
-        else: return self.event_handler.extra_info
+        return self.event_handler.extra_info
 
     @property
     def status(self): return DoorPiStatus(self)
@@ -63,7 +60,7 @@ class DoorPi(metaclass=Singleton):
     def base_path(self):
         if self._base_path is None:
             self._base_path = Path.home()
-            logger.info("Auto-selected BasePath %s", self._base_path)
+            LOGGER.info("Auto-selected BasePath %s", self._base_path)
         return self._base_path
 
     def __init__(self, argv):
@@ -84,21 +81,24 @@ class DoorPi(metaclass=Singleton):
         self.__last_tick = time.time()
 
     def doorpi_shutdown(self, time_until_shutdown=0):
+        """Tell DoorPi to shut down."""
         if time_until_shutdown > 0: time.sleep(time_until_shutdown)
         self.__shutdown = True
 
     def signal_shutdown(self, signum, stackframe):
+        """Handles signals considered deadly, like INT and TERM."""
         self.__shutdown = True
         self.__deadlysignals += 1
-        logger.info("Caught deadly signal %s (%d / %d)", signal.Signals(signum).name,
+        LOGGER.info("Caught deadly signal %s (%d / %d)",
+                    signal.Signals(signum).name,  # pylint: disable=no-member
                     self.__deadlysignals, DEADLY_SIGNALS_ABORT)
 
         if self.__deadlysignals >= DEADLY_SIGNALS_ABORT:
             raise Exception("Force-exiting due to signal")
 
     def prepare(self):
-        logger.debug("prepare")
-        logger.debug("given arguments argv: %s", self.__argv)
+        LOGGER.debug("prepare")
+        LOGGER.debug("given arguments argv: %s", self.__argv)
         self.dpsd = DoorPiSD()
 
         # setup signal handlers for HUP, INT, TERM
@@ -112,10 +112,10 @@ class DoorPi(metaclass=Singleton):
         self.event_handler = EventHandler()
 
         # register own events
-        for ev in ["BeforeStartup", "OnStartup", "AfterStartup",
-                   "BeforeShutdown", "OnShutdown", "AfterShutdown",
-                   "OnTimeTick", "OnTimeRapidTick"]:
-            self.event_handler.register_event(ev, __name__)
+        for event in ["BeforeStartup", "OnStartup", "AfterStartup",
+                      "BeforeShutdown", "OnShutdown", "AfterShutdown",
+                      "OnTimeTick", "OnTimeRapidTick"]:
+            self.event_handler.register_event(event, __name__)
 
         # register base actions
         self.event_handler.register_action("OnTimeTick", f"time_tick:{self.__last_tick}")
@@ -133,13 +133,13 @@ class DoorPi(metaclass=Singleton):
         self.destroy()
 
     def destroy(self):
-        logger.debug("Shutting down DoorPi")
+        LOGGER.debug("Shutting down DoorPi")
         self.__shutdown = True
         self.dpsd.stopping()
 
         if not self.__prepared: return
 
-        logger.debug("Threads before starting shutdown: %s", self.event_handler.threads)
+        LOGGER.debug("Threads before starting shutdown: %s", self.event_handler.threads)
 
         self.event_handler.fire_event_sync("BeforeShutdown", __name__)
         self.event_handler.fire_event_sync("OnShutdown", __name__)
@@ -149,33 +149,33 @@ class DoorPi(metaclass=Singleton):
         waiting_between_checks = 0.5
 
         while timeout > 0 and not self.event_handler.idle:
-            logger.debug("Waiting %s seconds for %d events to finish",
+            LOGGER.debug("Waiting %s seconds for %d events to finish",
                          timeout, len(self.event_handler.threads))
-            logger.trace("Still existing event threads: %s", self.event_handler.threads)
-            logger.trace("Still existing event sources: %s", self.event_handler.sources)
+            LOGGER.trace("Still existing event threads: %s", self.event_handler.threads)
+            LOGGER.trace("Still existing event sources: %s", self.event_handler.sources)
             time.sleep(waiting_between_checks)
             timeout -= waiting_between_checks
 
         if len(self.event_handler.sources) > 1:
-            logger.warning("Some event sources did not shut down properly: %s",
+            LOGGER.warning("Some event sources did not shut down properly: %s",
                            self.event_handler.sources[1:])
 
-        logger.info("======== DoorPi completed shutting down ========")
+        LOGGER.info("======== DoorPi completed shutting down ========")
 
     def run(self):
-        logger.debug("run")
+        LOGGER.debug("run")
         if not self.__prepared: self.prepare()
 
         self.event_handler.fire_event_sync("BeforeStartup", __name__)
         self.event_handler.fire_event_sync("OnStartup", __name__)
         self.event_handler.fire_event_sync("AfterStartup", __name__)
 
-        logger.info('DoorPi started successfully')
-        logger.info('BasePath is %s', self.base_path)
+        LOGGER.info('DoorPi started successfully')
+        LOGGER.info('BasePath is %s', self.base_path)
         if self.webserver:
             self.webserver.inform_own_url()
         else:
-            logger.info('no Webserver loaded')
+            LOGGER.info('no Webserver loaded')
 
         # setup watchdog ping and signal startup success
         self.event_handler.register_action("OnTimeSecondUnevenNumber",
@@ -201,11 +201,11 @@ class DoorPi(metaclass=Singleton):
 
             if duration > tickrate:
                 skipped_ticks = int(duration / tickrate)
-                logger.warning("Tick took too long (%.1fms > %.1fms), skipping %d tick(s)",
+                LOGGER.warning("Tick took too long (%.1fms > %.1fms), skipping %d tick(s)",
                                duration * 1000, tickrate * 1000, skipped_ticks)
-                logger.warning("registered actions for OnTimeRapidTick: %s",
+                LOGGER.warning("registered actions for OnTimeRapidTick: %s",
                                self.event_handler.actions["OnTimeRapidTick"])
-                logger.warning("registered actions for OnTimeTick: %s",
+                LOGGER.warning("registered actions for OnTimeTick: %s",
                                self.event_handler.actions["OnTimeTick"])
                 duration %= tickrate
                 last += skipped_ticks * tickrate
@@ -247,7 +247,7 @@ class DoorPi(metaclass=Singleton):
             })
 
         if self.keyboard:
-            mapping_table.update(self.keyboard._enumerate_outputs())
+            mapping_table.update(self.keyboard.enumerate_outputs())
 
         for key, val in mapping_table.items():
             parsed_string = parsed_string.replace(f"!{key}!", val)

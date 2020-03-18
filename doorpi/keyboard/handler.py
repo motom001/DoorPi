@@ -1,3 +1,4 @@
+"""This module houses the keyboard handler."""
 import importlib
 import logging
 
@@ -6,10 +7,15 @@ from doorpi.actions import CheckAction
 
 from . import SECTION_KEYBOARDS, SECTION_TPL_IN, SECTION_TPL_OUT
 
-logger = logging.getLogger(__name__)
+LOGGER = logging.getLogger(__name__)
 
 
 class KeyboardHandler:
+    """The keyboard handler.
+
+    This class is responsible for constructing the individual keyboard
+    instances, dispatching output events to and querying inputs from them.
+    """
 
     def __init__(self):
         self.last_key = None
@@ -20,21 +26,18 @@ class KeyboardHandler:
         eh = doorpi.DoorPi().event_handler
         conf = doorpi.DoorPi().config
         kbnames = conf.get_keys(SECTION_KEYBOARDS)
-        logger.info("Instantiating %d keyboard(s): %s", len(kbnames), ", ".join(kbnames))
+        LOGGER.info("Instantiating %d keyboard(s): %s", len(kbnames), ", ".join(kbnames))
 
         for kbname in kbnames:
             if kbname in self.__keyboards: raise ValueError(f"Duplicate keyboard name {kbname}")
             kbtype = conf.get_string(SECTION_KEYBOARDS, kbname)
-            try:
-                logger.debug("Instantiating keyboard %s (from_%s)", repr(kbname), kbtype)
-                kb = importlib.import_module(f"doorpi.keyboard.from_{kbtype}").instantiate(kbname)
-            except Exception:
-                logger.exception("Failed to instantiate keyboard %s (%s)", repr(kbname), kbtype)
-                continue
+            LOGGER.debug("Instantiating keyboard %r (from_%s)", kbname, kbtype)
+
+            kb = importlib.import_module(f"doorpi.keyboard.from_{kbtype}").instantiate(kbname)
             self.__keyboards[kbname] = kb
 
             # register input pin actions
-            logger.debug("Registering input pins for %s", repr(kbname))
+            LOGGER.debug("Registering input pins for %r", kbname)
             section = SECTION_TPL_IN.format(name=kbname)
             pins = conf.get_keys(section)
             for pin in pins:
@@ -43,7 +46,7 @@ class KeyboardHandler:
                     eh.register_action(f"OnKeyPressed_{kbname}.{pin}", action)
 
             # register output pin aliases
-            logger.debug("Registering output pins for %s", repr(kbname))
+            LOGGER.debug("Registering output pins for %r", kbname)
             section = SECTION_TPL_OUT.format(name=kbname)
             pins = conf.get_keys(section)
             self.__aliases[kbname] = {}
@@ -54,57 +57,70 @@ class KeyboardHandler:
                     raise ValueError(f"Duplicate pin alias {kbname}.{alias}")
                 self.__aliases[kbname].update({alias: pin})
 
-        num_fail = len(kbnames) - len(self.__keyboards)
-        if num_fail != 0: raise RuntimeError(f"Failed to instantiate {num_fail} keyboards")
-
         eh.register_action("OnTimeTick", CheckAction(self.self_check))
 
     def input(self, pinpath):
+        """Polls an input for its current value."""
         try:
-            kbname, pin = self._decode_pinpath(pinpath)
+            kb, _, pin = self._decode_pinpath(pinpath)
+        except ValueError:
+            LOGGER.exception("Malformed pin: %s", pinpath)
+            return False
+
+        try:
             return kb.input(pin)
-        except KeyError:
-            logger.exception("Cannot read input pin %s: unknown keyboard", pinpath)
-        except Exception:
-            logger.exception("Error reading from pin %s", pinpath)
+        except Exception:  # pylint: disable=broad-except
+            LOGGER.exception("Error reading from pin %s", pinpath)
         return False
 
     def output(self, pinpath, value):
+        """Sets an output pin to a value."""
         try:
-            kbname, pinalias = self._decode_pinpath(pinpath)
+            kb, kbname, pinalias = self._decode_pinpath(pinpath)
             pin = self.__aliases[kbname][pinalias]
-            return self.__keyboards[kbname].output(pin, value)
+            return kb.output(pin, value)
         except KeyError:
-            logger.exception("Unknown keyboard or pin: %s", pinpath)
-        except Exception:
-            logger.exception("Cannot output to pin %s", pinpath)
+            LOGGER.exception("Unknown keyboard or pin: %s", pinpath)
+        except Exception:  # pylint: disable=broad-except
+            LOGGER.exception("Cannot output to pin %s", pinpath)
         return False
 
     def self_check(self):
+        """Checks integrity of this handler and all attached keyboards.
+
+        If a keyboard fails its self check, it will be logged and the
+        program will be terminated.
+        """
         abort = False
         for kbname, kb in self.__keyboards.items():
             try:
                 kb.self_check()
-            except Exception as ex:
-                logger.exception("Keyboard %s failed self check", kbname)
+            except Exception:  # pylint: disable=broad-except
+                LOGGER.exception("Keyboard %s failed self check", kbname)
                 abort = True
         if abort:
             doorpi.DoorPi().doorpi_shutdown()
 
-    def _enumerate_outputs(self):
-        d = {}
+    def enumerate_outputs(self):
+        """Enumerates all known output pins."""
+        pins = {}
         for kbname, kbaliases in self.__aliases.items():
-            d.update({alias: f"{kbname}.{pin}" for alias, pin in kbaliases.items()})
-        return d
+            pins.update({alias: f"{kbname}.{pin}" for alias, pin in kbaliases.items()})
+        return pins
 
     def _decode_pinpath(self, pinpath):
-        try: kbname, pin = pinpath.split(".")
+        try:
+            kbname, pin = pinpath.split(".")
         except ValueError:
-            raise ValueError(f"Cannot decode pin name {repr(pinpath)}") from None
+            raise ValueError(f"Cannot decode pin name {pinpath!r}") from None
 
         if not kbname:
-            raise ValueError(f"Empty keyboard name given ({repr(pinpath)}")
+            raise ValueError(f"Empty keyboard name given ({pinpath!r}")
         if not pin:
-            raise ValueError(f"Empty pin alias given ({repr(pinpath)})")
+            raise ValueError(f"Empty pin alias given ({pinpath!r})")
 
-        return (kbname, pin)
+        kb = self.__keyboards.get(kbname)
+        if kb is None:
+            raise ValueError(f"Unknown keyboard name {kbname!r}")
+
+        return kb, kbname, pin

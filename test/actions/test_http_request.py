@@ -1,8 +1,9 @@
-from . import EVENT_ID, EVENT_EXTRA
-from ..mocks import DoorPi, DoorPiTestCase
 from unittest.mock import patch
 
 import doorpi.actions.http_request as action
+
+from . import EVENT_ID, EVENT_EXTRA
+from ..mocks import DoorPiTestCase
 
 
 class Namespace:

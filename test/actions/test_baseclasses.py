@@ -1,26 +1,27 @@
-from . import EVENT_ID, EVENT_EXTRA
-from ..mocks import DoorPi, DoorPiTestCase
 from unittest.mock import MagicMock, patch
 
 import doorpi
+
+from . import EVENT_ID, EVENT_EXTRA
+from ..mocks import DoorPi, DoorPiTestCase
 
 
 class TestActionInstantiation(DoorPiTestCase):
 
     @patch("doorpi.actions.log.instantiate")
-    def test_nocolon(self, m):
+    def test_nocolon(self, instantiate):
         doorpi.actions.from_string("log")
-        m.assert_called_once_with()
+        instantiate.assert_called_once_with()
 
     @patch("doorpi.actions.log.instantiate")
-    def test_colon(self, m):
+    def test_colon(self, instantiate):
         doorpi.actions.from_string("log:")
-        m.assert_called_once_with()
+        instantiate.assert_called_once_with()
 
     @patch("doorpi.actions.log.instantiate")
-    def test_args(self, m):
+    def test_args(self, instantiate):
         doorpi.actions.from_string("log:foo,bar,baz")
-        m.assert_called_once_with("foo", "bar", "baz")
+        instantiate.assert_called_once_with("foo", "bar", "baz")
 
     def test_emptystring(self):
         ac = doorpi.actions.from_string("")
@@ -34,11 +35,11 @@ class TestActionInstantiation(DoorPiTestCase):
 class TestCallbackAction(DoorPiTestCase):
 
     def test_callback(self):
-        m = MagicMock()
+        mock = MagicMock()
         ac = doorpi.actions.CallbackAction(
-            m, "some arg", kw="some keyword arg", args=["foo", "bar"])
+            mock, "some arg", kw="some keyword arg", args=["foo", "bar"])
         ac(EVENT_ID, EVENT_EXTRA)
-        m.assert_called_once_with("some arg", kw="some keyword arg", args=["foo", "bar"])
+        mock.assert_called_once_with("some arg", kw="some keyword arg", args=["foo", "bar"])
 
     def test_callback_uncallable(self):
         with self.assertRaises(ValueError):
@@ -48,15 +49,15 @@ class TestCallbackAction(DoorPiTestCase):
 class TestCheckAction(DoorPiTestCase):
 
     def test_check_passing(self):
-        m = MagicMock()
-        ac = doorpi.actions.CheckAction(m)
+        mock = MagicMock()
+        ac = doorpi.actions.CheckAction(mock)
         ac(EVENT_ID, EVENT_EXTRA)
-        m.assert_called_with()
+        mock.assert_called_with()
 
     @patch("doorpi.DoorPi", DoorPi)
     def test_check_failing(self):
-        m = MagicMock(side_effect=Exception)
-        ac = doorpi.actions.CheckAction(m)
+        mock = MagicMock(side_effect=Exception)
+        ac = doorpi.actions.CheckAction(mock)
 
         with self.assertLogs("doorpi.actions", "ERROR"):
             ac(EVENT_ID, EVENT_EXTRA)

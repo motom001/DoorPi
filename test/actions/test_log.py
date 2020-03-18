@@ -1,13 +1,10 @@
-from . import EVENT_ID, EVENT_EXTRA
-from ..mocks import DoorPi, DoorPiTestCase
 from unittest.mock import patch
 
-import doorpi
 import doorpi.actions.log as action
 
+from . import EVENT_ID, EVENT_EXTRA
+from ..mocks import DoorPi, DoorPiTestCase
 
-EVENT_ID = "ABCDEF"
-EXTRA = {}
 
 LOGMSG = "Test log message"
 

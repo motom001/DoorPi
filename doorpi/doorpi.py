@@ -3,7 +3,9 @@
 import datetime
 import html
 import logging
+import os
 import signal
+import sys
 import time
 from pathlib import Path
 
@@ -59,7 +61,19 @@ class DoorPi(metaclass=Singleton):
     @property
     def base_path(self):
         if self._base_path is None:
-            self._base_path = Path.home()
+            base = Path.home() / "doorpi.ini"
+            if base.is_file():
+                self._base_path = Path.home()
+            elif sys.platform == "linux":
+                try:
+                    base = Path(os.environ["XDG_CONFIG_HOME"])
+                except KeyError:
+                    base = Path.home() / ".config"
+                self._base_path = base / metadata.package.lower()
+            elif sys.platform == "win32":
+                self._base_path = Path(os.environ["APPDATA"]) / metadata.package
+            else:
+                self._base_path = Path.home() / metadata.package.lower()
             LOGGER.info("Auto-selected BasePath %s", self._base_path)
         return self._base_path
 

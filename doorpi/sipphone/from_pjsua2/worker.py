@@ -22,8 +22,8 @@ class Worker():
 
         self.hangup = False
 
-    def __del__(self):
-        DoorPi().event_handler.fire_event_sync("OnSIPPhoneStart", EVENT_SOURCE)
+    def shutdown(self):
+        DoorPi().event_handler.fire_event_sync("OnSIPPhoneDestroy", EVENT_SOURCE)
         self.__ep.libDestroy()
 
     def setup(self):

@@ -140,28 +140,26 @@ class CallCallback(pj.Call):
             audio.adjustTxLevel(capture_loudness)
         else: logger.error("Call to %s: no audio media", repr(ci.remoteUri))
 
-    def onDtmfDigit(self, digits: str) -> None:
-        logger.debug("Received DTMF: %s", str(digits))
-        digits = str(digits)
+    def onDtmfDigit(self, prm: pj.OnDtmfDigitParam) -> None:
+        logger.debug("Received DTMF: %s", str(prm.digit))
 
-        for dg in [digits[i] for i in range(0, len(digits))]:
-            self.__DTMF += dg
-            logger.trace("Processing digit %d; current sequence is %s", dg, self.__DTMF)
+        self.__DTMF += dg
+        logger.trace("Processing digit %d; current sequence is %s", dg, self.__DTMF)
 
-            prefix = False
-            exact = False
-            for dtmf in self.__possible_DTMF:
-                if dtmf == self.__DTMF:
-                    exact = True
-                elif dtmf.startswith(self.__DTMF):
-                    prefix = True
+        prefix = False
+        exact = False
+        for dtmf in self.__possible_DTMF:
+            if dtmf == self.__DTMF:
+                exact = True
+            elif dtmf.startswith(self.__DTMF):
+                prefix = True
 
-            if exact:
-                remoteUri = self.getInfo().remoteUri
-                fire_event(f"OnDTMF_{self.__DTMF}", async_only=True, remote_uri=remoteUri)
-                self.dialDtmf("11")
+        if exact:
+            remoteUri = self.getInfo().remoteUri
+            fire_event(f"OnDTMF_{self.__DTMF}", async_only=True, remote_uri=remoteUri)
+            self.dialDtmf("11")
 
-            if not prefix:
-                if not exact:
-                    self.dialDtmf("#")
-                self.__DTMF = ""
+        if not prefix:
+            if not exact:
+                self.dialDtmf("#")
+            self.__DTMF = ""

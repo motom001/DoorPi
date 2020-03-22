@@ -56,6 +56,7 @@ class Pjsua2(AbstractSIPPhone):
             if self.dialtone is not None:
                 self.dialtone.stop()
                 self.dialtone._DialTonePlayer__player = None
+            self.__worker.shutdown()
             del self.__worker
         DoorPi().event_handler.unregister_source(EVENT_SOURCE, force=True)
 

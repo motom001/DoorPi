@@ -108,9 +108,9 @@ class Config:
     @staticmethod
     def list_audio_devices(adm: pj.AudDevManager, loglevel: int) -> None:
         if not logger.isEnabledFor(loglevel): return
-        devs = adm.enumDev()
-        for i in range(len(devs)):
-            logger.log(loglevel, f"   {devs[i].driver}:{devs[i].name}")
+        devs = adm.enumDev2()
+        for dev in devs:
+            logger.log(loglevel, "   %s:%s", dev.driver, dev.name)
 
     @classmethod
     def setup_audio(cls, ep: pj.Endpoint) -> None:
@@ -130,7 +130,7 @@ class Config:
         # Setup configured capture / playback devices
         capture_device = conf.get_string(SIPPHONE_SECTION, "capture_device")
         playback_device = conf.get_string(SIPPHONE_SECTION, "playback_device")
-        audio_devices = adm.enumDev()
+        audio_devices = adm.enumDev2()
         if capture_device == "" or playback_device == "":
             logger.critical("No audio devices configured! Detected audio devices:")
             cls.list_audio_devices(adm, logging.CRITICAL)
@@ -174,7 +174,7 @@ class Config:
 
     @staticmethod
     def setup_audio_codecs(ep: pj.Endpoint) -> None:
-        allcodecs = ep.codecEnum()
+        allcodecs = ep.codecEnum2()
         logger.debug("Supported audio codecs: %s", ", ".join([c.codecId for c in allcodecs]))
         confcodecs = conf.get_string(SIPPHONE_SECTION, "audio_codecs", "opus, PCMA, PCMU")
         if not confcodecs: return

@@ -2,7 +2,7 @@ import tempfile
 from pathlib import Path
 from unittest.mock import patch
 
-import doorpi.actions.statusfile as action
+from doorpi.actions import statusfile
 
 from . import EVENT_ID, EVENT_EXTRA
 from ..mocks import DoorPi, DoorPiTestCase
@@ -27,11 +27,11 @@ class TestActionStatusfile(DoorPiTestCase):
         sf = Path.cwd() / "status.txt"
         sf.write_text("some initial garbage content")
 
-        ac = action.instantiate(str(sf), CONTENT)
+        ac = statusfile.StatusfileAction(str(sf), CONTENT)
         self.assertEqual("", sf.read_text())
 
         ac(EVENT_ID, EVENT_EXTRA)
-        self.assertEqual(CONTENT.strip() + "\n", sf.read_text())
+        self.assertEqual(CONTENT.strip(), sf.read_text())
 
     @patch('doorpi.DoorPi', DoorPi)
     def test_noperm(self):
@@ -41,4 +41,4 @@ class TestActionStatusfile(DoorPiTestCase):
             sf.chmod(0)
 
             with self.assertRaises(PermissionError):
-                action.instantiate(str(sf), CONTENT)
+                statusfile.StatusfileAction(str(sf), CONTENT)

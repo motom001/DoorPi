@@ -1,6 +1,6 @@
 from unittest.mock import patch
 
-import doorpi.actions.out as action
+from doorpi.actions import out
 
 from . import EVENT_ID, EVENT_EXTRA
 from ..mocks import DoorPi, DoorPiTestCase
@@ -17,18 +17,18 @@ class TestActionCall(DoorPiTestCase):
     @patch('doorpi.DoorPi', DoorPi)
     def test_argvalidation(self):
         with self.assertRaises(ValueError):
-            action.instantiate(PIN, START, STOP, "invalid")
+            out.instantiate(PIN, START, STOP, "invalid")
 
     @patch('doorpi.DoorPi', DoorPi)
     def test_normal(self):
-        ac = action.instantiate(PIN, START)
+        ac = out.instantiate(PIN, START)
         ac(EVENT_ID, EVENT_EXTRA)
         DoorPi().keyboard.output.assert_called_once_with(PIN, START)
 
     @patch('threading.Event')
     @patch('doorpi.DoorPi', DoorPi)
     def test_triggered(self, event):
-        ac = action.instantiate(PIN, START, STOP, HOLD)
+        ac = out.instantiate(PIN, START, STOP, HOLD)
         ac(EVENT_ID, EVENT_EXTRA)
 
         output_method = DoorPi().keyboard.output

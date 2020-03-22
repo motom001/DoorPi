@@ -1,15 +1,19 @@
+"""Actions related to emails: mailto"""
+
 import email.message
 import logging
 import smtplib
 
 import doorpi
-from . import Action
+from . import action
 
 
-logger = logging.getLogger(__name__)
+LOGGER = logging.getLogger(__name__)
 
 
-class MailAction(Action):
+@action("mailto")
+class MailAction:
+    """Sends an email with customizable subject and text, optionally with the latest snapshot."""
 
     def __init__(self, to, subject="Doorbell", text="Someone rang the door!", snapshot="false"):
         self.__to = str(to)
@@ -35,8 +39,8 @@ class MailAction(Action):
         if text.startswith("/"):
             # Read actual text from file
             self.__textfile = text
-            with open(text, "rt") as f:
-                self.__text = f.read()
+            with open(text, "rt") as textfile:
+                self.__text = textfile.read()
         else:
             self.__textfile = None
             self.__text = text
@@ -66,13 +70,12 @@ class MailAction(Action):
             snapfile = doorpi.DoorPi().config.get_path("DoorPi", "last_snapshot")
             if snapfile:
                 try:
-                    with snapfile.open("rb") as f:
-                        snap_data = f.read()
+                    snap_data = snapfile.read_bytes()
                     msg.add_attachment(snap_data, "application", "octet-stream", cte="base64",
                                        disposition="attachment",
                                        filename=snapfile.name)
-                except Exception:
-                    logger.exception("[%s] Cannot attach snapshot to email", event_id)
+                except Exception:  # pylint: disable=broad-except
+                    LOGGER.exception("[%s] Cannot attach snapshot to email", event_id)
 
         with smtplib.SMTP_SSL(self.__host, self.__port) if self.__ssl \
                 else smtplib.SMTP(self.__host, self.__port) as smtp:
@@ -80,10 +83,10 @@ class MailAction(Action):
             retval = smtp.send_message(msg)
 
         if retval[0] >= 400:
-            logger.error("[%s] Failed sending email to %s: %d %s",
+            LOGGER.error("[%s] Failed sending email to %s: %d %s",
                          event_id, self.__to, retval[0], retval[1].decode("utf-8"))
         else:
-            logger.info("[%s] Sent email to %s: %d %s",
+            LOGGER.info("[%s] Sent email to %s: %d %s",
                         event_id, self.__to, retval[0], retval[1].decode("utf-8"))
 
     def _start_session(self, smtp):
@@ -96,9 +99,6 @@ class MailAction(Action):
         return f"Send a mail to {self.__to}"
 
     def __repr__(self):
-        return f"{__name__.split('.')[-1]}:{self.__to},{self.__subject}," \
+        return f"mailto:{self.__to},{self.__subject}," \
             f"{self.__textfile if self.__textfile is not None else self.__text}," \
             f"{self.__snap}"
-
-
-instantiate = MailAction

@@ -203,8 +203,8 @@ class EventHandler:
     def register_action(self, event, action, *, oneshot=False):
         if isinstance(action, str):
             action = doorpi.actions.from_string(action)
-        elif not isinstance(action, doorpi.actions.Action):
-            raise ValueError("action must be a str or doorpi.actions.Action")
+        elif not callable(action):
+            raise ValueError("action must be a str or callable")
 
         if event not in self.actions:
             self.actions[event] = []

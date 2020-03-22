@@ -1,6 +1,6 @@
 from unittest.mock import patch
 
-import doorpi.actions.os_execute as action
+from doorpi.actions import subproc
 
 from . import EVENT_ID, EVENT_EXTRA
 from ..mocks import DoorPi, DoorPiTestCase
@@ -17,9 +17,9 @@ class TestOSExecuteAction(DoorPiTestCase):
     @patch('doorpi.DoorPi', DoorPi)
     def _do_test(self, cmd, result):
         # Simulate real config handling by splitting the command at commas
-        ac = action.instantiate(*cmd.split(","))
+        ac = subproc.OSExecuteAction(*cmd.split(","))
 
-        with self.assertLogs("doorpi.actions.os_execute", "INFO") as cm:
+        with self.assertLogs("doorpi.actions.subproc", "INFO") as cm:
             ac(EVENT_ID, EVENT_EXTRA)
 
         self.assertEqual(len(cm.records), 2)

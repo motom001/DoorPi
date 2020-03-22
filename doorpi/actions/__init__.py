@@ -1,29 +1,65 @@
 """Actions that DoorPi can perform in response to events.
 
-Submodules of `doorpi.actions` implement actions usable from the
-configuration file. The module name is used to determine the action's
-name in the configuration file. Example: `doorpi.actions.out` is
-configured as `out:<params>`.
+Submodules of ``doorpi.actions`` implement actions usable from the
+configuration file. An action instantiator must be tagged with the
+``@action(ac_name)`` decorator in order to be recognized. The
+instantiator is passed the parameters defined in the configuration
+file, and it must return a Callable which will be called to fire
+the action. The returned Callable must take two parameters; the
+Event ID (a string that uniquely identifies the currently handled
+event) and a dict of extra data. When an action performs any log
+output, it should prepend its messages with ``[EVENT_ID]``. What kind
+of extra data is passed depends on the actual event being handled.
 
-Each submodule must provide a top-level callable named `instantiate`,
-which will be passed all parameters specified in the configuration file,
-and must return a concrete subclass of `Action` (the abstract base class
-defined in this file). For more details see `Action.__init__` below.
+When loading DoorPi, all submodules of ``doorpi.actions`` will be
+imported and the ``@action``s defined therein registered with the
+dispatcher. Modules that fail to import are logged and skipped. This
+is so that if a module requires extra dependencies that are not
+currently available, only the actions it defines will be unusable,
+but the rest of DoorPi still functions as normal.
 
 For more details of the required methods on action classes, see the
 definition of `Action` below.
 """
 
+import importlib
+import logging
+import pkgutil
 from abc import ABCMeta, abstractmethod
 
-import logging
 import doorpi
 
 
-logger = logging.getLogger(__name__)
+LOGGER = logging.getLogger(__name__)
+ACTION_REGISTRY = {}
+
+
+def action(name: str):
+    """Tags a callable as an action instantiator for use in the configuration file."""
+
+    def register_action(func):
+        if ":" in name:
+            raise ValueError(f"Invalid action name {name}")
+        if name in ACTION_REGISTRY:
+            raise ValueError(f"Non-unique action name {name}")
+        ACTION_REGISTRY[name] = func
+        return func
+    return register_action
+
+
+def from_string(confstr: str):
+    """Instantiates an action from a configuration string."""
+    atype = confstr.split(":")[0]
+    if not atype: return None
+    if atype not in ACTION_REGISTRY:
+        raise ValueError(f"Unknown action {atype!r}")
+    args = confstr[len(atype) + 1:]
+    args = args.split(",") if len(args) > 0 else []
+    return ACTION_REGISTRY[atype](*args)
 
 
 class Action(metaclass=ABCMeta):
+    """Abstract base class that defines an action's interface."""
 
     @abstractmethod
     def __init__(self, *args):
@@ -41,7 +77,6 @@ class Action(metaclass=ABCMeta):
             def __init__(self, *args):
                 argstring = ",".join(args)
         """
-        pass
 
     @abstractmethod
     def __call__(self, event_id, extra):
@@ -54,7 +89,6 @@ class Action(metaclass=ABCMeta):
                    event source, as well as runtime information about
                    the last time this event was fired.
         """
-        pass
 
     @abstractmethod
     def __str__(self):
@@ -87,6 +121,7 @@ class CallbackAction(Action):
     """
 
     def __init__(self, callback, *args, **kw):
+        super().__init__()
         if not callable(callback):
             raise ValueError("Callback must be callable")
         self.__callback = callback
@@ -115,27 +150,17 @@ class CheckAction(CallbackAction):
     def __call__(self, event_id, extra):
         try:
             super().__call__(event_id, extra)
-        except Exception:
-            logger.exception("[%s] *** UNCAUGHT EXCEPTION: Internal self check failed", event_id)
+        except Exception:  # pylint: disable=broad-except
+            LOGGER.exception("[%s] *** UNCAUGHT EXCEPTION: Internal self check failed", event_id)
             doorpi.DoorPi().doorpi_shutdown()
 
     def __repr__(self):
         return f"<internal self-check with {self._CallbackAction__callback!r}>"
 
 
-def from_string(s):
-    import importlib
-
-    atype = s.split(":")[0]
-    if not atype: return None
-    if atype.startswith("_"):
-        raise ValueError("Action types cannot start with an underscore")
-    args = s[len(atype) + 1:]
-    args = args.split(",") if len(args) > 0 else []
-
+for _, module, _ in pkgutil.iter_modules(__path__, f"{__name__}."):
     try:
-        return importlib.import_module(f"doorpi.actions.{atype}").instantiate(*args)
-    except ImportError as err:
-        raise RuntimeError(f"Unable to instantiate {atype} action") from err
-    except Exception as ex:
-        raise RuntimeError(f"Error creating action from config: {s}") from ex
+        importlib.import_module(module)
+    except Exception as ex:  # pylint: disable=broad-except
+        LOGGER.error("Unable to load actions from %s: %s: %s",
+                     module, ex.__class__.__name__, ex)

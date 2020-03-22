@@ -1,13 +1,15 @@
+"""Actions that interact with the Symcon IPS v3: symcon_ips3"""
+
 import enum
 import json
 import logging
 import requests
 
 import doorpi
-from doorpi.actions import Action
+from . import action
 
 
-logger = logging.getLogger(__name__)
+LOGGER = logging.getLogger(__name__)
 TRUE_VALUES = ("true", "yes", "on", "1")
 
 
@@ -15,6 +17,7 @@ TRUE_VALUES = ("true", "yes", "on", "1")
 # https://www.symcon.de/service/dokumentation/befehlsreferenz/variablenverwaltung/ips-getvariable/
 @enum.unique
 class IPSVariableType(enum.Enum):
+    """Types of variables known to Symcon IPS v3"""
     BOOLEAN = 0
     INTEGER = 1
     FLOAT = 2
@@ -22,9 +25,11 @@ class IPSVariableType(enum.Enum):
 
 
 class IPSConnector:
+    """Helper class that facilitates connecting to a Symcon IPS"""
 
     @property
     def config(self):
+        """Retrieves the IPS config from DoorPi."""
         dcfg = doorpi.DoorPi().config
         config = {
             "webservice_url": dcfg.get_string("IP-Symcon", "server"),
@@ -51,14 +56,17 @@ class IPSConnector:
         return json.loads(response.content.decode("utf-8"))
 
     def variable_exists(self, key):
+        """Checks whether a variable exists."""
         return self._do_request("IPS_VariableExists", key)["result"]
 
     def variable_type(self, key):
+        """Returns the type of the named variable."""
         if not self.variable_exists(key):
             raise KeyError(f"Variable {key} does not exist")
         return self._do_request("IPS_GetVariable", key)["result"]["VariableValue"]["ValueType"]
 
     def set_value(self, key, value):
+        """Sets variable ``key`` to ``value``."""
         vartype = self.variable_type(key)
         if vartype is None:
             raise RuntimeError(f"Couldn't determine type of variable {key}")
@@ -76,10 +84,12 @@ class IPSConnector:
         self._do_request("SetValue", key, value)
 
     def get_value(self, key):
+        """Retrieves a variable from the IPS."""
         return self._do_request("GetValue", key)["result"]
 
 
-class IPSSetValueAction(IPSConnector, Action):
+class IPSSetValueAction(IPSConnector):
+    """Sets a variable in the IPS."""
 
     def __init__(self, key, value):
         self.__key = int(key)
@@ -92,10 +102,11 @@ class IPSSetValueAction(IPSConnector, Action):
         return f"Set IPS variable {self.__key} to {self.__value}"
 
     def __repr__(self):
-        return f"{__name__.split('.')[-1]}:set,{self.__key},{self.__value}"
+        return f"symcon_ips3:set,{self.__key},{self.__value}"
 
 
-class IPSCallFromVariableAction(IPSConnector, Action):
+class IPSCallFromVariableAction(IPSConnector):
+    """Calls the number that is stored in the IPS."""
 
     def __init__(self, key):
         self.__key = int(key)
@@ -106,17 +117,19 @@ class IPSCallFromVariableAction(IPSConnector, Action):
             raise ValueError(f"Variable {self.__key} is not a string")
         uri = self.get_value(self.__key)
 
-        logger.info("[%s] Got phone number %s from variable %s", event_id, repr(uri), self.__key)
+        LOGGER.info("[%s] Got phone number %s from variable %s", event_id, repr(uri), self.__key)
         doorpi.DoorPi().sipphone.call(uri)
 
     def __str__(self):
         return f"Call the number stored in IPS variable {self.__key}"
 
     def __repr__(self):
-        return f"{__name__.split('.')[-1]}:call,{self.__key}"
+        return f"symcon_ips3:call,{self.__key}"
 
 
-def instantiate(action, *params):
-    if action == "set": return IPSSetValueAction(*params)
-    elif action == "call": return IPSCallFromVariableAction(*params)
-    else: raise ValueError(f"Unknown IPS RPC action {action}")
+@action("symcon_ips3")
+def instantiate(ipsaction, *params):
+    """Creates the action named by ``ipsaction``."""
+    if ipsaction == "set": return IPSSetValueAction(*params)
+    if ipsaction == "call": return IPSCallFromVariableAction(*params)
+    raise ValueError(f"Unknown IPS RPC action {ipsaction}")

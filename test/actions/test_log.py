@@ -1,6 +1,6 @@
 from unittest.mock import patch
 
-import doorpi.actions.log as action
+from doorpi.actions import log
 
 from . import EVENT_ID, EVENT_EXTRA
 from ..mocks import DoorPi, DoorPiTestCase
@@ -13,7 +13,7 @@ class TestActionCall(DoorPiTestCase):
 
     @patch('doorpi.DoorPi', DoorPi)
     def test_action(self):
-        ac = action.instantiate(LOGMSG)
+        ac = log.LogAction(LOGMSG)
 
         with self.assertLogs("doorpi.actions.log", "INFO") as cm:
             ac(EVENT_ID, EVENT_EXTRA)

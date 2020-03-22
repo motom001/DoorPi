@@ -2,7 +2,7 @@ import textwrap
 from pathlib import Path
 from unittest.mock import patch
 
-import doorpi.actions.mailto as action
+from doorpi.actions import mail
 
 from . import EVENT_ID, EVENT_EXTRA
 from ..mocks import DoorPi, DoorPiTestCase
@@ -10,7 +10,9 @@ from ..mocks import DoorPi, DoorPiTestCase
 
 class TestMailAction(DoorPiTestCase):
 
-    def write_config(self):
+    def setUp(self):
+        super().setUp()
+
         Path("doorpi.ini").write_text(textwrap.dedent("""\
             [DoorPi]
             last_snapshot = /dev/null
@@ -27,11 +29,10 @@ class TestMailAction(DoorPiTestCase):
     @patch('smtplib.SMTP')
     @patch('doorpi.DoorPi', DoorPi)
     def test_send_plain(self, smtp):
-        self.write_config()
         smtp.return_value.__enter__.return_value.send_message.return_value = (200, b"OK")
-        ac = action.instantiate("test@localhost", "Test subject", "Test body", "false")
+        ac = mail.MailAction("test@localhost", "Test subject", "Test body", "false")
 
-        with self.assertLogs("doorpi.actions.mailto", "INFO"):
+        with self.assertLogs("doorpi.actions.mail", "INFO"):
             ac(EVENT_ID, EVENT_EXTRA)
 
         send = smtp.return_value.__enter__.return_value.send_message
@@ -47,11 +48,10 @@ class TestMailAction(DoorPiTestCase):
     @patch('smtplib.SMTP')
     @patch('doorpi.DoorPi', DoorPi)
     def test_send_snapshot(self, smtp):
-        self.write_config()
         smtp.return_value.__enter__.return_value.send_message.return_value = (200, b"OK")
-        ac = action.instantiate("test@localhost", "Test subject", "Test body", "true")
+        ac = mail.MailAction("test@localhost", "Test subject", "Test body", "true")
 
-        with self.assertLogs("doorpi.actions.mailto", "INFO"):
+        with self.assertLogs("doorpi.actions.mail", "INFO"):
             ac(EVENT_ID, EVENT_EXTRA)
 
         send = smtp.return_value.__enter__.return_value.send_message

@@ -1,9 +1,13 @@
+"""Actions that control event execution: sleep"""
 from time import sleep
 
-from . import Action
+from . import action
 
 
-class SleepAction(Action):
+@action("sleep")
+class SleepAction:
+    """Delays event execution."""
+
     def __init__(self, time):
         self.__time = float(time)
 
@@ -14,7 +18,4 @@ class SleepAction(Action):
         return f"Wait for {self.__time} seconds"
 
     def __repr__(self):
-        return f"{__name__.split('.')[-1]}:{self.__time}"
-
-
-instantiate = SleepAction
+        return f"sleep:{self.__time}"

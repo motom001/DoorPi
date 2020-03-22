@@ -1,7 +1,7 @@
 import json
 from unittest.mock import patch, MagicMock
 
-import doorpi.actions.symcon_ips3 as action
+from doorpi.actions import symcon_ips3
 
 from . import EVENT_ID, EVENT_EXTRA
 from ..mocks import DoorPi, DoorPiTestCase
@@ -21,7 +21,7 @@ def fake_post(*args, data, **kw):
     if data["method"] == "IPS_GetVariable":
         return DummyResponse(json.dumps({"result": {
             "VariableValue": {
-                "ValueType": action.IPSVariableType.STRING.value,
+                "ValueType": symcon_ips3.IPSVariableType.STRING.value,
             },
         }}).encode("utf-8"))
     if data["method"] == "GetValue":
@@ -34,13 +34,13 @@ def fake_post(*args, data, **kw):
 class TestIPSRPCSetValueAction(DoorPiTestCase):
 
     @patch('doorpi.DoorPi', DoorPi)
-    def test_instantiation(self):
+    def test_validation(self):
         with self.assertRaises(ValueError):
-            action.instantiate("set", "NaN", "something")
+            symcon_ips3.instantiate("set", "NaN", "something")
 
     @patch('doorpi.DoorPi', DoorPi)
     def test_action(self):
-        ac = action.instantiate("set", 1, "somevalue")
+        ac = symcon_ips3.instantiate("set", 1, "somevalue")
         post = MagicMock(wraps=fake_post)
         with patch("requests.post", post):
             ac(EVENT_ID, EVENT_EXTRA)
@@ -53,11 +53,11 @@ class TestIPSRPCCallFromVariableAction(DoorPiTestCase):
     @patch('doorpi.DoorPi', DoorPi)
     def test_instantiation(self):
         with self.assertRaises(ValueError):
-            action.instantiate("call", "NaN")
+            symcon_ips3.instantiate("call", "NaN")
 
     @patch('doorpi.DoorPi', DoorPi)
     def test_action(self):
-        ac = action.instantiate("call", 1)
+        ac = symcon_ips3.instantiate("call", 1)
         post = MagicMock(wraps=fake_post)
         with patch("requests.post", post):
             ac(EVENT_ID, EVENT_EXTRA)

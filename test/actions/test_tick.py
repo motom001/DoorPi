@@ -1,17 +1,17 @@
 from unittest.mock import patch, call, Mock
 from datetime import datetime
 
-import doorpi.actions.time_tick as action
+from doorpi.actions import tick
 
 from . import EVENT_ID, EVENT_EXTRA
 from ..mocks import DoorPi, DoorPiTestCase
 
 
 # The event source
-ES = "doorpi.actions.time_tick"
+ES = "doorpi.actions.tick"
 
 
-@patch("doorpi.actions.time_tick.TickAction.__del__", Mock())
+@patch("doorpi.actions.tick.TickAction.__del__", Mock())
 class TestTickAction(DoorPiTestCase):
 
     @patch("doorpi.DoorPi", DoorPi)
@@ -21,7 +21,7 @@ class TestTickAction(DoorPiTestCase):
         last = datetime(2000, 1, 1, 0, 0, 0)
 
         with patch("datetime.datetime", dtmock):
-            action.instantiate(last.timestamp())(EVENT_ID, EVENT_EXTRA)
+            tick.TickAction(str(last.timestamp()))(EVENT_ID, EVENT_EXTRA)
 
         eh = DoorPi().event_handler
         self.assertEqual(eh.call_count, 2)
@@ -35,7 +35,7 @@ class TestTickAction(DoorPiTestCase):
         last = datetime(2000, 1, 1, 0, 0, 0)
 
         with patch("datetime.datetime", dtmock):
-            action.instantiate(last.timestamp())(EVENT_ID, EVENT_EXTRA)
+            tick.TickAction(last.timestamp())(EVENT_ID, EVENT_EXTRA)
 
         eh = DoorPi().event_handler
         self.assertEqual(eh.call_count, 2)
@@ -49,7 +49,7 @@ class TestTickAction(DoorPiTestCase):
         last = datetime(2000, 1, 1, 0, 0, 0)
 
         with patch("datetime.datetime", dtmock):
-            action.instantiate(last.timestamp())(EVENT_ID, EVENT_EXTRA)
+            tick.TickAction(last.timestamp())(EVENT_ID, EVENT_EXTRA)
 
         eh = DoorPi().event_handler
         self.assertEqual(eh.call_count, 2)
@@ -63,7 +63,7 @@ class TestTickAction(DoorPiTestCase):
         last = datetime(2000, 1, 1, 0, 0, 0)
 
         with patch("datetime.datetime", dtmock):
-            action.instantiate(last.timestamp())(EVENT_ID, EVENT_EXTRA)
+            tick.TickAction(last.timestamp())(EVENT_ID, EVENT_EXTRA)
 
         eh = DoorPi().event_handler
         self.assertEqual(eh.call_count, 3)
@@ -78,7 +78,7 @@ class TestTickAction(DoorPiTestCase):
         last = datetime(2000, 1, 1, 0, 0, 0)
 
         with patch("datetime.datetime", dtmock):
-            action.instantiate(last.timestamp())(EVENT_ID, EVENT_EXTRA)
+            tick.TickAction(last.timestamp())(EVENT_ID, EVENT_EXTRA)
 
         eh = DoorPi().event_handler
         self.assertEqual(eh.call_count, 3)
@@ -93,7 +93,7 @@ class TestTickAction(DoorPiTestCase):
         last = datetime(2000, 1, 1, 0, 0, 0)
 
         with patch("datetime.datetime", dtmock):
-            action.instantiate(last.timestamp())(EVENT_ID, EVENT_EXTRA)
+            tick.TickAction(last.timestamp())(EVENT_ID, EVENT_EXTRA)
 
         eh = DoorPi().event_handler
         self.assertEqual(eh.call_count, 3)

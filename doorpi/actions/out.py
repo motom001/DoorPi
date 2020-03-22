@@ -1,19 +1,22 @@
+"""Actions related to pin output: out"""
+
 import threading
-from time import sleep
 
 import doorpi
-from . import Action
+from . import action
 
 
-class OutAction(Action):
+class OutAction:
+    """Sets a GPIO pin to a constant value."""
+
     def __init__(self, pin, value):
         self._pin = pin
         self._value = value
 
     def __call__(self, event_id, extra):
-        self.setpin(self._value)
+        self._setpin(self._value)
 
-    def setpin(self, value):
+    def _setpin(self, value):
         if not doorpi.DoorPi().keyboard.output(self._pin, value):
             raise RuntimeError(f"Cannot set pin {self._pin} to {value}")
 
@@ -21,10 +24,11 @@ class OutAction(Action):
         return f"Set {self._pin} to {self._value}"
 
     def __repr__(self):
-        return f"{__name__.split('.')[-1]}:{self._pin},{self._value}"
+        return f"out:{self._pin},{self._value}"
 
 
 class TriggeredOutAction(OutAction):
+    """Holds a GPIO pin at a value for some time before setting it back."""
 
     def __init__(self, pin, startval, stopval, holdtime, intpin=None):
         super().__init__(pin, startval)
@@ -36,12 +40,14 @@ class TriggeredOutAction(OutAction):
             doorpi.DoorPi().event_handler.register_action(f"OnKeyDown_{intpin}", self.interrupt)
 
     def __call__(self, event_id, extra):
-        self.setpin(self._value)
+        self._setpin(self._value)
         self._int.clear()  # Make sure the flag is not set before waiting for it
         self._int.wait(timeout=self._holdtime)
-        self.setpin(self._stopval)
+        self._setpin(self._stopval)
 
     def interrupt(self, event_id, extra):
+        """Aborts the wait time, so that the pin will be reset immediately."""
+        del event_id, extra
         self._int.set()
 
     def __str__(self):
@@ -49,12 +55,12 @@ class TriggeredOutAction(OutAction):
             + f" or until {self._intpin} is pressed" if self._intpin else ""
 
     def __repr__(self):
-        return f"{__name__.split('.')[-1]}:{self._pin},{self._value},{self._stopval}," \
+        return f"out:{self._pin},{self._value},{self._stopval}," \
             f"{self._holdtime}{',' + self._intpin if self._intpin is not None else ''}"
 
 
+@action("out")
 def instantiate(*args):
     if len(args) <= 2:
         return OutAction(*args)
-    else:
-        return TriggeredOutAction(*args)
+    return TriggeredOutAction(*args)

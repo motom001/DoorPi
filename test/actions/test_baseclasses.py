@@ -1,6 +1,6 @@
 from unittest.mock import MagicMock, patch
 
-import doorpi
+import doorpi.actions
 
 from . import EVENT_ID, EVENT_EXTRA
 from ..mocks import DoorPi, DoorPiTestCase
@@ -8,28 +8,30 @@ from ..mocks import DoorPi, DoorPiTestCase
 
 class TestActionInstantiation(DoorPiTestCase):
 
-    @patch("doorpi.actions.log.instantiate")
-    def test_nocolon(self, instantiate):
+    @patch("doorpi.actions.ACTION_REGISTRY")
+    def test_nocolon(self, registry):
+        registry.__contains__.return_value = True
         doorpi.actions.from_string("log")
-        instantiate.assert_called_once_with()
+        registry.__getitem__.assert_called_once_with("log")
+        registry.__getitem__.return_value.assert_called_once_with()
 
-    @patch("doorpi.actions.log.instantiate")
-    def test_colon(self, instantiate):
+    @patch("doorpi.actions.ACTION_REGISTRY")
+    def test_colon(self, registry):
+        registry.__contains__.return_value = True
         doorpi.actions.from_string("log:")
-        instantiate.assert_called_once_with()
+        registry.__getitem__.assert_called_once_with("log")
+        registry.__getitem__.return_value.assert_called_once_with()
 
-    @patch("doorpi.actions.log.instantiate")
-    def test_args(self, instantiate):
+    @patch("doorpi.actions.ACTION_REGISTRY")
+    def test_args(self, registry):
+        registry.__contains__.return_value = True
         doorpi.actions.from_string("log:foo,bar,baz")
-        instantiate.assert_called_once_with("foo", "bar", "baz")
+        registry.__getitem__.assert_called_once_with("log")
+        registry.__getitem__.return_value.assert_called_once_with("foo", "bar", "baz")
 
     def test_emptystring(self):
         ac = doorpi.actions.from_string("")
         self.assertIsNone(ac)
-
-    def test_underscore(self):
-        with self.assertRaises(ValueError):
-            doorpi.actions.from_string("_test")
 
 
 class TestCallbackAction(DoorPiTestCase):

@@ -1,19 +1,22 @@
+"""Action that writes DoorPi status to a file: statusfile"""
 import logging
-import doorpi
 from pathlib import Path
 
-from doorpi.actions import Action
+import doorpi
+from doorpi.actions import action
 from doorpi.status.status_class import DoorPiStatus
 
 
-logger = logging.getLogger(__name__)
+LOGGER = logging.getLogger(__name__)
 
 
-class StatusfileAction(Action):
+@action("statusfile")
+class StatusfileAction:
+    """Writes custom-formatted DoorPi status to a file."""
 
-    def __init__(self, filename, content):
+    def __init__(self, filename, *content):
         self.__filename = Path(doorpi.DoorPi().parse_string(filename))
-        self.__content = content.strip() + "\n"
+        self.__content = ",".join(content).strip()
 
         self.__filename.parent.mkdir(parents=True, exist_ok=True)
         # create / truncate the file; also makes sure we have write permission
@@ -26,18 +29,14 @@ class StatusfileAction(Action):
             status = DoorPiStatus(doorpi.DoorPi())
             content = content.replace("!DOORPI_STATUS.json_beautified!", status.json_beautified)
             content = content.replace("!DOORPI_STATUS.json!", status.json)
-        except Exception:
-            logger.exception("[%s] Error fetching status information for file %s",
+        except Exception:  # pylint: disable=broad-except
+            LOGGER.exception("[%s] Error fetching status information for file %s",
                              event_id, self.__filename)
 
-        with self.__filename.open("w") as f:
-            f.write(content)
+        self.__filename.write_text(content)
 
     def __str__(self):
         return f"Write current status into {self.__filename}"
 
     def __repr__(self):
-        return f"{__name__.split('.')[-1]}:{self.__filename},{self.__content.strip()}"
-
-
-instantiate = StatusfileAction
+        return f"statusfile:{self.__filename},{self.__content.strip()}"

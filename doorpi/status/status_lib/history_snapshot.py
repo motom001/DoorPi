@@ -1,22 +1,15 @@
-import logging
-import os
+from doorpi.actions.snapshot import SnapshotAction
+
+DOORPI_SECTION = "DoorPi"
 
 
-logger = logging.getLogger(__name__)
-DOORPI_SECTION = 'DoorPi'
+def get(doorpi_obj, name, value):
+    del doorpi_obj, name, value
 
-
-def get(*args, **kwargs):
-    files = dict()
-    if len(kwargs['name']) == 0: kwargs['name'] = ['']
-    if len(kwargs['value']) == 0: kwargs['value'] = ['']
-
-    path = kwargs['DoorPiObject'].config.get_string_parsed(DOORPI_SECTION, 'snapshot_path')
-    if os.path.exists(path):
-        files = [os.path.join(path, i) for i in os.listdir(path)]
-        files = sorted(files, key=os.path.getmtime)
-        # because path is added by webserver automatically
-        if path.find('DoorPiWeb'):
-            changedpath = path[path.find('DoorPiWeb') + len('DoorPiWeb'):]
-            files = [f.replace(path, changedpath) for f in files]
+    path = str(SnapshotAction.get_base_path())
+    files = SnapshotAction.list_all()
+    # because path is added by webserver automatically
+    if path.find("DoorPiWeb"):
+        changedpath = path[path.find("DoorPiWeb") + len("DoorPiWeb"):]
+        files = [f.replace(path, changedpath) for f in files]
     return files

@@ -1,3 +1,5 @@
+"""The internal tick action."""
+
 import datetime
 
 import doorpi
@@ -6,6 +8,7 @@ from . import action, CallbackAction
 
 @action("time_tick")
 class TickAction:
+    """The internal tick action."""
 
     def __init__(self, last_tick):
         self.__last_tick = datetime.datetime.fromtimestamp(float(last_tick))

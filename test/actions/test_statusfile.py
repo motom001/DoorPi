@@ -22,7 +22,7 @@ Additionally, some strange characters:
 
 class TestActionStatusfile(DoorPiTestCase):
 
-    @patch('doorpi.DoorPi', DoorPi)
+    @patch("doorpi.DoorPi", DoorPi)
     def test_action(self):
         sf = Path.cwd() / "status.txt"
         sf.write_text("some initial garbage content")
@@ -33,7 +33,7 @@ class TestActionStatusfile(DoorPiTestCase):
         ac(EVENT_ID, EVENT_EXTRA)
         self.assertEqual(CONTENT.strip(), sf.read_text())
 
-    @patch('doorpi.DoorPi', DoorPi)
+    @patch("doorpi.DoorPi", DoorPi)
     def test_noperm(self):
         with tempfile.TemporaryDirectory() as tmpdir:
             sf = Path(tmpdir, "status.txt")

@@ -47,8 +47,8 @@ class TestPicamSnapshotAction(DoorPiTestCase):
             else: raise
         super().setUp()
 
-    @patch('picamera.PiCamera')
-    @patch('doorpi.DoorPi', DoorPi)
+    @patch("picamera.PiCamera")
+    @patch("doorpi.DoorPi", DoorPi)
     def test_action(self, picamera):
         snapshot.PicamSnapshotAction()(EVENT_ID, EVENT_EXTRA)
 

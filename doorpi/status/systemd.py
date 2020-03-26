@@ -1,10 +1,8 @@
 import logging
 import os
 import socket
-import sys
 
-
-logger = logging.getLogger(__name__)
+LOGGER = logging.getLogger(__name__)
 
 
 class DoorPiSD:
@@ -13,17 +11,18 @@ class DoorPiSD:
         self.sockaddr = None
         self.socket = None
         if "NOTIFY_SOCKET" in os.environ:
-            logger.info("Enabling sd-notify protocol")
+            LOGGER.info("Enabling sd-notify protocol")
             self.sockaddr = os.environ["NOTIFY_SOCKET"]
             if self.sockaddr.startswith("@"):
                 self.sockaddr = "\0" + self.sockaddr[1:]
 
             # open notify socket
-            try: self.socket = socket.socket(family=socket.AF_UNIX, type=socket.SOCK_DGRAM)
-            except Exception as ex:
-                logger.exception("Unable to open notification socket")
+            try:
+                self.socket = socket.socket(family=socket.AF_UNIX, type=socket.SOCK_DGRAM)
+            except OSError:
+                LOGGER.exception("Unable to open notification socket")
         else:
-            logger.info("No NOTIFY_SOCKET in environment, sd-notify protocol disabled")
+            LOGGER.info("No NOTIFY_SOCKET in environment, sd-notify protocol disabled")
 
     def ready(self):
         """Tell the service manager that we are ready
@@ -63,7 +62,8 @@ class DoorPiSD:
         """
         return self.__send("WATCHDOG=1")
 
-    def get_watchdog_timeout_usec(self):
+    @staticmethod
+    def get_watchdog_timeout_usec():
         """Get the configured watchdog timeout
 
         Returns the configured watchdog timeout in microseconds. If
@@ -89,6 +89,7 @@ class DoorPiSD:
 
         if self.socket is None or self.sockaddr is None:
             return
-        try: self.socket.sendto(msg.encode("utf-8"), self.sockaddr)
-        except Exception:
-            logger.exception("Unable to send status information to service manager")
+        try:
+            self.socket.sendto(msg.encode("utf-8"), self.sockaddr)
+        except OSError:
+            LOGGER.exception("Unable to send status information to service manager")

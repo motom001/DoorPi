@@ -6,7 +6,6 @@ import doorpi
 from doorpi.actions import action
 from doorpi.status.status_class import DoorPiStatus
 
-
 LOGGER = logging.getLogger(__name__)
 
 

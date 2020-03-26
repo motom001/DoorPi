@@ -1,26 +1,19 @@
-import logging
+def get(doorpi_obj, name, value):
+    del value
 
-
-logger = logging.getLogger(__name__)
-logger.debug("%s loaded", __name__)
-
-
-def get(DoorPiObject, name=[], *args, **kwargs):
-    logger.trace("Requested sipphone status with name=%s", name)
-    if len(name) == 0:
-        name = ["name", "current_call"]
-
-    sipphone = DoorPiObject.sipphone
+    sipphone = doorpi_obj.sipphone
     status = {}
 
-    if "name" in name:
-        status["name"] = sipphone.get_name()
-
-    if "current_call" in name:
-        status["current_call"] = sipphone.dump_call()
-
+    while name:
+        cur_name = name.pop()
+        if cur_name == "name":
+            status[cur_name] = sipphone.get_name()
+        elif cur_name == "current_call":
+            status[cur_name] = sipphone.dump_call()
+        else:
+            status[cur_name] = {"Error": f"Unknown name {cur_name!r}"}
     return status
 
 
 def is_active(doorpi_object):
-    return True if doorpi_object.sipphone else False
+    return bool(doorpi_object.sipphone)

@@ -1,3 +1,6 @@
+"""The Worker class."""
+# pylint: disable=protected-access, invalid-name
+
 import logging
 import pjsua2 as pj
 
@@ -5,16 +8,20 @@ from doorpi import DoorPi
 from doorpi.actions import CheckAction
 from doorpi.sipphone import SIPPHONE_SECTION
 
-from . import EVENT_SOURCE, fire_event, logger
+from . import EVENT_SOURCE, config, fire_event
 from .callbacks import AccountCallback, CallCallback
-from .config import Config
 from .fileio import DialTonePlayer, CallRecorder
+
+LOGGER = logging.getLogger(__name__)
 
 
 class Worker():
+    """Responsible for keeping everything running and performing housekeeping tasks."""
+
     def __init__(self, sipphone):
         self.__phone = sipphone
         self.__ep = None
+        self.__account = None
 
         conf = DoorPi().config
         self.__call_timeout = conf.get_int(SIPPHONE_SECTION, "call_timeout", 15)
@@ -23,36 +30,38 @@ class Worker():
         self.hangup = False
 
     def shutdown(self):
+        """Destroys the native library."""
         DoorPi().event_handler.fire_event_sync("OnSIPPhoneDestroy", EVENT_SOURCE)
         self.__ep.libDestroy()
 
     def setup(self):
-        logger.info("Initializing native library")
+        """Initializes the native library."""
+        LOGGER.info("Initializing native library")
         self.__ep = pj.Endpoint()
         # N.B.: from PJSIP's perspective, the thread that calls
         # libCreate() is the main thread. Combined with
         # ``uaConfig.mainThreadOnly``, this ensures that all PJSIP
         # events will be handled here, and not by any native threads.
         self.__ep.libCreate()
-        self.__ep.libInit(Config.endpoint_config())
-        self.__ep.transportCreate(pj.PJSIP_TRANSPORT_UDP, Config.transport_config())
-        Config.setup_audio(self.__ep)
+        self.__ep.libInit(config.endpoint_config())
+        self.__ep.transportCreate(pj.PJSIP_TRANSPORT_UDP, config.transport_config())
+        config.setup_audio(self.__ep)
         self.__ep.libStart()
 
-        logger.debug("Creating account")
+        LOGGER.debug("Creating account")
         self.__account = AccountCallback()
-        self.__account.create(Config.account_config())
+        self.__account.create(config.account_config())
 
-        self.__phone.dialtone = DialTonePlayer(**Config.dialtone_config())
-        self.__phone.recorder = CallRecorder(**Config.recorder_config())
+        self.__phone.dialtone = DialTonePlayer(**config.dialtone_config())
+        self.__phone.recorder = CallRecorder(**config.recorder_config())
 
         # Make sure the library can fully start up
         while True:
-            e = self.__ep.libHandleEvents(20)  # note: libHandleEvents() takes milliseconds
-            if e == 0: break
-            if e < 0:
+            num_ev = self.__ep.libHandleEvents(20)  # note: libHandleEvents() takes milliseconds
+            if num_ev == 0: break
+            if num_ev < 0:
                 raise RuntimeError("Error while initializing PJSUA2: {msg} ({errno})"
-                                   .format(errno=-e, msg=self.__ep.utilStrError(-e)))
+                                   .format(errno=-num_ev, msg=self.__ep.utilStrError(-num_ev)))
 
         # register tick actions
         eh = DoorPi().event_handler
@@ -61,13 +70,14 @@ class Worker():
         eh.register_action("OnTimeTick", CheckAction(self.checkCallTime))
         eh.register_action("OnTimeRapidTick", CheckAction(self.createCalls))
         eh.fire_event_sync("OnSIPPhoneStart", EVENT_SOURCE)
-        logger.debug("Initialization complete")
+        LOGGER.debug("Initialization complete")
 
     def handleNativeEvents(self):
-        e = self.__ep.libHandleEvents(0)
-        if e < 0:
+        """Polls events from the native library."""
+        num_ev = self.__ep.libHandleEvents(0)
+        if num_ev < 0:
             raise RuntimeError("Error while handling PJSUA2 native events: {msg} ({errno})"
-                               .format(errno=-e, msg=self.__ep.utilStrError(-e)))
+                               .format(errno=-num_ev, msg=self.__ep.utilStrError(-num_ev)))
 
     def checkHangupAll(self):
         """Check if hanging up all calls was requested"""
@@ -78,16 +88,16 @@ class Worker():
             prm = pj.CallOpParam()
             self.__phone._Pjsua2__waiting_calls = []
 
-            for c in self.__phone._Pjsua2__ringing_calls:
+            for call in self.__phone._Pjsua2__ringing_calls:
                 try:
-                    c.hangup(prm)
+                    call.hangup(prm)
                 except pj.Error as err:
                     if err.reason.endswith("(PJSIP_ESESSIONTERMINATED)"): continue
-                    logger.exception("Error hanging up a call: %s (ignored)", err.reason)
+                    LOGGER.exception("Error hanging up a call: %s (ignored)", err.reason)
             self.__phone._Pjsua2__ringing_calls = []
 
-            if self.current_call is not None:
-                self.current_call.hangup(prm)
+            if self.__phone.current_call is not None:
+                self.__phone.current_call.hangup(prm)
             else:
                 # Synthesize a disconnect event
                 fire_event("OnCallDisconnect", remote_uri="sip:null@null")
@@ -99,38 +109,37 @@ class Worker():
         if self.__phone.current_call is None and len(self.__phone._Pjsua2__ringing_calls) == 0:
             return
 
-        eh = DoorPi().event_handler
         with self.__phone._Pjsua2__call_lock:
-            c = self.__phone.current_call
-            if c is not None:
-                ci = c.getInfo()
+            call = self.__phone.current_call
+            if call is not None:
+                ci = call.getInfo()
                 if self.__max_call_time > 0 \
                         and ci.state == pj.PJSIP_INV_STATE_CONFIRMED \
                         and ci.connectDuration.sec >= self.__max_call_time:
-                    logger.info("Hanging up call to %s after %d seconds",
+                    LOGGER.info("Hanging up call to %s after %d seconds",
                                 repr(ci.remoteUri), self.__max_call_time)
                     fire_event("OnCallTimeExceeded")
                     prm = pj.CallOpParam()
-                    c.hangup(prm)
+                    call.hangup(prm)
                     self.__phone.current_call = None
             else:
                 synthetic_disconnect = False
                 prm = pj.CallOpParam()
-                for c in self.__phone._Pjsua2__ringing_calls:
+                for call in self.__phone._Pjsua2__ringing_calls:
                     try:
-                        ci = c.getInfo()
+                        ci = call.getInfo()
                         if ci.totalDuration.sec >= self.__call_timeout:
-                            logger.info("Call to %s unanswered after %d seconds, giving up",
+                            LOGGER.info("Call to %s unanswered after %d seconds, giving up",
                                         repr(ci.remoteUri), self.__call_timeout)
-                            c.hangup(prm)
-                            self.__phone._Pjsua2__ringing_calls.remove(c)
+                            call.hangup(prm)
+                            self.__phone._Pjsua2__ringing_calls.remove(call)
                             synthetic_disconnect = True
                     except pj.Error as err:
                         if err.reason.endswith("(PJSIP_ESESSIONTERMINATED)"):
-                            logger.warning("Found a call that was already dead, removing it")
+                            LOGGER.warning("Found a call that was already dead, removing it")
                         else:
-                            logger.exception("Can't get info for a call: %s", err.reason)
-                        self.__phone._Pjsua2__ringing_calls.remove(c)
+                            LOGGER.exception("Can't get info for a call: %s", err.reason)
+                        self.__phone._Pjsua2__ringing_calls.remove(call)
                 if synthetic_disconnect and len(self.__phone._Pjsua2__ringing_calls) == 0:
                     # Last ringing call was cancelled
                     fire_event("OnCallUnanswered")
@@ -142,12 +151,13 @@ class Worker():
 
         with self.__phone._Pjsua2__call_lock:
             for uri in self.__phone._Pjsua2__waiting_calls:
-                logger.info("Calling %s", uri)
+                LOGGER.info("Calling %s", uri)
                 fire_event("OnCallOutgoing", remote_uri=uri)
                 call = CallCallback(self.__account)
                 callprm = pj.CallOpParam(True)
-                try: call.makeCall(uri, callprm)
+                try:
+                    call.makeCall(uri, callprm)
                 except pj.Error as err:
-                    logger.error("Error making a call: %s", err.info())
+                    LOGGER.error("Error making a call: %s", err.info())
                 self.__phone._Pjsua2__ringing_calls += [call]
             self.__phone._Pjsua2__waiting_calls = []

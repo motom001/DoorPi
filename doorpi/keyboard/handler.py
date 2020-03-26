@@ -1,10 +1,10 @@
 """This module houses the keyboard handler."""
+
 import importlib
 import logging
 
 import doorpi
 from doorpi.actions import CheckAction
-
 from . import SECTION_KEYBOARDS, SECTION_TPL_IN, SECTION_TPL_OUT
 
 LOGGER = logging.getLogger(__name__)

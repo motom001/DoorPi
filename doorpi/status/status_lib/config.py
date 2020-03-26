@@ -1,27 +1,19 @@
-import logging
+def get(doorpi_obj, name, value):
+    if not name: name = [""]
+    if not value: value = [""]
 
-
-logger = logging.getLogger(__name__)
-logger.debug("%s loaded", __name__)
-
-
-def get(*args, **kwargs):
-    if len(kwargs['name']) == 0: kwargs['name'] = ['']
-    if len(kwargs['value']) == 0: kwargs['value'] = ['']
     return_dict = {}
-    for section_request in kwargs['name']:
-        for section in kwargs['DoorPiObject'].config.get_sections(section_request):
+    for section_request in name:
+        for section in doorpi_obj.config.get_sections(section_request):
             return_dict[section] = {}
-            for value_request in kwargs['value']:
-                for key in kwargs['DoorPiObject'].config.get_keys(section, value_request):
-                    return_dict[section][key] = kwargs['DoorPiObject'].config \
-                        .get_string(section, key)
-
-    for section in list(return_dict.keys()):
-        if len(return_dict[section]) == 0: del return_dict[section]
-
+            for value_request in value:
+                return_dict[section].update(
+                    {key: doorpi_obj.config.get_string(section, key)
+                     for key in doorpi_obj.config.get_keys(section, value_request)})
+            if not return_dict[section]:
+                del return_dict[section]
     return return_dict
 
 
 def is_active(doorpi_object):
-    return True if doorpi_object.config else False
+    return bool(doorpi_object.config)

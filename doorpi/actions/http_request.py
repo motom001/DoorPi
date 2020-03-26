@@ -6,7 +6,6 @@ import requests.utils
 
 from . import action
 
-
 LOGGER = logging.getLogger(__name__)
 
 ALLOWED_SCHEMES = {"http", "https"}

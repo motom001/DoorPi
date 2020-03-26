@@ -33,12 +33,12 @@ def fake_post(*args, data, **kw):
 
 class TestIPSRPCSetValueAction(DoorPiTestCase):
 
-    @patch('doorpi.DoorPi', DoorPi)
+    @patch("doorpi.DoorPi", DoorPi)
     def test_validation(self):
         with self.assertRaises(ValueError):
             symcon_ips3.instantiate("set", "NaN", "something")
 
-    @patch('doorpi.DoorPi', DoorPi)
+    @patch("doorpi.DoorPi", DoorPi)
     def test_action(self):
         ac = symcon_ips3.instantiate("set", 1, "somevalue")
         post = MagicMock(wraps=fake_post)
@@ -50,12 +50,12 @@ class TestIPSRPCSetValueAction(DoorPiTestCase):
 
 class TestIPSRPCCallFromVariableAction(DoorPiTestCase):
 
-    @patch('doorpi.DoorPi', DoorPi)
+    @patch("doorpi.DoorPi", DoorPi)
     def test_instantiation(self):
         with self.assertRaises(ValueError):
             symcon_ips3.instantiate("call", "NaN")
 
-    @patch('doorpi.DoorPi', DoorPi)
+    @patch("doorpi.DoorPi", DoorPi)
     def test_action(self):
         ac = symcon_ips3.instantiate("call", 1)
         post = MagicMock(wraps=fake_post)

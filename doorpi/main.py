@@ -1,25 +1,27 @@
 #!/usr/bin/env python3
 
+"""The application launcher module."""
+
 import argparse
 import sys
 import logging
 import logging.handlers
 import os
 
-from . import metadata
-from . import doorpi
+from doorpi import doorpi, metadata
 
 # Regular log format
 LOG_FORMAT = "%(asctime)s [%(levelname)s]  \t[%(name)s] %(message)s"
 # Format when logging to the journal
 LOG_FORMAT_JOURNAL = "[%(levelname)s][%(name)s] %(message)s"
 
-logger = logging.getLogger(__name__)
+LOGGER = logging.getLogger(__name__)
 
-log_level = logging.INFO
+LOG_LEVEL = logging.INFO
 
 
 def add_trace_level():
+    """Registers the TRACE level with the logging module."""
     def trace(self, message, *args, **kws):
         if self.isEnabledFor(logging.TRACE):
             self._log(logging.TRACE, message, args, **kws)
@@ -29,6 +31,7 @@ def add_trace_level():
 
 
 def init_logger(args):
+    """Initializes the logging module with DoorPi settings."""
     add_trace_level()
 
     # check if we're connected to the journal
@@ -36,23 +39,28 @@ def init_logger(args):
     expected_fd = os.environ.get("JOURNAL_STREAM", "").split(":")
     if len(expected_fd) == 2:
         stat = os.fstat(1)  # stdout
-        try: journal = stat.st_dev == int(expected_fd[0]) and stat.st_ino == int(expected_fd[1])
-        except ValueError: journal = False
+        try:
+            journal = stat.st_dev == int(expected_fd[0]) and stat.st_ino == int(expected_fd[1])
+        except ValueError:
+            journal = False
 
     if args.logfile is None:
-        logging.basicConfig(level=log_level, format=LOG_FORMAT_JOURNAL if journal else LOG_FORMAT)
+        logging.basicConfig(level=LOG_LEVEL, format=LOG_FORMAT_JOURNAL if journal else LOG_FORMAT)
     else:
         handler = logging.handlers.RotatingFileHandler(
             args.logfile, maxBytes=5_000_000, backupCount=10)
-        logging.basicConfig(level=log_level, format=LOG_FORMAT, handlers=(handler,))
+        logging.basicConfig(level=LOG_LEVEL, format=LOG_FORMAT, handlers=(handler,))
 
     if args.debug is not None:
-        for lg in args.debug: logging.getLogger(lg).setLevel(logging.DEBUG)
+        for lg in args.debug:
+            logging.getLogger(lg).setLevel(logging.DEBUG)
     if args.trace is not None:
-        for lg in args.trace: logging.getLogger(lg).setLevel(logging.TRACE)
+        for lg in args.trace:
+            logging.getLogger(lg).setLevel(logging.TRACE)
 
 
 def parse_arguments():
+    """Parses command line arguments."""
     arg_parser = argparse.ArgumentParser(
         formatter_class=argparse.RawDescriptionHelpFormatter,
         description=metadata.description,
@@ -83,15 +91,15 @@ def entry_point():
 
     args = parse_arguments()
     init_logger(args)
-    logger.info(metadata.epilog)
-    logger.debug("DoorPi starting with arguments: %s", args)
+    LOGGER.info(metadata.epilog)
+    LOGGER.debug("DoorPi starting with arguments: %s", args)
 
     instance = doorpi.DoorPi(args)
     try:
         instance.run()
-    except BaseException as e:
-        logger.error("*** UNCAUGHT EXCEPTION: %s: %s", e.__class__.__name__, str(e))
-        logger.error("*** Attempting graceful shutdown...")
+    except BaseException as err:
+        LOGGER.error("*** UNCAUGHT EXCEPTION: %s: %s", err.__class__.__name__, err)
+        LOGGER.error("*** Attempting graceful shutdown...")
         raise
     finally:
         instance.destroy()

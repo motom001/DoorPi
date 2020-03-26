@@ -1,15 +1,16 @@
 #!/usr/bin/env python3
 
 import sys
-
-from doorpi import metadata
 from pathlib import Path
+
 from setuptools import setup, find_packages
 from setuptools.command.install import install
 
+from doorpi import metadata
 
-base_path = Path(__file__).resolve().parent
-etc = "/etc" if sys.prefix == "/usr" else "etc"
+
+BASE_PATH = Path(__file__).resolve().parent
+ETC = "/etc" if sys.prefix == "/usr" else "etc"
 
 
 # Python version check
@@ -20,10 +21,10 @@ if sys.version_info[:2] < (3, 6):
     sys.exit(1)
 
 
-# Hook install command to process template files (*.in)
-class installhook(install):
+class InstallHook(install):
+    """Hook for ``install`` command that processes template files (*.in)"""
     def run(self):
-        datapath = base_path / "data"
+        datapath = BASE_PATH / "data"
         package = metadata.package.lower()
         substkeys = {
             "package": package,
@@ -31,17 +32,17 @@ class installhook(install):
             "prefix": self.prefix,
             "cfgdir": f"{self.prefix if sys.prefix == '/usr' else ''}/etc/{package}"
         }
-        substfiles = [f for f in datapath.iterdir() if f.suffix == ".in"]
-        for f in substfiles:
-            content = f.read_text()
-            for k, v in substkeys.items():
-                content = content.replace(f"!!{k}!!", v)
-            f.with_suffix("").write_text(content)
+        for file in datapath.iterdir():
+            if file.suffix != ".in": continue
+            content = file.read_text()
+            for key, val in substkeys.items():
+                content = content.replace(f"!!{key}!!", val)
+            file.with_suffix("").write_text(content)
         super().run()
 
 
 setup(
-    cmdclass={"install": installhook},
+    cmdclass={"install": InstallHook},
     license=metadata.license,
     name=metadata.package,
     version=metadata.version,
@@ -97,9 +98,9 @@ setup(
     },
     data_files=[
         # default config file
-        (f"{etc}/doorpi", ["data/doorpi.ini"]),
+        (f"{ETC}/doorpi", ["data/doorpi.ini"]),
         # init script and systemd service
-        (f"{etc}/init.d", ["data/doorpi.sh"]),
+        (f"{ETC}/init.d", ["data/doorpi.sh"]),
         ("lib/systemd/system", ["data/doorpi.service", "data/doorpi.socket"]),
         # default dialtone
         ("share/doorpi", ["data/dialtone.wav"]),

@@ -70,8 +70,7 @@ from doorpi import metadata
 
 
 DEFAULT_MEDIA_DIR = f"{sys.prefix}/share/{metadata.package.lower()}"
-SIPPHONE_SECTION = 'SIP-Phone'
-logger = logging.getLogger(__name__)
+SIPPHONE_SECTION = "SIP-Phone"
 
 
 def load():

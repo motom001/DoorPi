@@ -26,8 +26,8 @@ class TestMailAction(DoorPiTestCase):
             signature = !EPILOG!
             """))
 
-    @patch('smtplib.SMTP')
-    @patch('doorpi.DoorPi', DoorPi)
+    @patch("smtplib.SMTP")
+    @patch("doorpi.DoorPi", DoorPi)
     def test_send_plain(self, smtp):
         smtp.return_value.__enter__.return_value.send_message.return_value = (200, b"OK")
         ac = mail.MailAction("test@localhost", "Test subject", "Test body", "false")
@@ -45,8 +45,8 @@ class TestMailAction(DoorPiTestCase):
         self.assertFalse(msg.is_multipart())
         self.assertEqual(msg.get_content(), "Test body\n\n!EPILOG!\n")
 
-    @patch('smtplib.SMTP')
-    @patch('doorpi.DoorPi', DoorPi)
+    @patch("smtplib.SMTP")
+    @patch("doorpi.DoorPi", DoorPi)
     def test_send_snapshot(self, smtp):
         smtp.return_value.__enter__.return_value.send_message.return_value = (200, b"OK")
         ac = mail.MailAction("test@localhost", "Test subject", "Test body", "true")

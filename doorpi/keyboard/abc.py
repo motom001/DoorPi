@@ -1,20 +1,18 @@
+"""Abstract base class that helps implementing a keyboard module."""
+
+import datetime
 import logging
 
-from abc import ABCMeta, abstractmethod
-
 import doorpi
-
 from doorpi.actions import CallbackAction
 
-from . import SECTION_TPL
-from . import SECTION_TPL_IN
-from . import SECTION_TPL_OUT
-from . import HIGH_LEVEL
+from . import SECTION_TPL, SECTION_TPL_IN, SECTION_TPL_OUT, HIGH_LEVEL
 
-logger = logging.getLogger(__name__)
+LOGGER = logging.getLogger(__name__)
 
 
-class AbstractKeyboard(metaclass=ABCMeta):
+class AbstractKeyboard():
+    """ABC that provides common functionality and helpers for keyboard modules."""
 
     def __init__(self, name, *, events=("OnKeyPressed", "OnKeyUp", "OnKeyDown")):
         """Common initialization.
@@ -25,6 +23,8 @@ class AbstractKeyboard(metaclass=ABCMeta):
 
         * self.name = The name passed in
         * self.last_key = None; will hold the last triggered input
+        * self.last_key_time = now; will hold the datetime when the
+                               ``last_key`` was pressed
         * self._bouncetime = "bouncetime" in config
         * self._event_source = The "event source" name that is used to
                                associate events with this keyboard.
@@ -59,7 +59,8 @@ class AbstractKeyboard(metaclass=ABCMeta):
 
         self.name = name
         self.last_key = None
-        logger.debug("Creating %s", self)
+        self.last_key_time = datetime.datetime.now()
+        LOGGER.debug("Creating %s", self)
 
         conf = doorpi.DoorPi().config
         conf_section = SECTION_TPL.format(name=name)
@@ -93,7 +94,8 @@ class AbstractKeyboard(metaclass=ABCMeta):
         self._deactivate()
         doorpi.DoorPi().event_handler.unregister_source(self._event_source, force=True)
 
-    def __str__(self): return f"{self.name} keyboard ({self.type})"
+    def __str__(self):
+        return f"{self.name} keyboard ({self.type})"
 
     def _deactivate(self):
         """Deactivate the keyboard in preparation for shutdown
@@ -101,18 +103,17 @@ class AbstractKeyboard(metaclass=ABCMeta):
         This will be called right before actually deleting the
         keyboard, and can be used e.g. to deactivate worker threads.
         """
-        pass
 
-    @abstractmethod
     def input(self, pin):
         """Read an input pin
 
         This function returns the current value of the given input pin
         as bool. If the pin does not exist, it should return False.
         """
+        if pin not in self._inputs:
+            raise ValueError(f"Unknown input pin {self.name}.{pin}")
         return False
 
-    @abstractmethod
     def output(self, pin, value):
         """Set output pin ``pin`` to ``value``
 
@@ -128,9 +129,11 @@ class AbstractKeyboard(metaclass=ABCMeta):
                  not raise any Exceptions.
         See: ``_normalize()``
         """
+        del value
+        if pin not in self._outputs:
+            raise ValueError(f"Unknown output pin {self.name}.{pin}")
         return False
 
-    # optional
     def self_check(self):
         """Check the correct functioning of this keyboard.
 
@@ -140,29 +143,45 @@ class AbstractKeyboard(metaclass=ABCMeta):
         raise an appropriate exception with a message describing what
         kind of problem was found.
         """
-        pass
 
     # -----------------------------------------------------------------
 
     @property
-    def type(self): return self.__class__.__name__
+    def type(self):
+        """A human-readable keyboard type description."""
+        return self.__class__.__name__
 
     @property
-    def inputs(self): return list(self._inputs)
+    def inputs(self):
+        """The list of input pins that this keyboard uses."""
+        return list(self._inputs)
 
     @property
-    def outputs(self): return dict(self._outputs)
+    def outputs(self):
+        """Maps this keyboard's output pins to their current states."""
+        return dict(self._outputs)
 
     @property
-    def additional_info(self): return {
-        "name": self.name,
-        "type": self.type,
-        "pretty_name": str(self),
-        "pin": self.last_key
-    }
+    def additional_info(self):
+        """A dict of information about this keyboard.
+
+        The dict available here provides the following information:
+
+        * ``name``: The configuration name used by this instance.
+        * ``type``: A human readable type for this keyboard.
+        * ``pretty_name``: A human readable description for this instance.
+        * ``pin``: The last pressed input pin.
+        """
+        return {
+            "name": self.name,
+            "type": self.type,
+            "pretty_name": str(self),
+            "pin": self.last_key
+        }
 
     @property
     def pressed_keys(self):
+        """A list of currently pressed input pins."""
         return [p for p in self._inputs if self.input(p)]
 
     def _normalize(self, value):
@@ -181,7 +200,7 @@ class AbstractKeyboard(metaclass=ABCMeta):
         if not self._high_polarity: value = not value
         return value
 
-    def _fire_EVENT(self, event_name, pin):
+    def _fire_event(self, event_name, pin):
         dp = doorpi.DoorPi()
         dp.keyboard.last_key = self.last_key = f"{self.name}.{pin}"
 
@@ -190,10 +209,10 @@ class AbstractKeyboard(metaclass=ABCMeta):
         dp.event_handler(f"{event_name}_{pin}", self._event_source, extra=extra)
         dp.event_handler(f"{event_name}_{self.name}.{pin}", self._event_source, extra=extra)
 
-    def _fire_OnKeyUp(self, pin):
-        self._fire_EVENT("OnKeyUp", pin)
-        if not self._pressed_on_key_down: self._fire_EVENT("OnKeyPressed", pin)
+    def _fire_keyup(self, pin):
+        self._fire_event("OnKeyUp", pin)
+        if not self._pressed_on_key_down: self._fire_event("OnKeyPressed", pin)
 
-    def _fire_OnKeyDown(self, pin):
-        self._fire_EVENT("OnKeyDown", pin)
-        if self._pressed_on_key_down: self._fire_EVENT("OnKeyPressed", pin)
+    def _fire_keydown(self, pin):
+        self._fire_event("OnKeyDown", pin)
+        if self._pressed_on_key_down: self._fire_event("OnKeyPressed", pin)

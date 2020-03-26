@@ -1,16 +1,11 @@
 """The PJSUA2 SIP phone module for DoorPi."""
 
-from doorpi import DoorPi
-
 import logging
 
-EVENT_SOURCE = __name__
-logger = logging.getLogger(__name__)
+from doorpi import DoorPi
 
-
-def instantiate():
-    from .glue import Pjsua2
-    return Pjsua2()
+EVENT_SOURCE = "sipphone.pjsua"
+LOGGER = logging.getLogger(__name__)
 
 
 def fire_event(event_name, async_only=False, *, remote_uri=None):
@@ -30,3 +25,8 @@ def fire_event(event_name, async_only=False, *, remote_uri=None):
     eh.fire_event(event_name, EVENT_SOURCE, extra=extra)
     if not async_only:
         eh.fire_event_sync(f"{event_name}_S", EVENT_SOURCE, extra=extra)
+
+
+def instantiate(*args, **kw):
+    from .glue import Pjsua2  # pylint: disable=import-outside-toplevel
+    return Pjsua2(*args, **kw)

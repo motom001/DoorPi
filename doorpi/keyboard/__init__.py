@@ -53,9 +53,10 @@ SECTION_TPL = "keyboard_settings_{name}"
 SECTION_TPL_IN = "keyboard_input_{name}"
 SECTION_TPL_OUT = "keyboard_output_{name}"
 
-HIGH_LEVEL = ['1', 'high', 'on', 'true']
+HIGH_LEVEL = ["1", "high", "on", "true"]
 
 
 def load():
-    from . import handler
+    """Loads the keyboard handler."""
+    from . import handler  # pylint: disable=import-outside-toplevel
     return handler.KeyboardHandler()

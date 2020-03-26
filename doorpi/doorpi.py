@@ -2,6 +2,7 @@
 
 import datetime
 import html
+import itertools
 import logging
 import os
 import signal
@@ -18,10 +19,11 @@ from doorpi.status.systemd import DoorPiSD
 from doorpi.status.webserver import load_webserver
 from . import metadata
 
-
 LOGGER = logging.getLogger(__name__)
-
 DEADLY_SIGNALS_ABORT = 3
+
+if __name__ == "__main__":
+    raise Exception("use main.py to start DoorPi")
 
 
 class Singleton(type):
@@ -44,19 +46,15 @@ class DoorPi(metaclass=Singleton):
         return self.event_handler.extra_info
 
     @property
-    def status(self): return DoorPiStatus(self)
+    def status(self):
+        return DoorPiStatus(self)
 
     def get_status(self, modules="", value="", name=""):
         return DoorPiStatus(self, modules, value, name)
 
-    @property
-    def epilog(self): return metadata.epilog
-
-    @property
-    def name(self): return str(metadata.package)
-
-    @property
-    def name_and_version(self): return f"{metadata.package} - version: {metadata.version}"
+    epilog = metadata.epilog
+    name = metadata.package
+    name_and_version = f"{metadata.package} - version: {metadata.version}"
 
     @property
     def base_path(self):
@@ -77,7 +75,7 @@ class DoorPi(metaclass=Singleton):
             LOGGER.info("Auto-selected BasePath %s", self._base_path)
         return self._base_path
 
-    def __init__(self, argv):
+    def __init__(self, args):
         self.config = None
         self.dpsd = None
         self.event_handler = None
@@ -87,7 +85,7 @@ class DoorPi(metaclass=Singleton):
 
         self._base_path = None
 
-        self.__argv = argv
+        self.__args = args
         self.__deadlysignals = 0
         self.__prepared = False
         self.__shutdown = False
@@ -111,8 +109,7 @@ class DoorPi(metaclass=Singleton):
             raise Exception("Force-exiting due to signal")
 
     def prepare(self):
-        LOGGER.debug("prepare")
-        LOGGER.debug("given arguments argv: %s", self.__argv)
+        LOGGER.debug("given arguments: %s", self.__args)
         self.dpsd = DoorPiSD()
 
         # setup signal handlers for HUP, INT, TERM
@@ -121,7 +118,7 @@ class DoorPi(metaclass=Singleton):
         signal.signal(signal.SIGINT, handler)
         signal.signal(signal.SIGTERM, handler)
 
-        self.config = ConfigObject(self.__argv.configfile)
+        self.config = ConfigObject(self.__args.configfile)
         self._base_path = self.config.get_string("DoorPi", "base_path", self.base_path)
         self.event_handler = EventHandler()
 
@@ -184,12 +181,12 @@ class DoorPi(metaclass=Singleton):
         self.event_handler.fire_event_sync("OnStartup", __name__)
         self.event_handler.fire_event_sync("AfterStartup", __name__)
 
-        LOGGER.info('DoorPi started successfully')
-        LOGGER.info('BasePath is %s', self.base_path)
+        LOGGER.info("DoorPi started successfully")
+        LOGGER.info("BasePath is %s", self.base_path)
         if self.webserver:
             self.webserver.inform_own_url()
         else:
-            LOGGER.info('no Webserver loaded')
+            LOGGER.info("no Webserver loaded")
 
         # setup watchdog ping and signal startup success
         self.event_handler.register_action("OnTimeSecondUnevenNumber",
@@ -233,22 +230,26 @@ class DoorPi(metaclass=Singleton):
         parsed_string = datetime.datetime.now().strftime(str(input_string))
 
         if self.keyboard is None or self.keyboard.last_key is None:
-            self.extra_info['LastKey'] = "NotSetYet"
+            self.extra_info["LastKey"] = "NotSetYet"
         else:
-            self.extra_info['LastKey'] = str(self.keyboard.last_key)
+            self.extra_info["LastKey"] = str(self.keyboard.last_key)
 
-        infos_as_html = '<table>'
-        for key, val in self.extra_info.items():
+        def format_table_row(key, val):
             key = html.escape(str(key))
             val = html.escape(str(val)).replace("\r\n", "\n").replace("\n", "<br>")
-            infos_as_html += f"<tr><td><b>{key}</b></td><td><i>{val}</i></td></tr>"
-        infos_as_html += '</table>'
+            return f"<tr><td><b>{key}</b></td><td><i>{val}</i></td></tr>"
+
+        infos_as_html = "".join(itertools.chain(
+            ("<table>",),
+            (format_table_row(key, val) for key, val in self.extra_info.items()),
+            ("</table>",),
+        ))
 
         mapping_table = {
-            'INFOS_PLAIN': str(self.extra_info),
-            'INFOS': infos_as_html,
-            'BASEPATH': str(self.base_path),
-            'last_tick': str(self.__last_tick)
+            "INFOS_PLAIN": str(self.extra_info),
+            "INFOS": infos_as_html,
+            "BASEPATH": str(self.base_path),
+            "last_tick": str(self.__last_tick)
         }
 
         for key, val in metadata.__dict__.items():
@@ -270,7 +271,3 @@ class DoorPi(metaclass=Singleton):
             parsed_string = parsed_string.replace(f"!{key}!", str(val))
 
         return parsed_string
-
-
-if __name__ == '__main__':
-    raise Exception("use main.py to start DoorPi")

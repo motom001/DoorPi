@@ -1,4 +1,5 @@
 """Actions that control event execution: sleep"""
+
 from time import sleep
 
 from . import action

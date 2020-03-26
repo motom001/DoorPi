@@ -8,9 +8,8 @@ import requests
 import doorpi
 from . import action
 
-
 LOGGER = logging.getLogger(__name__)
-TRUE_VALUES = ("true", "yes", "on", "1")
+TRUE_VALUES = {"true", "yes", "on", "1"}
 
 
 # Relevant documentation (german):

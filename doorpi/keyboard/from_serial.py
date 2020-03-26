@@ -53,20 +53,16 @@ the wire will be handled separately.
 
 import collections
 import logging
-import os
-import serial
 import threading
 import time
 
-import doorpi
+import serial  # pylint: disable=import-error
 
+import doorpi
 from . import SECTION_TPL
 from .abc import AbstractKeyboard
 
-logger = logging.getLogger(__name__)
-
-
-def instantiate(name): return SeriallyConnectedKeyboard(name)
+LOGGER = logging.getLogger(__name__)
 
 
 class SeriallyConnectedKeyboard(AbstractKeyboard):
@@ -102,7 +98,7 @@ class SeriallyConnectedKeyboard(AbstractKeyboard):
 
         self._shutdown = False
         self._exception = None
-        self._thread = threading.Thread(target=self.read_usb_plain)
+        self._thread = threading.Thread(target=self.read_serial)
         self._thread.start()
 
     def _deactivate(self):
@@ -110,27 +106,21 @@ class SeriallyConnectedKeyboard(AbstractKeyboard):
         if self._ser and self._ser.isOpen(): self._ser.close()
         self._thread.join()
 
-    def input(self, pin): return False  # stub
-
     def output(self, pin, value):
-        if pin not in self._outputs: return False
+        super().output(pin, value)
         value = self._normalize(value)
 
         if not self._ser or not self._ser.isOpen():
-            logger.error("%s: Cannot write to keyboard: connection not open", self.name)
+            LOGGER.error("%s: Cannot write to keyboard: connection not open", self.name)
             return False
 
         if not value: return True
 
-        try:
-            self._ser.flushOutput()
-            self._ser.write(pin)
-            self._ser.write(self._output_stop_flag)
-            self._ser.flush()
-            return True
-        except Exception:
-            logger.exception("%s: Error writing to serial connection", self.name)
-            return False
+        self._ser.flushOutput()
+        self._ser.write(pin)
+        self._ser.write(self._output_stop_flag)
+        self._ser.flush()
+        return True
 
     def self_check(self):
         if self._exception is not None:
@@ -150,17 +140,17 @@ class SeriallyConnectedKeyboard(AbstractKeyboard):
         stopflag = self._input_stop_flag
         try:
             while not self._shutdown:
-                c = self._ser.read()
-                logger.trace("%s: Read %s from serial connection", self.name, repr(c))
-                if not c: continue
-                buf += c
+                chars = self._ser.read()
+                LOGGER.trace("%s: Read %r from serial connection", self.name, chars)
+                if not chars: continue
+                buf += chars
                 # check STOP flag existence
                 for i in range(-len(stopflag), 0):
                     if buf[i] != stopflag[i]: break
                 else:  # STOP flag exists (or is empty)
                     now = time.time() * 1000
                     if len(buf) > buflen:  # buffer overrun
-                        logger.warning("%s: Buffer overflow (> %d), discarding input",
+                        LOGGER.warning("%s: Buffer overflow (> %d), discarding input",
                                        self.name, buflen)
                     elif now < self.last_key_time + self._bouncetime:
                         # debounce
@@ -168,10 +158,11 @@ class SeriallyConnectedKeyboard(AbstractKeyboard):
                     else:
                         self.last_key_time = now
                         # remove STOP flag
-                        for i in range(len(stopflag)): buf.pop()
+                        for i in range(len(stopflag)):
+                            buf.pop()
                         self.process_buffer(b"".join(buf))
                     buf.clear()
-        except Exception as ex:
+        except Exception as ex:  # pylint: disable=broad-except
             if not self._shutdown:
                 self._exception = ex
 
@@ -188,6 +179,9 @@ class SeriallyConnectedKeyboard(AbstractKeyboard):
 
         for key in self._inputs:
             if buf == key:
-                self._fire_EVENT("OnKeyPressed", buf)
+                self._fire_event("OnKeyPressed", buf)
                 break
-        else: logger.trace("%s: Ignoring unknown key %s", self.name, buf)
+        else: LOGGER.trace("%s: Ignoring unknown key %s", self.name, buf)
+
+
+instantiate = SeriallyConnectedKeyboard  # pylint: disable=invalid-name

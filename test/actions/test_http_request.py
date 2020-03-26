@@ -29,7 +29,7 @@ class TestHTTPRequestAction(DoorPiTestCase):
         with self.assertRaises(ValueError, msg="Empty scheme must be invalid"):
             http_request.HTTPRequestAction("://www.doorpi.org")
 
-    @patch('requests.get')
+    @patch("requests.get")
     def test_action(self, req_get):
         req_get.return_value = Namespace(status_code=200, reason="OK")
         ac = http_request.HTTPRequestAction("http://localhost/test.html")

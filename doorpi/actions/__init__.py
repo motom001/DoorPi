@@ -124,19 +124,19 @@ class CallbackAction(Action):
         super().__init__()
         if not callable(callback):
             raise ValueError("Callback must be callable")
-        self.__callback = callback
-        self.__args = args
-        self.__kw = kw
+        self._callback = callback
+        self._args = args
+        self._kw = kw
 
     def __call__(self, event_id, extra):
-        self.__callback(*self.__args, **self.__kw)
+        self._callback(*self._args, **self._kw)
 
     def __str__(self):
-        return f"{self.__class__.__name__} for {self.__callback!r}"
+        return f"{self.__class__.__name__} for {self._callback!r}"
 
     def __repr__(self):
         return "<internal callback to" \
-               f" {self.__callback!r} (args={self.__args}, kwargs={self.__kw})>"
+               f" {self._callback!r} (args={self._args}, kwargs={self._kw})>"
 
 
 class CheckAction(CallbackAction):
@@ -155,12 +155,12 @@ class CheckAction(CallbackAction):
             doorpi.DoorPi().doorpi_shutdown()
 
     def __repr__(self):
-        return f"<internal self-check with {self._CallbackAction__callback!r}>"
+        return f"<internal self-check with {self._callback!r}>"
 
 
 for _, module, _ in pkgutil.iter_modules(__path__, f"{__name__}."):
     try:
         importlib.import_module(module)
-    except Exception as ex:  # pylint: disable=broad-except
+    except Exception as exc:  # pylint: disable=broad-except
         LOGGER.error("Unable to load actions from %s: %s: %s",
-                     module, ex.__class__.__name__, ex)
+                     module, exc.__class__.__name__, exc)

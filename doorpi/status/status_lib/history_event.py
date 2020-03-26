@@ -1,22 +1,16 @@
-import logging
+def get(doorpi_obj, name, value):
+    try:
+        filter_ = name[0]
+    except IndexError:
+        filter_ = ""
 
+    try:
+        max_count = int(value[0])
+    except (IndexError, ValueError):
+        max_count = 100
 
-logger = logging.getLogger(__name__)
-
-
-def get(*args, **kwargs):
-    if len(kwargs['name']) == 0: kwargs['name'] = ['']
-    if len(kwargs['value']) == 0: kwargs['value'] = ['']
-
-    filter = kwargs['name'][0]
-    try: max_count = int(kwargs['value'][0])
-    except Exception: max_count = 100
-
-    return kwargs['DoorPiObject'].event_handler.db.get_event_log(max_count, filter)
+    return doorpi_obj.event_handler.db.get_event_log(max_count, filter_)
 
 
 def is_active(doorpi_object):
-    if len(doorpi_object.event_handler.db.get_event_log_entries(1, '')):
-        return True
-    else:
-        return False
+    return bool(doorpi_object.event_handler.db.get_event_log_entries(1, ""))

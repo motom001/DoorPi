@@ -1,9 +1,5 @@
+"""Abstract base class that helps implementing a SIP phone module."""
 from abc import ABCMeta, abstractmethod
-import logging
-
-from doorpi import DoorPi
-
-logger = logging.getLogger(__name__)
 
 
 class AbstractSIPPhone(metaclass=ABCMeta):
@@ -33,12 +29,10 @@ class AbstractSIPPhone(metaclass=ABCMeta):
         events:
 
         """
-        pass
 
     @abstractmethod
     def __del__(self):
         """Deinitializes the phone module and releases all resources."""
-        pass
 
     @abstractmethod
     def start(self) -> None:
@@ -47,7 +41,6 @@ class AbstractSIPPhone(metaclass=ABCMeta):
         Starting the phone module performs all steps necessary for
         DoorPi to make and receive calls.
         """
-        return
 
     @abstractmethod
     def call(self, uri: str) -> bool:
@@ -81,7 +74,6 @@ class AbstractSIPPhone(metaclass=ABCMeta):
     @abstractmethod
     def hangup(self) -> None:
         """Hang up all currently active calls."""
-        pass
 
     @abstractmethod
     def is_admin(self, uri: str) -> bool:

@@ -5,7 +5,6 @@ import logging
 import doorpi
 from . import action
 
-
 LOGGER = logging.getLogger(__name__)
 
 

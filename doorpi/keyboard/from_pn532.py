@@ -86,20 +86,17 @@ you will also need the libnfc and nfcpy for this to work
 """
 
 import logging
-import nfc
 import re
 import threading
 import time
 
-import doorpi
+import nfc  # pylint: disable=import-error
 
+import doorpi
 from . import SECTION_TPL
 from .abc import AbstractKeyboard
 
-logger = logging.getLogger(__name__)
-
-
-def instantiate(name): return PN532Keyboard(name)
+LOGGER = logging.getLogger(__name__)
 
 
 class PN532Keyboard(AbstractKeyboard):
@@ -127,10 +124,6 @@ class PN532Keyboard(AbstractKeyboard):
         self.__frontend.close()
         self.__thread.join()
 
-    def input(self, tag): return False  # stub
-
-    def output(self, pin): return False  # stub
-
     def self_check(self):
         if self.__exception is not None:
             raise RuntimeError(f"{self.name}: Worker died") from self.__exception
@@ -138,13 +131,15 @@ class PN532Keyboard(AbstractKeyboard):
             raise RuntimeError(f"{self.name}: Worker found dead without exception information")
 
     def pn532_read(self):
+        """The keyboard's main loop, runs as thread."""
         try:
             while not self.__shutdown:
                 self.__frontend.connect(rdwr={"on-connect": self.on_connect})
-        except Exception as ex:
+        except Exception as ex:  # pylint: disable=broad-except
             self.__exception = ex
 
     def on_connect(self, tag):
+        """Callback for when the library detects a connected tag."""
         # debounce
         now = time.time() * 1000
         if now - self.last_key_time <= self._bouncetime: return
@@ -152,9 +147,12 @@ class PN532Keyboard(AbstractKeyboard):
         self.last_key_time = now
         tag = str(tag)
         id_ = str(tag.split("ID=")[-1:])[2:-2]  # TODO wtf?
-        logger.info("%s: Tag connected: %s, ID: %s", self.name, repr(tag), repr(id_))
+        LOGGER.info("%s: Tag connected: %r, ID: %r", self.name, tag, id_)
         if id_ in self._inputs:
-            self._fire_EVENT("OnKeyPressed", id_)
+            self._fire_event("OnKeyPressed", id_)
         else:
             doorpi.DoorPi().event_handler("OnTagUnknown", self._event_source,
                                           {**self.additional_info, "tag": id_})
+
+
+instantiate = PN532Keyboard  # pylint: disable=invalid-name

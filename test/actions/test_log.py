@@ -11,7 +11,7 @@ LOGMSG = "Test log message"
 
 class TestActionCall(DoorPiTestCase):
 
-    @patch('doorpi.DoorPi', DoorPi)
+    @patch("doorpi.DoorPi", DoorPi)
     def test_action(self):
         ac = log.LogAction(LOGMSG)
 

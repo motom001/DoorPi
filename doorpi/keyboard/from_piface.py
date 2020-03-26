@@ -13,25 +13,21 @@ Requirements:
 """
 
 import logging
-import pifacedigitalio as piface
+import pifacedigitalio as piface  # pylint: disable=import-error
 
-import doorpi
 from .abc import AbstractKeyboard
 
-logger = logging.getLogger(__name__)
-instantiated = False
-
-
-def instantiate(name): return PifaceKeyboard(name)
+LOGGER = logging.getLogger(__name__)
+INSTANTIATED = False
 
 
 class PifaceKeyboard(AbstractKeyboard):
 
     def __init__(self, name):
-        global instantiated
+        global INSTANTIATED
 
-        if instantiated: raise RuntimeError("Only one PiFace keyboard may be instantiated")
-        instantiated = True
+        if INSTANTIATED: raise RuntimeError("Only one PiFace keyboard may be instantiated")
+        INSTANTIATED = True
 
         super().__init__(name)
 
@@ -42,42 +38,41 @@ class PifaceKeyboard(AbstractKeyboard):
                 pin_num=input_pin,
                 direction=piface.IODIR_BOTH,
                 callback=self.event_detect,
-                settle_time=bouncetime / 1000
+                settle_time=self._bouncetime / 1000
             )
         self.__listener.activate()
 
     def __del__(self):
-        global instantiated
+        global INSTANTIATED
 
         self.__listener.deactivate()
         for output_pin in self._outputs:
-            self.output(output_pin, 0, False)
+            self.output(output_pin, False)
         piface.deinit()
-        instantiated = False
+        INSTANTIATED = False
         super().__del__()
 
     def event_detect(self, event):
         if self.input(event.pin_num):
-            self._fire_OnKeyDown(event.pin_num)
+            self._fire_keydown(event.pin_num)
         else:
-            self._fire_OnKeyUp(event.pin_num)
+            self._fire_keyup(event.pin_num)
 
     def input(self, pin):
+        super().input(pin)
+
         pin = int(pin)
         if pin not in self._inputs: return False
         return self._normalize(piface.digital_read(pin))
 
     def output(self, pin, value):
+        super().output(pin, value)
+
         pin = int(pin)
-        if pin not in self._outputs: return False
-
         value = self._normalize(value)
-        logger.debug("%s: Setting Piface pin %s to %s", self.name, pin, value)
-
-        try: piface.digital_write(pin, value)
-        except Exception:
-            logger.exception("%s: Error setting Piface pin %s to %s", self.name, pin, value)
-            return False
-
+        piface.digital_write(pin, value)
         self._outputs[pin] = value
         return True
+
+
+instantiate = PifaceKeyboard  # pylint: disable=invalid-name

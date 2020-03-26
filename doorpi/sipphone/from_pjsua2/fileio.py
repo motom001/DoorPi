@@ -1,15 +1,19 @@
 """File I/O related stuff, i.e. the dial tone player and call recorder"""
+# pylint: disable=protected-access, invalid-name
 
-from pathlib import Path
+import logging
+
 import pjsua2 as pj
 
 from doorpi import DoorPi
 from doorpi.actions import CallbackAction
 
-from . import logger
+LOGGER = logging.getLogger(__name__)
 
 
 class DialTonePlayer:
+    """Plays the dial tone while dialing."""
+
     def __init__(self, filename, loudness):
         self.__player = pj.AudioMediaPlayer()
         self.__target = None
@@ -24,14 +28,16 @@ class DialTonePlayer:
         eh.register_action("OnCallDisconnect_S", ac_stop)
         eh.register_action("OnCallUnanswered_S", ac_stop)
 
-        try: self.__player.createPlayer(str(filename))
+        try:
+            self.__player.createPlayer(str(filename))
         except pj.Error as err:
-            logger.error("Unable to create dial tone player: %s", err.info())
+            LOGGER.error("Unable to create dial tone player: %s", err.info())
             self.__player = None
 
     def start(self):
+        """Starts playing the dial tone."""
         if self.__player is None:
-            logger.error("Not playing dial tone due to previous errors")
+            LOGGER.error("Not playing dial tone due to previous errors")
             return
 
         if self.__target is None:
@@ -39,6 +45,7 @@ class DialTonePlayer:
         self.__player.startTransmit(self.__target)
 
     def stop(self):
+        """Stops the dial tone."""
         if self.__player is None or self.__target is None: return
 
         self.__player.stopTransmit(self.__target)
@@ -47,6 +54,8 @@ class DialTonePlayer:
 
 
 class CallRecorder:
+    """Records calls."""
+
     def __init__(self, path, early, keep):
         self.__path = path
         self.__early = early
@@ -60,24 +69,25 @@ class CallRecorder:
         eh.register_action("OnCallDisconnect_S", CallbackAction(self.stop))
         eh.register_action("OnCallDisconnect", CallbackAction(self.cleanup))
         if self.__path:
-            logger.debug("Call recording destination: %s", self.__path)
+            LOGGER.debug("Call recording destination: %s", self.__path)
 
     def start(self):
-        """Start recording"""
+        """Starts recording into a new file."""
 
         if self.__recorder is None:
             if not self.__path: return
-            try: self.__path.mkdir(parents=True, exist_ok=True)
+            try:
+                self.__path.mkdir(parents=True, exist_ok=True)
             except OSError:
-                logger.exception("Cannot create recording directory, unable to record call")
+                LOGGER.exception("Cannot create recording directory, unable to record call")
                 return
             fname = self.__path / DoorPi().parse_string("recording_%Y-%m-%d_%H-%M-%S.wav")
-            logger.debug("Starting recording into file %s", fname)
+            LOGGER.debug("Starting recording into file %s", fname)
             try:
                 self.__recorder = pj.AudioMediaRecorder()
                 self.__recorder.createRecorder(str(fname))
             except pj.Error as err:
-                logger.error("Unable to start recording: %s", err.info())
+                LOGGER.error("Unable to start recording: %s", err.info())
                 self.__recorder = None
                 return
 
@@ -86,19 +96,21 @@ class CallRecorder:
 
         call = DoorPi().sipphone.current_call
         if call is not None:
-            logger.debug("Recording call to %s", repr(call.getInfo().remoteUri))
+            LOGGER.debug("Recording call to %s", repr(call.getInfo().remoteUri))
             call._CallCallback__getAudioVideoMedia()[0].startTransmit(self.__recorder)
 
     def startEarly(self):
-        """Start recording if configured to record early, i.e. while dialing."""
+        """Starts recording if configured to record early, i.e. while dialing."""
 
         if self.__early: self.start()
 
     def stop(self):
-        """Stop recording."""
+        """Stops an ongoing recording, if any."""
 
         if self.__recorder is not None:
-            logger.debug("Stopping call recorder")
+            LOGGER.debug("Stopping call recorder")
+            # N.B. For interpreters without refcounting semantics (e.g. PyPy),
+            # delayed garbage collection may lead to additional data being recorded.
             self.__recorder = None
 
     def cleanup(self):
@@ -113,16 +125,19 @@ class CallRecorder:
                 files = [f for f in it
                          if f.name.startswith("recording_") and f.name.endswith(".wav")]
         except FileNotFoundError:
-            logger.warning("%s does not exist, skipping cleanup", self.__path)
+            LOGGER.warning("%s does not exist, skipping cleanup", self.__path)
         except OSError:
-            logger.exception("Unable to open %s for cleanup", self.__path)
+            LOGGER.exception("Unable to open %s for cleanup", self.__path)
 
-        logger.debug("%s holds %d recordings", self.__path, len(files))
+        LOGGER.debug("%s holds %d recordings", self.__path, len(files))
         if len(files) <= self.__keep: return
 
         files.sort()
         for f in files[:-10]:
-            logger.info("Removing old recording %s", repr(f.name))
-            try: f.unlink()
-            except FileNotFoundError: pass
-            except OSError: logger.exception("Cannot remove old recording %s", f.name)
+            LOGGER.info("Removing old recording %r", f.name)
+            try:
+                f.unlink()
+            except FileNotFoundError:
+                pass
+            except OSError:
+                LOGGER.exception("Cannot remove old recording %r", f.name)

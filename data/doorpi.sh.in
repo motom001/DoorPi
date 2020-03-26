@@ -27,7 +27,7 @@ fi
 
 # Load the VERBOSE setting and other rcS variables
 . /lib/init/vars.sh
-if [ -t 0 ] ; then # Be verbose when called from a terminal
+if [ -t 0 ]; then # Be verbose when called from a terminal
   VERBOSE=yes
 fi
 
@@ -56,43 +56,41 @@ do_stop_cmd() {
 EX=0
 case "$1" in
   start)
-    [ "$VERBOSE" != no ] && log_daemon_msg "Starting $DESC" "$NAME"
+    if [ "$VERBOSE" != no ]; then log_daemon_msg "Starting $DESC" "$NAME"; fi
     do_start_cmd
     case "$?" in
-      0|1) [ "$VERBOSE" != no ] && log_end_msg 0 ;;
+      0|1) if [ "$VERBOSE" != no ]; then log_end_msg 0; fi ;;
       2)
-        [ "$VERBOSE" != no ] && log_end_msg 1
+        if [ "$VERBOSE" != no ]; then log_end_msg 1; fi
         EX=1 ;;
     esac
     ;;
   stop)
-    [ "$VERBOSE" != no ] && log_daemon_msg "Stopping $DESC" "$NAME"
+    if [ "$VERBOSE" != no ]; then log_daemon_msg "Stopping $DESC" "$NAME"; fi
     do_stop_cmd
     case "$?" in
-      0|1) [ "$VERBOSE" != no ] && log_end_msg 0 ;;
+      0|1) if [ "$VERBOSE" != no ]; then log_end_msg 0; fi ;;
       2)
-        [ "$VERBOSE" != no ] && log_end_msg 1
+        if [ "$VERBOSE" != no ]; then log_end_msg 1; fi
         EX=1 ;;
     esac
     ;;
   restart)
-    [ "$VERBOSE" != no ] && log_daemon_msg "Restarting $DESC" "$NAME"
+    if [ "$VERBOSE" != no ]; then log_daemon_msg "Restarting $DESC" "$NAME"; fi
     do_stop_cmd
     # issue #132
     echo "waiting until !!package!! is stopped"
     sleep 3
-    is_doorpi_running
-    while [ $? -eq 0 ]; do
+    while ! is_doorpi_running; do
       echo "!!package!! is still running - wait one more second"
-      is_doorpi_running
       sleep 1
     done
     sleep 2
     do_start_cmd
     case "$?" in
-      0|1) [ "$VERBOSE" != no ] && log_end_msg 0 ;;
+      0|1) if [ "$VERBOSE" != no ]; then log_end_msg 0; fi ;;
       2)
-        [ "$VERBOSE" != no ] && log_end_msg 1
+        if [ "$VERBOSE" != no ]; then log_end_msg 1; fi
         EX=1 ;;
     esac
     ;;

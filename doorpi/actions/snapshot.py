@@ -8,9 +8,8 @@ import pathlib
 import doorpi
 from . import action
 
-
 LOGGER = logging.getLogger(__name__)
-DOORPI_SECTION = 'DoorPi'
+DOORPI_SECTION = "DoorPi"
 
 
 class SnapshotAction:
@@ -26,7 +25,7 @@ class SnapshotAction:
 
         keep = doorpi.DoorPi().config.get_int(DOORPI_SECTION, "snapshot_keep")
         if keep <= 0: return
-        files = cls._list_all()
+        files = cls.list_all()
         for fi in files[0:-keep]:
             try:
                 LOGGER.info("Deleting old snapshot %s", fi)
@@ -53,10 +52,9 @@ class SnapshotAction:
         return path
 
     @classmethod
-    def _list_all(cls):
-        files = [f for f in cls.get_base_path().iterdir() if f.is_file()]
-        files.sort()
-        return files
+    def list_all(cls):
+        """Lists all snapshot files in the snapshot directory."""
+        return sorted(f for f in cls.get_base_path().iterdir() if f.is_file())
 
 
 @action("snap_url")

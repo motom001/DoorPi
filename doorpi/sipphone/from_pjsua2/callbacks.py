@@ -1,9 +1,16 @@
+"""Callbacks from the native library."""
+# pylint: disable=protected-access, invalid-name
+
+import logging
+
 import pjsua2 as pj
 
 from doorpi import DoorPi
 from doorpi.sipphone import SIPPHONE_SECTION
 
-from . import fire_event, logger
+from . import fire_event
+
+LOGGER = logging.getLogger(__name__)
 
 
 class AccountCallback(pj.Account):
@@ -11,6 +18,7 @@ class AccountCallback(pj.Account):
     def __init__(self):
         pj.Account.__init__(self)
 
+    # pylint: disable=arguments-differ
     def onIncomingCall(self, iprm: pj.OnIncomingCallParam) -> None:
         sp = DoorPi().sipphone
         call = CallCallback(self, iprm.callId)
@@ -22,23 +30,21 @@ class AccountCallback(pj.Account):
 
         try:
             if not sp.is_admin(callInfo.remoteUri):
-                logger.info("Rejecting call from unregistered number %s", callInfo.remoteUri)
+                LOGGER.info("Rejecting call from unregistered number %s", callInfo.remoteUri)
                 oprm.statusCode = pj.PJSIP_SC_FORBIDDEN
                 event = "OnCallReject"
                 return
 
             with sp._Pjsua2__call_lock:
                 if sp.current_call is not None and sp.current_call.isActive():
-                    logger.info("Busy-rejecting call from %s", callInfo.remoteUri)
+                    LOGGER.info("Busy-rejecting call from %s", callInfo.remoteUri)
                     oprm.statusCode = pj.PJSIP_SC_BUSY_HERE
                     event = "OnCallBusy"
-                    return
                 else:
-                    logger.info("Accepting incoming call from %s", callInfo.remoteUri)
+                    LOGGER.info("Accepting incoming call from %s", callInfo.remoteUri)
                     oprm.statusCode = pj.PJSIP_SC_OK
                     event = "OnCallIncoming"
                     sp.current_call = call
-                    return
         finally:
             call.answer(oprm)
             fire_event(event, remote_uri=callInfo.remoteUri)
@@ -47,11 +53,11 @@ class AccountCallback(pj.Account):
 class CallCallback(pj.Call):
 
     def __init__(self, acc: AccountCallback, callId=pj.PJSUA_INVALID_ID):
-        logger.trace("Constructing call with callId %s", callId)
+        LOGGER.trace("Constructing call with callId %s", callId)
         super().__init__(acc, callId)
 
-        self.__DTMF = ""
-        self.__possible_DTMF = DoorPi().config.get_keys("DTMF")
+        self.__dtmf = ""
+        self.__possible_dtmf = DoorPi().config.get_keys("DTMF")
         self.__fire_disconnect = False
 
     def __getAudioVideoMedia(self):
@@ -70,19 +76,17 @@ class CallCallback(pj.Call):
     def onCallState(self, prm: pj.OnCallStateParam) -> None:
         ci = self.getInfo()
         sp = DoorPi().sipphone
-        eh = DoorPi().event_handler
-        conf = DoorPi().config
 
         if ci.state == pj.PJSIP_INV_STATE_CALLING:
-            logger.debug("Call to %s is now calling", repr(ci.remoteUri))
+            LOGGER.debug("Call to %r is now calling", ci.remoteUri)
         elif ci.state == pj.PJSIP_INV_STATE_INCOMING:
-            logger.debug("Call from %s is incoming", repr(ci.remoteUri))
+            LOGGER.debug("Call from %r is coming in", ci.remoteUri)
         elif ci.state == pj.PJSIP_INV_STATE_EARLY:
-            logger.debug("Call to %s is in early state", repr(ci.remoteUri))
+            LOGGER.debug("Call to %r is in early state", ci.remoteUri)
         elif ci.state == pj.PJSIP_INV_STATE_CONNECTING:
-            logger.debug("Call to %s is now connecting", repr(ci.remoteUri))
+            LOGGER.debug("Call to %r is now connecting", ci.remoteUri)
         elif ci.state == pj.PJSIP_INV_STATE_CONFIRMED:
-            logger.info("Call to %s was accepted", repr(ci.remoteUri))
+            LOGGER.info("Call to %r was accepted", ci.remoteUri)
             self.__fire_disconnect = True
             with sp._Pjsua2__call_lock:
                 prm = pj.CallOpParam()
@@ -98,8 +102,8 @@ class CallCallback(pj.Call):
                 sp._Pjsua2__waiting_calls = []
                 fire_event("OnCallConnect", remote_uri=ci.remoteUri)
         elif ci.state == pj.PJSIP_INV_STATE_DISCONNECTED:
-            logger.info("Call to %s disconnected after %d seconds (%d total)",
-                        repr(ci.remoteUri), ci.connectDuration.sec, ci.totalDuration.sec)
+            LOGGER.info("Call to %r disconnected after %d seconds (%d total)",
+                        ci.remoteUri, ci.connectDuration.sec, ci.totalDuration.sec)
             with sp._Pjsua2__call_lock:
                 if sp.current_call == self:
                     sp.current_call = None
@@ -107,24 +111,24 @@ class CallCallback(pj.Call):
                     sp._Pjsua2__ringing_calls.remove(self)
 
                 if self.__fire_disconnect:
-                    logger.trace("Firing disconnect event for call to %s", repr(ci.remoteUri))
+                    LOGGER.trace("Firing disconnect event for call to %r", ci.remoteUri)
                     fire_event("OnCallDisconnect", remote_uri=ci.remoteUri)
                 elif len(sp._Pjsua2__ringing_calls) == 0:
-                    logger.info("No call was answered")
+                    LOGGER.info("No call was answered")
                     fire_event("OnCallUnanswered")
-                else: logger.trace("Skipping disconnect event for call to %s", repr(ci.remoteUri))
+                else: LOGGER.trace("Skipping disconnect event for call to %r", ci.remoteUri)
         else:
-            logger.warning("Call to %s: unknown state %d", repr(ci.remoteUri), ci.state)
+            LOGGER.warning("Call to %r: unknown state %d", ci.remoteUri, ci.state)
 
     def onCallMediaState(self, prm: pj.OnCallMediaStateParam) -> None:
         ci = self.getInfo()
         if ci.state != pj.PJSIP_INV_STATE_CONFIRMED:
-            logger.debug("Ignoring media change in call to %s", repr(ci.remoteUri))
+            LOGGER.debug("Ignoring media change in call to %r", ci.remoteUri)
             return
 
         adm = pj.Endpoint.instance().audDevManager()
-        logger.debug("Call to %s: media changed", repr(ci.remoteUri))
-        audio, video = self.__getAudioVideoMedia()
+        LOGGER.debug("Call to %r: media changed", ci.remoteUri)
+        audio, _ = self.__getAudioVideoMedia()
 
         if audio:
             # Connect call audio to speaker and microphone
@@ -134,32 +138,32 @@ class CallCallback(pj.Call):
             conf = DoorPi().config
             playback_loudness = conf.get_float(SIPPHONE_SECTION, "playback_loudness", 1.0)
             capture_loudness = conf.get_float(SIPPHONE_SECTION, "capture_loudness", 1.0)
-            logger.trace("Adjusting RX level to %01.1f", playback_loudness)
-            logger.trace("Adjusting TX level to %01.1f", capture_loudness)
+            LOGGER.trace("Adjusting RX level to %01.1f", playback_loudness)
+            LOGGER.trace("Adjusting TX level to %01.1f", capture_loudness)
             audio.adjustRxLevel(playback_loudness)
             audio.adjustTxLevel(capture_loudness)
-        else: logger.error("Call to %s: no audio media", repr(ci.remoteUri))
+        else: LOGGER.error("Call to %r: no audio media", ci.remoteUri)
 
     def onDtmfDigit(self, prm: pj.OnDtmfDigitParam) -> None:
-        logger.debug("Received DTMF: %s", str(prm.digit))
+        LOGGER.debug("Received DTMF: %s", prm.digit)
 
-        self.__DTMF += dg
-        logger.trace("Processing digit %d; current sequence is %s", dg, self.__DTMF)
+        self.__dtmf += prm.digit
+        LOGGER.trace("Processing digit %s; current sequence is %s", prm.digit, self.__dtmf)
 
         prefix = False
         exact = False
-        for dtmf in self.__possible_DTMF:
-            if dtmf == self.__DTMF:
+        for dtmf in self.__possible_dtmf:
+            if dtmf == self.__dtmf:
                 exact = True
-            elif dtmf.startswith(self.__DTMF):
+            elif dtmf.startswith(self.__dtmf):
                 prefix = True
 
         if exact:
             remoteUri = self.getInfo().remoteUri
-            fire_event(f"OnDTMF_{self.__DTMF}", async_only=True, remote_uri=remoteUri)
+            fire_event(f"OnDTMF_{self.__dtmf}", async_only=True, remote_uri=remoteUri)
             self.dialDtmf("11")
 
         if not prefix:
             if not exact:
                 self.dialDtmf("#")
-            self.__DTMF = ""
+            self.__dtmf = ""

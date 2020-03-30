@@ -88,9 +88,9 @@ class AbstractKeyboard():
                 eh.register_event(f"{ev}_{pin}", self._event_source)
                 eh.register_event(f"{ev}_{self.name}.{pin}", self._event_source)
 
-        eh.register_action("OnShutdown", CallbackAction(self.__del__))
+        eh.register_action("OnShutdown", CallbackAction(self.destroy))
 
-    def __del__(self):
+    def destroy(self):
         self._deactivate()
         doorpi.DoorPi().event_handler.unregister_source(self._event_source, force=True)
 

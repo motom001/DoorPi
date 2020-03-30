@@ -17,7 +17,7 @@ class TickAction:
         if __name__ in eh.sources:
             raise RuntimeError("Attempt to instatiate multiple TickActions")
         eh.register_source(__name__)
-        eh.register_action("OnShutdown", CallbackAction(self.__del__))
+        eh.register_action("OnShutdown", CallbackAction(self.destroy))
 
         for i in ("Second", "Minute", "Hour", "Day", "Week", "Month", "Year"):
             eh.register_event(f"OnTime{i}", __name__)
@@ -31,7 +31,7 @@ class TickAction:
         for i in range(24):
             eh.register_event(f"OnTimeHour{i:02}", __name__)
 
-    def __del__(self):
+    def destroy(self):
         doorpi.DoorPi().event_handler.unregister_source(__name__, force=True)
 
     def __call__(self, event_id, extra):

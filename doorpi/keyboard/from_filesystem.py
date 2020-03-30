@@ -101,7 +101,7 @@ class FilesystemKeyboard(AbstractKeyboard, watchdog.events.FileSystemEventHandle
         self.__observer.schedule(self, str(self.__base_path_input))
         self.__observer.start()
 
-    def __del__(self):
+    def destroy(self):
         # pylint: disable=broad-except
 
         self._deactivate()
@@ -127,7 +127,7 @@ class FilesystemKeyboard(AbstractKeyboard, watchdog.events.FileSystemEventHandle
                 pindir.rmdir()
             except Exception as ex:
                 LOGGER.error("%s: Cannot remove directory %s: %s", self.name, pindir, ex)
-        super().__del__()
+        super().destroy()
 
     def _deactivate(self):
         self.__observer.stop()

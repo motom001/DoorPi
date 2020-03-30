@@ -21,7 +21,7 @@ A proper SIP phone module will fire these events during its life cycle:
 - OnSIPPhoneCreate, OnSIPPhoneStart, OnSIPPhoneDestroy:
   These publish the module life cycle. They are fired by the abstract
   base class' respective methods, and are registered during its
-  ``__init__()`` and unregistered during its ``__del__()``. All other
+  ``__init__()`` and unregistered during its ``stop()``. All other
   events mentioned here must be registered and fired manually.
 - OnCallOutgoing:
   Fired when a call is started.

@@ -31,16 +31,16 @@ class AbstractSIPPhone(metaclass=ABCMeta):
         """
 
     @abstractmethod
-    def __del__(self):
-        """Deinitializes the phone module and releases all resources."""
-
-    @abstractmethod
     def start(self) -> None:
         """Start the phone module.
 
         Starting the phone module performs all steps necessary for
         DoorPi to make and receive calls.
         """
+
+    @abstractmethod
+    def stop(self):
+        """Deinitializes the phone module and releases all resources."""
 
     @abstractmethod
     def call(self, uri: str) -> bool:

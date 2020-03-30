@@ -137,5 +137,3 @@ class EventLog:
     def destroy(self):
         """Gracefully shuts down this event log."""
         self._db.close()
-
-    __del__ = destroy

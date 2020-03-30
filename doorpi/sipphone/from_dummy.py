@@ -23,9 +23,9 @@ class DummyPhone(AbstractSIPPhone):
         for ev in ["OnSIPPhoneCreate", "OnSIPPhoneStart", "OnSIPPhoneDestroy"]:
             eh.register_event(ev, __name__)
         eh("OnSIPPhoneCreate", __name__)
-        eh.register_action("OnShutdown", CallbackAction(self.__del__))
+        eh.register_action("OnShutdown", CallbackAction(self.stop))
 
-    def __del__(self):
+    def stop(self):
         LOGGER.info("Deleting dummy phone")
         eh = doorpi.DoorPi().event_handler
         eh("OnSIPPhoneDestroy", __name__)

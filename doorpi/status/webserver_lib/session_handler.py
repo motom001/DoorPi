@@ -32,8 +32,6 @@ class SessionHandler:
     def destroy(self):
         doorpi.DoorPi().event_handler.unregister_source(__name__, force=True)
 
-    __del__ = destroy
-
     def get_session(self, session_id):
         if session_id in self._Sessions:
             LOGGER.trace("session %s found: %s", session_id, self._Sessions[session_id])

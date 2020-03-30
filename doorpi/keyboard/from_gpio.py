@@ -50,14 +50,14 @@ class GPIOKeyboard(AbstractKeyboard):
         for output_pin in self._outputs:
             self.output(output_pin, False)
 
-    def __del__(self):
+    def destroy(self):
         global INSTANTIATED
 
         for pin in self._outputs:
             self.output(pin, False)
         gpio.cleanup()
         INSTANTIATED = False
-        super().__del__()
+        super().destroy()
 
     def event_detect(self, pin):
         """Callback for detected GPIO events."""

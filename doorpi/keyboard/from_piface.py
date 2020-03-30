@@ -42,7 +42,7 @@ class PifaceKeyboard(AbstractKeyboard):
             )
         self.__listener.activate()
 
-    def __del__(self):
+    def destroy(self):
         global INSTANTIATED
 
         self.__listener.deactivate()
@@ -50,7 +50,7 @@ class PifaceKeyboard(AbstractKeyboard):
             self.output(output_pin, False)
         piface.deinit()
         INSTANTIATED = False
-        super().__del__()
+        super().destroy()
 
     def event_detect(self, event):
         if self.input(event.pin_num):

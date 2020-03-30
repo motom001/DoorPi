@@ -141,7 +141,11 @@ class DoorPi(metaclass=Singleton):
         return self
 
     def __del__(self):
-        self.destroy()
+        if self.__prepared:
+            LOGGER.error("DoorPi is being garbage collected, but was not properly shut down!")
+            LOGGER.error("This is a bug. Please report it to the author/s.")
+            LOGGER.error("Attempting to shutdown properly (errors may follow)")
+            self.destroy()
 
     def destroy(self):
         LOGGER.debug("Shutting down DoorPi")
@@ -170,6 +174,10 @@ class DoorPi(metaclass=Singleton):
         if len(self.event_handler.sources) > 1:
             LOGGER.warning("Some event sources did not shut down properly: %s",
                            self.event_handler.sources[1:])
+
+        # unregister modules
+        self.sipphone = self.keyboard = self.webserver = None
+        self.__prepared = False
 
         LOGGER.info("======== DoorPi completed shutting down ========")
 

@@ -232,7 +232,6 @@ class EventHandler:
 
         LOGGER.trace("Registered action %s for event %s", action, event)
 
-    __del__ = destroy
     __call__ = fire_event
 
 

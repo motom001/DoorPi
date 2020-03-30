@@ -53,9 +53,9 @@ class Pjsua2(AbstractSIPPhone):
 
         self.__worker = None
         fire_event("OnSIPPhoneCreate", async_only=True)
-        eh.register_action("OnShutdown", CallbackAction(self.__del__))
+        eh.register_action("OnShutdown", CallbackAction(self.stop))
 
-    def __del__(self):
+    def stop(self):
         LOGGER.debug("Destroying PJSUA2 SIP phone")
 
         with self.__call_lock:

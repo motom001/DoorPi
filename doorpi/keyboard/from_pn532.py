@@ -103,9 +103,9 @@ class PN532Keyboard(AbstractKeyboard):
 
     def __init__(self, name):
         super().__init__(name, events=("OnKeyPressed",))
-        doorpi.DoorPi().event_handler.register_event("OnTagUnknown", self._event_source)
+        doorpi.INSTANCE.event_handler.register_event("OnTagUnknown", self._event_source)
 
-        conf = doorpi.DoorPi().config
+        conf = doorpi.INSTANCE.config
         section_name = SECTION_TPL.format(name=name)
 
         port = conf.get_string(section_name, "port")
@@ -151,7 +151,7 @@ class PN532Keyboard(AbstractKeyboard):
         if id_ in self._inputs:
             self._fire_event("OnKeyPressed", id_)
         else:
-            doorpi.DoorPi().event_handler("OnTagUnknown", self._event_source,
+            doorpi.INSTANCE.event_handler("OnTagUnknown", self._event_source,
                                           {**self.additional_info, "tag": id_})
 
 

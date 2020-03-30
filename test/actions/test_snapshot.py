@@ -6,37 +6,44 @@ from doorpi.actions import snapshot
 from . import EVENT_ID, EVENT_EXTRA
 from ..mocks import DoorPi, DoorPiTestCase
 
+CONFIG = """\
+[DoorPi]
+snapshot_path = {}
+snapshot_keep = 10
+"""
 
-class TestURLSnapshotAction(DoorPiTestCase):
+
+class SnapshotTestCase(DoorPiTestCase):
+    def setUp(self):
+        super().setUp()
+        self.snap_path = Path.cwd() / "snapshots"
+        self.snap_path.mkdir()
+        Path("doorpi.ini").write_text(CONFIG.format(self.snap_path))
+
+
+class TestURLSnapshotAction(SnapshotTestCase):
 
     @patch("requests.get")
-    @patch("doorpi.DoorPi", DoorPi)
-    def test_action(self, get):
-        snap_path = Path.cwd() / "snapshots"
-        snap_path.mkdir()
-        Path("doorpi.ini").write_text(f"[DoorPi]\nsnapshot_path = {snap_path}")
-
+    @patch("doorpi.INSTANCE", new_callable=DoorPi)
+    def test_action(self, _, get):
         ac = snapshot.URLSnapshotAction("http://localhost")
         ac(EVENT_ID, EVENT_EXTRA)
         get.assert_called_once_with("http://localhost", stream=True)
 
-    @patch("doorpi.DoorPi", DoorPi)
-    def test_cleanup(self):
-        snap_path = Path.cwd() / "snapshots"
-        snap_path.mkdir()
-        Path("doorpi.ini").write_text(f"[DoorPi]\nsnapshot_path = {snap_path}\nsnapshot_keep = 10")
+    @patch("doorpi.INSTANCE", new_callable=DoorPi)
+    def test_cleanup(self, _):
         for i in range(60):
-            (snap_path / f"1970-01-01 00:{i:02d}:00.jpg").open("w").close()
+            (self.snap_path / f"1970-01-01 00:{i:02d}:00.jpg").open("w").close()
 
         with self.assertLogs("doorpi.actions.snapshot", "INFO"):
             snapshot.SnapshotAction.cleanup()
 
         expected_files = [f"1970-01-01 00:{i:02d}:00.jpg" for i in range(50, 60)]
-        actual_files = sorted(f.name for f in snap_path.iterdir())
+        actual_files = sorted(f.name for f in self.snap_path.iterdir())
         self.assertEqual(actual_files, expected_files)
 
 
-class TestPicamSnapshotAction(DoorPiTestCase):
+class TestPicamSnapshotAction(SnapshotTestCase):
 
     def setUp(self):
         try:
@@ -48,8 +55,8 @@ class TestPicamSnapshotAction(DoorPiTestCase):
         super().setUp()
 
     @patch("picamera.PiCamera")
-    @patch("doorpi.DoorPi", DoorPi)
-    def test_action(self, picamera):
+    @patch("doorpi.INSTANCE", new_callable=DoorPi)
+    def test_action(self, _, picamera):
         snapshot.PicamSnapshotAction()(EVENT_ID, EVENT_EXTRA)
 
         pcobj = picamera.return_value

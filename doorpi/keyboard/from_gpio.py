@@ -21,7 +21,7 @@ class GPIOKeyboard(AbstractKeyboard):
 
         gpio.setwarnings(False)
 
-        conf = doorpi.DoorPi().config
+        conf = doorpi.INSTANCE.config
         section_name = SECTION_TPL.format(name=name)
         mode = conf.get_string(section_name, "mode", "BOARD")
         if mode == "BOARD":

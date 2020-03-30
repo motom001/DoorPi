@@ -14,7 +14,7 @@ class StatusfileAction:
     """Writes custom-formatted DoorPi status to a file."""
 
     def __init__(self, filename, *content):
-        self.__filename = Path(doorpi.DoorPi().parse_string(filename))
+        self.__filename = Path(doorpi.INSTANCE.parse_string(filename))
         self.__content = ",".join(content).strip()
 
         self.__filename.parent.mkdir(parents=True, exist_ok=True)
@@ -22,10 +22,10 @@ class StatusfileAction:
         self.__filename.open("w").close()
 
     def __call__(self, event_id, extra):
-        content = doorpi.DoorPi().parse_string(self.__content)
+        content = doorpi.INSTANCE.parse_string(self.__content)
 
         try:
-            status = DoorPiStatus(doorpi.DoorPi())
+            status = DoorPiStatus(doorpi.INSTANCE)
             content = content.replace("!DOORPI_STATUS.json_beautified!", status.json_beautified)
             content = content.replace("!DOORPI_STATUS.json!", status.json)
         except Exception:  # pylint: disable=broad-except

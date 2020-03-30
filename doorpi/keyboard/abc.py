@@ -62,7 +62,7 @@ class AbstractKeyboard():
         self.last_key_time = datetime.datetime.now()
         LOGGER.debug("Creating %s", self)
 
-        conf = doorpi.DoorPi().config
+        conf = doorpi.INSTANCE.config
         conf_section = SECTION_TPL.format(name=name)
         self._bouncetime = conf.get_int(conf_section, "bouncetime", 100)
         self._event_source = f"keyboard.{self.__class__.__name__}.{name}"
@@ -79,7 +79,7 @@ class AbstractKeyboard():
         else:
             raise ValueError(f"{self.name}: Invalid polarity (must be HIGH or LOW)")
 
-        eh = doorpi.DoorPi().event_handler
+        eh = doorpi.INSTANCE.event_handler
         eh.register_source(self._event_source)
         for ev in events:
             eh.register_event(ev, self._event_source)
@@ -92,7 +92,7 @@ class AbstractKeyboard():
 
     def destroy(self):
         self._deactivate()
-        doorpi.DoorPi().event_handler.unregister_source(self._event_source, force=True)
+        doorpi.INSTANCE.event_handler.unregister_source(self._event_source, force=True)
 
     def __str__(self):
         return f"{self.name} keyboard ({self.type})"
@@ -201,13 +201,13 @@ class AbstractKeyboard():
         return value
 
     def _fire_event(self, event_name, pin):
-        dp = doorpi.DoorPi()
-        dp.keyboard.last_key = self.last_key = f"{self.name}.{pin}"
+        eh = doorpi.INSTANCE.event_handler
+        doorpi.INSTANCE.keyboard.last_key = self.last_key = f"{self.name}.{pin}"
 
         extra = self.additional_info
-        dp.event_handler(event_name, self._event_source, extra=extra)
-        dp.event_handler(f"{event_name}_{pin}", self._event_source, extra=extra)
-        dp.event_handler(f"{event_name}_{self.name}.{pin}", self._event_source, extra=extra)
+        eh.fire_event(event_name, self._event_source, extra=extra)
+        eh.fire_event(f"{event_name}_{pin}", self._event_source, extra=extra)
+        eh.fire_event(f"{event_name}_{self.name}.{pin}", self._event_source, extra=extra)
 
     def _fire_keyup(self, pin):
         self._fire_event("OnKeyUp", pin)

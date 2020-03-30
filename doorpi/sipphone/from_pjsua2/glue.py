@@ -4,7 +4,7 @@ import logging
 import threading
 import pjsua2 as pj
 
-from doorpi import DoorPi
+import doorpi
 from doorpi.actions import CallbackAction
 from doorpi.sipphone.abc import AbstractSIPPhone
 
@@ -23,7 +23,7 @@ class Pjsua2(AbstractSIPPhone):
     def __init__(self):
         super().__init__()
 
-        eh = DoorPi().event_handler
+        eh = doorpi.INSTANCE.event_handler
         for ev in [
                 # Fired by this class
                 "OnSIPPhoneCreate",
@@ -42,7 +42,7 @@ class Pjsua2(AbstractSIPPhone):
             eh.register_event(ev, EVENT_SOURCE)
 
         # register DTMF events, fired by CallCallback
-        for dtmf in DoorPi().config.get_keys("DTMF"):
+        for dtmf in doorpi.INSTANCE.config.get_keys("DTMF"):
             eh.register_event(f"OnDTMF_{dtmf}", EVENT_SOURCE)
 
         self.__waiting_calls = []  # outgoing calls that are not yet connected
@@ -64,7 +64,7 @@ class Pjsua2(AbstractSIPPhone):
                 self.dialtone._DialTonePlayer__player = None
             self.__worker.shutdown()
             del self.__worker
-        DoorPi().event_handler.unregister_source(EVENT_SOURCE, force=True)
+        doorpi.INSTANCE.event_handler.unregister_source(EVENT_SOURCE, force=True)
 
     def start(self):
         LOGGER.info("Starting PJSUA2 SIP phone")
@@ -114,7 +114,7 @@ class Pjsua2(AbstractSIPPhone):
         except ValueError:
             return False
 
-        conf = DoorPi().config
+        conf = doorpi.INSTANCE.config
         section = "SIP-Admin"
         for admin_number in conf.get_keys(section):
             if admin_number == "*":

@@ -12,37 +12,37 @@ SIPURL = "sip:null@null"
 
 class TestActionCall(DoorPiTestCase):
 
-    @patch("doorpi.DoorPi", DoorPi)
-    def test_action(self):
+    @patch("doorpi.INSTANCE", new_callable=DoorPi)
+    def test_action(self, instance):
         ac = call.CallAction(SIPURL)
-        DoorPi().sipphone.call.assert_not_called()
+        instance.sipphone.call.assert_not_called()
 
         ac(EVENT_ID, EVENT_EXTRA)
-        DoorPi().sipphone.call.assert_called_once_with(SIPURL)
+        instance.sipphone.call.assert_called_once_with(SIPURL)
 
 
 class TestActionFileCallValue(DoorPiTestCase):
 
-    @patch("doorpi.DoorPi", DoorPi)
-    def test_instantiation(self):
+    @patch("doorpi.INSTANCE", new_callable=DoorPi)
+    def test_instantiation(self, instance):
         with NamedTemporaryFile(mode="w") as tmpfile:
             tmpfile.write(SIPURL)
 
             call.CallFromFileAction(tmpfile.name)
-            DoorPi().sipphone.call.assert_not_called()
+            instance.sipphone.call.assert_not_called()
 
-    @patch("doorpi.DoorPi", DoorPi)
-    def test_action(self):
+    @patch("doorpi.INSTANCE", new_callable=DoorPi)
+    def test_action(self, instance):
         with NamedTemporaryFile(mode="w") as tmpfile:
             tmpfile.write(SIPURL)
             tmpfile.flush()
 
             ac = call.CallFromFileAction(tmpfile.name)
             ac(EVENT_ID, EVENT_EXTRA)
-            DoorPi().sipphone.call.assert_called_once_with(SIPURL)
+            instance.sipphone.call.assert_called_once_with(SIPURL)
 
-    @patch("doorpi.DoorPi", DoorPi)
-    def test_emptyfile(self):
+    @patch("doorpi.INSTANCE", new_callable=DoorPi)
+    def test_emptyfile(self, _):
         with NamedTemporaryFile(mode="w") as tmpfile:
             ac = call.CallFromFileAction(tmpfile.name)
             with self.assertRaises(ValueError):
@@ -51,10 +51,10 @@ class TestActionFileCallValue(DoorPiTestCase):
 
 class TestActionHangup(DoorPiTestCase):
 
-    @patch("doorpi.DoorPi", DoorPi)
-    def test_action(self):
+    @patch("doorpi.INSTANCE", new_callable=DoorPi)
+    def test_action(self, instance):
         ac = call.HangupAction()
-        DoorPi().sipphone.hangup.assert_not_called()
+        instance.sipphone.hangup.assert_not_called()
 
         ac(EVENT_ID, EVENT_EXTRA)
-        DoorPi().sipphone.hangup.assert_called_once_with()
+        instance.sipphone.hangup.assert_called_once_with()

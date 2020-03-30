@@ -19,7 +19,7 @@ class MailAction:
         self.__subject = str(subject)
         self.__snap = str(snapshot).lower().strip() in ["true", "yes", "on", "1"]
 
-        cfg = doorpi.DoorPi().config
+        cfg = doorpi.INSTANCE.config
         self.__host = cfg.get_string("SMTP", "server")
         self.__port = cfg.get_int("SMTP", "port", 0)
 
@@ -59,14 +59,14 @@ class MailAction:
         msg = email.message.EmailMessage()
         msg["From"] = self.__from
         msg["To"] = self.__to
-        msg["Subject"] = doorpi.DoorPi().parse_string(self.__subject)
+        msg["Subject"] = doorpi.INSTANCE.parse_string(self.__subject)
 
         text = self.__text
         if self.__signature: text += f"\n\n{self.__signature}"
-        msg.set_content(doorpi.DoorPi().parse_string(text))
+        msg.set_content(doorpi.INSTANCE.parse_string(text))
 
         if self.__snap:
-            snapfile = doorpi.DoorPi().config.get_path("DoorPi", "last_snapshot")
+            snapfile = doorpi.INSTANCE.config.get_path("DoorPi", "last_snapshot")
             if snapfile:
                 try:
                     snap_data = snapfile.read_bytes()

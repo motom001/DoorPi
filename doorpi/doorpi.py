@@ -10,6 +10,7 @@ import sys
 import time
 from pathlib import Path
 
+import doorpi
 from doorpi import keyboard, sipphone
 from doorpi.actions import CallbackAction
 from doorpi.conf.config_object import ConfigObject
@@ -26,18 +27,7 @@ if __name__ == "__main__":
     raise Exception("use main.py to start DoorPi")
 
 
-class Singleton(type):
-    """Metaclass that ensures only one instance exists."""
-
-    _instances = {}
-
-    def __call__(cls, *args, **kwargs):
-        if cls not in cls._instances:
-            cls._instances[cls] = super(Singleton, cls).__call__(*args, **kwargs)
-        return cls._instances[cls]
-
-
-class DoorPi(metaclass=Singleton):
+class DoorPi:
     """The main DoorPi class that ties everything together."""
 
     @property
@@ -76,6 +66,10 @@ class DoorPi(metaclass=Singleton):
         return self._base_path
 
     def __init__(self, args):
+        if doorpi.INSTANCE is not None:
+            raise RuntimeError("Only one DoorPi instance can be created")
+        doorpi.INSTANCE = self
+
         self.config = None
         self.dpsd = None
         self.event_handler = None
@@ -180,6 +174,7 @@ class DoorPi(metaclass=Singleton):
         self.__prepared = False
 
         LOGGER.info("======== DoorPi completed shutting down ========")
+        doorpi.INSTANCE = None
 
     def run(self):
         LOGGER.debug("run")

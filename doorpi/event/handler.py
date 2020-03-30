@@ -23,7 +23,7 @@ class EventHandler:
     """The event handler and action dispatcher."""
 
     def __init__(self):
-        conf = doorpi.DoorPi().config
+        conf = doorpi.INSTANCE.config
         db_path = conf.get_string_parsed("DoorPi", "eventlog", "!BASEPATH!/conf/eventlog.db")
         self.log = EventLog(db_path)
 

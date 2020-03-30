@@ -19,7 +19,7 @@ class CallAction:
         self.__url = url
 
     def __call__(self, event_id, extra):
-        doorpi.DoorPi().sipphone.call(self.__url)
+        doorpi.INSTANCE.sipphone.call(self.__url)
 
     def __str__(self):
         return f"Call {self.__url}"
@@ -41,7 +41,7 @@ class CallFromFileAction:
         uri = self.__filename.read_text()
         if not uri:
             raise ValueError(f"File {self.__filename} is empty")
-        doorpi.DoorPi().sipphone.call(uri)
+        doorpi.INSTANCE.sipphone.call(uri)
 
     def __str__(self):
         return f"Call the number stored in {self.__filename}"
@@ -63,7 +63,7 @@ class HangupAction:
             time.sleep(self.__waittime)
 
         LOGGER.info("[%s] Hanging up all calls", event_id)
-        doorpi.DoorPi().sipphone.hangup()
+        doorpi.INSTANCE.sipphone.hangup()
 
     def __str__(self):
         return "Hang up all calls"

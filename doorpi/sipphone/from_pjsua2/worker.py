@@ -4,7 +4,7 @@
 import logging
 import pjsua2 as pj
 
-from doorpi import DoorPi
+import doorpi
 from doorpi.actions import CheckAction
 from doorpi.sipphone import SIPPHONE_SECTION
 
@@ -23,7 +23,7 @@ class Worker():
         self.__ep = None
         self.__account = None
 
-        conf = DoorPi().config
+        conf = doorpi.INSTANCE.config
         self.__call_timeout = conf.get_int(SIPPHONE_SECTION, "call_timeout", 15)
         self.__max_call_time = conf.get_int(SIPPHONE_SECTION, "max_call_time", 120)
 
@@ -31,7 +31,7 @@ class Worker():
 
     def shutdown(self):
         """Destroys the native library."""
-        DoorPi().event_handler.fire_event_sync("OnSIPPhoneDestroy", EVENT_SOURCE)
+        doorpi.INSTANCE.event_handler.fire_event_sync("OnSIPPhoneDestroy", EVENT_SOURCE)
         self.__ep.libDestroy()
 
     def setup(self):
@@ -64,7 +64,7 @@ class Worker():
                                    .format(errno=-num_ev, msg=self.__ep.utilStrError(-num_ev)))
 
         # register tick actions
-        eh = DoorPi().event_handler
+        eh = doorpi.INSTANCE.event_handler
         eh.register_action("OnTimeRapidTick", CheckAction(self.handleNativeEvents))
         eh.register_action("OnTimeTick", CheckAction(self.checkHangupAll))
         eh.register_action("OnTimeTick", CheckAction(self.checkCallTime))

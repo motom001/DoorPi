@@ -5,7 +5,7 @@ import logging
 
 import pjsua2 as pj
 
-from doorpi import DoorPi
+import doorpi
 from doorpi.actions import CallbackAction
 
 LOGGER = logging.getLogger(__name__)
@@ -19,7 +19,7 @@ class DialTonePlayer:
         self.__target = None
         self.__level = loudness
 
-        eh = DoorPi().event_handler
+        eh = doorpi.INSTANCE.event_handler
         ac_start = CallbackAction(self.start)
         ac_stop = CallbackAction(self.stop)
 
@@ -63,7 +63,7 @@ class CallRecorder:
 
         self.__recorder = None
 
-        eh = DoorPi().event_handler
+        eh = doorpi.INSTANCE.event_handler
         eh.register_action("OnCallOutgoing_S", CallbackAction(self.startEarly))
         eh.register_action("OnCallConnect_S", CallbackAction(self.start))
         eh.register_action("OnCallDisconnect_S", CallbackAction(self.stop))
@@ -81,7 +81,7 @@ class CallRecorder:
             except OSError:
                 LOGGER.exception("Cannot create recording directory, unable to record call")
                 return
-            fname = self.__path / DoorPi().parse_string("recording_%Y-%m-%d_%H-%M-%S.wav")
+            fname = self.__path / doorpi.INSTANCE.parse_string("recording_%Y-%m-%d_%H-%M-%S.wav")
             LOGGER.debug("Starting recording into file %s", fname)
             try:
                 self.__recorder = pj.AudioMediaRecorder()
@@ -94,7 +94,7 @@ class CallRecorder:
             pj.Endpoint.instance().audDevManager().getCaptureDevMedia() \
                 .startTransmit(self.__recorder)
 
-        call = DoorPi().sipphone.current_call
+        call = doorpi.INSTANCE.sipphone.current_call
         if call is not None:
             LOGGER.debug("Recording call to %s", repr(call.getInfo().remoteUri))
             call._CallCallback__getAudioVideoMedia()[0].startTransmit(self.__recorder)

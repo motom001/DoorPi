@@ -17,7 +17,7 @@ class OutAction:
         self._setpin(self._value)
 
     def _setpin(self, value):
-        if not doorpi.DoorPi().keyboard.output(self._pin, value):
+        if not doorpi.INSTANCE.keyboard.output(self._pin, value):
             raise RuntimeError(f"Cannot set pin {self._pin} to {value}")
 
     def __str__(self):
@@ -37,7 +37,7 @@ class TriggeredOutAction(OutAction):
         self._intpin = intpin
         self._int = threading.Event()
         if intpin:
-            doorpi.DoorPi().event_handler.register_action(f"OnKeyDown_{intpin}", self.interrupt)
+            doorpi.INSTANCE.event_handler.register_action(f"OnKeyDown_{intpin}", self.interrupt)
 
     def __call__(self, event_id, extra):
         self._setpin(self._value)

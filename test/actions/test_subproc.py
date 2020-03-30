@@ -14,8 +14,8 @@ TEST_CMD_FAIL = "/bin/false"
 
 class TestOSExecuteAction(DoorPiTestCase):
 
-    @patch("doorpi.DoorPi", DoorPi)
-    def _do_test(self, cmd, result):
+    @patch("doorpi.INSTANCE", new_callable=DoorPi)
+    def _do_test(self, cmd, result, _):
         # Simulate real config handling by splitting the command at commas
         ac = subproc.OSExecuteAction(*cmd.split(","))
 

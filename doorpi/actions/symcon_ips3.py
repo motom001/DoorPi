@@ -29,7 +29,7 @@ class IPSConnector:
     @property
     def config(self):
         """Retrieves the IPS config from DoorPi."""
-        dcfg = doorpi.DoorPi().config
+        dcfg = doorpi.INSTANCE.config
         config = {
             "webservice_url": dcfg.get_string("IP-Symcon", "server"),
             "username": dcfg.get_string("IP-Symcon", "username"),
@@ -95,7 +95,7 @@ class IPSSetValueAction(IPSConnector):
         self.__value = value
 
     def __call__(self, event_id, extra):
-        self.set_value(self.__key, doorpi.DoorPi().parse_string(self.__value))
+        self.set_value(self.__key, doorpi.INSTANCE.parse_string(self.__value))
 
     def __str__(self):
         return f"Set IPS variable {self.__key} to {self.__value}"
@@ -117,7 +117,7 @@ class IPSCallFromVariableAction(IPSConnector):
         uri = self.get_value(self.__key)
 
         LOGGER.info("[%s] Got phone number %s from variable %s", event_id, repr(uri), self.__key)
-        doorpi.DoorPi().sipphone.call(uri)
+        doorpi.INSTANCE.sipphone.call(uri)
 
     def __str__(self):
         return f"Call the number stored in IPS variable {self.__key}"

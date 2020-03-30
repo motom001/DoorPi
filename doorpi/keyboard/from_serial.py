@@ -71,7 +71,7 @@ class SeriallyConnectedKeyboard(AbstractKeyboard):
         super().__init__(name, events=events)
         self.last_key_time = 0
 
-        conf = doorpi.DoorPi().config
+        conf = doorpi.INSTANCE.config
         section_name = SECTION_TPL.format(name=name)
 
         port = conf.get_string(section_name, "port", "")

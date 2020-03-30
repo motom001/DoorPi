@@ -33,33 +33,33 @@ def fake_post(*args, data, **kw):
 
 class TestIPSRPCSetValueAction(DoorPiTestCase):
 
-    @patch("doorpi.DoorPi", DoorPi)
-    def test_validation(self):
+    @patch("doorpi.INSTANCE", new_callable=DoorPi)
+    def test_validation(self, _):
         with self.assertRaises(ValueError):
             symcon_ips3.instantiate("set", "NaN", "something")
 
-    @patch("doorpi.DoorPi", DoorPi)
-    def test_action(self):
+    @patch("doorpi.INSTANCE", new_callable=DoorPi)
+    def test_action(self, instance):
         ac = symcon_ips3.instantiate("set", 1, "somevalue")
         post = MagicMock(wraps=fake_post)
         with patch("requests.post", post):
             ac(EVENT_ID, EVENT_EXTRA)
 
-        DoorPi().parse_string.assert_called_once_with("somevalue")
+        instance.parse_string.assert_called_once_with("somevalue")
 
 
 class TestIPSRPCCallFromVariableAction(DoorPiTestCase):
 
-    @patch("doorpi.DoorPi", DoorPi)
-    def test_instantiation(self):
+    @patch("doorpi.INSTANCE", new_callable=DoorPi)
+    def test_instantiation(self, _):
         with self.assertRaises(ValueError):
             symcon_ips3.instantiate("call", "NaN")
 
-    @patch("doorpi.DoorPi", DoorPi)
-    def test_action(self):
+    @patch("doorpi.INSTANCE", new_callable=DoorPi)
+    def test_action(self, instance):
         ac = symcon_ips3.instantiate("call", 1)
         post = MagicMock(wraps=fake_post)
         with patch("requests.post", post):
             ac(EVENT_ID, EVENT_EXTRA)
 
-        DoorPi().sipphone.call.assert_called_once_with("**1")  # value set in fake_post above
+        instance.sipphone.call.assert_called_once_with("**1")  # value set in fake_post above

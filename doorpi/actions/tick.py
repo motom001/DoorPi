@@ -13,7 +13,7 @@ class TickAction:
     def __init__(self, last_tick):
         self.__last_tick = datetime.datetime.fromtimestamp(float(last_tick))
 
-        eh = doorpi.DoorPi().event_handler
+        eh = doorpi.INSTANCE.event_handler
         if __name__ in eh.sources:
             raise RuntimeError("Attempt to instatiate multiple TickActions")
         eh.register_source(__name__)
@@ -32,7 +32,7 @@ class TickAction:
             eh.register_event(f"OnTimeHour{i:02}", __name__)
 
     def destroy(self):
-        doorpi.DoorPi().event_handler.unregister_source(__name__, force=True)
+        doorpi.INSTANCE.event_handler.unregister_source(__name__, force=True)
 
     def __call__(self, event_id, extra):
         now = datetime.datetime.now()
@@ -48,14 +48,14 @@ class TickAction:
 
     @staticmethod
     def _fire_event(event, num):
-        eh = doorpi.DoorPi().event_handler
+        eh = doorpi.INSTANCE.event_handler
         eh(f"OnTime{event}", __name__)
         eh(f"OnTime{event}{'Even' if num % 2 == 0 else 'Odd'}", __name__)
 
     @classmethod
     def _fire_event_numbered(cls, event, num):
         cls._fire_event(event, num)
-        doorpi.DoorPi().event_handler(f"OnTime{event}{num:02}", __name__)
+        doorpi.INSTANCE.event_handler(f"OnTime{event}{num:02}", __name__)
 
     def __str__(self):
         return "Perform regular housekeeping tasks"

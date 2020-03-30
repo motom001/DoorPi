@@ -11,8 +11,8 @@ LOGMSG = "Test log message"
 
 class TestActionCall(DoorPiTestCase):
 
-    @patch("doorpi.DoorPi", DoorPi)
-    def test_action(self):
+    @patch("doorpi.INSTANCE", new_callable=DoorPi)
+    def test_action(self, _):
         ac = log.LogAction(LOGMSG)
 
         with self.assertLogs("doorpi.actions.log", "INFO") as cm:

@@ -70,7 +70,7 @@ class FilesystemKeyboard(AbstractKeyboard, watchdog.events.FileSystemEventHandle
     def __init__(self, name):
         super().__init__(name)
 
-        conf = doorpi.DoorPi().config
+        conf = doorpi.INSTANCE.config
         section_name = SECTION_TPL.format(name=name)
         self.__reset_input = conf.get_bool(section_name, "reset_input", True)
         self.__base_path_input = Path(conf.get_string_parsed(
@@ -105,7 +105,7 @@ class FilesystemKeyboard(AbstractKeyboard, watchdog.events.FileSystemEventHandle
         # pylint: disable=broad-except
 
         self._deactivate()
-        doorpi.DoorPi().event_handler.unregister_source(self._event_source, force=True)
+        doorpi.INSTANCE.event_handler.unregister_source(self._event_source, force=True)
 
         for pin in self._inputs:
             try:

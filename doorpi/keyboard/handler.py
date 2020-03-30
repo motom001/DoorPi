@@ -23,8 +23,8 @@ class KeyboardHandler:
         self.__aliases = {}
         self.__keyboards = {}
 
-        eh = doorpi.DoorPi().event_handler
-        conf = doorpi.DoorPi().config
+        eh = doorpi.INSTANCE.event_handler
+        conf = doorpi.INSTANCE.config
         kbnames = conf.get_keys(SECTION_KEYBOARDS)
         LOGGER.info("Instantiating %d keyboard(s): %s", len(kbnames), ", ".join(kbnames))
 
@@ -99,7 +99,7 @@ class KeyboardHandler:
                 LOGGER.exception("Keyboard %s failed self check", kbname)
                 abort = True
         if abort:
-            doorpi.DoorPi().doorpi_shutdown()
+            doorpi.INSTANCE.doorpi_shutdown()
 
     def enumerate_outputs(self):
         """Enumerates all known output pins."""

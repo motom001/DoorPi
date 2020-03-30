@@ -75,7 +75,7 @@ class RDM6300Keyboard(SeriallyConnectedKeyboard):
 
     def __init__(self, name):
         super().__init__(name)
-        doorpi.DoorPi().event_handler.register_event("OnTagUnknown", self._event_source)
+        doorpi.INSTANCE.event_handler.register_event("OnTagUnknown", self._event_source)
 
         self._input_start_flag = "\x02"
         self._input_stop_flag = "\x03"
@@ -99,7 +99,7 @@ class RDM6300Keyboard(SeriallyConnectedKeyboard):
         if tag in self._inputs:
             self._fire_event("OnKeyPressed", tag)
         else:
-            doorpi.DoorPi().event_handler("OnTagUnknown", self._event_source,
+            doorpi.INSTANCE.event_handler("OnTagUnknown", self._event_source,
                                           {**self.additional_info, "tag": tag})
 
 

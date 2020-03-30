@@ -19,7 +19,7 @@ class DummyPhone(AbstractSIPPhone):
     def __init__(self):
         super().__init__()
         LOGGER.info("Initializing dummy phone")
-        eh = doorpi.DoorPi().event_handler
+        eh = doorpi.INSTANCE.event_handler
         for ev in ["OnSIPPhoneCreate", "OnSIPPhoneStart", "OnSIPPhoneDestroy"]:
             eh.register_event(ev, __name__)
         eh("OnSIPPhoneCreate", __name__)
@@ -27,13 +27,13 @@ class DummyPhone(AbstractSIPPhone):
 
     def stop(self):
         LOGGER.info("Deleting dummy phone")
-        eh = doorpi.DoorPi().event_handler
+        eh = doorpi.INSTANCE.event_handler
         eh("OnSIPPhoneDestroy", __name__)
         eh.unregister_source(__name__, force=True)
 
     def start(self):
         LOGGER.info("Starting dummy phone")
-        doorpi.DoorPi().event_handler("OnSIPPhoneStart", __name__)
+        doorpi.INSTANCE.event_handler("OnSIPPhoneStart", __name__)
 
     def call(self, uri):
         LOGGER.info("Starting call to %r", uri)

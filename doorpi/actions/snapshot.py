@@ -23,7 +23,7 @@ class SnapshotAction:
         contains as many snapshots as set in the configuration.
         """
 
-        keep = doorpi.DoorPi().config.get_int(DOORPI_SECTION, "snapshot_keep")
+        keep = doorpi.INSTANCE.config.get_int(DOORPI_SECTION, "snapshot_keep")
         if keep <= 0: return
         files = cls.list_all()
         for fi in files[0:-keep]:
@@ -37,7 +37,7 @@ class SnapshotAction:
     def get_base_path():
         """Fetches the snapshot directory path from the configuration."""
 
-        path = doorpi.DoorPi().config.get_string_parsed(DOORPI_SECTION, "snapshot_path")
+        path = doorpi.INSTANCE.config.get_string_parsed(DOORPI_SECTION, "snapshot_path")
         if not path: raise ValueError("snapshot_path must not be empty")
         path = pathlib.Path(path)
         path.mkdir(parents=True, exist_ok=True)
@@ -48,7 +48,7 @@ class SnapshotAction:
         """Computes the next snapshot's path."""
 
         path = cls.get_base_path() / datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S.jpg")
-        doorpi.DoorPi().config.set_value(DOORPI_SECTION, "last_snapshot", str(path))
+        doorpi.INSTANCE.config.set_value(DOORPI_SECTION, "last_snapshot", str(path))
         return path
 
     @classmethod

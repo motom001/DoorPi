@@ -14,24 +14,24 @@ HOLD = 5
 
 class TestActionCall(DoorPiTestCase):
 
-    @patch("doorpi.DoorPi", DoorPi)
-    def test_argvalidation(self):
+    @patch("doorpi.INSTANCE", new_callable=DoorPi)
+    def test_argvalidation(self, _):
         with self.assertRaises(ValueError):
             out.instantiate(PIN, START, STOP, "invalid")
 
-    @patch("doorpi.DoorPi", DoorPi)
-    def test_normal(self):
+    @patch("doorpi.INSTANCE", new_callable=DoorPi)
+    def test_normal(self, instance):
         ac = out.instantiate(PIN, START)
         ac(EVENT_ID, EVENT_EXTRA)
-        DoorPi().keyboard.output.assert_called_once_with(PIN, START)
+        instance.keyboard.output.assert_called_once_with(PIN, START)
 
     @patch("threading.Event")
-    @patch("doorpi.DoorPi", DoorPi)
-    def test_triggered(self, event):
+    @patch("doorpi.INSTANCE", new_callable=DoorPi)
+    def test_triggered(self, instance, event):
         ac = out.instantiate(PIN, START, STOP, HOLD)
         ac(EVENT_ID, EVENT_EXTRA)
 
-        output_method = DoorPi().keyboard.output
+        output_method = instance.keyboard.output
         self.assertEqual(output_method.call_count, 2)
         self.assertEqual(output_method.call_args_list, [((PIN, START),), ((PIN, STOP),)])
         event.return_value.clear.assert_called_once_with()

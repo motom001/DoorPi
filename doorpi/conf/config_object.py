@@ -48,7 +48,7 @@ class ConfigObject:
 
     def get_string_parsed(self, section, key, default=""):
         """Fetches a string and parses it."""
-        return doorpi.DoorPi().parse_string(self.get_string(section, key, default))
+        return doorpi.INSTANCE.parse_string(self.get_string(section, key, default))
 
     def get_path(self, section, key, default=""):
         """Fetches a Path from the configuration."""

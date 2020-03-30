@@ -55,7 +55,7 @@ class DoorPiWebRequestHandler(BaseHTTPRequestHandler):
 
     @staticmethod
     def prepare():
-        eh = doorpi.DoorPi().event_handler
+        eh = doorpi.INSTANCE.event_handler
         eh.register_event("OnWebServerRequest", __name__)
         eh.register_event("OnWebServerRequestGet", __name__)
         eh.register_event("OnWebServerRequestPost", __name__)
@@ -69,7 +69,7 @@ class DoorPiWebRequestHandler(BaseHTTPRequestHandler):
 
     @staticmethod
     def destroy():
-        doorpi.DoorPi().event_handler.unregister_source(__name__, force=True)
+        doorpi.INSTANCE.event_handler.unregister_source(__name__, force=True)
 
     def do_GET(self):  # pylint: disable=invalid-name
         """Callback for incoming GET requests."""
@@ -98,7 +98,7 @@ class DoorPiWebRequestHandler(BaseHTTPRequestHandler):
                 para[parameter_name] = ""
 
         if control_order == "trigger_event":
-            doorpi.DoorPi().event_handler.fire_event_sync(**para)
+            doorpi.INSTANCE.event_handler.fire_event_sync(**para)
             result_object["success"] = True
             result_object["message"] = "Event was fired"
         elif control_order == "config_value_get":
@@ -139,7 +139,7 @@ class DoorPiWebRequestHandler(BaseHTTPRequestHandler):
             raw_parameters["output"] = "string"
         elif path.path == "/status":
             self.clear_parameters(raw_parameters)
-            return_object = doorpi.DoorPi().get_status(
+            return_object = doorpi.INSTANCE.get_status(
                 modules=raw_parameters["module"],
                 name=raw_parameters["name"],
                 value=raw_parameters["value"]
@@ -228,7 +228,7 @@ class DoorPiWebRequestHandler(BaseHTTPRequestHandler):
         url = os.path.realpath(url)
         if url.startswith(self.server.www): return url
 
-        snapshot_base = os.path.realpath(doorpi.DoorPi().config.get_string_parsed(
+        snapshot_base = os.path.realpath(doorpi.INSTANCE.config.get_string_parsed(
             "DoorPi", "snapshot_path", "!BASEPATH!/../DoorPiWeb/snapshots"))
         if url.startswith(snapshot_base): return url
 
@@ -266,7 +266,7 @@ class DoorPiWebRequestHandler(BaseHTTPRequestHandler):
     def return_message(self, message="", content_type="text/plain; charset=utf-8", http_code=200):
         self.send_response(http_code)
         self.send_header("WWW-Authenticate", "Basic realm=\"DoorPi\"")
-        self.send_header("Server", doorpi.DoorPi().name_and_version)
+        self.send_header("Server", doorpi.INSTANCE.name_and_version)
         self.send_header("Content-type", content_type)
         self.send_header("Connection", "close")
         self.end_headers()
@@ -348,7 +348,7 @@ class DoorPiWebRequestHandler(BaseHTTPRequestHandler):
         if not isinstance(content, str):
             raise TypeError("content must be of type str")
 
-        mapping_table["DOORPI"] = doorpi.DoorPi().name_and_version
+        mapping_table["DOORPI"] = doorpi.INSTANCE.name_and_version
         mapping_table["SERVER"] = self.server.server_name
         mapping_table["PORT"] = str(self.server.server_port)
         mapping_table["MIN_EXTENSION"] = "" if LOGGER.getEffectiveLevel() <= 5 else ".min"

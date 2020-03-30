@@ -27,8 +27,8 @@ class TestMailAction(DoorPiTestCase):
             """))
 
     @patch("smtplib.SMTP")
-    @patch("doorpi.DoorPi", DoorPi)
-    def test_send_plain(self, smtp):
+    @patch("doorpi.INSTANCE", new_callable=DoorPi)
+    def test_send_plain(self, _, smtp):
         smtp.return_value.__enter__.return_value.send_message.return_value = (200, b"OK")
         ac = mail.MailAction("test@localhost", "Test subject", "Test body", "false")
 
@@ -46,8 +46,8 @@ class TestMailAction(DoorPiTestCase):
         self.assertEqual(msg.get_content(), "Test body\n\n!EPILOG!\n")
 
     @patch("smtplib.SMTP")
-    @patch("doorpi.DoorPi", DoorPi)
-    def test_send_snapshot(self, smtp):
+    @patch("doorpi.INSTANCE", new_callable=DoorPi)
+    def test_send_snapshot(self, _, smtp):
         smtp.return_value.__enter__.return_value.send_message.return_value = (200, b"OK")
         ac = mail.MailAction("test@localhost", "Test subject", "Test body", "true")
 

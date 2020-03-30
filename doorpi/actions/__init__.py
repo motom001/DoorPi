@@ -152,7 +152,7 @@ class CheckAction(CallbackAction):
             super().__call__(event_id, extra)
         except Exception:  # pylint: disable=broad-except
             LOGGER.exception("[%s] *** UNCAUGHT EXCEPTION: Internal self check failed", event_id)
-            doorpi.DoorPi().doorpi_shutdown()
+            doorpi.INSTANCE.doorpi_shutdown()
 
     def __repr__(self):
         return f"<internal self-check with {self._callback!r}>"

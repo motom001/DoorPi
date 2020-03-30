@@ -74,7 +74,7 @@ SIPPHONE_SECTION = "SIP-Phone"
 
 
 def load():
-    sipphone_name = doorpi.DoorPi().config.get_string("SIP-Phone", "type", "dummy")
+    sipphone_name = doorpi.INSTANCE.config.get_string("SIP-Phone", "type", "dummy")
     try:
         return importlib.import_module(f"doorpi.sipphone.from_{sipphone_name}").instantiate()
     except ImportError as err:

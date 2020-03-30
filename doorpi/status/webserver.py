@@ -18,8 +18,8 @@ CONF_AREA = "AREA_{area}"
 
 
 def load_webserver():
-    ip = doorpi.DoorPi().config.get_string(DOORPIWEB_SECTION, "ip", "0.0.0.0")
-    port = doorpi.DoorPi().config.get_int(DOORPIWEB_SECTION, "port", 50371)
+    ip = doorpi.INSTANCE.config.get_string(DOORPIWEB_SECTION, "ip", "0.0.0.0")
+    port = doorpi.INSTANCE.config.get_int(DOORPIWEB_SECTION, "port", 50371)
 
     doorpiweb_object = None
 
@@ -124,15 +124,15 @@ class DoorPiWeb(ThreadingMixIn, HTTPServer):
 
     @property
     def config(self):
-        return doorpi.DoorPi().config
+        return doorpi.INSTANCE.config
 
     def start(self):
         LOGGER.info("Starting WebServer on %s", self.own_url)
-        eh = doorpi.DoorPi().event_handler
+        eh = doorpi.INSTANCE.event_handler
         eh.register_event("OnWebServerStart", __name__)
         eh.register_event("OnWebServerStop", __name__)
 
-        conf = doorpi.DoorPi().config
+        conf = doorpi.INSTANCE.config
         self.www = os.path.realpath(conf.get_string_parsed(
             DOORPIWEB_SECTION, "www", "!BASEPATH!/../DoorPiWeb"))
         self.indexfile = conf.get_string_parsed(DOORPIWEB_SECTION, "indexfile", "index.html")
@@ -156,13 +156,13 @@ class DoorPiWeb(ThreadingMixIn, HTTPServer):
             pass
 
     def init_shutdown(self):
-        doorpi.DoorPi().event_handler.fire_event_sync("OnWebServerStop", __name__)
+        doorpi.INSTANCE.event_handler.fire_event_sync("OnWebServerStop", __name__)
         self.shutdown()
         if self.sessions: self.sessions.destroy()
         DoorPiWebRequestHandler.destroy()
         self.fake_request()
         self._thread.join()
-        doorpi.DoorPi().event_handler.unregister_source(__name__, force=True)
+        doorpi.INSTANCE.event_handler.unregister_source(__name__, force=True)
 
     def server_bind(self):
         listen_fds = int(os.environ.get("LISTEN_FDS", 0))

@@ -2,7 +2,7 @@
 
 import logging
 
-from doorpi import DoorPi
+import doorpi
 
 EVENT_SOURCE = "sipphone.pjsua"
 LOGGER = logging.getLogger(__name__)
@@ -19,7 +19,7 @@ def fire_event(event_name, async_only=False, *, remote_uri=None):
     That is why events used internally by this module also fire a
     synchronous version, whose name is suffixed with "_S".
     """
-    eh = DoorPi().event_handler
+    eh = doorpi.INSTANCE.event_handler
     extra = {"remote_uri": remote_uri} if remote_uri is not None else {}
 
     eh.fire_event(event_name, EVENT_SOURCE, extra=extra)

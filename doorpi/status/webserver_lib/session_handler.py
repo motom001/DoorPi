@@ -14,7 +14,7 @@ class SessionHandler:
 
     @property
     def config(self):
-        return doorpi.DoorPi().config
+        return doorpi.INSTANCE.config
 
     @property
     def session_ids(self):
@@ -25,12 +25,12 @@ class SessionHandler:
         return self._Sessions
 
     def __init__(self):
-        doorpi.DoorPi().event_handler.register_event("WebServerCreateNewSession", __name__)
-        doorpi.DoorPi().event_handler.register_event("WebServerAuthUnknownUser", __name__)
-        doorpi.DoorPi().event_handler.register_event("WebServerAuthWrongPassword", __name__)
+        doorpi.INSTANCE.event_handler.register_event("WebServerCreateNewSession", __name__)
+        doorpi.INSTANCE.event_handler.register_event("WebServerAuthUnknownUser", __name__)
+        doorpi.INSTANCE.event_handler.register_event("WebServerAuthWrongPassword", __name__)
 
     def destroy(self):
-        doorpi.DoorPi().event_handler.unregister_source(__name__, force=True)
+        doorpi.INSTANCE.event_handler.unregister_source(__name__, force=True)
 
     def get_session(self, session_id):
         if session_id in self._Sessions:
@@ -51,7 +51,7 @@ class SessionHandler:
         users = self.config.get_keys("User")
 
         if username not in users:
-            doorpi.DoorPi().event_handler("WebServerAuthUnknownUser", __name__, {
+            doorpi.INSTANCE.event_handler("WebServerAuthUnknownUser", __name__, {
                 "username": username,
                 "remote_client": remote_client
             })
@@ -59,7 +59,7 @@ class SessionHandler:
 
         real_password = self.config.get_string("User", username)
         if real_password != password:
-            doorpi.DoorPi().event_handler("WebServerAuthWrongPassword", __name__, {
+            doorpi.INSTANCE.event_handler("WebServerAuthWrongPassword", __name__, {
                 "username": username,
                 "password": password,
                 "remote_client": remote_client
@@ -98,7 +98,7 @@ class SessionHandler:
         web_session["readpermissions"].sort()
         web_session["writepermissions"].sort()
 
-        doorpi.DoorPi().event_handler("WebServerCreateNewSession", __name__, {
+        doorpi.INSTANCE.event_handler("WebServerCreateNewSession", __name__, {
             "session": web_session
         })
 

@@ -5,7 +5,7 @@ import logging
 
 import pjsua2 as pj
 
-from doorpi import DoorPi
+import doorpi
 from doorpi.sipphone import SIPPHONE_SECTION
 
 from . import fire_event
@@ -20,7 +20,7 @@ class AccountCallback(pj.Account):
 
     # pylint: disable=arguments-differ
     def onIncomingCall(self, iprm: pj.OnIncomingCallParam) -> None:
-        sp = DoorPi().sipphone
+        sp = doorpi.INSTANCE.sipphone
         call = CallCallback(self, iprm.callId)
         callInfo = call.getInfo()
         oprm = pj.CallOpParam(False)
@@ -57,7 +57,7 @@ class CallCallback(pj.Call):
         super().__init__(acc, callId)
 
         self.__dtmf = ""
-        self.__possible_dtmf = DoorPi().config.get_keys("DTMF")
+        self.__possible_dtmf = doorpi.INSTANCE.config.get_keys("DTMF")
         self.__fire_disconnect = False
 
     def __getAudioVideoMedia(self):
@@ -75,7 +75,7 @@ class CallCallback(pj.Call):
 
     def onCallState(self, prm: pj.OnCallStateParam) -> None:
         ci = self.getInfo()
-        sp = DoorPi().sipphone
+        sp = doorpi.INSTANCE.sipphone
 
         if ci.state == pj.PJSIP_INV_STATE_CALLING:
             LOGGER.debug("Call to %r is now calling", ci.remoteUri)
@@ -135,7 +135,7 @@ class CallCallback(pj.Call):
             audio.startTransmit(adm.getPlaybackDevMedia())
             adm.getCaptureDevMedia().startTransmit(audio)
             # Apply capture and ring tone loudness
-            conf = DoorPi().config
+            conf = doorpi.INSTANCE.config
             playback_loudness = conf.get_float(SIPPHONE_SECTION, "playback_loudness", 1.0)
             capture_loudness = conf.get_float(SIPPHONE_SECTION, "capture_loudness", 1.0)
             LOGGER.trace("Adjusting RX level to %01.1f", playback_loudness)

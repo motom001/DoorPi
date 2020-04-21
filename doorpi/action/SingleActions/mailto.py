@@ -58,17 +58,17 @@ def fire_action_mail(smtp_to, smtp_subject, smtp_text, smtp_snapshot):
             if not os.path.exists(smtp_snapshot):
                 smtp_snapshot = get_last_snapshot()
 
-        try:
-            with open(smtp_snapshot, "rb") as snapshot_file:
-                part = MIMEBase('application',"octet-stream")
-                part.set_payload(snapshot_file.read())
-                Encoders.encode_base64(part)
-                part.add_header(
-                    'Content-Disposition',
-                    'attachment; filename="%s"' % os.path.basename(smtp_snapshot))
-                msg.attach(part)
-        except Exception as exp:
-            logger.exception("send not attachment for this mail: %s" % exp)
+            try:
+                with open(smtp_snapshot, "rb") as snapshot_file:
+                    part = MIMEBase('application',"octet-stream")
+                    part.set_payload(snapshot_file.read())
+                    Encoders.encode_base64(part)
+                    part.add_header(
+                        'Content-Disposition',
+                        'attachment; filename="%s"' % os.path.basename(smtp_snapshot))
+                    msg.attach(part)
+            except Exception as exp:
+                logger.exception("send not attachment for this mail: %s" % exp)
 
         server.sendmail(smtp_from, smtp_tolist, msg.as_string())
         server.quit()

@@ -96,6 +96,13 @@ def entry_point():
 
     instance = doorpi.DoorPi(args)
     try:
+        instance.prepare()
+        os.chdir(instance.config.get_path("DoorPi", "base_path", os.getcwd()))
+    except BaseException as err:
+        LOGGER.error("*** An error occured while preparing to start")
+        raise
+
+    try:
         instance.run()
     except BaseException as err:
         LOGGER.error("*** UNCAUGHT EXCEPTION: %s: %s", err.__class__.__name__, err)

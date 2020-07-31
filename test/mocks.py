@@ -40,6 +40,3 @@ class DoorPiTestCase(unittest.TestCase):
         doorpi_instance = None
         os.chdir(self.oldpwd)
         self.tmpdir.cleanup()
-
-
-doorpi.main.add_trace_level()

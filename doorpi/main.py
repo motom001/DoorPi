@@ -20,20 +20,8 @@ LOGGER = logging.getLogger(__name__)
 LOG_LEVEL = logging.INFO
 
 
-def add_trace_level():
-    """Registers the TRACE level with the logging module."""
-    def trace(self, message, *args, **kws):
-        if self.isEnabledFor(logging.TRACE):
-            self._log(logging.TRACE, message, args, **kws)
-    logging.TRACE = 5
-    logging.addLevelName(logging.TRACE, "TRACE")
-    logging.Logger.trace = trace
-
-
 def init_logger(args):
     """Initializes the logging module with DoorPi settings."""
-    add_trace_level()
-
     # check if we're connected to the journal
     journal = False
     expected_fd = os.environ.get("JOURNAL_STREAM", "").split(":")

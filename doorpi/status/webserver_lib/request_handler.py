@@ -9,6 +9,8 @@ from urllib.parse import unquote_plus
 from urllib.parse import urlparse, parse_qs
 
 import doorpi
+from doorpi import metadata
+
 from .request_handler_static_functions import (
     control_config_get_value,
     control_config_set_value,
@@ -266,7 +268,7 @@ class DoorPiWebRequestHandler(BaseHTTPRequestHandler):
     def return_message(self, message="", content_type="text/plain; charset=utf-8", http_code=200):
         self.send_response(http_code)
         self.send_header("WWW-Authenticate", "Basic realm=\"DoorPi\"")
-        self.send_header("Server", doorpi.INSTANCE.name_and_version)
+        self.send_header("Server", metadata.distribution.metadata["Name"])
         self.send_header("Content-type", content_type)
         self.send_header("Connection", "close")
         self.end_headers()
@@ -348,7 +350,9 @@ class DoorPiWebRequestHandler(BaseHTTPRequestHandler):
         if not isinstance(content, str):
             raise TypeError("content must be of type str")
 
-        mapping_table["DOORPI"] = doorpi.INSTANCE.name_and_version
+        mapping_table["DOORPI"] = "{} - version: {}".format(
+            metadata.distribution.metadata["Name"],
+            metadata.distribution.metadata["Version"])
         mapping_table["SERVER"] = self.server.server_name
         mapping_table["PORT"] = str(self.server.server_port)
         mapping_table["MIN_EXTENSION"] = "" if LOGGER.getEffectiveLevel() <= 5 else ".min"

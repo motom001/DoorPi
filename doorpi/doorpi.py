@@ -42,14 +42,11 @@ class DoorPi:
     def get_status(self, modules="", value="", name=""):
         return DoorPiStatus(self, modules, value, name)
 
-    epilog = metadata.epilog
-    name = metadata.package
-    name_and_version = f"{metadata.package} - version: {metadata.version}"
-
     @property
     def base_path(self):
         if self._base_path is None:
-            base = Path.home() / "doorpi.ini"
+            name = metadata.distribution.metadata["Name"]
+            base = Path.home() / f"{name.lower()}.ini"
             if base.is_file():
                 self._base_path = Path.home()
             elif sys.platform == "linux":
@@ -57,11 +54,11 @@ class DoorPi:
                     base = Path(os.environ["XDG_CONFIG_HOME"])
                 except KeyError:
                     base = Path.home() / ".config"
-                self._base_path = base / metadata.package.lower()
+                self._base_path = base / name.lower()
             elif sys.platform == "win32":
-                self._base_path = Path(os.environ["APPDATA"]) / metadata.package
+                self._base_path = Path(os.environ["APPDATA"]) / name
             else:
-                self._base_path = Path.home() / metadata.package.lower()
+                self._base_path = Path.home() / name.lower()
             LOGGER.info("Auto-selected BasePath %s", self._base_path)
         return self._base_path
 

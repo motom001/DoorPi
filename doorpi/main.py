@@ -49,14 +49,15 @@ def init_logger(args):
 
 def parse_arguments():
     """Parses command line arguments."""
+    dpmeta = metadata.distribution.metadata
     arg_parser = argparse.ArgumentParser(
         formatter_class=argparse.RawDescriptionHelpFormatter,
-        description=metadata.description,
+        description=dpmeta["Summary"],
         epilog=metadata.epilog
     )
 
     arg_parser.add_argument("-V", "--version", action="version",
-                            version=f"{metadata.project} v{metadata.version}")
+                            version=f"{dpmeta['Name']} v{dpmeta['Version']}")
     arg_parser.add_argument("--debug", action="append", nargs="?", const="",
                             help="Enable debug logging (optionally on a specific component)")
     arg_parser.add_argument("--trace", action="append", nargs="?", const="",

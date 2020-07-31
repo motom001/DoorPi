@@ -1,16 +1,14 @@
-"""Project metadata
+"""Additional project metadata"""
 # pylint: disable=invalid-name
 
-Information describing the project.
-"""
+from importlib import metadata as _meta
 
-# The package name, which is also the "UNIX name" for the project.
-package = "DoorPi"
+try:
+    distribution = _meta.distribution(__name__.split(".")[0])
+except _meta.PackageNotFoundError:  # pragma: no cover
+    raise RuntimeError("DoorPi was not properly installed") from None
+
 project = "VoIP Door-Intercomstation with Raspberry Pi"
-version = "3.0beta3"
-description = "Provide intercom station to the door station via VoIP"
-authors = ["Wüstengecko", "Thomas Meissner"]
-emails = ["1579756+Wuestengecko@users.noreply.github.com", "motom001@gmail.com"]
 
 supporters = (
     "Phillip Munz <office@businessaccess.info>",
@@ -22,9 +20,6 @@ supporters = (
     "Max Rößler <max_kr@gmx.de>",
     "missing someone? -> sorry -> mail me"
 )
-copyright = "%s, 2014-2015" % authors[0]
-license = "CC BY-NC 4.0"
-url = "https://github.com/motom001/DoorPi"
 
 # created with: http://patorjk.com/software/taag/#p=display&f=Ogre&t=DoorPi
 epilog = r"""
@@ -34,14 +29,14 @@ epilog = r"""
  / /_// (_) | (_) | | / ___/| |  license:   {license}
 /___,' \___/ \___/|_| \/    |_|  URL:       <{url}>
 
-Authors:    {authors}
+Author:     {author}
 Supporter:  {supporters}
 """.format(
-    license=license,
-    project=project,
-    version=version,
-    authors="\n            ".join(f"{name} <{email}>" for name, email in zip(authors, emails)),
+    license=distribution.metadata["License"],
+    project=distribution.metadata["Name"],
+    version=distribution.metadata["Version"],
+    author="{} <{}>".format(
+        distribution.metadata["Author"],
+        distribution.metadata["Author-email"]),
     supporters="\n            ".join(supporters),
-    url=url)
-
-pidfile = "/run/{0}/{0}.pid".format(package.lower())
+    url=distribution.metadata["Home-page"])

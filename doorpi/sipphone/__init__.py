@@ -69,7 +69,8 @@ import doorpi
 from doorpi import metadata
 
 
-DEFAULT_MEDIA_DIR = f"{sys.prefix}/share/{metadata.package.lower()}"
+DEFAULT_MEDIA_DIR = "{}/share/{}".format(
+    sys.prefix, metadata.distribution.metadata['Name'].lower())
 SIPPHONE_SECTION = "SIP-Phone"
 
 

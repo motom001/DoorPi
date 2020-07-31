@@ -1,8 +1,0 @@
-RPi.GPIO>=0.5.11
-docutils>=0.14
-picamera>=1.10
-pifacecommon>=4.1.2
-pifacedigitalio>=3.0.5
-pyserial>=2.7
-requests>=2.7.0
-watchdog>=0.8.3

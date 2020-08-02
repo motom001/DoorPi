@@ -8,6 +8,7 @@ from . import action
 LOGGER = logging.getLogger(__name__)
 
 
+@action("exec")
 @action("os_execute")
 class OSExecuteAction:
     """Executes a command"""

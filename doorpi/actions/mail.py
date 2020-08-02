@@ -10,6 +10,7 @@ from . import action
 LOGGER = logging.getLogger(__name__)
 
 
+@action("mail")
 @action("mailto")
 class MailAction:
     """Sends an email with customizable subject and text, optionally with the latest snapshot."""

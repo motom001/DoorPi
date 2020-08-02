@@ -28,6 +28,7 @@ class CallAction:
         return f"call:{self.__url}"
 
 
+@action("callf")
 @action("file_call_value")
 class CallFromFileAction:
     """Reads a number from a file and calls it."""

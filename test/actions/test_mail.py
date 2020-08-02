@@ -1,11 +1,24 @@
+import io
 import textwrap
 from pathlib import Path
 from unittest.mock import patch
 
-from doorpi.actions import mail
+from doorpi.actions import mail, snapshot
 
 from . import EVENT_ID, EVENT_EXTRA
 from ..mocks import DoorPi, DoorPiTestCase
+
+
+stub_config = """\
+[snapshots]
+directory = "snaps"
+
+[mail]
+server = "localhost"
+need_login = true
+username = "test"
+password = "test"
+"""
 
 
 class TestMailAction(DoorPiTestCase):
@@ -28,7 +41,8 @@ class TestMailAction(DoorPiTestCase):
 
     @patch("smtplib.SMTP")
     @patch("doorpi.INSTANCE", new_callable=DoorPi)
-    def test_send_plain(self, _, smtp):
+    def test_send_plain(self, instance, smtp):
+        instance.config.load(io.StringIO(stub_config))
         smtp.return_value.__enter__.return_value.send_message.return_value = (200, b"OK")
         ac = mail.MailAction("test@localhost", "Test subject", "Test body", "false")
 
@@ -47,10 +61,13 @@ class TestMailAction(DoorPiTestCase):
 
     @patch("smtplib.SMTP")
     @patch("doorpi.INSTANCE", new_callable=DoorPi)
-    def test_send_snapshot(self, _, smtp):
+    def test_send_snapshot(self, instance, smtp):
+        instance.config.load(io.StringIO(stub_config))
         smtp.return_value.__enter__.return_value.send_message.return_value = (200, b"OK")
-        ac = mail.MailAction("test@localhost", "Test subject", "Test body", "true")
+        snapshot_file = snapshot.SnapshotAction.get_next_path()
+        snapshot_file.touch()
 
+        ac = mail.MailAction("test@localhost", "Test subject", "Test body", "true")
         with self.assertLogs("doorpi.actions.mail", "INFO"):
             ac(EVENT_ID, EVENT_EXTRA)
 
@@ -62,8 +79,8 @@ class TestMailAction(DoorPiTestCase):
         self.assertEqual(msg["To"], "test@localhost")
         self.assertEqual(msg["Subject"], "Test subject")
         self.assertTrue(msg.is_multipart())
-        atts = [msg.iter_attachments()]
+        atts = list(msg.iter_attachments())
         self.assertEqual(len(atts), 1)
-        att = next(atts[0])
-        self.assertEqual(att.get_filename(), "null")
+        att = atts[0]
+        self.assertEqual(att.get_filename(), snapshot_file.name)
         self.assertEqual(att.get_content_disposition(), "attachment")

@@ -59,7 +59,6 @@ import watchdog.events
 import watchdog.observers
 
 import doorpi
-from . import SECTION_TPL
 from .abc import AbstractKeyboard
 
 LOGGER = logging.getLogger(__name__)
@@ -70,13 +69,9 @@ class FilesystemKeyboard(AbstractKeyboard, watchdog.events.FileSystemEventHandle
     def __init__(self, name):
         super().__init__(name)
 
-        conf = doorpi.INSTANCE.config
-        section_name = SECTION_TPL.format(name=name)
-        self.__reset_input = conf.get_bool(section_name, "reset_input", True)
-        self.__base_path_input = Path(conf.get_string_parsed(
-            section_name, "base_path_input", f"/run/doorpi/{name}/in"))
-        self.__base_path_output = Path(conf.get_string_parsed(
-            section_name, "base_path_output", f"/run/doorpi/{name}/out"))
+        self.__reset_input = self.config["reset_input"]
+        self.__base_path_input = self.config["inputdir"]
+        self.__base_path_output = self.config["outputdir"]
         self.__input_states = dict.fromkeys(self._inputs, False)
 
         if not self.__base_path_input:

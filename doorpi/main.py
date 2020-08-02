@@ -57,7 +57,7 @@ def parse_arguments():
     )
 
     arg_parser.add_argument("-V", "--version", action="version",
-                            version=f"{dpmeta['Name']} v{dpmeta['Version']}")
+                            version=f"DoorPi v{dpmeta['Version']}")
     arg_parser.add_argument("--debug", action="append", nargs="?", const="",
                             help="Enable debug logging (optionally on a specific component)")
     arg_parser.add_argument("--trace", action="append", nargs="?", const="",
@@ -86,7 +86,7 @@ def entry_point():
     instance = doorpi.DoorPi(args)
     try:
         instance.prepare()
-        os.chdir(instance.config.get_path("DoorPi", "base_path", os.getcwd()))
+        os.chdir(instance.config["base_path"])
     except BaseException as err:
         LOGGER.error("*** An error occured while preparing to start")
         raise

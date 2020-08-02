@@ -11,9 +11,8 @@ import time
 from pathlib import Path
 
 import doorpi
-from doorpi import keyboard, sipphone
-from doorpi.actions import CallbackAction
-from doorpi.conf.config_object import ConfigObject
+from doorpi import config, keyboard, sipphone
+from doorpi.actions import CallbackAction, snapshot
 from doorpi.event.handler import EventHandler
 from doorpi.status.status_class import DoorPiStatus
 from doorpi.status.systemd import DoorPiSD
@@ -67,7 +66,8 @@ class DoorPi:
             raise RuntimeError("Only one DoorPi instance can be created")
         doorpi.INSTANCE = self
 
-        self.config = None
+        self.config = config.Configuration()
+        self.config.load_builtin_definitions()
         self.dpsd = None
         self.event_handler = None
         self.keyboard = None
@@ -109,8 +109,8 @@ class DoorPi:
         signal.signal(signal.SIGINT, handler)
         signal.signal(signal.SIGTERM, handler)
 
-        self.config = ConfigObject(self.__args.configfile)
-        self._base_path = self.config.get_string("DoorPi", "base_path", self.base_path)
+        self.config.load(self.__args.configfile)
+        self._base_path = self.config["base_path"]
         self.event_handler = EventHandler()
 
         # register own events
@@ -258,7 +258,7 @@ class DoorPi:
 
         if self.config:
             mapping_table.update({
-                "LAST_SNAPSHOT": self.config.get_string("DoorPi", "last_snapshot")
+                "LAST_SNAPSHOT": snapshot.SnapshotAction.list_all()[-1],
             })
 
         if self.keyboard:

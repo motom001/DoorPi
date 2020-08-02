@@ -1,9 +1,8 @@
 import logging
 import RPi.GPIO as gpio  # pylint: disable=import-error
 
-import doorpi
+from doorpi import keyboard
 
-from . import SECTION_TPL
 from .abc import AbstractKeyboard
 
 LOGGER = logging.getLogger(__name__)
@@ -13,6 +12,7 @@ INSTANTIATED = False
 class GPIOKeyboard(AbstractKeyboard):
 
     def __init__(self, name):
+        # pylint: disable=no-member  # Only available at runtime
         global INSTANTIATED
         if INSTANTIATED: raise RuntimeError("Only one GPIO keyboard may be instantiated")
         INSTANTIATED = True
@@ -21,22 +21,15 @@ class GPIOKeyboard(AbstractKeyboard):
 
         gpio.setwarnings(False)
 
-        conf = doorpi.INSTANCE.config
-        section_name = SECTION_TPL.format(name=name)
-        mode = conf.get_string(section_name, "mode", "BOARD")
-        if mode == "BOARD":
-            gpio.setmode(gpio.BOARD)
-        elif mode == "BCM":
-            gpio.setmode(gpio.BCM)
-        else:
-            raise ValueError(f"{self.name}: Invalid address mode (must be BOARD or BCM)")
+        gpio.setmode((gpio.BCM, gpio.BOARD)[
+            self.config["mode"] is keyboard.Mode.BOARD])
 
-        pull = conf.get_string(section_name, "pull_up_down", "OFF")
-        if pull == "OFF":
+        pull = self.config["pull_up_down"]
+        if pull is keyboard.PullUpDown.OFF:
             pull = gpio.PUD_OFF
-        elif pull == "UP":
+        elif pull is keyboard.PullUpDown.UP:
             pull = gpio.PUD_UP
-        elif pull == "DOWN":
+        elif pull is keyboard.PullUpDown.DOWN:
             pull = gpio.PUD_DOWN
         else:
             raise ValueError(f"{self.name}: Invalid pull_up_down value (must be OFF, UP or DOWN)")

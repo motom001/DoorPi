@@ -24,7 +24,7 @@ class EventHandler:
 
     def __init__(self):
         conf = doorpi.INSTANCE.config
-        db_path = conf.get_string_parsed("DoorPi", "eventlog", "!BASEPATH!/conf/eventlog.db")
+        db_path = conf["eventlog"]
         self.log = EventLog(db_path)
 
         self.actions = collections.defaultdict(list)
@@ -34,22 +34,18 @@ class EventHandler:
         self.__active = True
 
         # register eventbased actions from configfile
-        section = "EVENT_"
-        for event_section in conf.get_sections(section):
-            event = event_section[len(section):]
+        for event, actions in conf.view("events").items():
             LOGGER.info("Registering configured actions for %s", event)
-            for key in sorted(conf.get_keys(event_section)):
-                action = conf.get_string(event_section, key)
+            for action in actions:
                 LOGGER.debug("Registering action %s", repr(action))
                 self.register_action(event, action)
 
         # register configured DTMF actions
         LOGGER.info("Registering DTMF actions")
-        section = "DTMF"
-        for key in conf.get_keys(section):
-            action = conf.get_string(section, key)
-            LOGGER.debug("Registering action %s for DTMF %s", action, key)
-            self.register_action(f"OnDTMF_{key}", action)
+        for seq, actions in conf.view("sipphone.dtmf").items():
+            for action in actions:
+                LOGGER.debug("Registering action %r for DTMF %r", action, seq)
+                self.register_action(f"OnDTMF_{seq}", action)
 
     def destroy(self):
         """Waits for currently running actions, writes the log and destroys the handler."""

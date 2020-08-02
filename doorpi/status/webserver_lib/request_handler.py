@@ -10,6 +10,7 @@ from urllib.parse import urlparse, parse_qs
 
 import doorpi
 from doorpi import metadata
+from doorpi.actions import snapshot
 
 from .request_handler_static_functions import (
     control_config_get_value,
@@ -230,8 +231,7 @@ class DoorPiWebRequestHandler(BaseHTTPRequestHandler):
         url = os.path.realpath(url)
         if url.startswith(self.server.www): return url
 
-        snapshot_base = os.path.realpath(doorpi.INSTANCE.config.get_string_parsed(
-            "DoorPi", "snapshot_path", "!BASEPATH!/../DoorPiWeb/snapshots"))
+        snapshot_base = snapshot.SnapshotAction.get_base_path()
         if url.startswith(snapshot_base): return url
 
         # Path is not on whitelist

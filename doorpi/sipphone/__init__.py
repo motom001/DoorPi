@@ -71,11 +71,10 @@ from doorpi import metadata
 
 DEFAULT_MEDIA_DIR = "{}/share/{}".format(
     sys.prefix, metadata.distribution.metadata['Name'].lower())
-SIPPHONE_SECTION = "SIP-Phone"
 
 
 def load():
-    sipphone_name = doorpi.INSTANCE.config.get_string("SIP-Phone", "type", "dummy")
+    sipphone_name = doorpi.INSTANCE.config["sipphone.type"]
     try:
         return importlib.import_module(f"doorpi.sipphone.from_{sipphone_name}").instantiate()
     except ImportError as err:

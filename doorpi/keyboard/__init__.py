@@ -47,12 +47,6 @@ The following events are defined for keyboard modules:
   the event's extra information as `tag`.
 """
 
-SECTION_KEYBOARDS = "keyboards"
-
-SECTION_TPL = "keyboard_settings_{name}"
-SECTION_TPL_IN = "keyboard_input_{name}"
-SECTION_TPL_OUT = "keyboard_output_{name}"
-
 HIGH_LEVEL = ["1", "high", "on", "true"]
 
 

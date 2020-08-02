@@ -5,7 +5,6 @@ import logging
 
 import doorpi
 from doorpi.actions import CheckAction
-from . import SECTION_KEYBOARDS, SECTION_TPL_IN, SECTION_TPL_OUT
 
 LOGGER = logging.getLogger(__name__)
 
@@ -24,38 +23,33 @@ class KeyboardHandler:
         self.__keyboards = {}
 
         eh = doorpi.INSTANCE.event_handler
-        conf = doorpi.INSTANCE.config
-        kbnames = conf.get_keys(SECTION_KEYBOARDS)
-        LOGGER.info("Instantiating %d keyboard(s): %s", len(kbnames), ", ".join(kbnames))
+        conf = doorpi.INSTANCE.config.view("keyboard")
+        LOGGER.info(
+            "Instantiating %d keyboard(s): %s",
+            len(conf), ", ".join(conf.keys()))
 
-        for kbname in kbnames:
-            if kbname in self.__keyboards: raise ValueError(f"Duplicate keyboard name {kbname}")
-            kbtype = conf.get_string(SECTION_KEYBOARDS, kbname)
+        for kbname in conf.keys():
+            kbtype = conf[kbname, "type"].name
             LOGGER.debug("Instantiating keyboard %r (from_%s)", kbname, kbtype)
 
             kb = importlib.import_module(f"doorpi.keyboard.from_{kbtype}").instantiate(kbname)
             self.__keyboards[kbname] = kb
 
-            # register input pin actions
             LOGGER.debug("Registering input pins for %r", kbname)
-            section = SECTION_TPL_IN.format(name=kbname)
-            pins = conf.get_keys(section)
-            for pin in pins:
-                action = conf.get_string(section, pin)
-                if action:
-                    eh.register_action(f"OnKeyPressed_{kbname}.{pin}", action)
+            for pin, actions in kb.config.view("input").items():
+                for action in actions:
+                    if action:
+                        eh.register_action(
+                            f"OnKeyPressed_{kbname}.{pin}", action)
 
-            # register output pin aliases
             LOGGER.debug("Registering output pins for %r", kbname)
-            section = SECTION_TPL_OUT.format(name=kbname)
-            pins = conf.get_keys(section)
             self.__aliases[kbname] = {}
-            for pin in pins:
-                alias = conf.get_string(section, pin)
-                if not alias: alias = pin
+            for pin, alias in kb.config.view("output").items():
+                if not alias:
+                    alias = pin
                 if alias in self.__aliases[kbname]:
                     raise ValueError(f"Duplicate pin alias {kbname}.{alias}")
-                self.__aliases[kbname].update({alias: pin})
+                self.__aliases[kbname][alias] = pin
 
         eh.register_action("OnTimeTick", CheckAction(self.self_check))
 

@@ -1,3 +1,4 @@
+import io
 import json
 from unittest.mock import patch, MagicMock
 
@@ -5,6 +6,14 @@ from doorpi.actions import symcon_ips3
 
 from . import EVENT_ID, EVENT_EXTRA
 from ..mocks import DoorPi, DoorPiTestCase
+
+
+stub_config = """\
+[ip_symcon]
+server = "localhost"
+username = "root"
+password = "root"
+"""
 
 
 class DummyResponse:
@@ -34,12 +43,14 @@ def fake_post(*args, data, **kw):
 class TestIPSRPCSetValueAction(DoorPiTestCase):
 
     @patch("doorpi.INSTANCE", new_callable=DoorPi)
-    def test_validation(self, _):
+    def test_validation(self, instance):
+        instance.config.load(io.StringIO(stub_config))
         with self.assertRaises(ValueError):
             symcon_ips3.instantiate("set", "NaN", "something")
 
     @patch("doorpi.INSTANCE", new_callable=DoorPi)
     def test_action(self, instance):
+        instance.config.load(io.StringIO(stub_config))
         ac = symcon_ips3.instantiate("set", 1, "somevalue")
         post = MagicMock(wraps=fake_post)
         with patch("requests.post", post):
@@ -51,12 +62,14 @@ class TestIPSRPCSetValueAction(DoorPiTestCase):
 class TestIPSRPCCallFromVariableAction(DoorPiTestCase):
 
     @patch("doorpi.INSTANCE", new_callable=DoorPi)
-    def test_instantiation(self, _):
+    def test_instantiation(self, instance):
+        instance.config.load(io.StringIO(stub_config))
         with self.assertRaises(ValueError):
             symcon_ips3.instantiate("call", "NaN")
 
     @patch("doorpi.INSTANCE", new_callable=DoorPi)
     def test_action(self, instance):
+        instance.config.load(io.StringIO(stub_config))
         ac = symcon_ips3.instantiate("call", 1)
         post = MagicMock(wraps=fake_post)
         with patch("requests.post", post):

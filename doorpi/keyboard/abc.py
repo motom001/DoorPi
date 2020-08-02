@@ -4,9 +4,10 @@ import datetime
 import logging
 
 import doorpi
+from doorpi import keyboard
 from doorpi.actions import CallbackAction
 
-from . import SECTION_TPL, SECTION_TPL_IN, SECTION_TPL_OUT, HIGH_LEVEL
+from . import HIGH_LEVEL
 
 LOGGER = logging.getLogger(__name__)
 
@@ -25,6 +26,8 @@ class AbstractKeyboard():
         * self.last_key = None; will hold the last triggered input
         * self.last_key_time = now; will hold the datetime when the
                                ``last_key`` was pressed
+        * self.config = A ``ConfigView`` for the keyboard specific
+                        configuration.
         * self._bouncetime = "bouncetime" in config
         * self._event_source = The "event source" name that is used to
                                associate events with this keyboard.
@@ -53,6 +56,7 @@ class AbstractKeyboard():
                     2) EventName_InputName
                     3) EventName_KeyboardName.InputName
         """
+        # pylint: disable=no-member  # Only available at runtime
 
         if not name:
             raise ValueError("Keyboard name must not be empty")
@@ -62,22 +66,15 @@ class AbstractKeyboard():
         self.last_key_time = datetime.datetime.now()
         LOGGER.debug("Creating %s", self)
 
-        conf = doorpi.INSTANCE.config
-        conf_section = SECTION_TPL.format(name=name)
-        self._bouncetime = conf.get_int(conf_section, "bouncetime", 100)
+        self.config = doorpi.INSTANCE.config.view(("keyboard", name))
+        self._bouncetime = self.config["bouncetime"]
         self._event_source = f"keyboard.{self.__class__.__name__}.{name}"
-        self._inputs = conf.get_keys(SECTION_TPL_IN.format(name=name))
-        self._outputs = dict.fromkeys(
-            conf.get_keys(SECTION_TPL_OUT.format(name=name)), False)
-        self._pressed_on_key_down = conf.get_bool(conf_section, "pressed_on_key_down", True)
+        self._inputs = list(self.config.view("input"))
+        self._outputs = dict.fromkeys(self.config.view("output"), False)
+        self._pressed_on_key_down = self.config["pressed_on_key_down"]
 
-        polarity = conf.get_string(conf_section, "polarity", "HIGH")
-        if polarity == "HIGH":
-            self._high_polarity = True
-        elif polarity == "LOW":
-            self._high_polarity = False
-        else:
-            raise ValueError(f"{self.name}: Invalid polarity (must be HIGH or LOW)")
+        polarity = self.config["polarity"]
+        self._high_polarity = polarity == keyboard.Polarity.HIGH
 
         eh = doorpi.INSTANCE.event_handler
         eh.register_source(self._event_source)

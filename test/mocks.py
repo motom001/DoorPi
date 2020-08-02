@@ -5,7 +5,7 @@ from tempfile import TemporaryDirectory
 from unittest.mock import MagicMock
 
 import doorpi.main
-from doorpi.conf.config_object import ConfigObject
+from doorpi import config
 
 doorpi_instance = None
 
@@ -15,7 +15,8 @@ def DoorPi():
 
     if doorpi_instance is None:
         doorpi_instance = MagicMock()
-        doorpi_instance.config = MagicMock(wraps=ConfigObject(os.getcwd() + "/doorpi.ini"))
+        doorpi_instance.config = config.Configuration()
+        doorpi_instance.config.load_builtin_definitions()
         doorpi_instance.keyboard.input.return_value = False
         doorpi_instance.keyboard.output.return_value = True
         doorpi_instance.status = {}
@@ -33,7 +34,6 @@ class DoorPiTestCase(unittest.TestCase):
         self.tmpdir = TemporaryDirectory()
         self.oldpwd = os.getcwd()
         os.chdir(self.tmpdir.name)
-        open("doorpi.ini", "w").close()
 
     def tearDown(self):
         global doorpi_instance

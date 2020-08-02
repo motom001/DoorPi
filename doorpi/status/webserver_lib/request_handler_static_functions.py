@@ -3,29 +3,25 @@ import doorpi
 
 def control_config_get_value(section, key, default="", store="True"):
     del store
-    return doorpi.INSTANCE.config.get_string(
-        section=section,
-        key=key,
-        default=default,
-    )
+    try:
+        return doorpi.INSTANCE.config[".".join((section, key))]
+    except KeyError:
+        return default
 
 
 def control_config_set_value(section, key, value, password=False):
     del password
-    return doorpi.INSTANCE.config.set_value(
-        section=section,
-        key=key,
-        value=value,
-    )
+    try:
+        doorpi.INSTANCE.config[".".join((section, key))] = value
+    except (KeyError, TypeError, ValueError):
+        return False
+    else:
+        return True
 
 
 def control_config_delete_key(section, key):
-    return doorpi.INSTANCE.config.delete_key(
-        section=section,
-        key=key
-    )
+    return False  # FIXME NYI
 
 
 def control_config_save(configfile=""):
-    del configfile
-    return doorpi.INSTANCE.config.save_config()
+    return doorpi.INSTANCE.config.save(configfile)

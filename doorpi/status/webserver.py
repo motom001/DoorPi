@@ -18,8 +18,8 @@ CONF_AREA = "AREA_{area}"
 
 
 def load_webserver():
-    ip = doorpi.INSTANCE.config.get_string(DOORPIWEB_SECTION, "ip", "0.0.0.0")
-    port = doorpi.INSTANCE.config.get_int(DOORPIWEB_SECTION, "port", 50371)
+    ip = doorpi.INSTANCE.config["web.ip"]
+    port = doorpi.INSTANCE.config["web.port"]
 
     doorpiweb_object = None
 
@@ -35,57 +35,7 @@ def load_webserver():
 
 
 def check_config(config):
-    errors = []
-    warnings = []
-    infos = []
-
-    groups_with_write_permissions = config.get_keys("WritePermission")
-    groups_with_read_permissions = config.get_keys("ReadPermission")
-    groups = config.get_keys("Group")
-    users = config.get_keys("User")
-
-    if len(groups) == 0:
-        errors.append("no groups in configfile!")
-
-    if len(groups_with_write_permissions) == 0:
-        errors.append("no WritePermission found")
-
-    for group in groups_with_write_permissions:
-        if group not in groups:
-            warnings.append("group %s doesn't exist but is assigned to WritePermission" % group)
-
-    if len(groups_with_read_permissions) == 0:
-        warnings.append("no ReadPermission found")
-
-    for group in groups_with_read_permissions:
-        if group not in groups:
-            warnings.append("group %s doesn't exist but is assigned to ReadPermission" % group)
-
-    for group in groups:
-        users_in_group = config.get_list("Group", group)
-        for user_in_group in users_in_group:
-            if user_in_group not in users:
-                warnings.append("user %s is assigned to group %s but doesn't exist as user"
-                                % (user_in_group, group))
-
-    config_section = config.get_sections()
-
-    for group in groups_with_write_permissions:
-        for perm in ["WritePermission", "ReadPermission"]:
-            modules = config.get_list(perm, group)
-            for module in modules:
-                if CONF_AREA.format(area=module) not in config_section:
-                    warnings.append("module %s doesn't exist but is assigned to group %s in %s"
-                                    % (module, group, perm))
-
-    for info in infos:
-        LOGGER.info(info)
-    for warning in warnings:
-        LOGGER.error(warning)
-    for error in errors:
-        LOGGER.error(error)
-
-    return {"infos": infos, "warnings": warnings, "errors": errors}
+    return {"infos": [], "warnings": [], "errors": []}
 
 
 class DoorPiWeb(ThreadingMixIn, HTTPServer):
@@ -133,11 +83,9 @@ class DoorPiWeb(ThreadingMixIn, HTTPServer):
         eh.register_event("OnWebServerStop", __name__)
 
         conf = doorpi.INSTANCE.config
-        self.www = os.path.realpath(conf.get_string_parsed(
-            DOORPIWEB_SECTION, "www", "!BASEPATH!/../DoorPiWeb"))
-        self.indexfile = conf.get_string_parsed(DOORPIWEB_SECTION, "indexfile", "index.html")
-        self.area_public_name = conf.get_string_parsed(DOORPIWEB_SECTION, "public", "AREA_public")
-        check_config(self.config)
+        self.www = conf["web.root"]
+        self.indexfile = "index.html"
+        self.area_public_name = "public"
         LOGGER.info("Serving files from %s", self.www)
 
         eh.register_action("OnShutdown", CallbackAction(self.init_shutdown))

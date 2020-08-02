@@ -58,8 +58,6 @@ import time
 
 import serial  # pylint: disable=import-error
 
-import doorpi
-from . import SECTION_TPL
 from .abc import AbstractKeyboard
 
 LOGGER = logging.getLogger(__name__)
@@ -71,17 +69,14 @@ class SeriallyConnectedKeyboard(AbstractKeyboard):
         super().__init__(name, events=events)
         self.last_key_time = 0
 
-        conf = doorpi.INSTANCE.config
-        section_name = SECTION_TPL.format(name=name)
+        port = self.config["port"]
+        baudrate = self.config["baudrate"]
 
-        port = conf.get_string(section_name, "port", "")
-        baudrate = conf.get_int(section_name, "baudrate", 9600)
-
-        self._input_stop_flag = conf.get_string(section_name, "input_stop_flag", r"\n") \
-                                    .replace(r"\n", "\n").encode("utf-8")
-        self._input_max_size = conf.get_int(section_name, "input_max_size", 255)
-        self._output_stop_flag = conf.get_string(section_name, "output_stop_flag", r"\n") \
-                                     .replace(r"\n", "\n").encode("utf-8")
+        self._input_max_size = self.config["input_buffer_size"]
+        self._input_stop_flag = (
+            self.config["input_stop_flag"].encode("utf-8"))
+        self._output_stop_flag = (
+            self.config["output_stop_flag"].encode("utf-8"))
 
         if not port: raise ValueError(f"{self.name}: port must not be empty")
         if baudrate <= 0: raise ValueError(f"{self.name}: baudrate must be greater than 0")

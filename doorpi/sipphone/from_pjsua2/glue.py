@@ -42,7 +42,7 @@ class Pjsua2(AbstractSIPPhone):
             eh.register_event(ev, EVENT_SOURCE)
 
         # register DTMF events, fired by CallCallback
-        for dtmf in doorpi.INSTANCE.config.get_keys("DTMF"):
+        for dtmf in doorpi.INSTANCE.config.view("sipphone.dtmf"):
             eh.register_event(f"OnDTMF_{dtmf}", EVENT_SOURCE)
 
         self.__waiting_calls = []  # outgoing calls that are not yet connected
@@ -115,13 +115,11 @@ class Pjsua2(AbstractSIPPhone):
             return False
 
         conf = doorpi.INSTANCE.config
-        section = "SIP-Admin"
-        for admin_number in conf.get_keys(section):
+        for admin_number in conf["sipphone.admins"]:
             if admin_number == "*":
                 LOGGER.trace("Found '*' in config: everything is an admin number")
                 return True
-            if canonical_uri == self.canonicalize_uri(admin_number) \
-                    and conf.get_string(section, admin_number) == "active":
+            if canonical_uri == self.canonicalize_uri(admin_number):
                 LOGGER.trace("%s is admin number %s", uri, admin_number)
                 return True
         LOGGER.trace("%s is not an admin number", uri)

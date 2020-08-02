@@ -1,3 +1,4 @@
+import itertools
 import logging
 import time
 
@@ -11,10 +12,6 @@ CONF_AREA_PREFIX = "AREA_"
 class SessionHandler:
 
     _Sessions = {}
-
-    @property
-    def config(self):
-        return doorpi.INSTANCE.config
 
     @property
     def session_ids(self):
@@ -45,19 +42,16 @@ class SessionHandler:
         return session_id in self._Sessions
 
     def build_security_object(self, username, password, remote_client=""):
-        groups_with_write_permissions = self.config.get_keys("WritePermission")
-        groups_with_read_permissions = self.config.get_keys("ReadPermission")
-        groups = self.config.get_keys("Group")
-        users = self.config.get_keys("User")
+        conf = doorpi.INSTANCE.config.view("web")
 
-        if username not in users:
+        try:
+            real_password = conf["users", username]
+        except KeyError:
             doorpi.INSTANCE.event_handler("WebServerAuthUnknownUser", __name__, {
                 "username": username,
                 "remote_client": remote_client
             })
             return None
-
-        real_password = self.config.get_string("User", username)
         if real_password != password:
             doorpi.INSTANCE.event_handler("WebServerAuthWrongPassword", __name__, {
                 "username": username,
@@ -75,28 +69,24 @@ class SessionHandler:
             groups=[]
         )
 
-        for group in groups:
-            users_in_group = self.config.get_list("Group", group)
-            if username in users_in_group: web_session["groups"].append(group)
+        web_session["groups"] = {
+            group for group, users in conf.view("groups").items()
+            if username in users}
+        read_areas = {
+            area for area, groups in conf.view("readaccess").items()
+            if web_session["groups"] & set(groups)}
+        write_areas = (
+            {area for area, groups in conf.view("writeaccess").items()
+             if web_session["groups"] & set(groups)}
+            - read_areas)
 
-        for group in groups_with_read_permissions:
-            if group in web_session["groups"]:
-                modules = self.config.get_list("ReadPermission", group)
-                for modul in modules:
-                    web_session["readpermissions"].extend(
-                        self.config.get_keys(CONF_AREA_PREFIX + modul))
-
-        for group in groups_with_write_permissions:
-            if group in web_session["groups"]:
-                modules = self.config.get_list("WritePermission", group)
-                for modul in modules:
-                    web_session["writepermissions"].extend(
-                        self.config.get_keys(CONF_AREA_PREFIX + modul))
-                    web_session["readpermissions"].extend(
-                        self.config.get_keys(CONF_AREA_PREFIX + modul))
-
-        web_session["readpermissions"].sort()
-        web_session["writepermissions"].sort()
+        web_session["readpermissions"] = frozenset(
+            itertools.chain.from_iterable(
+                conf["areas", area] for area in read_areas))
+        web_session["writepermissions"] = frozenset(
+            itertools.chain.from_iterable(
+                conf["areas", area] for area in write_areas))
+        web_session["readpermissions"] |= web_session["writepermissions"]
 
         doorpi.INSTANCE.event_handler("WebServerCreateNewSession", __name__, {
             "session": web_session

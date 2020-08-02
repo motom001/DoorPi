@@ -93,7 +93,6 @@ import time
 import nfc  # pylint: disable=import-error
 
 import doorpi
-from . import SECTION_TPL
 from .abc import AbstractKeyboard
 
 LOGGER = logging.getLogger(__name__)
@@ -105,12 +104,8 @@ class PN532Keyboard(AbstractKeyboard):
         super().__init__(name, events=("OnKeyPressed",))
         doorpi.INSTANCE.event_handler.register_event("OnTagUnknown", self._event_source)
 
-        conf = doorpi.INSTANCE.config
-        section_name = SECTION_TPL.format(name=name)
-
-        port = conf.get_string(section_name, "port")
-        port = re.sub(r"^/dev/tty", "", port)
-        self.__device = f"tty:{port}:pn532"
+        self.__device = "tty:{}:pn532".format(
+            re.sub(r"^/dev/tty", "", self.config["port"]))
         self.__frontend = nfc.ContactlessFrontend(self.__device)
 
         self.__exception = None

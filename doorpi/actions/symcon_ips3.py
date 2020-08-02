@@ -29,11 +29,11 @@ class IPSConnector:
     @property
     def config(self):
         """Retrieves the IPS config from DoorPi."""
-        dcfg = doorpi.INSTANCE.config
+        dcfg = doorpi.INSTANCE.config.view("ip_symcon")
         config = {
-            "webservice_url": dcfg.get_string("IP-Symcon", "server"),
-            "username": dcfg.get_string("IP-Symcon", "username"),
-            "password": dcfg.get_string("IP-Symcon", "password"),
+            "webservice_url": dcfg["server"],
+            "username": dcfg["username"],
+            "password": dcfg["password"],
         }
         return config
 

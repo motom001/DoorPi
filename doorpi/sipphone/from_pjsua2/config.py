@@ -4,37 +4,34 @@ import logging
 import pjsua2 as pj
 
 import doorpi
-from doorpi.sipphone import DEFAULT_MEDIA_DIR, SIPPHONE_SECTION
 
 LOGGER = logging.getLogger(__name__)
 
 
 def call_timeout() -> int:
     """Fetches the configured call timeout duration."""
-    return doorpi.INSTANCE.config.get_int(SIPPHONE_SECTION, "call_timeout", 15)
+    return doorpi.INSTANCE.config["sipphone.ringtime"]
 
 
 def max_call_time() -> int:
     """Fetches the configured maximum call time."""
-    return doorpi.INSTANCE.config.get_int(SIPPHONE_SECTION, "max_call_time", 120)
+    return doorpi.INSTANCE.config["sipphone.calltime"]
 
 
 def sipphone_server() -> str:
     """Fetches the SIP server from the configuration."""
-    return doorpi.INSTANCE.config.get_string(SIPPHONE_SECTION, "sipserver_server")
+    return doorpi.INSTANCE.config["sipphone.server.server"]
 
 
 def account_config() -> pj.AccountConfig:
     """Creates the PJSUA2 AccountConfig object."""
     LOGGER.trace("Creating account config")
     acfg = pj.AccountConfig()
-    identity = doorpi.INSTANCE.config.get_string(SIPPHONE_SECTION, "identity", "DoorPi")
+    identity = doorpi.INSTANCE.config["sipphone.server.identity"]
     sip_server = sipphone_server()
-    sip_user = doorpi.INSTANCE.config.get_string(SIPPHONE_SECTION, "sipserver_username")
-    sip_pass = doorpi.INSTANCE.config.get_string(SIPPHONE_SECTION, "sipserver_password")
-    sip_realm = doorpi.INSTANCE.config.get_string(SIPPHONE_SECTION, "sipserver_realm", sip_server)
-    if not sip_user: raise ValueError(f"No username given in [{SIPPHONE_SECTION}]")
-    if not sip_server: raise ValueError(f"No server given in [{SIPPHONE_SECTION}]")
+    sip_user = doorpi.INSTANCE.config["sipphone.server.username"]
+    sip_pass = doorpi.INSTANCE.config["sipphone.server.password"]
+    sip_realm = doorpi.INSTANCE.config["sipphone.server.realm"]
 
     if identity:
         identity = identity.replace("\\", "\\\\").replace("\"", "\\\"")
@@ -60,9 +57,8 @@ def account_config() -> pj.AccountConfig:
 def dialtone_config() -> dict:
     """Collects the dial tone related settings from the configuration."""
     return {
-        "filename": doorpi.INSTANCE.config.get_path(SIPPHONE_SECTION, "dialtone",
-                                                    f"{DEFAULT_MEDIA_DIR}/dialtone.wav"),
-        "loudness": doorpi.INSTANCE.config.get_float(SIPPHONE_SECTION, "dialtone_loudness", 1.0)
+        "filename": doorpi.INSTANCE.config["sipphone.dialtone.file"],
+        "loudness": doorpi.INSTANCE.config["sipphone.dialtone.loudness"],
     }
 
 
@@ -70,8 +66,8 @@ def endpoint_config() -> pj.EpConfig:
     """Creates the PJSUA2 Endpoint configuration object."""
     LOGGER.trace("Creating endpoint config")
     ep_cfg = pj.EpConfig()
-    ep_cfg.uaConfig.maxCalls = doorpi.INSTANCE.config.get_int(SIPPHONE_SECTION, "max_calls", 8)
-    stun_server = doorpi.INSTANCE.config.get_string(SIPPHONE_SECTION, "stun_server", "")
+    ep_cfg.uaConfig.maxCalls = doorpi.INSTANCE.config["sipphone.max_calls"]
+    stun_server = doorpi.INSTANCE.config["sipphone.stunserver"]
     if stun_server:
         ep_cfg.uaConfig.stunServer.append(stun_server)
     # Ensure PJSIP callbacks will be handled by our python worker thread
@@ -96,9 +92,12 @@ def endpoint_config() -> pj.EpConfig:
 def recorder_config() -> dict:
     """Collects the call recorder settings from the configuration."""
     return {
-        "path": doorpi.INSTANCE.config.get_path(SIPPHONE_SECTION, "record_path"),
-        "early": doorpi.INSTANCE.config.get_bool(SIPPHONE_SECTION, "record_while_dialing", True),
-        "keep": doorpi.INSTANCE.config.get_int(SIPPHONE_SECTION, "record_keep", 10),
+        "path": (
+            doorpi.INSTANCE.config["sipphone.recording.path"]
+            if doorpi.INSTANCE.config["sipphone.recording.enabled"]
+            else None),
+        "early": doorpi.INSTANCE.config["sipphone.recording.dial"],
+        "keep": doorpi.INSTANCE.config["sipphone.recording.keep"],
     }
 
 
@@ -106,7 +105,7 @@ def transport_config() -> pj.TransportConfig:
     """Creates the PJSUA2 TransportConfig object."""
     LOGGER.trace("Creating transport config")
     t_cfg = pj.TransportConfig()
-    t_cfg.port = doorpi.INSTANCE.config.get_int(SIPPHONE_SECTION, "local_port", 0)
+    t_cfg.port = doorpi.INSTANCE.config["sipphone.server.localport"]
     return t_cfg
 
 
@@ -135,8 +134,8 @@ def setup_audio_devices(adm: pj.AudDevManager) -> None:
         raise RuntimeError("No audio devices found by PJSUA2")
 
     # Setup configured capture / playback devices
-    capture_device = doorpi.INSTANCE.config.get_string(SIPPHONE_SECTION, "capture_device")
-    playback_device = doorpi.INSTANCE.config.get_string(SIPPHONE_SECTION, "playback_device")
+    capture_device = doorpi.INSTANCE.config["sipphone.capture.device"]
+    playback_device = doorpi.INSTANCE.config["sipphone.playback.device"]
     audio_devices = adm.enumDev2()
     if capture_device == "" or playback_device == "":
         LOGGER.critical("No audio devices configured! Detected audio devices:")
@@ -167,33 +166,36 @@ def setup_audio_devices(adm: pj.AudDevManager) -> None:
 
 def setup_audio_volume(adm: pj.AudDevManager) -> None:
     """Configures the volume settings on the used audio devices."""
-    capture_volume = doorpi.INSTANCE.config.get_int(SIPPHONE_SECTION, "capture_volume", 100)
-    playback_volume = doorpi.INSTANCE.config.get_int(SIPPHONE_SECTION, "playback_volume", 100)
+    capture_volume = doorpi.INSTANCE.config["sipphone.capture.volume"]
+    playback_volume = doorpi.INSTANCE.config["sipphone.playback.volume"]
     if playback_volume >= 0:
         LOGGER.trace("Setting playback volume to %d", playback_volume)
         try:
             adm.setOutputVolume(playback_volume, True)
         except pj.Error as err:
-            LOGGER.error("Unable to set playback volume "
-                         "(Set playback_volume to -1 to silence this error)\n%s", err.info())
+            LOGGER.error(
+                "Unable to set playback volume "
+                "(Set sipphone.playback.volume to -1 to silence this)\n%s",
+                err.info())
     if capture_volume >= 0:
         LOGGER.trace("Setting capture volume to %d", playback_volume)
         try:
             adm.setInputVolume(capture_volume, True)
         except pj.Error as err:
-            LOGGER.error("Unable to set capture volume "
-                         "(Set capture_volume to -1 to silence this error)\n%s", err.info())
+            LOGGER.error(
+                "Unable to set capture volume "
+                "(Set sipphone.capture.volume to -1 to silence this)\n%s",
+                err.info())
 
 
 def setup_audio_codecs(endpoint: pj.Endpoint) -> None:
     """Configures the enabled codecs in PJSUA2."""
     allcodecs = endpoint.codecEnum2()
     LOGGER.debug("Supported audio codecs: %s", ", ".join([c.codecId for c in allcodecs]))
-    confcodecs = doorpi.INSTANCE.config.get_string(SIPPHONE_SECTION, "audio_codecs",
-                                                   "opus, PCMA, PCMU")
+    confcodecs = doorpi.INSTANCE.config["sipphone.codecs"]
     if not confcodecs: return
 
-    confcodecs = [c.strip().lower() for c in confcodecs.split(",")]
+    confcodecs = [c.strip().lower() for c in confcodecs]
     for codec in allcodecs:
         # In PJSIP, codecs follow the format "codec/samplerate/num".
         # Since the same codec can exist multiple times with
@@ -217,8 +219,8 @@ def setup_audio_codecs(endpoint: pj.Endpoint) -> None:
 
 def setup_audio_echo_cancellation(adm: pj.AudDevManager) -> None:
     """Sets up echo cancellation in PJSUA2."""
-    if doorpi.INSTANCE.config.get_bool(SIPPHONE_SECTION, "echo_cancellation_enabled", False):
-        tail = doorpi.INSTANCE.config.get_int(SIPPHONE_SECTION, "echo_cancellation_tail", 250)
+    if doorpi.INSTANCE.config["sipphone.echo_cancellation.enabled"]:
+        tail = doorpi.INSTANCE.config["sipphone.echo_cancellation.tail"]
         LOGGER.trace("Setting echo cancellation tail length to %dms", tail)
         adm.setEcOptions(tail, 0)
     else:

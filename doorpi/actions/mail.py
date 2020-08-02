@@ -5,6 +5,8 @@ import logging
 import smtplib
 
 import doorpi
+from doorpi import metadata
+from doorpi.actions import snapshot
 from . import action
 
 LOGGER = logging.getLogger(__name__)
@@ -20,21 +22,24 @@ class MailAction:
         self.__subject = str(subject)
         self.__snap = str(snapshot).lower().strip() in ["true", "yes", "on", "1"]
 
-        cfg = doorpi.INSTANCE.config
-        self.__host = cfg.get_string("SMTP", "server")
-        self.__port = cfg.get_int("SMTP", "port", 0)
+        cfg = doorpi.INSTANCE.config.view("mail")
+        self.__host = cfg["server"]
+        self.__port = cfg["port"]
 
-        need_login = cfg.get_bool("SMTP", "need_login", True)
+        need_login = cfg["need_login"]
         if need_login:
-            self.__user = cfg.get_string("SMTP", "username")
-            self.__pass = cfg.get_string("SMTP", "password")
+            self.__user = cfg["username"]
+            self.__pass = cfg["password"]
         else:
             self.__user = self.__pass = None
 
-        self.__from = cfg.get_string("SMTP", "from", f"\"DoorPi\" <{self.__user}@{self.__host}>")
-        self.__ssl = cfg.get_bool("SMTP", "use_ssl", False)
-        self.__starttls = cfg.get_bool("SMTP", "use_tls", True)
-        self.__signature = cfg.get_string("SMTP", "signature", "!EPILOG!")  # not parsed yet
+        try:
+            self.__from = cfg["sender"]
+        except KeyError:
+            self.__from = None
+        self.__ssl = cfg["ssl"]
+        self.__starttls = cfg["tls"]
+        self.__signature = cfg["signature"]
 
         if text.startswith("/"):
             # Read actual text from file
@@ -58,7 +63,8 @@ class MailAction:
 
     def __call__(self, event_id, extra):
         msg = email.message.EmailMessage()
-        msg["From"] = self.__from
+        msg["From"] = self.__from or '"{}" <{}@{}>'.format(
+            metadata.distribution.metadata["Name"], self.__user, self.__host)
         msg["To"] = self.__to
         msg["Subject"] = doorpi.INSTANCE.parse_string(self.__subject)
 
@@ -67,15 +73,16 @@ class MailAction:
         msg.set_content(doorpi.INSTANCE.parse_string(text))
 
         if self.__snap:
-            snapfile = doorpi.INSTANCE.config.get_path("DoorPi", "last_snapshot")
-            if snapfile:
-                try:
-                    snap_data = snapfile.read_bytes()
-                    msg.add_attachment(snap_data, "application", "octet-stream", cte="base64",
-                                       disposition="attachment",
-                                       filename=snapfile.name)
-                except Exception:  # pylint: disable=broad-except
-                    LOGGER.exception("[%s] Cannot attach snapshot to email", event_id)
+            try:
+                snapfile = snapshot.SnapshotAction.list_all()[-1]
+                snap_data = snapfile.read_bytes()
+                msg.add_attachment(snap_data, "application", "octet-stream", cte="base64",
+                                   disposition="attachment",
+                                   filename=snapfile.name)
+            except IndexError:
+                LOGGER.error("[%s] No snapshots to attach to email", event_id)
+            except Exception:  # pylint: disable=broad-except
+                LOGGER.exception("[%s] Cannot attach snapshot to email", event_id)
 
         with smtplib.SMTP_SSL(self.__host, self.__port) if self.__ssl \
                 else smtplib.SMTP(self.__host, self.__port) as smtp:

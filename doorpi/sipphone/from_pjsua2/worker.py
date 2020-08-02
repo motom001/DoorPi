@@ -6,7 +6,6 @@ import pjsua2 as pj
 
 import doorpi
 from doorpi.actions import CheckAction
-from doorpi.sipphone import SIPPHONE_SECTION
 
 from . import EVENT_SOURCE, config, fire_event
 from .callbacks import AccountCallback, CallCallback
@@ -23,9 +22,7 @@ class Worker():
         self.__ep = None
         self.__account = None
 
-        conf = doorpi.INSTANCE.config
-        self.__call_timeout = conf.get_int(SIPPHONE_SECTION, "call_timeout", 15)
-        self.__max_call_time = conf.get_int(SIPPHONE_SECTION, "max_call_time", 120)
+        self.__config = doorpi.INSTANCE.config.view("sipphone")
 
         self.hangup = False
 
@@ -113,11 +110,12 @@ class Worker():
             call = self.__phone.current_call
             if call is not None:
                 ci = call.getInfo()
-                if self.__max_call_time > 0 \
-                        and ci.state == pj.PJSIP_INV_STATE_CONFIRMED \
-                        and ci.connectDuration.sec >= self.__max_call_time:
+                calltime = self.__config["calltime"]
+                if (calltime > 0
+                        and ci.state == pj.PJSIP_INV_STATE_CONFIRMED
+                        and ci.connectDuration.sec >= calltime):
                     LOGGER.info("Hanging up call to %s after %d seconds",
-                                repr(ci.remoteUri), self.__max_call_time)
+                                repr(ci.remoteUri), self.__config["calltime"])
                     fire_event("OnCallTimeExceeded")
                     prm = pj.CallOpParam()
                     call.hangup(prm)
@@ -128,9 +126,9 @@ class Worker():
                 for call in self.__phone._Pjsua2__ringing_calls:
                     try:
                         ci = call.getInfo()
-                        if ci.totalDuration.sec >= self.__call_timeout:
+                        if ci.totalDuration.sec >= self.__config["ringtime"]:
                             LOGGER.info("Call to %s unanswered after %d seconds, giving up",
-                                        repr(ci.remoteUri), self.__call_timeout)
+                                        repr(ci.remoteUri), self.__config["ringtime"])
                             call.hangup(prm)
                             self.__phone._Pjsua2__ringing_calls.remove(call)
                             synthetic_disconnect = True

@@ -150,14 +150,26 @@ class FilesystemKeyboard(AbstractKeyboard, watchdog.events.FileSystemEventHandle
         return False
 
     def __read_file(self, pin):
-        val = pin.read_text().strip().split()[0]
-        if not val.strip():
+        try:
+            val = pin.read_text()
+        except OSError as err:
+            LOGGER.warning(
+                "%s: Cannot read from pin %s: %s: %s",
+                self.name, pin, type(err).__name__, err)
             return None
-        return self._normalize(val)
+        val = val.strip().split()
+        if not val or not val[0]:
+            return None
+        return self._normalize(val[0])
 
     def __write_file(self, pin, value=False):
         value = self._normalize(value)
-        pin.write_text("1\n" if value else "0\n")
+        try:
+            pin.write_text("1\n" if value else "0\n")
+        except OSError as err:
+            LOGGER.error(
+                "%s: Cannot write to pin %s: %s: %s",
+                self.name, pin, type(err).__name__, err)
         return True
 
     def on_modified(self, event):

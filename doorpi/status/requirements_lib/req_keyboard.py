@@ -85,24 +85,6 @@ Ergebnis des Beispiels ist, dass:
 
 Wobei ``!BASEPATH!`` für das Home-Verzeichnis von DoorPi steht.
 ''',
-    events=[
-        dict(name='OnKeyPressed', description='Es wurde eine Taste als betätigt gemeldet. Das kann je nach Keyboard OnKeyUp oder OnKeyDown sein.'),
-        dict(name='OnKeyUp', description='Eine Taste wurde wieder losgelassen.'),
-        dict(name='OnKeyDown', description='Eine Taste wurde gedrückt, aber noch nicht wieder los gelassen.'),
-        dict(name='OnKeyPressed_[PinName]', description='Gleich wie OnKeyPressed aber beinhaltet außerdem den Pin-Namen um gezielter mit Actions reagieren zu können.'),
-        dict(name='OnKeyUp_[PinName]', description='Gleich wie OnKeyUp aber beinhaltet außerdem den Pin-Namen um gezielter mit Actions reagieren zu können.'),
-        dict(name='OnKeyDown_[PinName]', description='Gleich wie OnKeyDown aber beinhaltet außerdem den Pin-Namen um gezielter mit Actions reagieren zu können.'),
-        dict(name='OnKeyPressed_[KeyboardName]_[PinName]', description='Gleich wie OnKeyPressed aber beinhaltet außerdem den Keyboard-Namen und den Pin-Namen um ganz exakt mit Actions reagieren zu können.'),
-        dict(name='OnKeyUp_[KeyboardName]_[PinName]', description='Gleich wie OnKeyUp aber beinhaltet außerdem den Keyboard-Namen und den Pin-Namen um ganz exakt mit Actions reagieren zu können.'),
-        dict(name='OnKeyDown_[KeyboardName]_[PinName]', description='Gleich wie OnKeyDown aber beinhaltet außerdem den Keyboard-Namen und den Pin-Namen um ganz exakt mit Actions reagieren zu können.')
-    ],
-    configuration=[
-        dict(section='keyboards', key='*', type='string', default='dummy', mandatory=False, description='In der Sektion werden die genutzten Keyboards mit Namen und Typ im Stil ``[KeyboardName]=[KeyboardTyp]`` aufgelistet. Die komplette Sektion wird ausgelesen.'),
-        dict(section='[KeyboardName]', key='bouncetime', type='float', default='2000', mandatory=False, description='bouncetime ist ein softwareseitiger Prellschutz innerhalb dessen Zeit in ms alle weiteren Ereignisse ignoriert werden.'),
-        dict(section='[KeyboardName]', key='polarity', type='integer', default='0', mandatory=False, description='polarity verdreht die Logik der Eingänge, so dass HIGH-Pegel=LOW-Pegel und umgedreht. Hat aber nur auf die Eingänge Auswirkung!'),
-        dict(section='[KeyboardName]_InputPins', key='*', type='string', default='', mandatory=False, description='Auflistung der Eingabeschnittstellen im Format ``[PinName]=[Action]``. Bitte dazu die möglichen Actions und deren Syntax beachten!'),
-        dict(section='[KeyboardName]_OutputPins', key='*', type='string', default='', mandatory=False, description='Auflistung der Eingabeschnittstellen im Format ``[PinName]=[SprechenderPinName]`` - z.B. gibt es den GPIO Ausgang 27 für den Türöffner, so wäre die Syntax ``27=Tueroeffner``. Umlaute und Sonderzeichen sollten vermieden werden!')
-    ],
     libraries={
         'pifacedigitalio': dict(
             text_warning=\
@@ -214,11 +196,6 @@ Hier die Beschreibung aus der ``from_rdm6300.py``, die `msmolny <https://github.
             text_installation='Das Modul ist im Paket ``python3-serial`` (Raspbian) bzw. ``python-pyserial`` (Arch Linux ARM) enthalten.',
             auto_install=False,
             text_test='Der Status kann gestestet werden, indem im Python-Interpreter ``import serial`` eingeben wird.',
-            configuration=[
-                dict(section='[KeyboardName]', key='port', type='string', default='/dev/ttyAMA0', mandatory=False, description=''),
-                dict(section='[KeyboardName]', key='baudrate', type='integer', default='9600', mandatory=False, description=''),
-                dict(section='[KeyboardName]', key='dismisstime', type='integer', default='5', mandatory=False, description=''),
-            ],
             text_links={
                 'serial @ pypi': 'https://pypi.python.org/pypi/serial'
             }
@@ -233,11 +210,6 @@ Dabei kann eingestellt werden, in welchem Ordner die Dateien liegen, die jeweils
             text_installation='Das Modul ist im Paket ``python3-watchdog`` (Raspbian) bzw. ``python-watchdog`` (Arch Linux ARM) enthalten.',
             auto_install=False,
             text_test='Der Status kann gestestet werden, indem im Python-Interpreter ``import watchdog`` eingeben wird.',
-            configuration=[
-                dict(section='[KeyboardName]', key='base_path_input', type='string', default='', mandatory=False, description='Der Pfad in dem die Eingangspins angelegt werden'),
-                dict(section='[KeyboardName]', key='base_path_output', type='string', default='', mandatory=False, description='Der Pfad in dem die Eingangspins angelegt werden'),
-                dict(section='[KeyboardName]', key='reset_input', type='boolean', default='True', mandatory=False, description='Gibt an ob die Dateien nach Erkennung eines Events durch das Filesystem-Keyboard wieder zurück in den Ausgangszustand versetzt werden')
-            ],
             text_links={
                 'watchdog @ pypi': 'https://pypi.python.org/pypi/watchdog'
             }

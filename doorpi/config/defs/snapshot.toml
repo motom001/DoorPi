@@ -1,0 +1,19 @@
+[config.snapshots.directory]
+_description = "Where to store snapshots"
+_type = "path"
+_default = "snapshots"
+
+[config.snapshots.keep]
+_description = "Maximum number of snapshots to keep"
+_default = 10
+_min = 1
+
+[config.snapshots.width]
+_description = "Desired horizontal snapshot resolution"
+_default = 1280
+_min = 1
+
+[config.snapshots.height]
+_description = "Desired vertical snapshot resolution"
+_default = 720
+_min = 1

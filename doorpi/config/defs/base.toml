@@ -1,0 +1,103 @@
+[events]
+BeforeStartup = "Fired synchronously before DoorPi starts"
+OnStartup = "Fired synchronously when DoorPi starts"
+AfterStartup = "Fired synchronously after DoorPi started"
+
+[config.base_path]
+_description = """Base path for DoorPi
+
+Relative paths in the configuration will be interpreted from here"""
+_type = "path"
+_default = "~/.local/share/doorpi"
+
+[config.eventlog]
+_description = "Path to the event log database"
+_type = "path"
+_default = "eventlog.db"
+
+[config.events."*"]
+_type = "list"
+_membertype = "string"
+_description = """Actions to execute when event {0} fires
+
+Action definitions take the form::
+
+    type:param1,param2,...
+
+The following actions are available:
+
+*   ``call:address``
+
+    Call the specified SIP ``address``.
+
+    .. note::
+
+        Following actions will be executed immediately and will not wait
+        for the call to connect, time out or finish.
+
+    Example: ``call:**613#614``
+*   ``callf:file``
+
+    Call the SIP address specified in ``file``.  The file will be read
+    each time the event is fired, contrary to ``call`` which has a
+    static address.  See the note about ``call``.
+*   ``exec:command``
+
+    Execute the ``command`` with ``/bin/sh``.
+*   ``hangup``
+
+    Hang up all active (connected/ringing) SIP calls.
+*   ``http_request:url``
+
+    Perform an HTTP GET request to ``url``.
+*   ``log:message``
+
+    Print the formatted ``message`` into the log (with "info" log level)
+*   ``mail:receiver,subject,message,snapshot``
+
+    Send a mail to ``receiver`` with ``subject`` and the formatted
+    ``message`` text.  If ``snapshot`` is true, attach the latest
+    snapshot to the mail.
+*   ``out:pin,value,stopvalue,holdtime,interrupt``
+
+    Set output pin ``pin`` to ``value``.
+    After ``holdtime`` seconds elapsed, set it to ``stopvalue``.
+    If input pin ``interrupt`` is pressed, skip the timer.
+*   ``sleep:time``
+
+    Wait ``time`` seconds before continuing with the next action.
+*   ``snap_url:url``
+
+    Download the ``url`` and save it as snapshot.
+*   ``snap_picam``
+
+    Take a snapshot with the Raspberry Pi Camera.
+*   ``statusfile:file,content``
+
+    Write the formatted ``content`` into ``file``.
+*   ``symcon_ips3:action,key[,value]
+
+    Perform an action with the Symcon IPS 3.
+
+    *   ``set``: Set ``key`` to the formatted ``value``
+    *   ``call``: Retrieve the value of ``key`` and call it as SIP
+        address.  See the note about the ``call`` action.
+
+An example event configuration might look like this::
+
+    [events]
+    OnTimeHourUnevenNumber = [
+        # Switch on the lights
+        "out:lights,1",
+        # Take a snapshot of the person outside.  It may be shown e.g.
+        # on a wall-mounted display inside the house or sent via mail.
+        "snapshot",
+        # Switch the lights off again
+        "out:lights,0",
+    ]
+    OnCallTimeout = [
+        # Send a mail with the snapshot
+        ""\"mail:me@home.com,The door bell rang,\\
+            The door bell rang! But nobody answered.,\\
+            True""\"
+    ]"""

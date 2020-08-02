@@ -1,0 +1,69 @@
+[events]
+OnWebServerStart = "The web server has started"
+OnWebServerStop = "The web server has stopped"
+WebServerAuthUnknownUser = "A user tried to log in with a bad username"
+WebServerAuthWrongPassword = "A user tried to log in with a bad password"
+WebServerCreateNewSession = "A user has logged in"
+OnWebServerRequest = "A request has been made (GET or POST)"
+OnWebServerRequestGet = "A GET request has been made"
+OnWebServerRequestPost = "A POST request has been made"
+OnWebServerVirtualResource = "A virtual resource was requested"
+OnWebServerRealResource = "A real resource (i.e. file) was requested"
+
+[config.web.ip]
+_description = """Bind to this IP address
+
+The default of ``0.0.0.0`` binds to all addresses.
+
+.. note::
+
+    This setting is ignored when using systemd, use
+    ``systemctl edit --full doorpi.socket`` to change it.
+    See ``systemd.socket(5)`` for more information."""
+_default = "0.0.0.0"
+
+[config.web.port]
+_description = """Listen on this port
+
+.. note::
+
+    This setting is ignored when using systemd, use
+    ``systemctl edit --full doorpi.socket`` to change it.
+    See ``systemd.socket(5)`` for more information."""
+_default = 50317
+_min = 1
+_max = 65535
+
+[config.web.root]
+_description = "Root directory of the static web resources"
+_type = "path"
+_default = "../DoorPiWeb"
+
+[config.web.areas.public]
+_description = "Regular expressions matching URLs in the public area"
+_type = "list"
+_membertype = "string"
+_default = ".*"
+
+[config.web.areas."*"]
+_description = "Regular expressions matching URLs in area {0!r}"
+_type = "string"
+
+[config.web.users."*"]
+_description = "Password for {0!r}"
+_type = "password"
+
+[config.web.groups."*"]
+_description = "Members of group {0!r}"
+_type = "list"
+_membertype = "string"
+
+[config.web.readaccess."*"]
+_description = "Areas that group {0!r} has read access to"
+_type = "list"
+_membertype = "string"
+
+[config.web.writeaccess."*"]
+_description = "Areas that group {0!r} has read and write access to"
+_type = "list"
+_membertype = "string"

@@ -109,21 +109,21 @@ class DoorPiWebRequestHandler(BaseHTTPRequestHandler):
             result_object["message"] = control_config_get_value(**para)
         elif control_order == "config_value_set":
             # section, key, value, password
-            result_object['success'] = control_config_set_value(**para)
-            result_object['message'] = "config_value_set %s" % (
-                'success' if result_object['success'] else 'failed'
+            result_object["success"] = control_config_set_value(**para)
+            result_object["message"] = "config_value_set %s" % (
+                "success" if result_object["success"] else "failed"
             )
         elif control_order == "config_value_delete":
             # section and key
-            result_object['success'] = control_config_delete_key(**para)
-            result_object['message'] = "config_value_delete %s" % (
-                'success' if result_object['success'] else 'failed'
+            result_object["success"] = control_config_delete_key(**para)
+            result_object["message"] = "config_value_delete %s" % (
+                "success" if result_object["success"] else "failed"
             )
         elif control_order == "config_save":
             # configfile
-            result_object['success'] = control_config_save(**para)
-            result_object['message'] = "config_save %s" % (
-                'success' if result_object['success'] else 'failed'
+            result_object["success"] = control_config_save(**para)
+            result_object["message"] = "config_save %s" % (
+                "success" if result_object["success"] else "failed"
             )
 
         return result_object

@@ -1,0 +1,8 @@
+[config.ip_symcon.server]
+_type = "string"
+
+[config.ip_symcon.username]
+_type = "string"
+
+[config.ip_symcon.password]
+_type = "password"

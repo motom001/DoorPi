@@ -85,30 +85,6 @@ Beispiel::
     /login.html
     /favicon.ico
 ''',
-    events=[
-        dict(name='OnWebServerStart', description='Der Webserver ist gestartet. Somit stehen die Webservices und die Weboberfläche zur Verfügung. Standardmäßig wird Port 80 benutzt (Parameter ip und port)'),
-        dict(name='OnWebServerStop', description='Der Webserver soll gestoppt werden. Ab diesem Zeitpunkt werden keine neuen Anfragen bearbeitet.'),
-        dict(name='WebServerCreateNewSession', description='Es hat sich ein Nutzer angemeldet, der seit dem Start von DoorPi noch angemeldet war.'),
-        dict(name='WebServerAuthUnknownUser', description='Es wurde versucht sich mit einem Benutzer anzumelden, der nicht bekannt ist.'),
-        dict(name='WebServerAuthWrongPassword', description='Für einen existierenden Benutzer wurde ein falsches Passwort übermittelt.'),
-        dict(name='OnWebServerRequest', description='Es wurde eine Anfrage an den Webserver gestellt - dabei ist egal ob per GET oder POST'),
-        dict(name='OnWebServerRequestGet', description='Es wurde eine GET-Anfrage an den Webserver gestellt'),
-        dict(name='OnWebServerRequestPost', description='Es wurde eine POST-Anfrage an den Webserver gestellt'),
-        dict(name='OnWebServerVirtualResource', description='Es wurde eine Anfrage an den Webserver gestellt, die auf eine virtuelle Resource zeigt (z.B. Webservice erfordert JSON-String)'),
-        dict(name='OnWebServerRealResource', description='Es wurde eine Anfrage an den Webserver gestellt, die auf eine reale Resource zeigt (z.B. User ruft das Dashboard auf)'),
-    ],
-    configuration=[
-        dict(section=DOORPIWEB_SECTION, key='ip', type='string', default='', mandatory=False, description='IP-Adresse an die der Webserver gebunden werden soll (leer=alle)'),
-        dict(section=DOORPIWEB_SECTION, key='port', type='integer', default='80', mandatory=False, description='Der Port auf den der Webserver lauschen soll. Achtung - kann bei anderen installierten Webservern zu Kollisionen führen!'),
-        dict(section=DOORPIWEB_SECTION, key='www', type='string', default='!BASEPATH!/../DoorPiWeb', mandatory=False, description='Der Ort, an dem reale Ressourcen (HTML, CSS, JS) installiert wurden.'),
-        dict(section=DOORPIWEB_SECTION, key='indexfile', type='string', default='index.html', mandatory=False, description='[nicht eingebunden]'),
-        dict(section=DOORPIWEB_SECTION, key='public', type='string', default='AREA_public', mandatory=False, description='Der Name der Public Sektion mit allen öffentlich aufrufbaren Resourcen (z.B. JS- und CSS-Dateien fürs Dashbaord)'),
-        dict(section='User', key='*', type='string', default='', mandatory=False, description='Sektion, die alle Benutzer beinhaltet - in der Form [username]=[password]'),
-        dict(section='Group', key='*', type='string', default='', mandatory=False, description='Sektion die alle Gruppen und deren Mitglieder beinhaltet. Mehrere Nutzer werden durch ein Komma getrennt - in der Form [groupname]=[user1],[user2],...'),
-        dict(section='ReadPermission', key='*', type='string', default='', mandatory=False, description=''),
-        dict(section='WritePermission', key='*', type='string', default='', mandatory=False, description=''),
-        dict(section=CONF_AREA.format(area='*'), key='*', type='string', default='', mandatory=False, description='')
-    ],
     libraries={
         'http.server': dict(
             text_description='Das Python-Modul http.server ist mit der Klasse HTTPServer die Grundlage für jeden Webserver.',

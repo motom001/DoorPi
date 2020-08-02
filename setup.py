@@ -35,8 +35,6 @@ class InstallHook(install):
 setup(
     cmdclass={"install": InstallHook},
     data_files=[
-        # default config file
-        (f"{ETC}/doorpi", ["data/doorpi.ini"]),
         # init script and systemd service
         (f"{ETC}/init.d", ["data/doorpi.sh"]),
         ("lib/systemd/system", ["data/doorpi.service", "data/doorpi.socket"]),

@@ -33,9 +33,6 @@ Die ausgelösten Events werden in einer Datenbank (SQLite) gespeichert und könn
             text_installation='Eine Installation ist nicht nötig, da es sich hierbei um ein Python-Standard-Modul handelt.',
             auto_install=False,
             text_test='Der Status kann gestestet werden, indem im Python-Interpreter ``import sqlite3`` eingeben wird.',
-            configuration=[
-                dict(section='DoorPi', key='eventlog', type='string', default='!BASEPATH!/conf/eventlog.db', mandatory=False, description='Ablageort der SQLite Datenbank für den Event-Handler.')
-            ],
             text_links={
                 'docs.python.org': 'https://docs.python.org/2.7/library/sqlite3.html'
             }

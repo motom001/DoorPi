@@ -1,30 +1,19 @@
+import operator
+
+
 def get(doorpi_obj, name, value):
     del value
-    if not name: name = [""]
-
-    webserver = doorpi_obj.webserver
-
-    status = {}
-    for name_requested in name:
-        if name_requested in "config_status":
-            status["config_status"] = webserver.config_status
-
-        if name_requested in "session_ids":
-            status["session_ids"] = webserver.sessions.session_ids
-
-        if name_requested in "sessions":
-            status["sessions"] = webserver.sessions.sessions
-
-        if name_requested in "running":
-            status["running"] = bool(webserver and webserver.keep_running)
-
-        if name_requested in "server_name":
-            status["server_name"] = webserver.server_name
-
-        if name_requested in "server_port":
-            status["server_port"] = webserver.server_port
-
-    return status
+    status_getters = {
+        "config_status": operator.attrgetter("config_status"),
+        "session_ids": operator.attrgetter("sessions.session_ids"),
+        "sessions": operator.attrgetter("sessions.sessions"),
+        "running": lambda ws: bool(ws and ws.keep_running),
+        "server_name": operator.attrgetter("server_name"),
+        "server_port": operator.attrgetter("server_port"),
+    }
+    if not name:
+        name = status_getters.keys()
+    return {n: status_getters[n](doorpi_obj.webserver) for n in name}
 
 
 def is_active(doorpi_object):

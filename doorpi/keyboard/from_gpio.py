@@ -14,15 +14,15 @@ class GPIOKeyboard(AbstractKeyboard):
     def __init__(self, name):
         # pylint: disable=no-member  # Only available at runtime
         global INSTANTIATED
-        if INSTANTIATED: raise RuntimeError("Only one GPIO keyboard may be instantiated")
+        if INSTANTIATED:
+            raise RuntimeError("Only one GPIO keyboard may be instantiated")
         INSTANTIATED = True
 
         super().__init__(name)
 
         gpio.setwarnings(False)
 
-        gpio.setmode((gpio.BCM, gpio.BOARD)[
-            self.config["mode"] is keyboard.Mode.BOARD])
+        gpio.setmode((gpio.BOARD, gpio.BCM)[self.config["mode"].value - 1])
 
         pull = self.config["pull_up_down"]
         if pull is keyboard.PullUpDown.OFF:
@@ -32,12 +32,13 @@ class GPIOKeyboard(AbstractKeyboard):
         elif pull is keyboard.PullUpDown.DOWN:
             pull = gpio.PUD_DOWN
         else:
-            raise ValueError(f"{self.name}: Invalid pull_up_down value (must be OFF, UP or DOWN)")
+            raise ValueError(f"{self.name}: Invalid pull_up_down value")
 
         gpio.setup(self._inputs, gpio.IN, pull_up_down=pull)
         for input_pin in self._inputs:
-            gpio.add_event_detect(input_pin, gpio.BOTH, callback=self.event_detect,
-                                  bouncetime=int(self._bouncetime))
+            gpio.add_event_detect(
+                input_pin, gpio.BOTH, callback=self.event_detect,
+                bouncetime=int(self._bouncetime))
 
         gpio.setup(self._outputs.keys(), gpio.OUT)
         for output_pin in self._outputs:

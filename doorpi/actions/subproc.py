@@ -23,7 +23,9 @@ class OSExecuteAction:
         if result.returncode == 0:
             LOGGER.info("[%s] Command returned successfully", event_id)
         else:
-            LOGGER.info("[%s] Command returned with code %d", event_id, result.returncode)
+            LOGGER.info(
+                "[%s] Command returned with code %d",
+                event_id, result.returncode)
 
     def __str__(self):
         return f"Run shell code {self.__cmd}"

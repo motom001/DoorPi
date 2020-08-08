@@ -12,7 +12,6 @@ LOGGER = logging.getLogger(__name__)
 
 class DummyPhone(AbstractSIPPhone):
     """A dummy SIP phone that does not actually place any calls."""
-
     def get_name(self):
         return "dummy phone"
 
@@ -20,7 +19,7 @@ class DummyPhone(AbstractSIPPhone):
         super().__init__()
         LOGGER.info("Initializing dummy phone")
         eh = doorpi.INSTANCE.event_handler
-        for ev in ["OnSIPPhoneCreate", "OnSIPPhoneStart", "OnSIPPhoneDestroy"]:
+        for ev in ("OnSIPPhoneCreate", "OnSIPPhoneStart", "OnSIPPhoneDestroy"):
             eh.register_event(ev, __name__)
         eh("OnSIPPhoneCreate", __name__)
         eh.register_action("OnShutdown", CallbackAction(self.stop))

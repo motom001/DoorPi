@@ -35,8 +35,7 @@ ACTION_REGISTRY = {}
 
 
 def action(name: str):
-    """Tags a callable as an action instantiator for use in the configuration file."""
-
+    """Tag a callable as action instantiator"""
     def register_action(func):
         if ":" in name:
             raise ValueError(f"Invalid action name {name}")
@@ -50,7 +49,8 @@ def action(name: str):
 def from_string(confstr: str):
     """Instantiates an action from a configuration string."""
     atype = confstr.split(":")[0]
-    if not atype: return None
+    if not atype:
+        return None
     if atype not in ACTION_REGISTRY:
         raise ValueError(f"Unknown action {atype!r}")
     args = confstr[len(atype) + 1:]
@@ -98,7 +98,7 @@ class Action(metaclass=ABCMeta):
         accurately describes the action, which will be used in user
         facing applications (e.g. logs or the web UI).
         """
-        return None
+        return ""
 
     @abstractmethod
     def __repr__(self):
@@ -151,7 +151,7 @@ class CheckAction(CallbackAction):
         try:
             super().__call__(event_id, extra)
         except Exception:  # pylint: disable=broad-except
-            LOGGER.exception("[%s] *** UNCAUGHT EXCEPTION: Internal self check failed", event_id)
+            LOGGER.exception("[%s] *** Internal self check failed", event_id)
             doorpi.INSTANCE.doorpi_shutdown()
 
     def __repr__(self):

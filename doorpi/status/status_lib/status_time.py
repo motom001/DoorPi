@@ -1,9 +1,9 @@
-from datetime import datetime
+import datetime
 
 
 def get(doorpi_obj, name, value):
     del doorpi_obj, name, value
-    return str(datetime.now())
+    return str(datetime.datetime.now())
 
 
 def is_active(doorpi_object):

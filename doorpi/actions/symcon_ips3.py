@@ -62,7 +62,8 @@ class IPSConnector:
         """Returns the type of the named variable."""
         if not self.variable_exists(key):
             raise KeyError(f"Variable {key} does not exist")
-        return self._do_request("IPS_GetVariable", key)["result"]["VariableValue"]["ValueType"]
+        response = self._do_request("IPS_GetVariable", key)
+        return response["result"]["VariableValue"]["ValueType"]
 
     def set_value(self, key, value):
         """Sets variable ``key`` to ``value``."""
@@ -78,7 +79,8 @@ class IPSConnector:
             value = float(value)
         elif vartype == IPSVariableType.STRING:
             value = str(value)
-        else: raise RuntimeError(f"Unknown variable type {vartype}")
+        else:
+            raise RuntimeError(f"Unknown variable type {vartype}")
 
         self._do_request("SetValue", key, value)
 
@@ -116,7 +118,9 @@ class IPSCallFromVariableAction(IPSConnector):
             raise ValueError(f"Variable {self.__key} is not a string")
         uri = self.get_value(self.__key)
 
-        LOGGER.info("[%s] Got phone number %s from variable %s", event_id, repr(uri), self.__key)
+        LOGGER.info(
+            "[%s] Got phone number %s from variable %s",
+            event_id, repr(uri), self.__key)
         doorpi.INSTANCE.sipphone.call(uri)
 
     def __str__(self):
@@ -129,6 +133,8 @@ class IPSCallFromVariableAction(IPSConnector):
 @action("symcon_ips3")
 def instantiate(ipsaction, *params):
     """Creates the action named by ``ipsaction``."""
-    if ipsaction == "set": return IPSSetValueAction(*params)
-    if ipsaction == "call": return IPSCallFromVariableAction(*params)
+    if ipsaction == "set":
+        return IPSSetValueAction(*params)
+    if ipsaction == "call":
+        return IPSCallFromVariableAction(*params)
     raise ValueError(f"Unknown IPS RPC action {ipsaction}")

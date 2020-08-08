@@ -32,8 +32,9 @@ class KeyboardHandler:
             kbtype = conf[kbname, "type"].name
             LOGGER.debug("Instantiating keyboard %r (from_%s)", kbname, kbtype)
 
-            kb = importlib.import_module(f"doorpi.keyboard.from_{kbtype}").instantiate(kbname)
-            self.__keyboards[kbname] = kb
+            self.__keyboards[kbname] = kb = (
+                importlib.import_module(f"doorpi.keyboard.from_{kbtype}")
+                .instantiate(kbname))
 
             LOGGER.debug("Registering input pins for %r", kbname)
             for pin, actions in kb.config.view("input").items():
@@ -99,7 +100,9 @@ class KeyboardHandler:
         """Enumerates all known output pins."""
         pins = {}
         for kbname, kbaliases in self.__aliases.items():
-            pins.update({alias: f"{kbname}.{pin}" for alias, pin in kbaliases.items()})
+            pins.update({
+                alias: f"{kbname}.{pin}"
+                for alias, pin in kbaliases.items()})
         return pins
 
     def _decode_pinpath(self, pinpath):

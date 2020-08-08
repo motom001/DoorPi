@@ -1,7 +1,5 @@
 from doorpi.actions.snapshot import SnapshotAction
 
-DOORPI_SECTION = "DoorPi"
-
 
 def get(doorpi_obj, name, value):
     del doorpi_obj, name, value

@@ -28,7 +28,7 @@ def load_webserver():
         server_address = (ip, port)
         doorpiweb_object = DoorPiWeb(server_address, DoorPiWebRequestHandler)
         doorpiweb_object.start()
-    except Exception:
+    except Exception:  # pylint: disable=broad-except
         LOGGER.exception("Failed starting webserver")
 
     return doorpiweb_object
@@ -89,7 +89,8 @@ class DoorPiWeb(ThreadingMixIn, HTTPServer):
         LOGGER.info("Serving files from %s", self.www)
 
         eh.register_action("OnShutdown", CallbackAction(self.init_shutdown))
-        self._thread = threading.Thread(target=self.serve_forever, name="Webserver Thread")
+        self._thread = threading.Thread(
+            target=self.serve_forever, name="Webserver Thread")
         eh.register_action("OnStartup", CallbackAction(self._thread.start))
         eh.fire_event_sync("OnWebServerStart", __name__)
 
@@ -104,7 +105,8 @@ class DoorPiWeb(ThreadingMixIn, HTTPServer):
             pass
 
     def init_shutdown(self):
-        doorpi.INSTANCE.event_handler.fire_event_sync("OnWebServerStop", __name__)
+        doorpi.INSTANCE.event_handler.fire_event_sync(
+            "OnWebServerStop", __name__)
         self.shutdown()
         if self.sessions: self.sessions.destroy()
         DoorPiWebRequestHandler.destroy()

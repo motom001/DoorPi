@@ -1,5 +1,4 @@
 """This module contains the "glue class", which binds PJSUA2 to DoorPi."""
-
 import logging
 import threading
 import pjsua2 as pj
@@ -16,7 +15,6 @@ LOGGER = logging.getLogger(__name__)
 
 class Pjsua2(AbstractSIPPhone):
     """Implements the SIP phone module interface for DoorPi."""
-
     def get_name(self):
         return "pjsua2"
 
@@ -29,8 +27,10 @@ class Pjsua2(AbstractSIPPhone):
                 "OnSIPPhoneCreate",
                 "OnCallOutgoing", "OnCallOutgoing_S",
                 # Fired by AccountCallback
-                "BeforeCallIncoming", "OnCallIncoming", "OnCallBusy", "OnCallReject",
-                "BeforeCallIncoming_S", "OnCallIncoming_S", "OnCallBusy_S", "OnCallReject_S",
+                "BeforeCallIncoming", "OnCallIncoming",
+                "OnCallBusy", "OnCallReject",
+                "BeforeCallIncoming_S", "OnCallIncoming_S",
+                "OnCallBusy_S", "OnCallReject_S",
                 # Fired by CallCallback (all) / Worker (unanswered)
                 "OnCallConnect", "OnCallUnanswered",
                 "OnCallConnect_S", "OnCallUnanswered_S",
@@ -64,7 +64,8 @@ class Pjsua2(AbstractSIPPhone):
                 self.dialtone._DialTonePlayer__player = None
             self.__worker.shutdown()
             del self.__worker
-        doorpi.INSTANCE.event_handler.unregister_source(EVENT_SOURCE, force=True)
+        doorpi.INSTANCE.event_handler.unregister_source(
+            EVENT_SOURCE, force=True)
 
     def start(self):
         LOGGER.info("Starting PJSUA2 SIP phone")
@@ -96,7 +97,9 @@ class Pjsua2(AbstractSIPPhone):
         if cc is not None:
             ci = cc.getInfo()
             return {
-                "direction": "outgoing" if ci.role == pj.PJSIP_ROLE_UAC else "incoming",
+                "direction": (
+                    "outgoing" if ci.role == pj.PJSIP_ROLE_UAC
+                    else "incoming"),
                 "remote_uri": ci.remoteUri,
                 "total_time": ci.connectDuration,
                 "camera": False
@@ -117,7 +120,8 @@ class Pjsua2(AbstractSIPPhone):
         conf = doorpi.INSTANCE.config
         for admin_number in conf["sipphone.admins"]:
             if admin_number == "*":
-                LOGGER.trace("Found '*' in config: everything is an admin number")
+                LOGGER.trace(
+                    "Found '*' in config: everything is an admin number")
                 return True
             if canonical_uri == self.canonicalize_uri(admin_number):
                 LOGGER.trace("%s is admin number %s", uri, admin_number)

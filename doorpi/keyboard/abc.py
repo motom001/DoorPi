@@ -13,10 +13,12 @@ LOGGER = logging.getLogger(__name__)
 
 
 class AbstractKeyboard():
-    """ABC that provides common functionality and helpers for keyboard modules."""
+    """Common functionality and helpers for keyboard modules"""
 
-    def __init__(self, name, *, events=("OnKeyPressed", "OnKeyUp", "OnKeyDown")):
-        """Common initialization.
+    def __init__(
+            self, name,
+            *, events=("OnKeyPressed", "OnKeyUp", "OnKeyDown")):
+        """Common initialization
 
         This should be called before keyboard-specific initialization
         is done in subclass __init__. It will set the following class
@@ -89,7 +91,8 @@ class AbstractKeyboard():
 
     def destroy(self):
         self._deactivate()
-        doorpi.INSTANCE.event_handler.unregister_source(self._event_source, force=True)
+        doorpi.INSTANCE.event_handler.unregister_source(
+            self._event_source, force=True)
 
     def __str__(self):
         return f"{self.name} keyboard ({self.type})"
@@ -121,10 +124,13 @@ class AbstractKeyboard():
         The implementation is required to update the ``self._outputs``
         dict if the actual pin state changed.
 
-        Returns: True if the output pin was set or already had the
-                 supplied value, False otherwise. This function should
-                 not raise any Exceptions.
-        See: ``_normalize()``
+        Returns:
+            True if the output pin was set or already had the supplied
+            value, False otherwise
+        Raises:
+            ValueError: If the pin name is invalid
+        See:
+            ``_normalize()``
         """
         del value
         if pin not in self._outputs:
@@ -132,35 +138,34 @@ class AbstractKeyboard():
         return False
 
     def self_check(self):
-        """Check the correct functioning of this keyboard.
+        """Check the correct functioning of this keyboard
 
-        This function will be periodically called to verify the
-        keyboard is still functional. It should not return any value.
-        In case the keyboard is found to be dysfunctional, it should
-        raise an appropriate exception with a message describing what
-        kind of problem was found.
+        This function will be periodically called to verify the keyboard
+        is still functional. It should not return any value.  In case
+        the keyboard is found to be dysfunctional, it should raise an
+        appropriate exception with a message describing the problem.
         """
 
     # -----------------------------------------------------------------
 
     @property
     def type(self):
-        """A human-readable keyboard type description."""
-        return self.__class__.__name__
+        """A human-readable keyboard type description"""
+        return type(self).__name__
 
     @property
     def inputs(self):
-        """The list of input pins that this keyboard uses."""
+        """The list of input pins that this keyboard uses"""
         return list(self._inputs)
 
     @property
     def outputs(self):
-        """Maps this keyboard's output pins to their current states."""
+        """Maps this keyboard's output pins to their current states"""
         return dict(self._outputs)
 
     @property
     def additional_info(self):
-        """A dict of information about this keyboard.
+        """A dict with information about this keyboard
 
         The dict available here provides the following information:
 
@@ -173,16 +178,16 @@ class AbstractKeyboard():
             "name": self.name,
             "type": self.type,
             "pretty_name": str(self),
-            "pin": self.last_key
+            "pin": self.last_key,
         }
 
     @property
     def pressed_keys(self):
-        """A list of currently pressed input pins."""
+        """A list of currently pressed input pins"""
         return [p for p in self._inputs if self.input(p)]
 
     def _normalize(self, value):
-        """Normalize the passed value to a bool.
+        """Normalize the passed value to a bool
 
         This function normalizes an arbitrary value to a bool. If the
         current keyboard's polarity is LOW, the value is also flipped.
@@ -191,10 +196,10 @@ class AbstractKeyboard():
         from an input pin, or immediately before writing the final
         value to an output pin.
         """
-
         if not isinstance(value, bool):
             value = str(value).strip().lower() in HIGH_LEVEL
-        if not self._high_polarity: value = not value
+        if not self._high_polarity:
+            value = not value
         return value
 
     def _fire_event(self, event_name, pin):
@@ -204,12 +209,15 @@ class AbstractKeyboard():
         extra = self.additional_info
         eh.fire_event(event_name, self._event_source, extra=extra)
         eh.fire_event(f"{event_name}_{pin}", self._event_source, extra=extra)
-        eh.fire_event(f"{event_name}_{self.name}.{pin}", self._event_source, extra=extra)
+        eh.fire_event(
+            f"{event_name}_{self.name}.{pin}", self._event_source, extra=extra)
 
     def _fire_keyup(self, pin):
         self._fire_event("OnKeyUp", pin)
-        if not self._pressed_on_key_down: self._fire_event("OnKeyPressed", pin)
+        if not self._pressed_on_key_down:
+            self._fire_event("OnKeyPressed", pin)
 
     def _fire_keydown(self, pin):
         self._fire_event("OnKeyDown", pin)
-        if self._pressed_on_key_down: self._fire_event("OnKeyPressed", pin)
+        if self._pressed_on_key_down:
+            self._fire_event("OnKeyPressed", pin)

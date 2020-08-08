@@ -26,7 +26,8 @@ class PifaceKeyboard(AbstractKeyboard):
     def __init__(self, name):
         global INSTANTIATED
 
-        if INSTANTIATED: raise RuntimeError("Only one PiFace keyboard may be instantiated")
+        if INSTANTIATED:
+            raise RuntimeError("Only one PiFace keyboard may be instantiated")
         INSTANTIATED = True
 
         super().__init__(name)
@@ -38,7 +39,7 @@ class PifaceKeyboard(AbstractKeyboard):
                 pin_num=input_pin,
                 direction=piface.IODIR_BOTH,
                 callback=self.event_detect,
-                settle_time=self._bouncetime / 1000
+                settle_time=self._bouncetime / 1000,
             )
         self.__listener.activate()
 
@@ -62,7 +63,8 @@ class PifaceKeyboard(AbstractKeyboard):
         super().input(pin)
 
         pin = int(pin)
-        if pin not in self._inputs: return False
+        if pin not in self._inputs:
+            return False
         return self._normalize(piface.digital_read(pin))
 
     def output(self, pin, value):

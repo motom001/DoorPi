@@ -24,7 +24,8 @@ class SnapshotAction:
         """
 
         keep = doorpi.INSTANCE.config["snapshots.keep"]
-        if keep <= 0: return
+        if keep <= 0:
+            return
         files = cls.list_all()
         for fi in files[0:-keep]:
             try:
@@ -38,7 +39,8 @@ class SnapshotAction:
         """Fetches the snapshot directory path from the configuration."""
 
         path = doorpi.INSTANCE.config["snapshots.directory"]
-        if not path: raise ValueError("snapshot_path must not be empty")
+        if not path:
+            raise ValueError("snapshot_path must not be empty")
         path = pathlib.Path(path)
         path.mkdir(parents=True, exist_ok=True)
         return path
@@ -47,7 +49,9 @@ class SnapshotAction:
     def get_next_path(cls):
         """Computes the next snapshot's path."""
 
-        path = cls.get_base_path() / datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S.jpg")
+        path = (
+            cls.get_base_path()
+            / datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S.jpg"))
         return path
 
     @classmethod
@@ -98,7 +102,7 @@ class PicamSnapshotAction(SnapshotAction):
         self.cleanup()
 
     def __str__(self):
-        return f"Take a snapshot from the Pi Camera"
+        return "Take a snapshot from the Pi Camera"
 
     def __repr__(self):
-        return f"snap_picam:"
+        return "snap_picam:"

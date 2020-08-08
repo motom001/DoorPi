@@ -28,16 +28,25 @@ def init_logger(args):
     if len(expected_fd) == 2:
         stat = os.fstat(1)  # stdout
         try:
-            journal = stat.st_dev == int(expected_fd[0]) and stat.st_ino == int(expected_fd[1])
+            journal = (
+                stat.st_dev == int(expected_fd[0])
+                and stat.st_ino == int(expected_fd[1]))
         except ValueError:
             journal = False
 
     if args.logfile is None:
-        logging.basicConfig(level=LOG_LEVEL, format=LOG_FORMAT_JOURNAL if journal else LOG_FORMAT)
+        logging.basicConfig(
+            level=LOG_LEVEL,
+            format=LOG_FORMAT_JOURNAL if journal else LOG_FORMAT,
+        )
     else:
         handler = logging.handlers.RotatingFileHandler(
             args.logfile, maxBytes=5_000_000, backupCount=10)
-        logging.basicConfig(level=LOG_LEVEL, format=LOG_FORMAT, handlers=(handler,))
+        logging.basicConfig(
+            level=LOG_LEVEL,
+            format=LOG_FORMAT,
+            handlers=(handler,)
+        )
 
     if args.debug is not None:
         for lg in args.debug:
@@ -56,28 +65,34 @@ def parse_arguments():
         epilog=metadata.epilog
     )
 
-    arg_parser.add_argument("-V", "--version", action="version",
-                            version=f"DoorPi v{dpmeta['Version']}")
-    arg_parser.add_argument("--debug", action="append", nargs="?", const="",
-                            help="Enable debug logging (optionally on a specific component)")
-    arg_parser.add_argument("--trace", action="append", nargs="?", const="",
-                            help="Enable trace logging (optionally on a specific component)")
-    arg_parser.add_argument("--test", action="store_true",
-                            help="Enable test mode (exit after 10 seconds)")
-    arg_parser.add_argument("--logfile", action="store", nargs=1,
-                            help="Specify file to log into. If unspecified, log to stderr.")
+    arg_parser.add_argument(
+        "-V", "--version", action="version",
+        version=f"DoorPi v{dpmeta['Version']}")
+    arg_parser.add_argument(
+        "--debug", action="append", nargs="?", const="",
+        help="Enable debug logging (optionally on a specific component)")
+    arg_parser.add_argument(
+        "--trace", action="append", nargs="?", const="",
+        help="Enable trace logging (optionally on a specific component)")
+    arg_parser.add_argument(
+        "--test", action="store_true",
+        help="Enable test mode (exit after 10 seconds)")
+    arg_parser.add_argument(
+        "--logfile", action="store", nargs=1,
+        help="Specify file to log into. If unspecified, log to stderr.")
 
-    default_cfg = f"{sys.prefix if sys.prefix != '/usr' else ''}/etc/doorpi/doorpi.ini"
-    arg_parser.add_argument("-c", "--configfile",
-                            help=f"Specify configuration file to use (default: {default_cfg})",
-                            default=default_cfg)
+    default_cfg = "/".join((
+        sys.prefix if sys.prefix != "/usr" else "",
+        "etc/doorpi/doorpi.ini"))
+    arg_parser.add_argument(
+        "-c", "--configfile", default=default_cfg,
+        help=f"Specify configuration file to use (default: {default_cfg})")
 
     return arg_parser.parse_args(args=sys.argv[1:])
 
 
 def entry_point():
     """Zero-argument entry point for use with setuptools/distribute."""
-
     args = parse_arguments()
     init_logger(args)
     LOGGER.info(metadata.epilog)
@@ -94,7 +109,7 @@ def entry_point():
     try:
         instance.run()
     except BaseException as err:
-        LOGGER.error("*** UNCAUGHT EXCEPTION: %s: %s", err.__class__.__name__, err)
+        LOGGER.error("*** UNCAUGHT EXCEPTION: %s: %s", type(err).__name__, err)
         LOGGER.error("*** Attempting graceful shutdown...")
         raise
     finally:

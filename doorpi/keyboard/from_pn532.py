@@ -102,7 +102,8 @@ class PN532Keyboard(AbstractKeyboard):
 
     def __init__(self, name):
         super().__init__(name, events=("OnKeyPressed",))
-        doorpi.INSTANCE.event_handler.register_event("OnTagUnknown", self._event_source)
+        doorpi.INSTANCE.event_handler.register_event(
+            "OnTagUnknown", self._event_source)
 
         self.__device = "tty:{}:pn532".format(
             re.sub(r"^/dev/tty", "", self.config["port"]))
@@ -121,12 +122,15 @@ class PN532Keyboard(AbstractKeyboard):
 
     def self_check(self):
         if self.__exception is not None:
-            raise RuntimeError(f"{self.name}: Worker died") from self.__exception
+            raise RuntimeError(
+                f"{self.name}: Worker died"
+            ) from self.__exception
         if not self.__thread.is_alive():
-            raise RuntimeError(f"{self.name}: Worker found dead without exception information")
+            raise RuntimeError(
+                f"{self.name}: Worker found dead without exception information")
 
     def pn532_read(self):
-        """The keyboard's main loop, runs as thread."""
+        """The keyboard's main loop; runs as thread"""
         try:
             while not self.__shutdown:
                 self.__frontend.connect(rdwr={"on-connect": self.on_connect})
@@ -137,7 +141,8 @@ class PN532Keyboard(AbstractKeyboard):
         """Callback for when the library detects a connected tag."""
         # debounce
         now = time.time() * 1000
-        if now - self.last_key_time <= self._bouncetime: return
+        if now - self.last_key_time <= self._bouncetime:
+            return
 
         self.last_key_time = now
         tag = str(tag)
@@ -146,8 +151,9 @@ class PN532Keyboard(AbstractKeyboard):
         if id_ in self._inputs:
             self._fire_event("OnKeyPressed", id_)
         else:
-            doorpi.INSTANCE.event_handler("OnTagUnknown", self._event_source,
-                                          {**self.additional_info, "tag": id_})
+            doorpi.INSTANCE.event_handler(
+                "OnTagUnknown", self._event_source,
+                {**self.additional_info, "tag": id_})
 
 
 instantiate = PN532Keyboard  # pylint: disable=invalid-name

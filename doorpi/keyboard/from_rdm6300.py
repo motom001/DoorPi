@@ -75,7 +75,8 @@ class RDM6300Keyboard(SeriallyConnectedKeyboard):
 
     def __init__(self, name):
         super().__init__(name)
-        doorpi.INSTANCE.event_handler.register_event("OnTagUnknown", self._event_source)
+        doorpi.INSTANCE.event_handler.register_event(
+            "OnTagUnknown", self._event_source)
 
         self._input_start_flag = "\x02"
         self._input_stop_flag = "\x03"
@@ -88,10 +89,14 @@ class RDM6300Keyboard(SeriallyConnectedKeyboard):
 
     def process_buffer(self, buf):
         if not buf.startswith(self._input_start_flag):
-            LOGGER.error("%s: Invalid UART data; expected START flag: %r", self.name, buf)
+            LOGGER.error(
+                "%s: Invalid UART data; expected START flag: %r",
+                self.name, buf)
             return
         if not verify_crc(buf):
-            LOGGER.error("%s: Invalid UART data (checksum mismatch): %r", self.name, buf)
+            LOGGER.error(
+                "%s: Invalid UART data (checksum mismatch): %r",
+                self.name, buf)
             return
 
         tag = int(buf[5:-3], 16)
@@ -99,18 +104,19 @@ class RDM6300Keyboard(SeriallyConnectedKeyboard):
         if tag in self._inputs:
             self._fire_event("OnKeyPressed", tag)
         else:
-            doorpi.INSTANCE.event_handler("OnTagUnknown", self._event_source,
-                                          {**self.additional_info, "tag": tag})
+            doorpi.INSTANCE.event_handler(
+                "OnTagUnknown", self._event_source,
+                {**self.additional_info, "tag": tag})
 
 
 def verify_crc(string):
-    """Verifies the embedded checksum in the passed string."""
+    """Verify the embedded checksum in the passed string"""
     crc = (int(string[11], 16) << 4) + int(string[12], 16)
     return crc == calculate_crc(string)
 
 
 def calculate_crc(string):
-    """Calculates the checksum of the passed string."""
+    """Calculate the checksum of the passed string"""
     crc = 0
     for i in range(1, 10, 2):
         crc ^= ((int(string[i], 16)) << 4) + int(string[i + 1], 16)

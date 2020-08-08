@@ -31,7 +31,8 @@ class DoorPi:
 
     @property
     def extra_info(self):
-        if self.event_handler is None: return {}
+        if self.event_handler is None:
+            return {}
         return self.event_handler.extra_info
 
     @property
@@ -85,16 +86,19 @@ class DoorPi:
 
     def doorpi_shutdown(self, time_until_shutdown=0):
         """Tell DoorPi to shut down."""
-        if time_until_shutdown > 0: time.sleep(time_until_shutdown)
+        if time_until_shutdown > 0:
+            time.sleep(time_until_shutdown)
         self.__shutdown = True
 
     def signal_shutdown(self, signum, stackframe):
         """Handles signals considered deadly, like INT and TERM."""
+        del stackframe
         self.__shutdown = True
         self.__deadlysignals += 1
-        LOGGER.info("Caught deadly signal %s (%d / %d)",
-                    signal.Signals(signum).name,  # pylint: disable=no-member
-                    self.__deadlysignals, DEADLY_SIGNALS_ABORT)
+        LOGGER.info(
+            "Caught deadly signal %s (%d / %d)",
+            signal.Signals(signum).name,  # pylint: disable=no-member
+            self.__deadlysignals, DEADLY_SIGNALS_ABORT)
 
         if self.__deadlysignals >= DEADLY_SIGNALS_ABORT:
             raise Exception("Force-exiting due to signal")
@@ -114,13 +118,15 @@ class DoorPi:
         self.event_handler = EventHandler()
 
         # register own events
-        for event in ["BeforeStartup", "OnStartup", "AfterStartup",
-                      "BeforeShutdown", "OnShutdown", "AfterShutdown",
-                      "OnTimeTick", "OnTimeRapidTick"]:
+        for event in (
+                "BeforeStartup", "OnStartup", "AfterStartup",
+                "BeforeShutdown", "OnShutdown", "AfterShutdown",
+                "OnTimeTick", "OnTimeRapidTick"):
             self.event_handler.register_event(event, __name__)
 
         # register base actions
-        self.event_handler.register_action("OnTimeTick", f"time_tick:{self.__last_tick}")
+        self.event_handler.register_action(
+            "OnTimeTick", f"time_tick:{self.__last_tick}")
 
         # register modules
         self.webserver = load_webserver()
@@ -133,9 +139,11 @@ class DoorPi:
 
     def __del__(self):
         if self.__prepared:
-            LOGGER.error("DoorPi is being garbage collected, but was not properly shut down!")
-            LOGGER.error("This is a bug. Please report it to the author/s.")
-            LOGGER.error("Attempting to shutdown properly (errors may follow)")
+            LOGGER.error(
+                "DoorPi is being garbage collected,"
+                " but was not properly shut down!\n"
+                "This is a bug. Please report it to the author/s.\n"
+                "Attempting to shutdown properly (errors may follow)")
             self.destroy()
 
     def destroy(self):
@@ -143,9 +151,12 @@ class DoorPi:
         self.__shutdown = True
         self.dpsd.stopping()
 
-        if not self.__prepared: return
+        if not self.__prepared:
+            return
 
-        LOGGER.debug("Threads before starting shutdown: %s", self.event_handler.threads)
+        LOGGER.debug(
+            "Threads before starting shutdown: %s",
+            self.event_handler.threads)
 
         self.event_handler.fire_event_sync("BeforeShutdown", __name__)
         self.event_handler.fire_event_sync("OnShutdown", __name__)
@@ -155,27 +166,34 @@ class DoorPi:
         waiting_between_checks = 0.5
 
         while timeout > 0 and not self.event_handler.idle:
-            LOGGER.debug("Waiting %s seconds for %d events to finish",
-                         timeout, len(self.event_handler.threads))
-            LOGGER.trace("Still existing event threads: %s", self.event_handler.threads)
-            LOGGER.trace("Still existing event sources: %s", self.event_handler.sources)
+            LOGGER.debug(
+                "Waiting %s seconds for %d events to finish",
+                timeout, len(self.event_handler.threads))
+            LOGGER.trace(
+                "Still existing event threads: %s",
+                self.event_handler.threads)
+            LOGGER.trace(
+                "Still existing event sources: %s",
+                self.event_handler.sources)
             time.sleep(waiting_between_checks)
             timeout -= waiting_between_checks
 
         if len(self.event_handler.sources) > 1:
-            LOGGER.warning("Some event sources did not shut down properly: %s",
-                           self.event_handler.sources[1:])
+            LOGGER.warning(
+                "Some event sources did not shut down properly: %s",
+                self.event_handler.sources[1:])
 
         # unregister modules
         self.sipphone = self.keyboard = self.webserver = None
         self.__prepared = False
 
-        LOGGER.info("======== DoorPi completed shutting down ========")
         doorpi.INSTANCE = None
+        LOGGER.info("======== DoorPi completed shutting down ========")
 
     def run(self):
         LOGGER.debug("run")
-        if not self.__prepared: self.prepare()
+        if not self.__prepared:
+            self.prepare()
 
         self.event_handler.fire_event_sync("BeforeStartup", __name__)
         self.event_handler.fire_event_sync("OnStartup", __name__)
@@ -189,8 +207,8 @@ class DoorPi:
             LOGGER.info("no Webserver loaded")
 
         # setup watchdog ping and signal startup success
-        self.event_handler.register_action("OnTimeSecondUnevenNumber",
-                                           CallbackAction(self.dpsd.watchdog))
+        self.event_handler.register_action(
+            "OnTimeSecondUnevenNumber", CallbackAction(self.dpsd.watchdog))
         self.dpsd.ready()
 
         tickrate = 0.05  # seconds between OnTimeRapidTick events
@@ -211,14 +229,16 @@ class DoorPi:
             duration = now - last
 
             if duration > tickrate:
-                skipped_ticks = int(duration / tickrate)
-                LOGGER.warning("Tick took too long (%.1fms > %.1fms), skipping %d tick(s)",
-                               duration * 1000, tickrate * 1000, skipped_ticks)
-                LOGGER.warning("registered actions for OnTimeRapidTick: %s",
-                               self.event_handler.actions["OnTimeRapidTick"])
-                LOGGER.warning("registered actions for OnTimeTick: %s",
-                               self.event_handler.actions["OnTimeTick"])
-                duration %= tickrate
+                skipped_ticks, duration = divmod(duration, tickrate)
+                LOGGER.warning(
+                    "Tick took too long (%.1fms > %.1fms), skipping %d tick(s)",
+                    duration * 1000, tickrate * 1000, skipped_ticks)
+                LOGGER.warning(
+                    "registered actions for OnTimeRapidTick: %s",
+                    self.event_handler.actions["OnTimeRapidTick"])
+                LOGGER.warning(
+                    "registered actions for OnTimeTick: %s",
+                    self.event_handler.actions["OnTimeTick"])
                 last += skipped_ticks * tickrate
                 next_slowtick -= skipped_ticks
 
@@ -236,20 +256,24 @@ class DoorPi:
 
         def format_table_row(key, val):
             key = html.escape(str(key))
-            val = html.escape(str(val)).replace("\r\n", "\n").replace("\n", "<br>")
-            return f"<tr><td><b>{key}</b></td><td><i>{val}</i></td></tr>"
+            val = (
+                html.escape(str(val))
+                .replace("\r\n", "\n")
+                .replace("\n", "<br>"))
+            return f"<tr><th>{key}</th><td>{val}</td></tr>"
 
         infos_as_html = "".join(itertools.chain(
-            ("<table>",),
-            (format_table_row(key, val) for key, val in self.extra_info.items()),
-            ("</table>",),
+            ("<table><tbody>",),
+            (format_table_row(key, val)
+             for key, val in self.extra_info.items()),
+            ("</tbody></table>",),
         ))
 
         mapping_table = {
             "INFOS_PLAIN": str(self.extra_info),
             "INFOS": infos_as_html,
             "BASEPATH": str(self.base_path),
-            "last_tick": str(self.__last_tick)
+            "last_tick": str(self.__last_tick),
         }
 
         for key, val in metadata.__dict__.items():

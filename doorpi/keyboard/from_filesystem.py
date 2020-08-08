@@ -64,7 +64,8 @@ from .abc import AbstractKeyboard
 LOGGER = logging.getLogger(__name__)
 
 
-class FilesystemKeyboard(AbstractKeyboard, watchdog.events.FileSystemEventHandler):
+class FilesystemKeyboard(
+        AbstractKeyboard, watchdog.events.FileSystemEventHandler):
 
     def __init__(self, name):
         super().__init__(name)
@@ -98,9 +99,9 @@ class FilesystemKeyboard(AbstractKeyboard, watchdog.events.FileSystemEventHandle
 
     def destroy(self):
         # pylint: disable=broad-except
-
         self._deactivate()
-        doorpi.INSTANCE.event_handler.unregister_source(self._event_source, force=True)
+        doorpi.INSTANCE.event_handler.unregister_source(
+            self._event_source, force=True)
 
         for pin in self._inputs:
             try:
@@ -108,20 +109,26 @@ class FilesystemKeyboard(AbstractKeyboard, watchdog.events.FileSystemEventHandle
             except FileNotFoundError:
                 pass
             except Exception:
-                LOGGER.exception("%s: Unable to unlink virtual input pin %s", self.name, pin)
+                LOGGER.exception(
+                    "%s: Unable to unlink virtual input pin %s",
+                    self.name, pin)
         for pin in self._outputs:
             try:
                 (self.__base_path_output / pin).unlink()
             except FileNotFoundError:
                 pass
             except Exception:
-                LOGGER.exception("%s: Unable to unlink virtual output pin %s", self.name, pin)
+                LOGGER.exception(
+                    "%s: Unable to unlink virtual output pin %s",
+                    self.name, pin)
 
         for pindir in (self.__base_path_input, self.__base_path_output):
             try:
                 pindir.rmdir()
             except Exception as ex:
-                LOGGER.error("%s: Cannot remove directory %s: %s", self.name, pindir, ex)
+                LOGGER.error(
+                    "%s: Cannot remove directory %s: %s",
+                    self.name, pindir, ex)
         super().destroy()
 
     def _deactivate(self):
@@ -134,8 +141,9 @@ class FilesystemKeyboard(AbstractKeyboard, watchdog.events.FileSystemEventHandle
         val = self.__read_file(self.__base_path_input / pin)
         if val is None:
             val = self.__input_states[pin]
-            LOGGER.debug("%s: File %s is empty, providing last known value (%s)",
-                         self.name, pin, val)
+            LOGGER.debug(
+                "%s: File %s is empty, providing last known value (%s)",
+                self.name, pin, val)
         else:
             LOGGER.debug("%s: Read %s from %s", self.name, val, pin)
             self.__input_states[pin] = val
@@ -174,37 +182,43 @@ class FilesystemKeyboard(AbstractKeyboard, watchdog.events.FileSystemEventHandle
 
     def on_modified(self, event):
         "Called by the watchdog library when an inotify event was triggered"
-
-        if not isinstance(event, watchdog.events.FileModifiedEvent): return
+        if not isinstance(event, watchdog.events.FileModifiedEvent):
+            return
 
         pin = Path(event.src_path)
         if pin.name not in self._inputs or pin.parent != self.__base_path_input:
-            LOGGER.warning("%s: Received unsolicited FileModifiedEvent for %s",
-                           self.name, event.src_path)
+            LOGGER.warning(
+                "%s: Received unsolicited FileModifiedEvent for %s",
+                self.name, event.src_path)
             return
 
         val = self.__read_file(pin)
 
         if val is None:
-            LOGGER.debug("%s: Skipping FileModifiedEvent for %s, file is empty",
-                         self.name, pin)
+            LOGGER.debug(
+                "%s: Skipping FileModifiedEvent for %s, file is empty",
+                self.name, pin)
             return
 
         if val == self.__input_states[pin.name]:
-            LOGGER.debug("%s: Skipping FileModifiedEvent for %s, logical value unchanged (%s)",
-                         self.name, pin, val)
+            LOGGER.debug(
+                "%s: Skipping FileModifiedEvent for %s,"
+                " as the logical value has not changed (%s)",
+                self.name, pin, val)
             return
 
         self.__input_states[pin] = val
         if val:
-            LOGGER.info("%s: Pin %s flanked to logical TRUE, firing OnKeyDown",
-                        self.name, pin.name)
+            LOGGER.info(
+                "%s: Pin %s flanked to logical TRUE, firing OnKeyDown",
+                self.name, pin.name)
             self._fire_keydown(pin.name)
             if self.__reset_input:
                 self.__write_file(pin, False)
         else:
-            LOGGER.info("%s: Pin %s flanked to logical FALSE, firing OnKeyUp",
-                        self.name, pin)
+            LOGGER.info(
+                "%s: Pin %s flanked to logical FALSE, firing OnKeyUp",
+                self.name, pin)
             self._fire_keyup(pin.name)
 
 

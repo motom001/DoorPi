@@ -26,8 +26,9 @@ class HTTPRequestAction:
 
     def __call__(self, event_id, extra):
         resp = requests.get(self.__url)
-
-        LOGGER.info("[%s] Server response: %d %s", event_id, resp.status_code, resp.reason)
+        LOGGER.info(
+            "[%s] Server response: %d %s",
+            event_id, resp.status_code, resp.reason)
 
     def __str__(self):
         return f"HTTP Request to {self.__url}"

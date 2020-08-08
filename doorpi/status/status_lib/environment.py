@@ -4,13 +4,23 @@ import time
 
 
 LOGGER = logging.getLogger(__name__)
-DEFAULT_MODULE_ATTR = ["__doc__", "__file__", "__name__", "__package__", "__path__", "__version__"]
+DEFAULT_MODULE_ATTR = frozenset({
+    "__doc__", "__file__", "__name__", "__package__", "__path__", "__version__"
+})
 
 
 try:
     import docutils.core
 except ModuleNotFoundError:
-    LOGGER.error("docutils not installed; dependency status in web interface will be incomplete")
+    LOGGER.error("``docutils`` not installed, cannot render HTML descriptions")
+    def rsttohtml(rst):
+        return f"<pre>{rst}</pre>"
+else:
+    def rsttohtml(rst):
+        return docutils.core.publish_parts(
+            rst, writer_name="html",
+            settings_overrides={"input_encoding": "unicode"}
+        )["fragment"]
 
 
 def check_module_status(module):
@@ -23,17 +33,17 @@ def check_module_status(module):
 
             for attr in DEFAULT_MODULE_ATTR:
                 if attr in content:
-                    status[attr.replace("__", "")] = getattr(package, attr) or ""
+                    status[attr[2:-2]] = getattr(package, attr) or ""
                 else:
-                    status[attr.replace("__", "")] = "unknown"
+                    status[attr[2:-2]] = "unknown"
 
             status["installed"] = True
             if module["fulfilled_with_one"]:
                 module["is_fulfilled"] = True
             status["content"] = content
 
-        except Exception as exp:
-            status = {"installed": False, "error": str(exp)}
+        except Exception as err:  # pylint: disable=broad-except
+            status = {"installed": False, "error": str(err)}
             if not module["fulfilled_with_one"]:
                 module["is_fulfilled"] = False
         finally:
@@ -42,22 +52,15 @@ def check_module_status(module):
     return module
 
 
-def rsttohtml(rst):
-    try:
-        parts = docutils.core.publish_parts(rst, writer_name="html",
-                                            settings_overrides={"input_encoding": "unicode"})
-    except NameError:  # docutils not installed
-        return "(cannot render text: docutils not installed)"
-    return parts["fragment"]
-
-
 def load_module_status(module_name):
     LOGGER.debug("Parsing requirements texts for %s", module_name)
-    module = importlib.import_module(f"doorpi.status.requirements_lib.{module_name}").REQUIREMENT
+    module = importlib.import_module(
+        f"doorpi.status.requirements_lib.{module_name}"
+    ).REQUIREMENT
 
     # parse reStructuredText descriptions to HTML:
     # the top-level module.text_description and _configuration
-    for ent in ["text_description", "text_configuration"]:
+    for ent in ("text_description", "text_configuration"):
         try:
             module[ent] = rsttohtml(module[ent])
             LOGGER.trace("Parsed %s.%s", module_name, ent)
@@ -65,20 +68,22 @@ def load_module_status(module_name):
             pass
 
     # module.libraries.*.[text_description, text_warning, text_test]
-    for lib in module["libraries"].keys():
-        for ent in ["text_description", "text_warning", "text_test", "text_configuration"]:
-            try:
-                module["libraries"][lib][ent] = rsttohtml(module["libraries"][lib][ent])
-                LOGGER.trace("Parsed %s.libraries.%s.%s", module_name, lib, ent)
-            except KeyError:
-                pass
+    for lib_name, lib_req in module["libraries"].items():
+        for ent in lib_req:
+            if ent.startswith("text_"):
+                lib_req[ent] = rsttohtml(lib_req[ent])
+                LOGGER.trace(
+                    "Parsed %s.libraries.%s.%s", module_name, lib_name, ent)
+
     # module.[configuration, events].*.description
-    for ent in ["configuration", "events"]:
+    for ent in ("configuration", "events"):
         try:
             for sub in range(len(module[ent])):
                 try:
-                    module[ent][sub]["description"] = rsttohtml(module[ent][sub]["description"])
-                    LOGGER.trace("Parsed %s.%s.%s.description", module_name, ent, sub)
+                    module[ent][sub]["description"] = rsttohtml(
+                        module[ent][sub]["description"])
+                    LOGGER.trace(
+                        "Parsed %s.%s.%s.description", module_name, ent, sub)
                 except KeyError:
                     pass
         except KeyError:
@@ -96,13 +101,16 @@ REQUIREMENTS_DOORPI = {
     "keyboard": load_module_status("req_keyboard"),
     "system": load_module_status("req_system")
 }
-LOGGER.debug("Parsing requirements texts took %dms", int((time.time() - _STARTTIME) * 1000))
+LOGGER.debug(
+    "Parsing requirements texts took %dms",
+    int((time.time() - _STARTTIME) * 1000))
 del _STARTTIME
 
 
 def get(doorpi_obj, name, value):
     del doorpi_obj, value
-    if not name: name = [""]
+    if not name:
+        name = [""]
 
     status = {}
     for name_requested in name:

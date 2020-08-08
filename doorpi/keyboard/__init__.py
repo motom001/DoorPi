@@ -47,7 +47,7 @@ The following events are defined for keyboard modules:
   the event's extra information as `tag`.
 """
 
-HIGH_LEVEL = ["1", "high", "on", "true"]
+HIGH_LEVEL = frozenset({"1", "high", "on", "true"})
 
 
 def load():

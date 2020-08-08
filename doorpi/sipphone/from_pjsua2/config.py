@@ -111,7 +111,8 @@ def transport_config() -> pj.TransportConfig:
 
 def list_audio_devices(adm: pj.AudDevManager, loglevel: int) -> None:
     """Logs the audio devices known to ``adm`` with the given ``loglevel``."""
-    if not LOGGER.isEnabledFor(loglevel): return
+    if not LOGGER.isEnabledFor(loglevel):
+        return
     devs = adm.enumDev2()
     for dev in devs:
         LOGGER.log(loglevel, "   %s:%s", dev.driver, dev.name)
@@ -136,11 +137,11 @@ def setup_audio_devices(adm: pj.AudDevManager) -> None:
     # Setup configured capture / playback devices
     capture_device = doorpi.INSTANCE.config["sipphone.capture.device"]
     playback_device = doorpi.INSTANCE.config["sipphone.playback.device"]
-    audio_devices = adm.enumDev2()
     if capture_device == "" or playback_device == "":
         LOGGER.critical("No audio devices configured! Detected audio devices:")
         list_audio_devices(adm, logging.CRITICAL)
-        raise ValueError("No audio devices configured (See log for possible options)")
+        raise ValueError(
+            "No audio devices configured (See log for possible options)")
 
     capture_drv = capture_device.split(":")[0]
     # The split-rejoin is necessary to handle device names with ":"
@@ -152,14 +153,18 @@ def setup_audio_devices(adm: pj.AudDevManager) -> None:
     except pj.Error:
         LOGGER.critical("Configured capture device not found! Found devices:")
         list_audio_devices(adm, logging.CRITICAL)
-        raise ValueError(f"Configured capture device could not be found: {capture_device}")
+        raise ValueError(
+            f"Configured capture device could not be found: {capture_device}")
     try:
         playback_idx = adm.lookupDev(playback_drv, playback_dev)
     except pj.Error:
         LOGGER.critical("Configured playback device not found! Found devices:")
         list_audio_devices(adm, logging.CRITICAL)
-        raise ValueError(f"Configured playback device could not be found: {playback_device}")
-    LOGGER.trace("Device indices: capture = %d, playback = %d", capture_idx, playback_idx)
+        raise ValueError(
+            f"Configured playback device could not be found: {playback_device}")
+    LOGGER.trace(
+        "Device indices: capture = %d, playback = %d",
+        capture_idx, playback_idx)
     adm.setCaptureDev(capture_idx)
     adm.setPlaybackDev(playback_idx)
 
@@ -191,9 +196,12 @@ def setup_audio_volume(adm: pj.AudDevManager) -> None:
 def setup_audio_codecs(endpoint: pj.Endpoint) -> None:
     """Configures the enabled codecs in PJSUA2."""
     allcodecs = endpoint.codecEnum2()
-    LOGGER.debug("Supported audio codecs: %s", ", ".join([c.codecId for c in allcodecs]))
+    LOGGER.debug(
+        "Supported audio codecs: %s",
+        ", ".join(c.codecId for c in allcodecs))
     confcodecs = doorpi.INSTANCE.config["sipphone.codecs"]
-    if not confcodecs: return
+    if not confcodecs:
+        return
 
     confcodecs = [c.strip().lower() for c in confcodecs]
     for codec in allcodecs:
@@ -212,8 +220,9 @@ def setup_audio_codecs(endpoint: pj.Endpoint) -> None:
                 continue
             new_priority = 255 - i  # 255 = highest priority
             break
-        LOGGER.trace("Changing priority of codec %s from %d to %d",
-                     codec.codecId, codec.priority, new_priority)
+        LOGGER.trace(
+            "Changing priority of codec %s from %d to %d",
+            codec.codecId, codec.priority, new_priority)
         endpoint.codecSetPriority(codec.codecId, new_priority)
 
 
@@ -230,7 +239,7 @@ def setup_audio_echo_cancellation(adm: pj.AudDevManager) -> None:
 
 # pylint: disable=too-few-public-methods
 class DoorPiLogWriter(pj.LogWriter):
-    """LogWriter for the PJSUA2 native module that redirects output into the Python loggers."""
+    """Redirects output from the PJSUA2 native module to a Python logger"""
     def __init__(self, logger):
         super().__init__()
         self.__logger = logger

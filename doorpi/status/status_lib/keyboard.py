@@ -1,19 +1,11 @@
 def get(doorpi_obj, name, value):
-    if not name: name = [""]
-    if not value: value = [""]
-
-    kb = doorpi_obj.keyboard
-    status = {}
-
-    for name_requested in name:
-        if name_requested == "name":
-            status["name"] = "Keyboard handler"
-        elif name_requested == "input":
-            status["input"] = {}
-            for pin in value:
-                status["input"][pin] = kb.input(pin)
-        else: status[name_requested] = {"Error": "unsupported operation"}
-    return status
+    status_getters = {
+        "name": lambda kb: "Keyboard handler",
+        "input": lambda kb: {pin: kb.input(pin) for pin in value},
+    }
+    if not name:
+        name = status_getters.keys()
+    return {n: status_getters[n](doorpi_obj.keyboard) for n in name}
 
 
 def is_active(doorpi_object):

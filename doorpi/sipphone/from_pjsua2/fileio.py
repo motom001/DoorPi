@@ -4,6 +4,7 @@
 import datetime
 import gc
 import logging
+from importlib import resources
 
 import pjsua2 as pj
 
@@ -16,11 +17,18 @@ LOGGER = logging.getLogger(__name__)
 class DialTonePlayer:
     """Plays the dial tone while dialing."""
     def __init__(self, filename, loudness):
+        eh = doorpi.INSTANCE.event_handler
+
+        if filename is None:
+            ctx = resources.path(doorpi.sipphone, "dialtone.wav")
+            eh.register_action(
+                "OnShutdown", CallbackAction(ctx.__exit__, None, None, None))
+            filename = ctx.__enter__()
+
         self.__player = pj.AudioMediaPlayer()
         self.__target = None
         self.__level = loudness
 
-        eh = doorpi.INSTANCE.event_handler
         ac_start = CallbackAction(self.start)
         ac_stop = CallbackAction(self.stop)
 

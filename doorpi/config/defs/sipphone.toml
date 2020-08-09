@@ -112,9 +112,10 @@ _default = 1.0
 _min = 0.0
 
 [config.sipphone.dialtone.file]
-_description = "Sound file to play while dialling"
+_description = """Sound file to play while dialling
+
+Leave unset to use the builtin dialtone."""
 _type = "path"
-_default = "/usr/share/doorpi/dialtone.wav"
 
 [config.sipphone.dialtone.loop]
 _description = "Loop the dialtone while calling"

@@ -56,8 +56,13 @@ def account_config() -> pj.AccountConfig:
 
 def dialtone_config() -> dict:
     """Collects the dial tone related settings from the configuration."""
+    try:
+        filename = doorpi.INSTANCE.config["sipphone.dialtone.file"]
+    except KeyError:
+        filename = None
+
     return {
-        "filename": doorpi.INSTANCE.config["sipphone.dialtone.file"],
+        "filename": filename,
         "loudness": doorpi.INSTANCE.config["sipphone.dialtone.loudness"],
     }
 

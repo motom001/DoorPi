@@ -1,43 +1,53 @@
-REQUIREMENT = dict(
-    fulfilled_with_one=True,
-    libraries=dict(
-        configparser=dict(
-            text_description='Das Config-Modul wird benötigt, um alle Einstellungen in einer Datei abspeichern und später wieder laden zu können.',
-            text_installation='Eine Installation ist nicht nötig, da es sich hierbei um ein Python-Standard-Modul handelt.',
-            auto_install=False,
-            text_test='Der Status kann gestestet werden, indem im Python-Interpreter ``import configparser`` eingeben wird.',
-            text_configuration=\
-'''Eine Konfiguration als Eintrag in der Konfigurationsdatei hat
-logischerweise keinen Sinn.  Deshalb kann die zu nutzende Config-Datei
-als Parameter (``--configfile``) beim DoorPi Start mitgegeben werden.
+import textwrap
 
-Beispiel::
+REQUIREMENT = {
+    "fulfilled_with_one": True,
+    "libraries": {
+        "toml": {
+            "text_description": (
+                "Das TOML-Modul wird benötigt, um alle Einstellungen in einer"
+                " Datei abspeichern und später wieder laden zu können."),
+            "text_installation": (
+                "Das Module ist auf PyPI verfügbar und kann mit"
+                " ``pip install toml`` installiert werden)."),
+            "auto_install": True,
+            "text_test": (
+                "Der Status kann gestestet werden, indem im Python-Interpreter"
+                " ``import toml`` eingeben wird."),
+            "text_configuration": textwrap.dedent("""\
+                Eine Konfiguration als Eintrag in der Konfigurationsdatei hat
+                logischerweise keinen Sinn.  Deshalb kann die zu nutzende
+                Config-Datei als Parameter (``--configfile``) beim DoorPi-Start
+                mitgegeben werden.
 
-    doorpi_cli --configfile /etc/doorpi/doorpi.ini
+                Beispiel::
 
-Wird der Parameter nicht angegeben, wird die Datei von einem
-Standardpfad geladen.  Dieser Pfad hängt davon ab, wo DoorPi
-installiert wurde:
+                    doorpi_cli --configfile /etc/doorpi/doorpi.ini
 
-- Wurde es systemweit unterhalb von ``/usr`` installiert (bspw. mittels
-  AUR-Paket), liegt die Standarddatei in::
+                Wird der Parameter nicht angegeben, wird die Datei von einem
+                Standardpfad geladen.  Dieser Pfad hängt davon ab, wo DoorPi
+                installiert wurde:
 
-    /etc/doorpi/doorpi.ini
-- Wurde DoorPi systemweit unterhalb von ``/usr/local`` installiert,
-  liegt die Standarddatei in::
+                *   Wurde es systemweit unterhalb von ``/usr`` installiert
+                    (bspw.  mittels AUR-Paket), liegt die Standarddatei in::
 
-    /usr/local/etc/doorpi/doorpi.ini
-- Wurde das Programm in einem Python Virtualenv installiert, liegt die
-  Datei innerhalb des Virtualenvs::
+                        /etc/doorpi/doorpi.ini
+                *   Wurde DoorPi systemweit unterhalb von ``/usr/local``
+                    installiert, liegt die Standarddatei in::
 
-    $VIRTUAL_ENV/etc/doorpi/doorpi.ini
+                        /usr/local/etc/doorpi/doorpi.ini
+                *   Wurde das Programm in einem Python Virtualenv installiert,
+                    liegt die Datei innerhalb des Virtualenvs::
 
-Sollte die Datei nicht existieren, wird DoorPi mit seinen eingebauten
-Standardwerten gestartet.
-''',
-            text_links={
-                'docs.python.org': 'https://docs.python.org/2.7/library/configparser.html'
-            }
-        )
-    )
-)
+                        $VIRTUAL_ENV/etc/doorpi/doorpi.ini
+
+                Sollte die Datei nicht existieren, wird DoorPi mit seinen
+                eingebauten Standardwerten gestartet.
+                """),
+            "text_links": {
+                "docs.python.org": (
+                    "https://docs.python.org/2.7/library/configparser.html"),
+            },
+        },
+    },
+}

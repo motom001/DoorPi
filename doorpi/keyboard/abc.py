@@ -94,7 +94,7 @@ class AbstractKeyboard():
         doorpi.INSTANCE.event_handler.unregister_source(
             self._event_source, force=True)
 
-    def __str__(self):
+    def __str__(self):  # pragma: no cover
         return f"{self.name} keyboard ({self.type})"
 
     def _deactivate(self):
@@ -149,22 +149,22 @@ class AbstractKeyboard():
     # -----------------------------------------------------------------
 
     @property
-    def type(self):
+    def type(self):  # pragma: no cover
         """A human-readable keyboard type description"""
         return type(self).__name__
 
     @property
-    def inputs(self):
+    def inputs(self):  # pragma: no cover
         """The list of input pins that this keyboard uses"""
         return list(self._inputs)
 
     @property
-    def outputs(self):
+    def outputs(self):  # pragma: no cover
         """Maps this keyboard's output pins to their current states"""
         return dict(self._outputs)
 
     @property
-    def additional_info(self):
+    def additional_info(self):  # pragma: no cover
         """A dict with information about this keyboard
 
         The dict available here provides the following information:
@@ -182,7 +182,7 @@ class AbstractKeyboard():
         }
 
     @property
-    def pressed_keys(self):
+    def pressed_keys(self):  # pragma: no cover
         """A list of currently pressed input pins"""
         return [p for p in self._inputs if self.input(p)]
 

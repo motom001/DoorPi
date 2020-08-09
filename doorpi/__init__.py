@@ -15,5 +15,5 @@ class DoorPiLogger(logging.getLoggerClass()):
     """Logger subclass that adds the TRACE level"""
     def trace(self, message, *args, **kw):
         """Logs with TRACE level"""
-        if self.isEnabledFor(logging.TRACE):
+        if self.isEnabledFor(logging.TRACE):  # pragma: no cover
             self._log(logging.TRACE, message, args, **kw)

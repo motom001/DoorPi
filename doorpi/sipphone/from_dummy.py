@@ -12,7 +12,7 @@ LOGGER = logging.getLogger(__name__)
 
 class DummyPhone(AbstractSIPPhone):
     """A dummy SIP phone that does not actually place any calls."""
-    def get_name(self):
+    def get_name(self):  # pragma: no cover
         return "dummy phone"
 
     def __init__(self):
@@ -38,7 +38,7 @@ class DummyPhone(AbstractSIPPhone):
         LOGGER.info("Starting call to %r", uri)
         return False
 
-    def dump_call(self):
+    def dump_call(self):  # pragma: no cover
         return {}
 
     def hangup(self):

@@ -2,7 +2,7 @@
 from abc import ABCMeta, abstractmethod
 
 
-class AbstractSIPPhone(metaclass=ABCMeta):
+class AbstractSIPPhone(metaclass=ABCMeta):  # pragma: no cover
     """Base class for all SIP phone modules
 
     This class defines and documents all public methods that a SIP

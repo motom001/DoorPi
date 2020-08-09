@@ -40,5 +40,12 @@ class TestActionStatusfile(DoorPiTestCase):
             sf.open("w").close()
             sf.chmod(0)
 
+            try:
+                sf.open("r").close()
+            except PermissionError:
+                pass
+            else:
+                self.skipTest("Revoking permissions is not supported")
+
             with self.assertRaises(PermissionError):
                 statusfile.StatusfileAction(str(sf), CONTENT)

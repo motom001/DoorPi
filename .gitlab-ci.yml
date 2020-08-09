@@ -1,0 +1,36 @@
+default:
+  image: python:3.8
+  interruptible: true
+  artifacts:
+    expire_in: 1 week
+  before_script:
+    - python -V  # Print out python version for debugging
+  cache:
+    paths:
+      - .cache/pip
+
+variables:
+  PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
+
+Wheel:
+  needs: []
+  stage: build
+  script:
+    - python setup.py bdist_wheel
+    - mv dist/* .
+  artifacts:
+    paths:
+      - "*.whl"
+
+Test:
+  needs: []
+  stage: test
+  script:
+    - pip install -e ".[test]"
+    - coverage run --branch --source doorpi -m unittest -b
+    - coverage report --skip-covered
+    - coverage xml -o coverage.xml
+  coverage: '/^TOTAL.+?(\d+\%)$/'
+  artifacts:
+    reports:
+      cobertura: coverage.xml

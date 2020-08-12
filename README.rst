@@ -15,6 +15,22 @@ DoorPi: Open Source VoIP Türsprechanlage
 Deutsch
 =======
 
+Wichtiger Hinweis (Änderungen zum Ursprungsprojekt)
+---------------------------------------------------
+
+Durch die Vielzahl an Änderungen in den einzelnen Modulen ist dieser
+Fork **nicht mehr kompatibel** mit `dem ursprünglichen Projekt`__.
+
+Es wird empfohlen, die Konfigurationsdatei für diesen Fork von Grund auf
+neu zu erstellen.  Ausführliche Informationen dazu sind im Webinterface
+von DoorPi zu finden.
+
+Falls bereits frühere Versionen dieses Projekts im Einsatz waren, wird
+eine Lektüre des `Änderungsprotokolls`__ ausdrücklich empfohlen.
+
+__ https://github.com/motom001/DoorPi
+__ changelog.txt
+
 Einführung
 ----------
 
@@ -114,6 +130,22 @@ __ http://www.ip-symcon.de/forum/threads/26739-DoorPI-VoIP-Door-Intercomstation-
 
 English
 =======
+
+Important Notes (Differences to the original project)
+-----------------------------------------------------
+
+Due to a variety of changes in all modules, this fork **is no longer
+compatible** with `the original project`__.
+
+It is recommended to rewrite the configuration from scratch.  For
+extensive information on the supported configuration, please refer to
+the built-in web interface.
+
+If you used a previous version of this project, it is recommended to
+also review the `changelog`__.
+
+__ https://github.com/motom001/DoorPi
+__ changelog.txt
 
 Introduction
 ------------

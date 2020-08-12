@@ -1,5 +1,5 @@
 =============
-Changelog
+  Changelog
 =============
 
 Legend:
@@ -9,8 +9,62 @@ Legend:
 / reference to commit
 ! fix issue or kown bug
 
-Version: 3.0beta2 (2018-11-20)
-------------------------------
+Version: 3.0.0b4 (2020-08-12)  {{{1
+-----------------------------------
+
++ Version numbers of the Python package are now managed by setuptools_scm.
+~ Update gitignore template
+! Fix closing of configuration definition resources
+
+Version: 3.0.0b3 (2020-08-12)  {{{1
+-----------------------------------
+
++ systemd-notify and watchdog support. This allows systemd to better track DoorPi's internal state,
+  and react faster to problems like hangs or crashes.
++ Allow specifying specific modules for `--debug` and `--trace`. This is mainly useful for
+  developers; if you're reporting a bug, please attach a full trace log as usual.
+- Remove support for linphone.
+- Restarting the daemon by issuing `doorpi_cli restart` is no longer supported. If you use custom
+  scripts that rely on this command, you will need to adjust them appropriately. This does not
+  affect systemd.
+~ Changed the configuration system to use the TOML format.  Due to numerous changes in the
+  configuration layout, old configuration files cannot be migrated automatically.
+~ The main executable's name was changed from `doorpi_cli` to `doorpi`. To ensure proper
+  functioning of the daemon, reexecute the setup steps. You may have to adjust manual launch
+  scripts if you're using any.
+~ Fully rewrite and modernize the SIP stack and make pjsua2 functional again.
+~ Instead of a sine wave, a short WAV file is used as default ring tone. This is installed into
+  `$prefix/share/doorpi/dialtone.wav`, which is also the new default ring tone file path.
+~ Requirement texts use reStructuredText instead of inline HTML. Pages look cleaner and are easier
+  to maintain, but, in order to display them correctly, **docutils need to be installed**. Without
+  docutils, the reST source will be displayed as preformatted text block.
+~ The systemd socket by default now only binds to the IPv6 loopback address. IPv4 is unchanged.
+~ Data files (including systemd units) are now installed relative to the Python executable's
+  prefix. This allows installation into virtualenvs without `sudo`.
+~ The keyboard interfaces have been reworked.
+~ Actions have been rewritten as proper classes. If you implemented custom actions, you will have
+  to adjust your code. See the documentation in `doorpi/actions/__init__.py`.
+~ Some actions have been renamed or merged; please update your configuration accordingly.
+
+  Old: `ipsrpc_setvalue:<key>,<value>`
+  New: `symcon_ips3:set,<key>,<value>`
+
+  Old: `ipsrpc_call_value:<key>`
+  New: `symcon_ips3:call,<key>`
+
+  Old: `out_triggered:<p>,<v>,<s>,<h>,[i]`
+  New: `out:<p>,<v>,<s>,<h>,[i]`
+  (`out:` actions without hold time are unaffected)
+! Add a LICENSE file
+! Properly set access permissions for GPIO, audio and video devices when running under systemd
+! Receiving SIGINT, SIGHUP or SIGTERM now properly shuts down DoorPi instead of killing the
+  process. After receiving 3 or more of such signals, the main thread's stack will be dumped and
+  the process terminates immediately. (Note: Python signal handling caveats apply.)
+  The handling of other signals is unchanged - this still allows one to, for example, kill the
+  DoorPi process in a terminal with SIGQUIT.
+
+Version: 3.0beta2 (2018-11-20)  {{{1
+------------------------------------
 + Web service: Use systemd sockets. This allows to use privileged ports (e.g. 80, the old default)
   without the need to run as root. **Note**: If using systemd, the web server port in `doorpi.ini`
   is ignored, as it is now up to systemd to set up the socket. Use:
@@ -22,8 +76,8 @@ Version: 3.0beta2 (2018-11-20)
   **Note**: This requires updated DoorPiWeb files
 ! Web service: Protect against directory traversal attacks
 
-Version: 3.0beta1 (2018-11-06)
--------------------------------
+Version: 3.0beta1 (2018-11-06)  {{{1
+-------------------------------------
 + Ability to run without root privileges
 + Basic systemd support (see below)
 ~ Rewrite setup routines. Allows packaging
@@ -46,20 +100,20 @@ Notes about systemd:
   As DoorPi normally does not (and should not!) have write access there, the configuration web
   interface will not be able to save changes. Do not use it, just write to the file directly.
 
-Version: 2.5.1 (2016-08-01)
--------------------------------
+Version: 2.5.1 (2016-08-01)  {{{1
+---------------------------------
 ~ version to 2.5.1
 + add bouncetime to pn532 keyboard (#167)
 ! flapping pn532 keyboard (#167)
 ! Adjusted a few minot things to make doorpi work with pjsua again (#163)
 ! fix record_filename bug (#166)
 
-Version: 2.5.0.4 (2016-05-23)
--------------------------------
+Version: 2.5.0.4 (2016-05-23)  {{{1
+-----------------------------------
 + add missing changelog entries for Version: 2.5.0.3 (2016-05-23)
 
-Version: 2.5.0.3 (2016-05-23)
--------------------------------
+Version: 2.5.0.3 (2016-05-23)  {{{1
+-----------------------------------
 + new action url_call to *surprise*surprise* call a url
 ```
 [EVENT_OnKeyDown_prod.1]
@@ -70,8 +124,8 @@ by https://www.doorpi.org/forum/thread/25-http-request
 + new keyboard PN532 to read NFC Tags
 see https://github.com/motom001/DoorPi/blob/master/doorpi/keyboard/from_pn532.py for more informations
 
-Version: 2.5.0.2 (2016-04-07)
--------------------------------
+Version: 2.5.0.2 (2016-04-07)  {{{1
+-----------------------------------
 + pifacecommon to requirements.txt
 
 + signature config for mailto action (default is epilog from metadata) - leave blank to disable signature
@@ -90,8 +144,8 @@ signature = sent from DoorPi
 ```
 
 
-Version: 2.5.0.1 (2016-03-17)
--------------------------------
+Version: 2.5.0.1 (2016-03-17)  {{{1
+-----------------------------------
 ! fix bug for mailto an take_snapshot
 send Mail with new pic from PiCam:
 ```
@@ -120,8 +174,8 @@ use_tls = true
 need_login = true
 ```
 
-Version: 2.4.1.8 (2016-03-12)
--------------------------------
+Version: 2.4.1.8 (2016-03-12)  {{{1
+-----------------------------------
 / 20895649e196795734acd9b5016684e7dd6af0f8
 ~ BASE_PATH set to /usr/local/etc/DoorPi
 
@@ -158,4 +212,4 @@ Version: 2.4.1.8 (2016-03-12)
 / 50943b5c30cbe5a10678b5ea929afa200916d9a5
 - remove sudo for `doorpi_cli --trace --test` for test @ travis in application mode
 
-# vim:set ft= sw=2:
+# vim:set ft= fdm=marker sw=2:

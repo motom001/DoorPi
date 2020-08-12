@@ -27,7 +27,8 @@ class Configuration:
         for file in resources.contents(_defs):
             if file.endswith(".toml") and resources.is_resource(_defs, file):
                 logger.debug("Loading defs from %s", file)
-                self.attach_defs(toml.load(resources.open_text(_defs, file)))
+                with resources.open_text(_defs, file) as file:
+                    self.attach_defs(toml.load(file))
 
     def load(self, path: Union[str, os.PathLike, TextIO]) -> "Configuration":
         """Replace configuration by loading from the given TOML file"""

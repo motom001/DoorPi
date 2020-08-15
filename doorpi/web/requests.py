@@ -49,12 +49,10 @@ class DoorPiWebRequestHandler(BaseHTTPRequestHandler):
         return self.server.config
 
     def log_error(self, format, *args):
-        del format
-        LOGGER.error("[%s] %s", self.client_address[0], args)
+        LOGGER.error(f"[%s] {format}", self.client_address[0], *args)
 
     def log_message(self, format, *args):
-        del format
-        LOGGER.debug("[%s] %s", self.client_address[0], args)
+        LOGGER.debug(f"[%s] {format}", self.client_address[0], *args)
 
     @staticmethod
     def prepare():

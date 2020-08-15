@@ -1,3 +1,6 @@
+include:
+  template: Jobs/Code-Quality.gitlab-ci.yml
+
 default:
   image: python:3.8
   interruptible: true
@@ -11,6 +14,13 @@ default:
 
 variables:
   PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
+
+code_quality:
+  before_script: []
+  cache:
+    paths: []
+  artifacts:
+    paths: ["gl-code-quality-report.json"]
 
 Wheel:
   needs: []

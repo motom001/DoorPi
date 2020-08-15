@@ -44,6 +44,7 @@ class DoorPiWeb(ThreadingMixIn, HTTPServer):
         super().__init__(*args, **kw)
         self.keep_running = True
 
+        self.config = doorpi.INSTANCE.config.view("web")
         self.www = None
         self.indexfile = None
         self.base_url = None
@@ -71,10 +72,6 @@ class DoorPiWeb(ThreadingMixIn, HTTPServer):
             self._session_handler = SessionHandler()
         return self._session_handler
     _session_handler = None
-
-    @property
-    def config(self):
-        return doorpi.INSTANCE.config
 
     def start(self):
         LOGGER.info("Starting WebServer on %s", self.own_url)

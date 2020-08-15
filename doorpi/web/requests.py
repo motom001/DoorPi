@@ -2,6 +2,7 @@ import itertools
 import json
 import logging
 import os
+import pathlib
 import re
 from http.server import BaseHTTPRequestHandler
 from mimetypes import guess_type
@@ -34,7 +35,7 @@ VIRTUELL_RESOURCES = [
     "/help/modules.overview.html"
 ]
 
-PARSABLE_FILE_EXTENSIONS = ["html"]
+PARSABLE_FILE_EXTENSIONS = [".html"]
 DOORPIWEB_SECTION = "DoorPiWeb"
 
 
@@ -43,11 +44,6 @@ class WebServerLoginRequired(Exception):
 
 
 class DoorPiWebRequestHandler(BaseHTTPRequestHandler):
-
-    @property
-    def conf(self):
-        return self.server.config
-
     def log_error(self, format, *args):
         LOGGER.error(f"[%s] {format}", self.client_address[0], *args)
 
@@ -86,7 +82,10 @@ class DoorPiWebRequestHandler(BaseHTTPRequestHandler):
 
         if parsed_path.path in VIRTUELL_RESOURCES:
             return self.create_virtual_resource(parsed_path, parse_qs(urlparse(self.path).query))
-        return self.real_resource(parsed_path.path)
+        try:
+            return self.real_resource(parsed_path.path)
+        except FileNotFoundError:
+            return self.return_message(http_code=404)
 
     def do_control(self, control_order, para):
         result_object = {"success": False, "message": "unknown error"}
@@ -149,7 +148,8 @@ class DoorPiWebRequestHandler(BaseHTTPRequestHandler):
             return_object = self.do_control(path.path.split("/")[-1], raw_parameters)
         elif path.path == "/help/modules.overview.html":
             self.clear_parameters(raw_parameters)
-            return_object, _ = self.get_file_content("/dashboard/parts/modules.overview.html")
+            return_object, _ = self.get_file_content(self.canonicalize_filename(
+                "/dashboard/parts/modules.overview.html"))
             return_object = self.parse_content(
                 return_object,
                 MODULE_AREA_NAME=raw_parameters["module"][0] or "",
@@ -189,23 +189,23 @@ class DoorPiWebRequestHandler(BaseHTTPRequestHandler):
             return self.return_message(str(prepared_object))
 
     def real_resource(self, path):
-        if os.path.isdir(self.server.www + path):
-            return self.list_directory(self.server.www + path)
-        return self.return_file_content(path)
+        if (path := self.canonicalize_filename(path)).is_dir():
+            return self.list_directory(path)
+        return self.return_message(*self.get_file_content(path))
 
     def list_directory(self, path):
         dirs = []
         files = []
-        for item in os.listdir(path):
+        for item in path.iterdir():
             if os.path.isfile(item):
                 files.append(item)
             else:
                 dirs.append(item)
 
         return_html = "".join(itertools.chain(
-            ("<!DOCTYPE html><html lang=\"en\"><head></head><body><a href=\"..\">..</a></br>",),
-            (f"<a href=\"./{dir_}\">{dir_}</a></br>" for dir_ in dirs),
-            (f"<a href=\"./{file}\">{file}</a></br>" for file in files),
+            ("<!DOCTYPE html><html lang=\"en\"><head></head><body><a href=\"..\">..</a><br/>",),
+            (f"<a href=\"./{dir_}\">{dir_}</a><br/>" for dir_ in dirs),
+            (f"<a href=\"./{file}\">{file}</a><br/>" for file in files),
             ("</body></html>",),
         ))
         return self.return_message(return_html, "text/html")
@@ -225,24 +225,26 @@ class DoorPiWebRequestHandler(BaseHTTPRequestHandler):
 
     def canonicalize_filename(self, url):
         """Canonicalize and validate the requested filename"""
+        if not isinstance(url, pathlib.Path):
+            url = pathlib.Path(url)
+        if url.is_absolute():
+            url = url.relative_to(url.root)
+        url = (self.server.www / url).resolve()
 
-        url = os.path.realpath(url)
-        if url.startswith(self.server.www): return url
+        if self.server.www in url.parents:
+            return url
 
         snapshot_base = snapshot.SnapshotAction.get_base_path()
-        if url.startswith(snapshot_base): return url
+        if snapshot_base in url.parents:
+            return url
 
-        # Path is not on whitelist
         raise FileNotFoundError(url)
 
     @staticmethod
     def is_file_parsable(filename):
-        ext = filename.split(".")[-1]
-        return ext in PARSABLE_FILE_EXTENSIONS
+        return filename.suffix in PARSABLE_FILE_EXTENSIONS
 
     def read_from_file(self, url, template_recursion=5):
-        url = self.canonicalize_filename(url)
-
         read_mode = "r" if self.is_file_parsable(url) else "rb"
         with open(url, read_mode) as file:
             file_content = file.read()
@@ -252,16 +254,10 @@ class DoorPiWebRequestHandler(BaseHTTPRequestHandler):
 
     def get_file_content(self, path):
         content = mime = ""
-        content = self.read_from_file(self.server.www + path)
-        mime = self.get_mime_typ(self.server.www + path)
+        content = self.read_from_file(path)
+        mime = self.get_mime_typ(path)
 
         return content, mime
-
-    def return_file_content(self, path):
-        content, mime = self.get_file_content(path)
-        return self.return_message(
-            content, mime
-        )
 
     def return_message(self, message="", content_type="text/plain; charset=utf-8", http_code=200):
         self.send_response(http_code)
@@ -279,7 +275,7 @@ class DoorPiWebRequestHandler(BaseHTTPRequestHandler):
         try:
             parsed_path = urlparse(self.path)
 
-            public_resources = self.conf.get_keys(self.server.area_public_name)
+            public_resources = self.server.config["areas.public"]
             for public_resource in public_resources:
                 if re.match(public_resource, parsed_path.path):
                     LOGGER.debug("public resource: %s", parsed_path.path)
@@ -366,7 +362,7 @@ class DoorPiWebRequestHandler(BaseHTTPRequestHandler):
             if template_recursion and k.startswith("TEMPLATE:"):
                 # exceptions are deliberately ignored and will result in HTTP error 500
                 content = content.replace(f"{{{k}}}", self.read_from_file(
-                    os.path.join(self.server.www, "dashboard", "parts", mapping_table[k]),
+                    self.server.www / "dashboard" / "parts" / mapping_table[k],
                     template_recursion=template_recursion - 1))
             else:
                 content = content.replace("{" + k + "}", mapping_table[k])

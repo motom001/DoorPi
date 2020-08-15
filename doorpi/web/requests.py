@@ -81,7 +81,7 @@ class DoorPiWebRequestHandler(BaseHTTPRequestHandler):
 
     def do_control(self, control_order, para):
         result_object = {"success": False, "message": "unknown error"}
-        LOGGER.debug(json.dumps(para, sort_keys=True, indent=4))
+        LOGGER.debug(json_encoder.encode(para))
 
         for parameter_name in para:
             try:
@@ -156,18 +156,18 @@ class DoorPiWebRequestHandler(BaseHTTPRequestHandler):
         if isinstance(return_type, list) and len(return_type) > 0: return_type = return_type[0]
 
         if return_type in {"json", "default"}:
-            return self.return_message(json.dumps(prepared_object),
+            return self.return_message(json_encoder.encode(prepared_object),
                                        "application/json; charset=utf-8")
         if return_type in {"json_parsed", "json.parsed"}:
-            return self.return_message(self.parse_content(json.dumps(prepared_object)),
+            return self.return_message(self.parse_content(json_encoder.encode(prepared_object)),
                                        "application/json; charset=utf-8")
         if return_type in {"json_beautified", "json.beautified", "beautified.json"}:
-            return self.return_message(json.dumps(prepared_object, sort_keys=True, indent=4),
+            return self.return_message(json_encoder.encode(prepared_object),
                                        "application/json; charset=utf-8")
         if return_type in {"json_beautified_parsed", "json.beautified.parsed",
                            "beautified.json.parsed", ""}:
             return self.return_message(
-                self.parse_content(json.dumps(prepared_object, sort_keys=True, indent=4)),
+                self.parse_content(json_encoder.encode(prepared_object)),
                 "application/json; charset=utf-8")
         if return_type in {"string", "plain", "str"}:
             return self.return_message(str(prepared_object))
@@ -385,3 +385,13 @@ def control_config_delete_key(section, key):
 
 def control_config_save(configfile=""):
     return doorpi.INSTANCE.config.save(configfile)
+
+
+class SetAsTupleJSONEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, (set, frozenset)):
+            return tuple(obj)
+        return super().default(obj)
+
+
+json_encoder = SetAsTupleJSONEncoder()

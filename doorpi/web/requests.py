@@ -312,6 +312,7 @@ class DoorPiWebRequestHandler(BaseHTTPRequestHandler):
                            user_session["username"], parsed_path.path)
             return True
         except Exception:
+            LOGGER.exception("Error while authenticating a user")
             return True
 
     def check_authentication(self):

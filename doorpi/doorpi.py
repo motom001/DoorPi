@@ -11,12 +11,11 @@ import time
 from pathlib import Path
 
 import doorpi
-from doorpi import config, keyboard, sipphone
+from doorpi import config, keyboard, sipphone, web
 from doorpi.actions import CallbackAction, snapshot
 from doorpi.event.handler import EventHandler
 from doorpi.status.status_class import DoorPiStatus
 from doorpi.status.systemd import DoorPiSD
-from doorpi.status.webserver import load_webserver
 from . import metadata
 
 LOGGER = logging.getLogger(__name__)
@@ -129,7 +128,7 @@ class DoorPi:
             "OnTimeTick", f"time_tick:{self.__last_tick}")
 
         # register modules
-        self.webserver = load_webserver()
+        self.webserver = web.load()
         self.keyboard = keyboard.load()
         self.sipphone = sipphone.load()
         self.sipphone.start()

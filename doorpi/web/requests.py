@@ -12,7 +12,7 @@ import doorpi
 from doorpi import metadata
 from doorpi.actions import snapshot
 
-from .request_handler_static_functions import (
+from .reqhelper import (
     control_config_get_value,
     control_config_set_value,
     control_config_delete_key,

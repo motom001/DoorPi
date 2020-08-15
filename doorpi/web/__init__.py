@@ -8,8 +8,8 @@ from urllib import request
 
 import doorpi
 from doorpi.actions import CallbackAction
-from doorpi.status.webserver_lib.session_handler import SessionHandler
-from doorpi.status.webserver_lib.request_handler import DoorPiWebRequestHandler
+from .sessions import SessionHandler
+from .requests import DoorPiWebRequestHandler
 
 
 LOGGER = logging.getLogger(__name__)
@@ -17,7 +17,7 @@ DOORPIWEB_SECTION = "DoorPiWeb"
 CONF_AREA = "AREA_{area}"
 
 
-def load_webserver():
+def load():
     ip = doorpi.INSTANCE.config["web.ip"]
     port = doorpi.INSTANCE.config["web.port"]
 

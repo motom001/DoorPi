@@ -200,10 +200,6 @@ class DoorPi:
 
         LOGGER.info("DoorPi started successfully")
         LOGGER.info("BasePath is %s", self.base_path)
-        if self.webserver:
-            self.webserver.inform_own_url()
-        else:
-            LOGGER.info("no Webserver loaded")
 
         # setup watchdog ping and signal startup success
         self.event_handler.register_action(

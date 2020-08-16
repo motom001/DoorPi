@@ -4,10 +4,10 @@ import operator
 def get(doorpi_obj, name, value):
     del value
     status_getters = {
-        "config_status": operator.attrgetter("config_status"),
-        "session_ids": operator.attrgetter("sessions.session_ids"),
+        "config_status": lambda _: {"infos": [], "warnings": [], "errors": []},
+        "session_ids": lambda ws: list(ws.sessions.sessions),
         "sessions": operator.attrgetter("sessions.sessions"),
-        "running": lambda ws: bool(ws and ws.keep_running),
+        "running": lambda ws: bool(ws),
         "server_name": operator.attrgetter("server_name"),
         "server_port": operator.attrgetter("server_port"),
     }

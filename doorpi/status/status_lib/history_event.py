@@ -9,7 +9,7 @@ def get(doorpi_obj, name, value):
     except (IndexError, ValueError):
         max_count = 100
 
-    return doorpi_obj.event_handler.db.get_event_log(max_count, filter_)
+    return doorpi_obj.event_handler.log.get_event_log(max_count, filter_)
 
 
 def is_active(doorpi_object):

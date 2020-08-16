@@ -7,23 +7,25 @@ import http.server
 
 import doorpi
 from doorpi.actions import CallbackAction
-from . import requests, sessions
-
 
 LOGGER = logging.getLogger(__name__)
-DOORPIWEB_SECTION = "DoorPiWeb"
-CONF_AREA = "AREA_{area}"
 
+try:
+    from . import requests, sessions
+except ImportError as err:
+    LOGGER.error("DoorPiWeb requirements are not met: %s", err)
+    def load():
+        pass
+else:
+    def load():
+        """Load the webserver"""
+        try:
+            doorpiweb_object = DoorPiWeb()
+            doorpiweb_object.start()
+        except Exception:  # pylint: disable=broad-except
+            LOGGER.exception("Failed starting webserver")
 
-def load():
-    """Load the webserver"""
-    try:
-        doorpiweb_object = DoorPiWeb()
-        doorpiweb_object.start()
-    except Exception:  # pylint: disable=broad-except
-        LOGGER.exception("Failed starting webserver")
-
-    return doorpiweb_object
+        return doorpiweb_object
 
 
 class DoorPiWeb(http.server.ThreadingHTTPServer):

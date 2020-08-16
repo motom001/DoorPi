@@ -4,10 +4,10 @@ import logging
 import os
 import pathlib
 import re
+import urllib.parse
 from http.server import BaseHTTPRequestHandler
 from mimetypes import guess_type
-from urllib.parse import unquote_plus
-from urllib.parse import urlparse, parse_qs
+from urllib.parse import urlparse
 
 import doorpi
 from doorpi import metadata
@@ -15,24 +15,16 @@ from doorpi.actions import snapshot
 
 LOGGER = logging.getLogger(__name__)
 
-VIRTUELL_RESOURCES = [
-    "/mirror",
-    "/status",
-    "/control/trigger_event",
-    "/control/config_value_get",
-    "/control/config_value_set",
-    "/control/config_value_delete",
-    "/control/config_save",
-    "/control/config_get_configfile",
-    "/help/modules.overview.html"
-]
-
 PARSABLE_FILE_EXTENSIONS = [".html"]
 DOORPIWEB_SECTION = "DoorPiWeb"
 
 
-class WebServerLoginRequired(Exception):
-    pass
+class AuthenticationRequiredError(Exception):
+    """Authentication is required to access this resource"""
+
+
+class BadRequestError(Exception):
+    """The received request was invalid"""
 
 
 class DoorPiWebRequestHandler(BaseHTTPRequestHandler):
@@ -63,127 +55,41 @@ class DoorPiWebRequestHandler(BaseHTTPRequestHandler):
     def do_GET(self):  # pylint: disable=invalid-name
         """Callback for incoming GET requests."""
         if not self.server.keep_running:
-            return self.return_message(http_code=500)
+            raise RuntimeError("Server is not running")
 
-        parsed_path = urlparse(self.path)
+        path = urlparse(self.path)
 
-        if parsed_path.path == "/":
-            return self.return_redirection("dashboard/pages/index.html")
+        if path.path == "/":
+            return self.return_redirection("/dashboard/pages/index.html")
 
-        if self.authentication_required(): return self.login_form()
-
-        if parsed_path.path in VIRTUELL_RESOURCES:
-            return self.create_virtual_resource(parsed_path, parse_qs(urlparse(self.path).query))
         try:
-            return self.real_resource(parsed_path.path)
+            self.check_authentication(path)
+
+            if path.query:
+                params = urllib.parse.parse_qs(path.query, strict_parsing=True)
+                for key, val in params.items():
+                    params[key] = [urllib.parse.unquote_plus(v) for v in val]
+            else:
+                params = {}
+            api_endpoint = self.API_ENDPOINTS.get(
+                path.path.split("/")[1], "real_resource")
+
+            result, mime = getattr(self, api_endpoint)(path.path, params)
+        except BadRequestError:
+            self.return_message(http_code=400)
+        except AuthenticationRequiredError:
+            self.return_message(http_code=401)
         except FileNotFoundError:
-            return self.return_message(http_code=404)
+            self.return_message(http_code=404)
+        else:
+            if isinstance(result, dict):
+                result = json_encoder.encode(result)
+            self.return_message(result, mime)
 
-    def do_control(self, control_order, para):
-        result_object = {"success": False, "message": "unknown error"}
-        LOGGER.debug(json_encoder.encode(para))
-
-        for parameter_name in para:
-            try:
-                para[parameter_name] = unquote_plus(para[parameter_name][0])
-            except LookupError:
-                para[parameter_name] = ""
-
-        if control_order == "trigger_event":
-            doorpi.INSTANCE.event_handler.fire_event_sync(**para)
-            result_object["success"] = True
-            result_object["message"] = "Event was fired"
-        elif control_order == "config_value_get":
-            # section, key, default, store
-            result_object["success"] = True
-            result_object["message"] = control_config_get_value(**para)
-        elif control_order == "config_value_set":
-            # section, key, value, password
-            result_object["success"] = control_config_set_value(**para)
-            result_object["message"] = "config_value_set %s" % (
-                "success" if result_object["success"] else "failed"
-            )
-        elif control_order == "config_value_delete":
-            # section and key
-            result_object["success"] = control_config_delete_key(**para)
-            result_object["message"] = "config_value_delete %s" % (
-                "success" if result_object["success"] else "failed"
-            )
-        elif control_order == "config_save":
-            # configfile
-            result_object["success"] = control_config_save(**para)
-            result_object["message"] = "config_save %s" % (
-                "success" if result_object["success"] else "failed"
-            )
-
-        return result_object
-
-    @staticmethod
-    def clear_parameters(raw_parameters):
-        if "module" not in raw_parameters: raw_parameters["module"] = []
-        if "name" not in raw_parameters: raw_parameters["name"] = []
-        if "value" not in raw_parameters: raw_parameters["value"] = []
-
-    def create_virtual_resource(self, path, raw_parameters):
-        return_object = {}
-        if path.path == "/mirror":
-            return_object = self.create_mirror()
-            raw_parameters["output"] = "string"
-        elif path.path == "/status":
-            self.clear_parameters(raw_parameters)
-            return_object = doorpi.INSTANCE.get_status(
-                modules=raw_parameters["module"],
-                name=raw_parameters["name"],
-                value=raw_parameters["value"]
-            ).dictionary
-        elif path.path.startswith("/control/"):
-            return_object = self.do_control(path.path.split("/")[-1], raw_parameters)
-        elif path.path == "/help/modules.overview.html":
-            self.clear_parameters(raw_parameters)
-            return_object, _ = self.get_file_content(self.canonicalize_filename(
-                "/dashboard/parts/modules.overview.html"))
-            return_object = self.parse_content(
-                return_object,
-                MODULE_AREA_NAME=raw_parameters["module"][0] or "",
-                MODULE_NAME=raw_parameters["name"][0] or ""
-            )
-            raw_parameters["output"] = "html"
-
-        if "output" not in raw_parameters: raw_parameters["output"] = ""
-        return self.return_virtual_resource(return_object, raw_parameters["output"])
-
-    def return_virtual_resource(self, prepared_object, return_type="json"):
-        if isinstance(return_type, list) and len(return_type) > 0: return_type = return_type[0]
-
-        if return_type in {"json", "default"}:
-            return self.return_message(json_encoder.encode(prepared_object),
-                                       "application/json; charset=utf-8")
-        if return_type in {"json_parsed", "json.parsed"}:
-            return self.return_message(self.parse_content(json_encoder.encode(prepared_object)),
-                                       "application/json; charset=utf-8")
-        if return_type in {"json_beautified", "json.beautified", "beautified.json"}:
-            return self.return_message(json_encoder.encode(prepared_object),
-                                       "application/json; charset=utf-8")
-        if return_type in {"json_beautified_parsed", "json.beautified.parsed",
-                           "beautified.json.parsed", ""}:
-            return self.return_message(
-                self.parse_content(json_encoder.encode(prepared_object)),
-                "application/json; charset=utf-8")
-        if return_type in {"string", "plain", "str"}:
-            return self.return_message(str(prepared_object))
-        if return_type in {"repr"}:
-            return self.return_message(repr(prepared_object))
-        if return_type in {"html"}:
-            return self.return_message(prepared_object, "text/html; charset=utf-8")
-        try:
-            return self.return_message(repr(prepared_object))
-        except Exception:
-            return self.return_message(str(prepared_object))
-
-    def real_resource(self, path):
+    def real_resource(self, path, _):
         if (path := self.canonicalize_filename(path)).is_dir():
             return self.list_directory(path)
-        return self.return_message(*self.get_file_content(path))
+        return self.get_file_content(path)
 
     def list_directory(self, path):
         dirs = []
@@ -200,7 +106,7 @@ class DoorPiWebRequestHandler(BaseHTTPRequestHandler):
             (f"<a href=\"./{file}\">{file}</a><br/>" for file in files),
             ("</body></html>",),
         ))
-        return self.return_message(return_html, "text/html")
+        return (return_html, "text/html")
 
     def return_redirection(self, new_location):
         message = """
@@ -209,7 +115,7 @@ class DoorPiWebRequestHandler(BaseHTTPRequestHandler):
         <a href="{new_location}">{new_location}</a>
         </html>
         """.format(new_location=new_location)
-        return self.return_message(message, "text/html", http_code=301)
+        return (message, "text/html")
 
     @staticmethod
     def get_mime_typ(url):
@@ -260,64 +166,115 @@ class DoorPiWebRequestHandler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(message.encode("utf-8") if isinstance(message, str) else message)
 
-    def login_form(self):
-        return self.return_message(http_code=401)
-
-    def authentication_required(self):
+    def check_authentication(self, parsed_path):
         try:
-            parsed_path = urlparse(self.path)
-
             public_resources = self.server.config["areas.public"]
             for public_resource in public_resources:
                 if re.match(public_resource, parsed_path.path):
                     LOGGER.debug("public resource: %s", parsed_path.path)
-                    return False
+                    return
 
             username, password = self.headers["authorization"] \
                 .replace("Basic ", "").decode("base64").split(":", 1)
 
             user_session = self.server.sessions.get_session(username)
             if not user_session:
-                user_session = self.server.sessions.build_security_object(username, password)
+                user_session = self.server.sessions.build_security_object(
+                    username, password)
 
             if not user_session:
-                LOGGER.debug("need authentication (no session): %s", parsed_path.path)
-                return True
+                LOGGER.debug(
+                    "need authentication (no session): %s", parsed_path.path)
+                raise AuthenticationRequiredError()
 
             for write_permission in user_session["writepermissions"]:
                 if re.match(write_permission, parsed_path.path):
                     LOGGER.info("user %s has write permissions: %s",
                                 user_session["username"], parsed_path.path)
-                    return False
+                    return
 
             for read_permission in user_session["readpermissions"]:
                 if re.match(read_permission, parsed_path.path):
                     LOGGER.info("user %s has read permissions: %s",
                                 user_session["username"], parsed_path.path)
-                    return False
+                    return
 
             LOGGER.warning("user %s has no permissions: %s",
                            user_session["username"], parsed_path.path)
-            return True
-        except Exception:
+            raise AuthenticationRequiredError()
+        except AuthenticationRequiredError:
+            raise
+        except Exception as err:
             LOGGER.exception("Error while authenticating a user")
-            return True
+            raise AuthenticationRequiredError() from err
 
-    def check_authentication(self):
-        if not self.authentication_required(): return True
-        raise WebServerLoginRequired()
+    def _api_control(self, path, params):
+        if len(path) != 2:
+            raise BadRequestError()
+        command = path[1]
 
-    def create_mirror(self):
-        parsed_path = urlparse(self.path)
+        if command == "trigger_event":
+            doorpi.INSTANCE.event_handler.fire_event(
+                params["event"], params["source"], extra=params.get("extra"))
+            result = {"success": True, "message": "Event was fired"}
+        elif command == "config_value_get":
+            try:
+                key = params["key"][0]
+            except (IndexError, KeyError) as err:
+                raise BadRequestError() from err
+
+            try:
+                result = {
+                    "success": True,
+                    "message": doorpi.INSTANCE.config[key[0]],
+                }
+            except KeyError as err:
+                result = {"success": False, "message": str(err)}
+        elif command == "config_value_set":
+            try:
+                doorpi.INSTANCE.config[params["key"][0]] = params["value"][0]
+            except (IndexError, KeyError, TypeError, ValueError) as err:
+                result = {"success": False, "message": str(err)}
+            else:
+                result = {"success": True, "message": ""}
+        elif command == "config_value_delete":
+            try:
+                key = params[key][0]
+            except (IndexError, KeyError) as err:
+                raise BadRequestError() from err
+
+            try:
+                del doorpi.INSTANCE.config[key]
+            except KeyError as err:
+                result = {"success": False, "message": str(err)}
+            else:
+                result = {"success": True, "message": ""}
+        elif command == "config_save":
+            try:
+                doorpi.INSTANCE.config.save(params["configfile"])
+            except KeyError as err:
+                raise BadRequestError() from err
+            else:
+                result = {"success": True, "message": ""}
+        else:
+            raise BadRequestError()
+
+        return (json_encoder.encode(result), "application/json")
+
+    def _api_help(self, path, params):
+        return self.real_resource(
+            path.replace("/help", "/dashboard/parts"), params)
+
+    def _api_mirror(self, path, params):
         message_parts = [
             "CLIENT VALUES:",
-            "client_address=%s (%s)" % (self.client_address,
-                                        self.address_string()),
+            "client_address=%s (%s)" % (
+                self.client_address, self.address_string()),
             "raw_requestline=%s" % self.raw_requestline,
             "command=%s" % self.command,
             "path=%s" % self.path,
-            "real path=%s" % parsed_path.path,
-            "query=%s" % parsed_path.query,
+            "real path=%s" % path,
+            "query=%s" % params,
             "request_version=%s" % self.request_version,
             "",
             "SERVER VALUES:",
@@ -331,7 +288,14 @@ class DoorPiWebRequestHandler(BaseHTTPRequestHandler):
             message_parts.append("%s=%s" % (name, value.rstrip()))
         message_parts.append("")
         message = "\r\n".join(message_parts)
-        return message
+        return (message, "text/plain")
+
+    def _api_status(self, _, params):
+        status = doorpi.INSTANCE.get_status(
+            modules=params.get("modules", ""),
+            name=params.get("name", ""),
+            value=params.get("value", ""))
+        return (json_encoder.encode(status.dictionary), "application/json")
 
     def parse_content(self, content, template_recursion=5, **mapping_table):
         if not isinstance(content, str):
@@ -360,38 +324,19 @@ class DoorPiWebRequestHandler(BaseHTTPRequestHandler):
                 content = content.replace("{" + k + "}", mapping_table[k])
         return content
 
-
-def control_config_get_value(section, key, default="", store="True"):
-    del store
-    try:
-        return doorpi.INSTANCE.config[".".join((section, key))]
-    except KeyError:
-        return default
-
-
-def control_config_set_value(section, key, value, password=False):
-    del password
-    try:
-        doorpi.INSTANCE.config[".".join((section, key))] = value
-    except (KeyError, TypeError, ValueError):
-        return False
-    else:
-        return True
-
-
-def control_config_delete_key(section, key):
-    return False  # FIXME NYI
-
-
-def control_config_save(configfile=""):
-    return doorpi.INSTANCE.config.save(configfile)
+    API_ENDPOINTS = {
+        "control": "_api_control",
+        "help": "_api_help",
+        "mirror": "_api_mirror",
+        "status": "_api_status",
+    }
 
 
 class SetAsTupleJSONEncoder(json.JSONEncoder):
-    def default(self, obj):
-        if isinstance(obj, (set, frozenset)):
-            return tuple(obj)
-        return super().default(obj)
+    def default(self, o):
+        if isinstance(o, (set, frozenset)):
+            return tuple(o)
+        return super().default(o)
 
 
 json_encoder = SetAsTupleJSONEncoder()

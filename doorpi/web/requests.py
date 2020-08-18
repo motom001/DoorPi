@@ -5,7 +5,6 @@ import http.server
 import itertools
 import json
 import logging
-import mimetypes
 import os
 import pathlib
 import re
@@ -14,10 +13,11 @@ import urllib.parse
 import doorpi
 from doorpi import metadata
 from doorpi.actions import snapshot
+from . import templates
 
 LOGGER = logging.getLogger(__name__)
 
-PARSABLE_FILE_EXTENSIONS = [".html"]
+PARSABLE_FILE_EXTENSIONS = {".html"}
 DOORPIWEB_SECTION = "DoorPiWeb"
 
 
@@ -75,7 +75,7 @@ class DoorPiWebRequestHandler(http.server.BaseHTTPRequestHandler):
             else:
                 params = {}
             api_endpoint = self.API_ENDPOINTS.get(
-                path.path.split("/")[1], "real_resource")
+                path.path.split("/")[1], "_resource")
 
             result, mime = getattr(self, api_endpoint)(path.path, params)
         except BadRequestError:
@@ -88,12 +88,6 @@ class DoorPiWebRequestHandler(http.server.BaseHTTPRequestHandler):
             if isinstance(result, dict):
                 result = json_encoder.encode(result)
             self.return_message(result, mime)
-
-    def real_resource(self, path, _):
-        """Serve a real resource from the file system"""
-        if (path := self.canonicalize_filename(path)).is_dir():
-            return self.list_directory(path)
-        return self.get_file_content(path)
 
     @staticmethod
     def list_directory(path):
@@ -143,24 +137,6 @@ class DoorPiWebRequestHandler(http.server.BaseHTTPRequestHandler):
             return url
 
         raise FileNotFoundError(url)
-
-    def read_from_file(self, url, template_recursion=5):
-        """Read content of the file and parse template strings if applicable"""
-        parsable = url.suffix in PARSABLE_FILE_EXTENSIONS
-        with open(url, "r" if parsable else "rb") as file:
-            file_content = file.read()
-        if parsable:
-            return self.parse_content(
-                file_content, template_recursion=template_recursion)
-        return file_content
-
-    def get_file_content(self, path):
-        """Serve contents of a file"""
-        content = mime = ""
-        content = self.read_from_file(path)
-        mime = mimetypes.guess_type(path)[0] or ""
-
-        return content, mime
 
     def return_message(
             self, message="", content_type="text/plain", http_code=200):
@@ -277,7 +253,7 @@ class DoorPiWebRequestHandler(http.server.BaseHTTPRequestHandler):
         return (json_encoder.encode(result), "application/json")
 
     def _api_help(self, path, params):
-        return self.real_resource(
+        return self._resource_dashboard(
             path.replace("/help", "/dashboard/parts"), params)
 
     def _api_mirror(self, path, params):
@@ -313,6 +289,18 @@ class DoorPiWebRequestHandler(http.server.BaseHTTPRequestHandler):
             value=params.get("value", ""))
         return (json_encoder.encode(status.dictionary), "application/json")
 
+    def _resource(self, path, _):
+        """Serve a resource for the dashboard"""
+        path = pathlib.PurePosixPath(path)
+        resource = templates.get_resource(path)
+
+        if path.suffix in PARSABLE_FILE_EXTENSIONS:
+            return (
+                self.parse_content(resource[0].decode("utf-8")),
+                resource[1])
+        else:
+            return resource
+
     def parse_content(self, content, template_recursion=5, /, **mapping_table):
         """Parse the template substitutions in ``content``"""
         if not isinstance(content, str):
@@ -332,9 +320,11 @@ class DoorPiWebRequestHandler(http.server.BaseHTTPRequestHandler):
 
         for k in mapping_table:
             if template_recursion and k.startswith("TEMPLATE:"):
-                content = content.replace(f"{{{k}}}", self.read_from_file(
-                    self.server.www / "dashboard" / "parts" / mapping_table[k],
-                    template_recursion=template_recursion - 1))
+                content = content.replace(f"{{{k}}}", self.parse_content(
+                    templates.get_resource(
+                        f"/dashboard/parts/{mapping_table[k]}"
+                    )[0].decode("utf-8"),
+                    template_recursion - 1, **mapping_table))
             else:
                 content = content.replace(f"{{{k}}}", mapping_table[k])
         return content

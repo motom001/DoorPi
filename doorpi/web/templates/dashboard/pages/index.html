@@ -1,0 +1,218 @@
+{TEMPLATE:HTML_HEADER}
+			
+			<script>
+				$(document).ready(function() {
+					$('#idDonatePrevious').dataTable( {
+						"paging":   false,
+						//"ordering": false,
+						//"info":     false,
+						"searching":	false,
+						"order": [[ 1, "desc" ]],
+						"data": [
+							{'nickname': 'Nilimann', 'realname': '******', 'date': '2015-09-17', 'amount': '10,00 €'},
+							{'nickname': 'brunh', 'realname': '******', 'date': '2015-09-17', 'amount': '50,00 €'},
+							{'nickname': 'Sauger999', 'realname': '******', 'date': '2015-09-11', 'amount': '10,00 €'},
+							{'nickname': 'max_kr', 'realname': '******', 'date': '2015-09-09', 'amount': '20,00 €'},
+							{'nickname': 'Nilimann', 'realname': '******', 'date': '2015-09-01', 'amount': '5,00 €'},
+							{'nickname': '****', 'realname': '******', 'date': '2015-08-22', 'amount': '10,00 €'},
+							{'nickname': 'wesp74', 'realname': '******', 'date': '2015-08-11', 'amount': '20,00 €'},
+							{'nickname': 'Apolo', 'realname': '******', 'date': '2015-08-08', 'amount': '10,00 €'},
+							{'nickname': 'Nea', 'realname': '******', 'date': '2015-08-04', 'amount': '10,00 €'}
+						],
+						"columns": [
+							{ "data": "nickname", "title": "Nickname" },
+							{ "data": "date", "title": "Datum" },
+							{ "data": "amount", "title": "Betrag" }
+						]
+					});
+					
+					var html_button_installed = '<button type="button" class="btn btn-success disabled">installiert</button>';
+					var html_button_not_installed = '<button type="button" class="btn btn-warning disabled">fehlt</button>';
+					var html_button_not_installed_but_necessary = '<button type="button" class="btn btn-danger disabled">fehlt</button>';
+					
+					$.getJSON("/status?output=json.parsed", function(result){
+						
+						var iCounterHitoryEvents = (result.history_event.length < 100) ? result.history_event.length : 'mehr als 100';
+						$("#history_event_length").text(iCounterHitoryEvents);
+						$("#event_handler_length").text(
+							Object.keys(result.event_handler.actions).length +
+							' / ' +
+							Object.keys(result.event_handler.events).length
+						);
+						
+						if (Object.keys(result.sipphone.current_call).length == 0) {
+							$("#current_call_panel").removeClass("panel-red").addClass("panel-primary");
+							$("#current_call_status").text("kein Anruf");
+							$("#current_call_details").text("");
+						} else {
+							$("#current_call_panel").removeClass("panel-primary").addClass("panel-red");
+							$("#current_call_status").text("'"+result.sipphone.current_call.direction+"'");
+							$("#current_call_details").html(
+								result.sipphone.current_call.remote_uri+"</br>"+
+								result.sipphone.current_call.total_time.toFixed(2)+" sec "+
+								"(Level: &uarr; "+result.sipphone.current_call.level_incoming.toFixed(2)+
+								"&darr; "+result.sipphone.current_call.level_outgoing.toFixed(2)+")"
+							);
+						}
+						
+						var aModulStatus = new Array();
+						$.each(result.environment, function(modul_area_name, modul_area){
+							$.each(modul_area.libraries, function(modul_name, modul){
+								var sSingleModulStatus = '';
+								if (modul.status.installed) sSingleModulStatus = html_button_installed;
+								else if ( modul_area.is_fulfilled ) sSingleModulStatus = html_button_not_installed;
+								else sSingleModulStatus = html_button_not_installed_but_necessary;
+								
+								aModulStatus.push({
+									'modul_area_name': modul_area_name,
+									'modul_name': modul_name,
+									'installed': sSingleModulStatus,
+									'file': ((modul.status.installed) ? modul.status.file : ''),
+									'link': '<a href="/help/modules.overview.html?module=' + modul_area_name + '&name=' + modul_name + '&installed=' + modul.status.installed + '">' + '<button type="button" class="btn btn-info">Info</button></a>'
+								})
+							});
+						});
+						$('#idTableModulStatus').html( '<table class="display table table-bordered table-hover table-striped" id="idTableModulStatusContent"></table>' );
+						$('#idTableModulStatusContent').dataTable({
+							data: aModulStatus,
+							lengthMenu: [[10, 25, 50, -1], [10, 25, 50, "All"]],
+							iDisplayLength: -1,
+							columns: [
+								{ "data": "modul_area_name", "title": "Bereich" },
+								{ "data": "modul_name", "title": "Modul" },
+								{ "data": "installed", "title": "Status" },
+								{ "data": "file", "title": "Datei" },
+								{ "data": "link", "title": "Hilfe" }
+							]
+						});
+					});
+				});
+			</script>
+			
+            <!-- /.row -->
+            <div class="row">
+				<div class="col-lg-3 col-md-6">
+                    <div class="panel panel-primary" id="current_call_panel">
+                        <div class="panel-heading">
+                            <div class="row">
+                                <div class="col-xs-3">
+                                    <i class="fa fa-comments fa-5x"></i>
+                                </div>
+                                <div class="col-xs-9 text-right">
+                                    <div class="huge" id="current_call_status">kein Anruf</div>
+                                    <div id="current_call_details"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <a href="/dashboard/pages/status.modules.sipphone.html">
+                            <div class="panel-footer">
+                                <span class="pull-left">Details</span>
+                                <span class="pull-right"><i class="fa fa-arrow-circle-right"></i></span>
+                                <div class="clearfix"></div>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6">
+                    <div class="panel panel-primary">
+                        <div class="panel-heading">
+                            <div class="row">
+                                <div class="col-xs-3">
+                                    <i class="fa fa-comments fa-5x"></i>
+                                </div>
+                                <div class="col-xs-9 text-right">
+                                    <div class="huge" id="history_event_length"></div>
+                                    <div>ausgelöste Events</div>
+                                </div>
+                            </div>
+                        </div>
+                        <a href="/dashboard/pages/history.events.html">
+                            <div class="panel-footer">
+                                <span class="pull-left">Details</span>
+                                <span class="pull-right"><i class="fa fa-arrow-circle-right"></i></span>
+                                <div class="clearfix"></div>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6">
+                    <div class="panel panel-green">
+                        <div class="panel-heading">
+                            <div class="row">
+                                <div class="col-xs-3">
+                                    <i class="fa fa-tasks fa-5x"></i>
+                                </div>
+                                <div class="col-xs-9 text-right">
+                                    <div class="huge" id = "event_handler_length"></div>
+                                    <div>registrierte Actions / Events</div>
+                                </div>
+                            </div>
+                        </div>
+                        <a href="/dashboard/pages/status.modules.eventhandler.html">
+                            <div class="panel-footer">
+                                <span class="pull-left">Details</span>
+                                <span class="pull-right"><i class="fa fa-arrow-circle-right"></i></span>
+                                <div class="clearfix"></div>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <!-- /.row -->
+			
+            <div class="row">
+				<div class="col-lg-8">
+                    <div class="panel panel-primary">
+						<div class="panel-heading">
+							<i class="fa fa-bar-chart-o fa-fw">Modul Status</i>
+						</div>
+						<!-- /.panel-heading -->
+						<div class="panel-body">
+							Hier werden alle Python-Module aufgelistet, die innerhalb von DoorPi verwendet werden.<br />
+							Der Status kann folgende Zustände anzeigen:
+							<ul>
+							<li><button type="button" class="btn btn-success disabled">installiert</button> - Modul ist richtig installiert und kann verwendet werden.</li>
+							<li><button type="button" class="btn btn-warning disabled">fehlt</button> - Modul ist nicht oder nicht richtig installiert, aber es ist optional.</li>
+							<li><button type="button" class="btn btn-danger disabled">fehlt</button> - Modul ist nicht oder nicht richtig installiert, ist aber zwingend erforderlich.</li>
+							</ul>
+							In manchen Bereichen (speziell sipphone und keyboard) ist es nur notwendig, dass eins der Module installiert wird, damit alle anderen optional werden.<br />
+							Über den Hilfe-Info button können zu jedem Modul umfangreiche Infos abgerufen werden. Dazu zählen auch Konfigurationsparameter und mögliche Events sowie Details zu dem Bereich selbst.<br />
+							Diese Übersicht (bzw. dessen Ergebnisse) ist die Grundlage für alle weiteren Funktionen in diesem Dashboard.<br />
+						</div>
+						<!-- /.panel-body -->
+						<div class="panel-footer" id="idTableModulStatus">
+						</div>
+						<!-- /.panel-footer -->
+					</div>
+					<!-- /.panel -->
+                </div>
+                <!-- /.col-lg-8 -->
+				<div class="col-lg-4">
+					<div class="panel panel-info">
+						<div class="panel-heading">Links</div>
+						<div class="panel-body">
+						<ul>
+							<li><a href="http://www.forum-raspberrypi.de/Thread-haussteuerung-doorpi-voip-wechselsprechanlage-tuersprechanlage-mit-video-support" target="_blank">Thread auf www.forum-raspberrypi.de</a></li>
+							<li><a href="https://www.symcon.de/forum/threads/26739-DoorPI-VoIP-Door-Intercomstation-with-Raspberry-Pi" target="_blank">Thread auf www.symcon.de</a></li>
+							<li><a href="http://www.lemaker.org/thread-11817-1-1.html" target="_blank">Thread auf www.lemaker.org/</a></li>
+						</ul>
+						</div>
+						<div class="panel-footer"></div>
+					</div>
+					<div class="panel panel-info">
+						<div class="panel-heading">Unterstützung</div>
+						<div class="panel-body">
+							<a href="https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=3PUN4UFXY8GKQ" target="_blank"><img src="/dashboard/dist/images/btn_donateCC_LG.gif" alt="Jetzt einfach, schnell und sicher online bezahlen – mit PayPal." border="0"></a>
+							<a href="https://flattr.com/submit/auto?user_id=motom001&url=http%3A%2F%2Fwww.doorpi.info%2F" target="_blank"><img src="/dashboard/dist/images/flattr-badge-large.png" alt="Flattr this" title="Flattr this" border="0"></a>
+						</div>
+						<div class="panel-footer">
+							<h4>Spendenübersicht:</h4>
+							<table class="display table table-bordered table-hover table-striped" id="idDonatePrevious"></table>
+						</div>
+					</div>
+				</div>
+                <!-- /.col-lg-4 -->
+            </div>
+            <!-- /.row -->
+
+{TEMPLATE:HTML_FOOTER}

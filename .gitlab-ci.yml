@@ -36,7 +36,7 @@ Test:
   needs: []
   stage: test
   script:
-    - pip install -e ".[test]"
+    - pip install -e ".[files_pseudokb,rfid,test,web]"
     - coverage run --branch --source doorpi -m unittest -b
     - coverage report --skip-covered
     - coverage xml -o coverage.xml

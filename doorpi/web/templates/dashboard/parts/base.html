@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <title>Dashboard for {{proginfo}}</title>
+    <!-- Bootstrap Core CSS -->
+    <link href="/dashboard/bower_components/bootstrap/dist/css/bootstrap{{code_min}}.css" rel="stylesheet">
+
+    <!-- MetisMenu CSS -->
+    <link href="/dashboard/bower_components/metisMenu/dist/metisMenu{{code_min}}.css" rel="stylesheet">
+
+    <!-- Timeline CSS -->
+    <link href="/dashboard/dist/css/timeline.css" rel="stylesheet">
+
+    <!-- Custom CSS -->
+    <link href="/dashboard/dist/css/sb-admin-2.css" rel="stylesheet">
+
+    <!-- Morris Charts CSS -->
+    <link href="/dashboard/bower_components/morrisjs/morris.css" rel="stylesheet">
+
+    <!-- Custom Fonts -->
+    <link href="/dashboard/bower_components/font-awesome/css/font-awesome{{code_min}}.css" rel="stylesheet" type="text/css">
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+      <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- jQuery -->
+    <script src="/dashboard/bower_components/jquery/dist/jquery{{code_min}}.js"></script>
+
+    <!-- Bootstrap Core JavaScript -->
+    <script src="/dashboard/bower_components/bootstrap/dist/js/bootstrap{{code_min}}.js"></script>
+
+    <!-- Metis Menu Plugin JavaScript -->
+    <script src="/dashboard/bower_components/metisMenu/dist/metisMenu{{code_min}}.js"></script>
+
+    <!-- Morris Charts JavaScript -->
+    <script src="/dashboard/bower_components/raphael/raphael{{code_min}}.js"></script>
+    <!--script src="/dashboard/bower_components/morrisjs/morris.min.js"></script>
+    <script src="/dashboard/js/morris-data.js"></script-->
+
+    <!-- Custom Theme JavaScript -->
+    <script src="/dashboard/dist/js/sb-admin-2.js"></script>
+
+    <!-- DataTables JavaScript -->
+    <script src="/dashboard/bower_components/datatables/media/js/jquery.dataTables{{code_min}}.js"></script>
+    <!--script src="/dashboard/bower_components/datatables-tabletools/js/dataTables.tableTools{{code_min}}.js"></script>
+    <script src="/dashboard/bower_components/datatables-editor/js/dataTables.editor{{code_min}}.js"></script-->
+    <script src="/dashboard/bower_components/datatables-plugins/integration/bootstrap/3/dataTables.bootstrap{{code_min}}.js"></script>
+  </head>
+  <body>
+    <div id="wrapper">
+      <!-- Navigation -->
+      <nav class="navbar navbar-default navbar-static-top" role="navigation" style="margin-bottom: 0">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="/dashboard/pages/index.html">{{proginfo}}</a>
+        </div>
+        <!-- /.navbar-header -->
+        <div class="navbar-default sidebar" role="navigation">
+          <div class="sidebar-nav navbar-collapse">
+            <ul class="nav" id="side-menu">
+              <li>
+                <a href="/dashboard/pages/index.html"><i class="fa fa-dashboard fa-fw"></i> Dashboard</a>
+              </li>
+              <li>
+                <a href="#"><i class="fa fa-bar-chart-o fa-fw"></i>&nbsp;Status<span class="fa arrow"></span></a>
+                <ul class="nav nav-second-level">
+                  <li>
+                    <a href="/dashboard/pages/status.modules.eventhandler.html">Event handler</a>
+                  </li>
+                  <li>
+                    <a href="/dashboard/pages/status.environment.html">Environment</a>
+                  </li>
+                  <li>
+                    <a href="#">Modules<span class="fa arrow"></a>
+                    <ul class="nav nav-third-level">
+                      <li>
+                        <a href="/dashboard/pages/status.modules.config.html">Configuration</a>
+                      </li>
+                      <li>
+                        <a href="/dashboard/pages/status.modules.keyboard.html">Keyboards</a>
+                      </li>
+                      <li>
+                        <a href="/dashboard/pages/status.modules.sipphone.html">SIP-Phone</a>
+                      </li>
+                    </ul>
+                  </li>
+                </ul>
+                <!-- /.nav-second-level -->
+              </li>
+              <li>
+                <a href="#"><i class="fa fa-table fa-fw"></i>&nbsp;History<span class="fa arrow"></span></a>
+                <ul class="nav nav-second-level">
+                  <li>
+                    <a href="/dashboard/pages/history.events.html">Events</a>
+                  </li>
+                  <li>
+                    <a href="/dashboard/pages/history.actions.html">Actions</a>
+                  </li>
+                  <li>
+                    <a href="/dashboard/pages/history.snapshots.html">Snapshots</a>
+                  </li>
+                </ul>
+                <!-- /.nav-second-level -->
+              </li>
+              <li>
+                <a href="/dashboard/pages/config.html"><i class="fa fa-wrench fa-fw"></i>&nbsp;Configuration</a>
+              </li>
+              <li>
+                <a href="#"><i class="fa fa-sitemap fa-fw"></i> More...<span class="fa arrow"></span></a>
+                <ul class="nav nav-second-level">
+                  <li>
+                    <a href="https://github.com/motom001/DoorPi" target="_blank"><i class="fa fa-dashboard fa-fw"></i> DoorPi @ GitHub</a>
+                  </li>
+                  <li>
+                    <a href="https://github.com/motom001/DoorPi/wiki" target="_blank"><i class="fa fa-files-o fa-fw"></i> DoorPi Wiki</a>
+                  </li>
+                </ul>
+                <!-- /.nav-second-level -->
+              </li>
+            </ul>
+          </div>
+          <!-- /.sidebar-collapse -->
+        </div>
+        <!-- /.navbar-static-side -->
+      </nav>
+      <div id="page-wrapper">
+        {% block content %}{% endblock %}
+      </div><!-- /#page-wrapper -->
+    </div><!-- /#wrapper -->
+  </body>
+</html>

@@ -1,5 +1,5 @@
-{TEMPLATE:HTML_HEADER}
-			
+{% extends "/dashboard/parts/base.html" %}
+{% block content %}
 			<script>
 				$(document).ready(function() {
 					$('#idDonatePrevious').dataTable( {
@@ -214,5 +214,4 @@
                 <!-- /.col-lg-4 -->
             </div>
             <!-- /.row -->
-
-{TEMPLATE:HTML_FOOTER}
+{% endblock %}

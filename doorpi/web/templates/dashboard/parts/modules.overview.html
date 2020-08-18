@@ -1,5 +1,5 @@
-{TEMPLATE:HTML_HEADER}
-			
+{% extends "/dashboard/parts/bash.html" %}
+{% block content %}
 			<script>
 				function add_row_scope ( aGeneralArray, aSpecialArray ) {
 					var aMergedArray = new Array();
@@ -157,5 +157,4 @@
                 <!-- /.col-lg-4 -->
             </div>
             <!-- /.row -->
-
-{TEMPLATE:HTML_FOOTER}
+{% endblock %}

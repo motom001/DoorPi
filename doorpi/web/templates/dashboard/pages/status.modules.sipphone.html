@@ -1,4 +1,5 @@
-{TEMPLATE:HTML_HEADER}
+{% extends "/dashboard/parts/base.html" %}
+{% block content %}
 			<script>
 				var refreshIntervalId = 0;
 				
@@ -120,5 +121,4 @@
 					<!-- /.panel -->
                 </div>
             </div>
-
-{TEMPLATE:HTML_FOOTER}
+{% endblock %}

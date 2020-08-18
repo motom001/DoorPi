@@ -8,7 +8,10 @@ import logging
 import os
 import pathlib
 import re
+import sys
 import urllib.parse
+
+import jinja2
 
 import doorpi
 from doorpi import metadata
@@ -37,8 +40,8 @@ class DoorPiWebRequestHandler(http.server.BaseHTTPRequestHandler):
     def log_message(self, format, *args):  # pylint: disable=redefined-builtin
         LOGGER.debug(f"[%s] {format}", self.client_address[0], *args)
 
-    @staticmethod
-    def prepare():
+    @classmethod
+    def prepare(cls):
         """Do necessary preparations to start working"""
         eh = doorpi.INSTANCE.event_handler
         eh.register_event("OnWebServerRequest", __name__)
@@ -52,10 +55,29 @@ class DoorPiWebRequestHandler(http.server.BaseHTTPRequestHandler):
         eh.register_event("OnConfigKeySet", __name__)
         eh.register_event("OnConfigKeyDelete", __name__)
 
-    @staticmethod
-    def destroy():
+        if sys.platform == "linux":
+            try:
+                cachedir = pathlib.Path(os.environ["XDG_CACHE_HOME"])
+            except KeyError:
+                cachedir = pathlib.Path.home() / ".cache"
+        elif sys.platform == "win32":
+            cachedir = pathlib.Path(os.environ["TEMP"])
+        else:
+            cachedir = pathlib.Path.home()
+        cachedir /= metadata.distribution.metadata["Name"]
+        cachedir /= "templatecache"
+        cachedir.mkdir(parents=True, exist_ok=True)
+        cls.environment = jinja2.Environment(
+            bytecode_cache=jinja2.FileSystemBytecodeCache(cachedir),
+            loader=templates.DoorPiWebTemplateLoader(),
+            undefined=jinja2.StrictUndefined,
+        )
+
+    @classmethod
+    def destroy(cls):
         """Shut the request handlers down"""
         doorpi.INSTANCE.event_handler.unregister_source(__name__, force=True)
+        del cls.environment
 
     def do_GET(self):  # pylint: disable=invalid-name
         """Callback for incoming GET requests"""
@@ -253,7 +275,7 @@ class DoorPiWebRequestHandler(http.server.BaseHTTPRequestHandler):
         return (json_encoder.encode(result), "application/json")
 
     def _api_help(self, path, params):
-        return self._resource_dashboard(
+        return self._resource(
             path.replace("/help", "/dashboard/parts"), params)
 
     def _api_mirror(self, path, params):
@@ -289,45 +311,25 @@ class DoorPiWebRequestHandler(http.server.BaseHTTPRequestHandler):
             value=params.get("value", ""))
         return (json_encoder.encode(status.dictionary), "application/json")
 
-    def _resource(self, path, _):
+    def _resource(self, path, params):
         """Serve a resource for the dashboard"""
         path = pathlib.PurePosixPath(path)
-        resource = templates.get_resource(path)
 
         if path.suffix in PARSABLE_FILE_EXTENSIONS:
             return (
-                self.parse_content(resource[0].decode("utf-8")),
-                resource[1])
+                self.environment.get_template(path.as_posix())
+                .render(
+                    doorpi=doorpi.INSTANCE,
+                    params=params,
+                    code_min=("", ".min")[
+                        LOGGER.getEffectiveLevel() <= logging.DEBUG],
+                    proginfo="{} - version: {}".format(
+                        metadata.distribution.metadata["Name"],
+                        metadata.distribution.metadata["Version"]),
+                ),
+                "text/html")
         else:
-            return resource
-
-    def parse_content(self, content, template_recursion=5, /, **mapping_table):
-        """Parse the template substitutions in ``content``"""
-        if not isinstance(content, str):
-            raise TypeError("content must be of type str")
-
-        mapping_table["DOORPI"] = "{} - version: {}".format(
-            metadata.distribution.metadata["Name"],
-            metadata.distribution.metadata["Version"])
-        mapping_table["SERVER"] = self.server.server_name
-        mapping_table["PORT"] = str(self.server.server_port)
-        mapping_table["MIN_EXTENSION"] = (
-            "" if LOGGER.getEffectiveLevel() <= 5 else ".min")
-
-        mapping_table["TEMPLATE:HTML_HEADER"] = "html.header.html"
-        mapping_table["TEMPLATE:HTML_FOOTER"] = "html.footer.html"
-        mapping_table["TEMPLATE:NAVIGATION"] = "navigation.html"
-
-        for k in mapping_table:
-            if template_recursion and k.startswith("TEMPLATE:"):
-                content = content.replace(f"{{{k}}}", self.parse_content(
-                    templates.get_resource(
-                        f"/dashboard/parts/{mapping_table[k]}"
-                    )[0].decode("utf-8"),
-                    template_recursion - 1, **mapping_table))
-            else:
-                content = content.replace(f"{{{k}}}", mapping_table[k])
-        return content
+            return templates.get_resource(path)
 
     API_ENDPOINTS = {
         "control": "_api_control",

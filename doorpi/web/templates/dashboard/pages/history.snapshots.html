@@ -1,5 +1,5 @@
-{TEMPLATE:HTML_HEADER}
-
+{% extends "/dashboard/parts/base.html" %}
+{% block content %}
 <div class="panel-heading">
 	<h1 class="page-header">History - Snapshots</h1>
 </div>
@@ -54,5 +54,4 @@
 		}
 	}
 </script>
-
-{TEMPLATE:HTML_FOOTER}
+{% endblock %}

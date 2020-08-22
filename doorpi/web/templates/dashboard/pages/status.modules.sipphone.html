@@ -2,7 +2,7 @@
 {% block content %}
 			<script>
 				var refreshIntervalId = 0;
-				
+
 				function refresh_data() {
 					try {
 						clearInterval(refreshIntervalId);
@@ -30,14 +30,14 @@
 						console.log(e)
 					}
 				}
-				
+
 				$(document).ready(function() {
 					refresh_data()
 				});
 			</script>
-            <div class="row">
+			<div class="row">
 				<div class="col-lg-2">
-                    <div class="panel panel-info">
+					<div class="panel panel-info">
 						<div class="panel-heading">
 							<i class="fa fa-bar-chart-o fa-fw"></i> Direction
 						</div>
@@ -46,79 +46,60 @@
 						</div>
 						<!-- /.panel-body -->
 						<div class="panel-footer">
-						Show the direction of the call. 
-						Incoming = DoorPi to remote uri
-						Outgoing = remote uri to DoorPi
+							Show the direction of the call.
+							Incoming = DoorPi to remote uri
+							Outgoing = remote uri to DoorPi
 						</div>
 						<!-- /.panel-footer -->
 					</div>
 					<!-- /.panel -->
-                </div>
+				</div>
 				<div class="col-lg-4">
-                    <div class="panel panel-info">
-						<div class="panel-heading">
-							<i class="fa fa-bar-chart-o fa-fw"></i> Remote URI
-						</div>
+					<div class="panel panel-info">
+						<div class="panel-heading"><i class="fa fa-bar-chart-o fa-fw"></i> Remote URI</div>
 						<!-- /.panel-heading -->
-						<div class="panel-body" id="current_call_remote_uri">
-						</div>
+						<div class="panel-body" id="current_call_remote_uri"></div>
 						<!-- /.panel-body -->
-						<div class="panel-footer">
-						Show the remote uri as sip format
-						</div>
+						<div class="panel-footer">Show the remote uri as sip format</div>
 						<!-- /.panel-footer -->
 					</div>
 					<!-- /.panel -->
-                </div>
+				</div>
 			</div>
 			<div class="row">
-                <div class="col-lg-2">
-                    <div class="panel panel-red">
-						<div class="panel-heading">
-							<i class="fa fa-bar-chart-o fa-fw"></i> Level recorded
-						</div>
-						<!-- /.panel-heading -->
-						<div class="panel-body" id="current_call_level_incoming">
-						</div>
-						<!-- /.panel-body -->
-						<div class="panel-footer">
-						Show the measured sound volume recorded locally (sent to remote). It is expressed in dbm0.
-						</div>
-						<!-- /.panel-footer -->
-					</div>
-					<!-- /.panel -->
-                </div>
 				<div class="col-lg-2">
-                    <div class="panel panel-green">
-						<div class="panel-heading">
-							<i class="fa fa-bar-chart-o fa-fw"></i> Level played
-						</div>
+					<div class="panel panel-red">
+						<div class="panel-heading"><i class="fa fa-bar-chart-o fa-fw"></i> Level recorded</div>
 						<!-- /.panel-heading -->
-						<div class="panel-body" id="current_call_level_outgoing">
-						</div>
+						<div class="panel-body" id="current_call_level_incoming"></div>
 						<!-- /.panel-body -->
-						<div class="panel-footer">
-						Show the measured sound volume played locally (received from remote). It is expressed in dbm0.
-						</div>
+						<div class="panel-footer">Show the measured sound volume recorded locally (sent to remote). It is expressed in dbm0.</div>
 						<!-- /.panel-footer -->
 					</div>
 					<!-- /.panel -->
-                </div>
+				</div>
 				<div class="col-lg-2">
-                    <div class="panel panel-primary">
-						<div class="panel-heading">
-							<i class="fa fa-bar-chart-o fa-fw"></i> Duration
-						</div>
+					<div class="panel panel-green">
+						<div class="panel-heading"><i class="fa fa-bar-chart-o fa-fw"></i> Level played</div>
 						<!-- /.panel-heading -->
-						<div class="panel-body" id="current_call_duration">
-						</div>
+						<div class="panel-body" id="current_call_level_outgoing"></div>
 						<!-- /.panel-body -->
-						<div class="panel-footer">
-						Show the current call duration time in seconds.
-						</div>
+						<div class="panel-footer">Show the measured sound volume played locally (received from remote). It is expressed in dbm0.</div>
 						<!-- /.panel-footer -->
 					</div>
 					<!-- /.panel -->
-                </div>
-            </div>
+				</div>
+				<div class="col-lg-2">
+					<div class="panel panel-primary">
+						<div class="panel-heading"><i class="fa fa-bar-chart-o fa-fw"></i> Duration</div>
+						<!-- /.panel-heading -->
+						<div class="panel-body" id="current_call_duration"></div>
+						<!-- /.panel-body -->
+						<div class="panel-footer">Show the current call duration time in seconds.</div>
+						<!-- /.panel-footer -->
+					</div>
+					<!-- /.panel -->
+				</div>
+			</div>
 {% endblock %}
+{# vim:set ts=4 noet sw=0: #}

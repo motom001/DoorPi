@@ -4,61 +4,61 @@
 				var oConfigObject = {};
 				var oPraparedConfigForConfigTable = {};
 				var oConfigTable = {};
-				
+
 				// source: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/encodeURIComponent#Examples
 				function encodeRFC5987ValueChars (str) {
-					return encodeURIComponent(str).
+					return encodeURIComponent(str)
 						// Note that although RFC3986 reserves "!", RFC5987 does not,
 						// so we do not need to escape it
-						replace(/['()]/g, escape). // i.e., %27 %28 %29
-						replace(/\*/g, '%2A').
-							// The following are not required for percent-encoding per RFC5987, 
-							// so we can allow for a little better readability over the wire: |`^
-							replace(/%(?:7C|60|5E)/g, unescape);
+						.replace(/['()]/g, escape) // i.e., %27 %28 %29
+						.replace(/\*/g, '%2A')
+						// The following are not required for percent-encoding per RFC5987,
+						// so we can allow for a little better readability over the wire: |`^
+						.replace(/%(?:7C|60|5E)/g, unescape);
 				}
-				
+
 				function SortByName(a, b){
 					var aName = a.toLowerCase();
-					var bName = b.toLowerCase(); 
+					var bName = b.toLowerCase();
 					return ((aName < bName) ? -1 : ((aName > bName) ? 1 : 0));
 				}
-				
-				function ShowWarningWhenNotSaved () {
-					if (! $('#idPanelWarningNotSave').is(':visible')) {
+
+				function ShowWarningWhenNotSaved() {
+					if (!$('#idPanelWarningNotSave').is(':visible')) {
 						$("#idPanelWarningNotSave").fadeIn("slow");
 					}
 				}
-				function HideWarningWhenNotSaved () {
+				function HideWarningWhenNotSaved() {
 					if ($('#idPanelWarningNotSave').is(':visible')) {
 						$("#idPanelWarningNotSave").fadeOut("slow");
 					}
 				}
-				
-				function ReloadConfigData () {
-					oConfigTable.api().ajax.reload(function () {
+
+				function ReloadConfigData() {
+					oConfigTable.api().ajax.reload(function() {
 						ResetNewConfigModal();
 						ResetEditConfigModal();
 						ResetDeleteConfigModal();
 						ResetSaveConfigModal();
-						$.each(Object.keys(oConfigObject).sort(SortByName), function ( section_name, single_config_object ) {
+						$.each(Object.keys(oConfigObject).sort(SortByName), function(section_name, single_config_object) {
 							$('#idNewConfigSectionSelectVal').append('<option value="'+single_config_object+'">'+single_config_object+'</option>');
 							$('#idEditConfigSectionSelectVal').append('<option value="'+single_config_object+'">'+single_config_object+'</option>');
 							$('#idDeleteConfigSectionSelectVal').append('<option value="'+single_config_object+'">'+single_config_object+'</option>');
 						});
 					});
 				}
-				
-				function PrepareConfigTable () {
-					$('#idConfigTable').html( '<table class="display table table-bordered table-hover table-striped" id="idConfigTableContent"></table>' );
+
+				function PrepareConfigTable() {
+					$('#idConfigTable').html('<table class="display table table-bordered table-hover table-striped" id="idConfigTableContent"></table>');
 					oConfigTable = $('#idConfigTableContent').dataTable({
 						"ajax": {
 							"url": "/status?module=config&output=json",
 							"type": "GET",
-							"dataSrc": function ( aSourceObject ) {
+							"dataSrc": function (aSourceObject) {
 								oConfigObject = aSourceObject.config
 								oPraparedConfigForConfigTable = new Array();
-								$.each(oConfigObject, function ( section_name, single_config_object ) {
-									$.each(single_config_object, function ( key_name, value ) {
+								$.each(oConfigObject, function(section_name, single_config_object) {
+									$.each(single_config_object, function(key_name, value) {
 										oPraparedConfigForConfigTable.push({
 											section: section_name,
 											key: key_name,
@@ -74,20 +74,20 @@
 						//data: oPraparedConfigForConfigTable,
 						"displayLength": 100,
 						"columns": [
-							{ "data": "section", "title": "Sektion", "visible": false },
-							{ "data": "key", "title": "Schlüssel" },
-							{ "data": "value", "title": "Wert" },
-							{ "data": "default_value", "title": "Vorgabe", "readonly": true },
-							{ "data": "description", "title": "Beschreibung" }
+							{"data": "section", "title": "Sektion", "visible": false},
+							{"data": "key", "title": "Schlüssel"},
+							{"data": "value", "title": "Wert"},
+							{"data": "default_value", "title": "Vorgabe", "readonly": true},
+							{"data": "description", "title": "Beschreibung"}
 						],
-						"drawCallback": function ( settings ) {
+						"drawCallback": function (settings) {
 							var api = this.api();
-							var rows = api.rows( {page:'current'} ).nodes();
+							var rows = api.rows({page:'current'}).nodes();
 							var last = null;
-							
-							api.column(0, {page:'current'} ).data().each( function ( group, i ) {
-								if ( last !== group ) {
-									$(rows).eq( i ).before(
+
+							api.column(0, {page:'current'}).data().each(function(group, i) {
+								if (last !== group) {
+									$(rows).eq(i).before(
 										'<tr class="group"><td colspan="4"><b>'+group+'</b></td></tr>'
 									);
 									last = group;
@@ -96,7 +96,7 @@
 						}
 					});
 				}
-				
+
 				$(document).ready(function() {
 					PrepareConfigTable();
 					PrepareNewConfigModal();
@@ -107,7 +107,7 @@
 					$("#idReloadConfigButton").click(ReloadConfigData);
 				});
 			</script>
-            <div class="row">
+			<div class="row">
 				<div class="col-lg-6">
 					<div class="panel panel-primary">
 						<div class="panel-heading">
@@ -120,18 +120,17 @@
 						<!-- /.panel-body -->
 						<div class="panel-footer">
 							<div class="modal fade" id="idNewConfigModal" tabindex="-1" role="dialog" aria-labelledby="idNewConfigModalLabel" aria-hidden="true" style="display: none;">
-                                <div class="modal-dialog">
-                                    <div class="modal-content">
-                                        <div class="modal-header">
-                                            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-                                            <h4 class="modal-title" id="idNewConfigModalLabel">New Config Key</h4>
-                                        </div>
-                                        <div class="modal-body">
-                                            <div class="alert" style="display: none;" id="idNewConfigResponse"></div>
+								<div class="modal-dialog">
+									<div class="modal-content">
+										<div class="modal-header">
+											<button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+											<h4 class="modal-title" id="idNewConfigModalLabel">New Config Key</h4>
+										</div>
+										<div class="modal-body">
+											<div class="alert" style="display: none;" id="idNewConfigResponse"></div>
 											<div class="form-group">
 												<label>Section Name</label>
-												<select class="form-control" id="idNewConfigSectionSelectVal">
-												</select>
+												<select class="form-control" id="idNewConfigSectionSelectVal"></select>
 											</div>
 											<div class="form-group" id="idNewConfigSectionInput" style="display: none;">
 												<label>Section Name (new)</label>
@@ -160,14 +159,14 @@
 													$("#idNewConfigValueInputVal").val('');
 												}
 												function PrepareNewConfigModal () {
-													$( "#idNewConfigSectionSelectVal" ).change(function() {
+													$("#idNewConfigSectionSelectVal").change(function() {
 														if ($("#idNewConfigSectionSelectVal").val() == "[NEW]") {
 															$("#idNewConfigSectionInput").fadeIn("slow");
 														} else {
 															$("#idNewConfigSectionInput").fadeOut("slow");
 														}
 													});
-												
+
 													$("#idNewConfigModalButtonSave").click(function() {
 														var sNewConfigUrl = "/control/config_value_set";
 														var sSectionName = "";
@@ -176,12 +175,12 @@
 														} else {
 															sSectionName = $("#idNewConfigSectionSelectVal").val();
 														}
-														
+
 														sNewConfigUrl += "?section=" + encodeRFC5987ValueChars(sSectionName);
 														sNewConfigUrl += "&key=" + encodeRFC5987ValueChars($("#idNewConfigKeyInputVal").val());
 														sNewConfigUrl += "&value=" + encodeRFC5987ValueChars($("#idNewConfigValueInputVal").val());
-														
-														$.getJSON(sNewConfigUrl, function( result ){
+
+														$.getJSON(sNewConfigUrl, function(result){
 															if (result.success) {
 																$("#idNewConfigResponse").removeClass('alert-danger').addClass("alert-success");
 																ShowWarningWhenNotSaved();
@@ -194,27 +193,27 @@
 													});
 												};
 											</script>
-                                        </div>
-                                        <div class="modal-footer">
-                                            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                                            <button type="button" class="btn btn-primary" id="idNewConfigModalButtonSave">Save changes</button>
-                                        </div>
-                                    </div>
-                                    <!-- /.modal-content -->
-                                </div>
-                                <!-- /.modal-dialog -->
-                            </div>
+										</div>
+										<div class="modal-footer">
+											<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+											<button type="button" class="btn btn-primary" id="idNewConfigModalButtonSave">Save changes</button>
+										</div>
+									</div>
+									<!-- /.modal-content -->
+								</div>
+								<!-- /.modal-dialog -->
+							</div>
 							<button class="btn btn-primary btn-sm" data-toggle="modal" data-target="#idNewConfigModal">New Config Key</button>
-							
+
 							<div class="modal fade" id="idEditConfigModal" tabindex="-1" role="dialog" aria-labelledby="idEditConfigModalLabel" aria-hidden="true" style="display: none;">
-                                <div class="modal-dialog">
-                                    <div class="modal-content">
-                                        <div class="modal-header">
-                                            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-                                            <h4 class="modal-title" id="idEditConfigModalLabel">Edit Config Key</h4>
-                                        </div>
-                                        <div class="modal-body">
-                                            <div class="alert" style="display: none;" id="idEditConfigResponse"></div>
+								<div class="modal-dialog">
+									<div class="modal-content">
+										<div class="modal-header">
+											<button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+											<h4 class="modal-title" id="idEditConfigModalLabel">Edit Config Key</h4>
+										</div>
+										<div class="modal-body">
+											<div class="alert" style="display: none;" id="idEditConfigResponse"></div>
 											<div class="form-group">
 												<label>Section Name</label>
 												<select class="form-control" id="idEditConfigSectionSelectVal">
@@ -232,7 +231,7 @@
 												<input class="form-control" placeholder="Enter the new value" id="idEditConfigValueInputVal" disabled>
 											</div>
 											<script>
-												function ResetEditConfigModal () {
+												function ResetEditConfigModal() {
 													$('#idEditConfigSectionSelectVal')
 														.find('option')
 														.remove()
@@ -251,8 +250,8 @@
 													$("#idEditConfigValueInputVal").val('');
 													LoadOldValueBeforeEdit();
 												}
-												
-												function LoadOldValueBeforeEdit () {
+
+												function LoadOldValueBeforeEdit() {
 													try {
 														$('#idEditConfigOldValue').text('(old value is "'+oConfigObject[$("#idEditConfigSectionSelectVal").val()][$("#idEditConfigKeyInputVal").val()]+'")');
 														$("#idEditConfigValueInputVal").removeAttr('disabled');
@@ -262,8 +261,8 @@
 														$("#idEditConfigValueInputVal").attr('disabled', 'disabled')
 													}
 												}
-												
-												function PrepareEditConfigModal () {
+
+												function PrepareEditConfigModal() {
 													$("#idEditConfigSectionSelectVal").change(function() {
 														$('#idEditConfigKeyInputVal')
 															.removeAttr('disabled')
@@ -279,21 +278,21 @@
 																.attr('disabled', 'disabled')
 															;
 														} else {
-															$.each(Object.keys(oConfigObject[$("#idEditConfigSectionSelectVal").val()]).sort(SortByName), function ( key_name, single_key_object ) {
+															$.each(Object.keys(oConfigObject[$("#idEditConfigSectionSelectVal").val()]).sort(SortByName), function(key_name, single_key_object) {
 																$('#idEditConfigKeyInputVal').append('<option value="'+single_key_object+'">'+single_key_object+'</option>');
 															});
 														}
 														LoadOldValueBeforeEdit();
 													});
 													$("#idEditConfigKeyInputVal").change(LoadOldValueBeforeEdit);
-													
+
 													$("#idEditConfigModalButtonSave").click(function() {
 														var sNewConfigUrl = "/control/config_value_set";
 														sNewConfigUrl += "?section=" + encodeRFC5987ValueChars($("#idEditConfigSectionSelectVal").val());
 														sNewConfigUrl += "&key=" + encodeRFC5987ValueChars($("#idEditConfigKeyInputVal").val());
 														sNewConfigUrl += "&value=" + encodeRFC5987ValueChars($("#idEditConfigValueInputVal").val());
-														
-														$.getJSON(sNewConfigUrl, function( result ){
+
+														$.getJSON(sNewConfigUrl, function(result) {
 															if (result.success) {
 																$("#idEditConfigResponse").removeClass('alert-danger').addClass("alert-success");
 																ShowWarningWhenNotSaved();
@@ -306,27 +305,27 @@
 													});
 												};
 											</script>
-                                        </div>
-                                        <div class="modal-footer">
-                                            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                                            <button type="button" class="btn btn-primary" id="idEditConfigModalButtonSave">Save changes</button>
-                                        </div>
-                                    </div>
-                                    <!-- /.modal-content -->
-                                </div>
-                                <!-- /.modal-dialog -->
-                            </div>
+										</div>
+										<div class="modal-footer">
+											<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+											<button type="button" class="btn btn-primary" id="idEditConfigModalButtonSave">Save changes</button>
+										</div>
+									</div>
+									<!-- /.modal-content -->
+								</div>
+								<!-- /.modal-dialog -->
+							</div>
 							<button class="btn btn-primary btn-sm" data-toggle="modal" data-target="#idEditConfigModal">Edit Config Key</button>
-							
+
 							<div class="modal fade" id="idDeleteConfigModal" tabindex="-1" role="dialog" aria-labelledby="idDeleteConfigModalLabel" aria-hidden="true" style="display: none;">
-                                <div class="modal-dialog">
-                                    <div class="modal-content">
-                                        <div class="modal-header">
-                                            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-                                            <h4 class="modal-title" id="idDeleteConfigModalLabel">Delete Config Key</h4>
-                                        </div>
-                                        <div class="modal-body">
-                                            <div class="alert" style="display: none;" id="idDeleteConfigResponse"></div>
+								<div class="modal-dialog">
+									<div class="modal-content">
+										<div class="modal-header">
+											<button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+											<h4 class="modal-title" id="idDeleteConfigModalLabel">Delete Config Key</h4>
+										</div>
+										<div class="modal-body">
+											<div class="alert" style="display: none;" id="idDeleteConfigResponse"></div>
 											<div class="form-group">
 												<label>Section Name</label>
 												<select class="form-control" id="idDeleteConfigSectionSelectVal">
@@ -359,8 +358,8 @@
 													;
 													LoadOldValueBeforeDelete();
 												}
-												
-												function LoadOldValueBeforeDelete () {
+
+												function LoadOldValueBeforeDelete() {
 													try {
 														$('#idDeleteConfigOldValue').html('old value is "'+oConfigObject[$("#idDeleteConfigSectionSelectVal").val()][$("#idDeleteConfigKeyInputVal").val()]+'"');
 														$('#idDeleteConfigOldValue').fadeIn("slow");
@@ -370,7 +369,7 @@
 														$('#idDeleteConfigOldValue').fadeOut("slow");
 													}
 												}
-												
+
 												function PrepareDeleteConfigModal () {
 													$("#idDeleteConfigSectionSelectVal").change(function() {
 														$('#idDeleteConfigKeyInputVal')
@@ -385,20 +384,20 @@
 																.attr('disabled', 'disabled');
 															;
 														} else {
-															$.each(Object.keys(oConfigObject[$("#idDeleteConfigSectionSelectVal").val()]).sort(SortByName), function ( key_name, single_key_object ) {
+															$.each(Object.keys(oConfigObject[$("#idDeleteConfigSectionSelectVal").val()]).sort(SortByName), function(key_name, single_key_object) {
 																$('#idDeleteConfigKeyInputVal').append('<option value="'+single_key_object+'">'+single_key_object+'</option>');
 															});
 														}
 														LoadOldValueBeforeDelete();
 													});
 													$("#idDeleteConfigKeyInputVal").change(LoadOldValueBeforeDelete);
-													
+
 													$("#idDeleteConfigModalButtonSave").click(function() {
 														var sNewConfigUrl = "/control/config_value_delete";
 														sNewConfigUrl += "?section=" + encodeRFC5987ValueChars($("#idDeleteConfigSectionSelectVal").val());
 														sNewConfigUrl += "&key=" + encodeRFC5987ValueChars($("#idDeleteConfigKeyInputVal").val());
-														
-														$.getJSON(sNewConfigUrl, function( result ){
+
+														$.getJSON(sNewConfigUrl, function(result) {
 															if (result.success) {
 																$("#idDeleteConfigResponse").removeClass('alert-danger').addClass("alert-success");
 																ShowWarningWhenNotSaved();
@@ -411,40 +410,40 @@
 													});
 												};
 											</script>
-                                        </div>
-                                        <div class="modal-footer">
-                                            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                                            <button type="button" class="btn btn-primary" id="idDeleteConfigModalButtonSave">Delete key</button>
-                                        </div>
-                                    </div>
-                                    <!-- /.modal-content -->
-                                </div>
-                                <!-- /.modal-dialog -->
-                            </div>
+										</div>
+										<div class="modal-footer">
+											<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+											<button type="button" class="btn btn-primary" id="idDeleteConfigModalButtonSave">Delete key</button>
+										</div>
+									</div>
+									<!-- /.modal-content -->
+								</div>
+								<!-- /.modal-dialog -->
+							</div>
 							<button class="btn btn-primary btn-sm" data-toggle="modal" data-target="#idDeleteConfigModal">Delete Config Key</button>
-							
+
 							<div class="modal fade" id="idSaveConfigModal" tabindex="-1" role="dialog" aria-labelledby="idSaveConfigModalLabel" aria-hidden="true" style="display: none;">
-                                <div class="modal-dialog">
-                                    <div class="modal-content">
-                                        <div class="modal-header">
-                                            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-                                            <h4 class="modal-title" id="idSaveConfigModalLabel">Save Config</h4>
-                                        </div>
-                                        <div class="modal-body">
-                                            <div class="alert" style="display: none;" id="idSaveConfigResponse"></div>
+								<div class="modal-dialog">
+									<div class="modal-content">
+										<div class="modal-header">
+											<button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+											<h4 class="modal-title" id="idSaveConfigModalLabel">Save Config</h4>
+										</div>
+										<div class="modal-body">
+											<div class="alert" style="display: none;" id="idSaveConfigResponse"></div>
 											<div class="form-group" id="idSaveConfigValueInput">
 												<label>configfile <span id="idCurrentConfigfile"></span></label>
 												<input class="form-control" placeholder="Leave blank to use default" id="idSaveConfigValueInputVal">
 											</div>
 											<script>
-												function ResetSaveConfigModal () {
+												function ResetSaveConfigModal() {
 													LoadOldConfigfileBeforeSave();
 												};
-												
-												function LoadOldConfigfileBeforeSave () {
+
+												function LoadOldConfigfileBeforeSave() {
 													$('#idCurrentConfigfile').val('');
 													try {
-														$.getJSON("/control/config_get_configfile", function( result ){
+														$.getJSON("/control/config_get_configfile", function(result) {
 															if (result.success) {
 																$('#idCurrentConfigfile').html('(current: "'+result.message+'")');
 															} else {
@@ -455,14 +454,14 @@
 														$('#idCurrentConfigfile').html('(current: "unknown")');
 													}
 												};
-												
-												function PrepareSaveConfigModal () {
+
+												function PrepareSaveConfigModal() {
 													$("#idSaveConfigModalButtonSave").click(function() {
 														var sNewConfigUrl = "/control/config_save";
 														if ($('#idSaveConfigValueInputVal').val() != "")
 															sNewConfigUrl += "?configfile=" + encodeRFC5987ValueChars($("#idSaveConfigValueInputVal").val());
-														
-														$.getJSON(sNewConfigUrl, function( result ){
+
+														$.getJSON(sNewConfigUrl, function(result){
 															if (result.success) {
 																$("#idSaveConfigResponse").removeClass('alert-danger').addClass("alert-success");
 																HideWarningWhenNotSaved();
@@ -475,48 +474,42 @@
 													});
 												};
 											</script>
-                                        </div>
-                                        <div class="modal-footer">
-                                            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                                            <button type="button" class="btn btn-primary" id="idSaveConfigModalButtonSave">Save configfile</button>
-                                        </div>
-                                    </div>
-                                    <!-- /.modal-content -->
-                                </div>
-                                <!-- /.modal-dialog -->
-                            </div>
+										</div>
+										<div class="modal-footer">
+											<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+											<button type="button" class="btn btn-primary" id="idSaveConfigModalButtonSave">Save configfile</button>
+										</div>
+									</div>
+									<!-- /.modal-content -->
+								</div>
+								<!-- /.modal-dialog -->
+							</div>
 							<button class="btn btn-primary btn-sm" data-toggle="modal" data-target="#idSaveConfigModal">Save Config</button>
 							<button class="btn btn-primary btn-sm" id="idReloadConfigButton">Reload Config</button>
 						</div>
 						<!-- /.panel-footer -->
 					</div>
 					<!-- /.panel -->
-                </div>
+				</div>
 				<div class="col-lg-6" style="display: none;" id="idPanelWarningNotSave">
-                    <div class="panel panel-red">
+					<div class="panel panel-red">
 						<div class="panel-heading">
 							<i class="fa fa-bar-chart-o fa-fw">Hinweis</i>
 						</div>
 						<!-- /.panel-heading -->
-						<div class="panel-body">
-							Die Konfiguration wurde verändert, aber noch nicht als Datei abgespeichert.
-						</div>
+						<div class="panel-body">Die Konfiguration wurde verändert, aber noch nicht als Datei abgespeichert.</div>
 						<!-- /.panel-body -->
-						<div class="panel-footer">
-							Bitte den Button "Save Config" zum Speichern der Config nutzen.
-						</div>
+						<div class="panel-footer">Bitte den Button "Save Config" zum Speichern der Config nutzen.</div>
 						<!-- /.panel-footer -->
 					</div>
 					<!-- /.panel -->
-                </div>
+				</div>
 			</div>
 			<!-- /.row -->
 			<div class="row">
-                <div class="col-lg-12">
-                    <div class="panel panel-primary">
-						<div class="panel-heading">
-							<i class="fa fa-bar-chart-o fa-fw">Konfiguration</i>
-						</div>
+				<div class="col-lg-12">
+					<div class="panel panel-primary">
+						<div class="panel-heading"><i class="fa fa-bar-chart-o fa-fw">Konfiguration</i></div>
 						<!-- /.panel-heading -->
 						<div class="panel-body">
 						</div>
@@ -526,6 +519,7 @@
 						<!-- /.panel-footer -->
 					</div>
 					<!-- /.panel -->
-                </div>
-            </div>
+				</div>
+			</div>
 {% endblock %}
+{# vim:set ts=4 noet sw=0: #}

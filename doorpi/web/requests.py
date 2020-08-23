@@ -316,18 +316,21 @@ class DoorPiWebRequestHandler(http.server.BaseHTTPRequestHandler):
         path = pathlib.PurePosixPath(path)
 
         if path.suffix in PARSABLE_FILE_EXTENSIONS:
-            return (
-                self.environment.get_template(path.as_posix())
-                .render(
-                    doorpi=doorpi.INSTANCE,
-                    params=params,
-                    code_min=("", ".min")[
-                        LOGGER.getEffectiveLevel() <= logging.DEBUG],
-                    proginfo="{} - version: {}".format(
-                        metadata.distribution.metadata["Name"],
-                        metadata.distribution.metadata["Version"]),
-                ),
-                "text/html")
+            try:
+                return (
+                    self.environment.get_template(path.as_posix())
+                    .render(
+                        doorpi=doorpi.INSTANCE,
+                        params=params,
+                        code_min=("", ".min")[
+                            LOGGER.getEffectiveLevel() <= logging.DEBUG],
+                        proginfo="{} - version: {}".format(
+                            metadata.distribution.metadata["Name"],
+                            metadata.distribution.metadata["Version"]),
+                    ),
+                    "text/html")
+            except jinja2.TemplateNotFound as err:
+                raise FileNotFoundError(*err.args) from None
         else:
             return templates.get_resource(path)
 

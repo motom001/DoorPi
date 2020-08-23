@@ -36,7 +36,7 @@ def _get_resource(
     path = pathlib.PurePosixPath("/", path)
     if path.name.startswith((".", "_")):
         raise FileNotFoundError()
-    module = __name__ + path.parent.as_posix().replace("/", ".")
+    module = (__name__ + path.parent.as_posix().replace("/", ".")).rstrip(".")
 
     try:
         resource = load(module, path.name)

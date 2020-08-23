@@ -131,8 +131,7 @@ class DoorPiWebRequestHandler(http.server.BaseHTTPRequestHandler):
         ))
         return (return_html, "text/html")
 
-    @staticmethod
-    def return_redirection(location):
+    def return_redirection(self, location):
         """Serve a document that redirects to ``location``"""
         message = (
             "<html><head>"
@@ -141,7 +140,7 @@ class DoorPiWebRequestHandler(http.server.BaseHTTPRequestHandler):
             "<a href=\"{location}\">{location}</a>"
             "</body></html>"
         ).format(location=html.escape(location, True))
-        return (message, "text/html")
+        self.return_message(message, "text/html", 307, ("Location", location))
 
     def canonicalize_filename(self, url):
         """Canonicalize and validate the requested filename"""
@@ -161,13 +160,16 @@ class DoorPiWebRequestHandler(http.server.BaseHTTPRequestHandler):
         raise FileNotFoundError(url)
 
     def return_message(
-            self, message="", content_type="text/plain", http_code=200):
+            self, message="", content_type="text/plain",
+            http_code=200, *headers):
         """Send ``message`` to the client"""
         self.send_response(http_code)
         self.send_header("WWW-Authenticate", "Basic realm=\"DoorPi\"")
         self.send_header("Server", metadata.distribution.metadata["Name"])
         self.send_header("Content-type", content_type)
         self.send_header("Connection", "close")
+        for header in headers:
+            self.send_header(*header)
         self.end_headers()
         self.wfile.write(
             message.encode("utf-8") if isinstance(message, str) else message)

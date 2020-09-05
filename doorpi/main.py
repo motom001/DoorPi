@@ -100,8 +100,8 @@ def entry_point():
 
     instance = doorpi.DoorPi(args)
     try:
+        os.chdir(instance.base_path)
         instance.prepare()
-        os.chdir(instance.config["base_path"])
     except BaseException as err:
         LOGGER.error("*** An error occured while preparing to start")
         raise

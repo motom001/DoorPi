@@ -68,13 +68,16 @@ class DoorPi:
 
         self.config = config.Configuration()
         self.config.load_builtin_definitions()
+        self.config.load(args.configfile)
+        try:
+            self._base_path = self.config["base_path"]
+        except KeyError:
+            self._base_path = None
         self.dpsd = None
         self.event_handler = None
         self.keyboard = None
         self.sipphone = None
         self.webserver = None
-
-        self._base_path = None
 
         self.__args = args
         self.__deadlysignals = 0
@@ -112,8 +115,6 @@ class DoorPi:
         signal.signal(signal.SIGINT, handler)
         signal.signal(signal.SIGTERM, handler)
 
-        self.config.load(self.__args.configfile)
-        self._base_path = self.config["base_path"]
         self.event_handler = EventHandler()
 
         # register own events

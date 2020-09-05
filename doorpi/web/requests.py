@@ -10,6 +10,7 @@ import pathlib
 import re
 import sys
 import urllib.parse
+from typing import TypedDict
 
 import jinja2
 
@@ -22,6 +23,11 @@ LOGGER = logging.getLogger(__name__)
 
 PARSABLE_FILE_EXTENSIONS = {".html"}
 DOORPIWEB_SECTION = "DoorPiWeb"
+
+class ControlCommandResult(TypedDict):
+    """The result of a control command"""
+    success: bool
+    message: str
 
 
 class AuthenticationRequiredError(Exception):
@@ -222,59 +228,70 @@ class DoorPiWebRequestHandler(http.server.BaseHTTPRequestHandler):
             LOGGER.exception("Error while authenticating a user")
             raise AuthenticationRequiredError() from err
 
-    @staticmethod
-    def _api_control(path, params):
+    def _api_control(self, path, params):
         if len(path) != 2:
             raise BadRequestError()
         command = path[1]
 
-        if command == "trigger_event":
-            doorpi.INSTANCE.event_handler.fire_event(
-                params["event"], params["source"], extra=params.get("extra"))
-            result = {"success": True, "message": "Event was fired"}
-        elif command == "config_value_get":
-            try:
-                key = params["key"][0]
-            except (IndexError, KeyError) as err:
-                raise BadRequestError() from err
-
-            try:
-                result = {
-                    "success": True,
-                    "message": doorpi.INSTANCE.config[key[0]],
-                }
-            except KeyError as err:
-                result = {"success": False, "message": str(err)}
-        elif command == "config_value_set":
-            try:
-                doorpi.INSTANCE.config[params["key"][0]] = params["value"][0]
-            except (IndexError, KeyError, TypeError, ValueError) as err:
-                result = {"success": False, "message": str(err)}
-            else:
-                result = {"success": True, "message": ""}
-        elif command == "config_value_delete":
-            try:
-                key = params[key][0]
-            except (IndexError, KeyError) as err:
-                raise BadRequestError() from err
-
-            try:
-                del doorpi.INSTANCE.config[key]
-            except KeyError as err:
-                result = {"success": False, "message": str(err)}
-            else:
-                result = {"success": True, "message": ""}
-        elif command == "config_save":
-            try:
-                doorpi.INSTANCE.config.save(params["configfile"])
-            except KeyError as err:
-                raise BadRequestError() from err
-            else:
-                result = {"success": True, "message": ""}
-        else:
-            raise BadRequestError()
-
+        try:
+            cmd_method = getattr(self, f"_api_command_{command}")
+        except AttributeError:
+            raise FileNotFoundError(command) from None
+        result = cmd_method(params)
         return (json_encoder.encode(result), "application/json")
+
+    @staticmethod
+    def _api_control_trigger_event(params) -> ControlCommandResult:
+        doorpi.INSTANCE.event_handler.fire_event(
+            params["event"], params["source"], extra=params.get("extra"))
+        return {"success": True, "message": "Event was fired"}
+
+    @staticmethod
+    def _api_control_config_value_get(params) -> ControlCommandResult:
+        try:
+            key = params["key"][0]
+        except (IndexError, KeyError) as err:
+            raise BadRequestError() from err
+
+        try:
+            return {
+                "success": True,
+                "message": doorpi.INSTANCE.config[key[0]],
+            }
+        except KeyError as err:
+            return {"success": False, "message": str(err)}
+
+    @staticmethod
+    def _api_control_config_value_set(params) -> ControlCommandResult:
+        try:
+            doorpi.INSTANCE.config[params["key"][0]] = params["value"][0]
+        except (IndexError, KeyError, TypeError, ValueError) as err:
+            return {"success": False, "message": str(err)}
+        else:
+            return {"success": True, "message": ""}
+
+    @staticmethod
+    def _api_control_config_value_delete(params) -> ControlCommandResult:
+        try:
+            key = params["key"][0]
+        except (IndexError, KeyError) as err:
+            raise BadRequestError() from err
+
+        try:
+            del doorpi.INSTANCE.config[key]
+        except KeyError as err:
+            return {"success": False, "message": str(err)}
+        else:
+            return {"success": True, "message": ""}
+
+    @staticmethod
+    def _api_control_config_save(params) -> ControlCommandResult:
+        try:
+            doorpi.INSTANCE.config.save(params["configfile"])
+        except KeyError as err:
+            raise BadRequestError() from err
+        else:
+            return {"success": True, "message": ""}
 
     def _api_help(self, path, params):
         return self._resource(

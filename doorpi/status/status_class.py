@@ -33,11 +33,11 @@ class DoorPiStatus:
     def json_beautified(self):
         return json.dumps(self.__status, sort_keys=True, indent=4)
 
-    def __init__(self, doorpi_obj, modules=MODULES, value=(), name=()):
+    def __init__(self, doorpi_obj, modules=None, value=(), name=()):
+        if not modules:
+            modules = MODULES
         self.__status = {}
-        self.collect_status(doorpi_obj, modules, value, name)
 
-    def collect_status(self, doorpi_obj, modules=MODULES, value=(), name=()):
         if len(modules) == 0:
             modules = MODULES
 

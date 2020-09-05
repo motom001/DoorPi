@@ -18,7 +18,9 @@ def get(doorpi_obj, name, value):
 
     if not name:
         name = status_getters.keys()
-    return {n: status_getters[n](doorpi_obj.event_handler) for n in name}
+    return {
+        n: status_getters[n](doorpi_obj.event_handler)
+        for n in name if n in status_getters}
 
 
 def is_active(doorpi_object):

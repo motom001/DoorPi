@@ -24,7 +24,7 @@ else:
 
 
 def check_module_status(module):
-    module["is_fulfilled"] = not module["fulfilled_with_one"]
+    module["is_fulfilled"] = not module.get("fulfilled_with_one")
     for module_name in module["libraries"]:
         status = {}
         try:
@@ -68,7 +68,7 @@ def load_module_status(module_name):
             pass
 
     # module.libraries.*.[text_description, text_warning, text_test]
-    for lib_name, lib_req in module["libraries"].items():
+    for lib_name, lib_req in module.setdefault("libraries", {}).items():
         for ent in lib_req:
             if ent.startswith("text_"):
                 lib_req[ent] = rsttohtml(lib_req[ent])
@@ -78,7 +78,7 @@ def load_module_status(module_name):
     # module.[configuration, events].*.description
     for ent in ("configuration", "events"):
         try:
-            for sub in range(len(module[ent])):
+            for sub in range(len(module.setdefault(ent, []))):
                 try:
                     module[ent][sub]["description"] = rsttohtml(
                         module[ent][sub]["description"])

@@ -1,0 +1,139 @@
+
+@import 'editor.mixins.scss';
+
+
+div.DTE {
+	position: relative;
+
+	div.DTE_Processing_Indicator {
+		position: absolute;
+		top: 10px;
+		right: 13px;
+		height: 32px;
+		width: 32px;
+		background: url('../images/ajax-loader.gif') no-repeat top left;
+		display: none;
+		z-index: 20;
+	}
+
+	div.DTE_Header {
+		position: absolute;
+		top: 0;
+		left: 0;
+		height: 50px;
+		width: 100%;
+		background-color: #f3f3f3;
+		border-bottom: 1px solid #ddd;
+		padding: 16px 10px 2px 16px;
+		font-size: 1.3em;
+		@include box-sizing(border-box);
+	}
+
+	div.DTE_Footer {
+		position: absolute;
+		bottom: 0;
+		left: 0;
+		height: 50px;
+		width: 100%;
+		background-color: #f3f3f3;
+		border-top: 1px solid #ddd;
+		padding: 10px;
+		@include box-sizing(border-box);
+	}
+
+	div.DTE_Form_Info {
+		margin-bottom: 0.5em;
+		display: none;
+	}
+
+	div.DTE_Form_Content {
+		position: relative;
+		padding: 10px;
+	}
+
+	div.DTE_Form_Error {
+		float: left;
+		padding: 5px;
+		display: none;
+		color: #b11f1f;
+	}
+
+	button.DTE_Button,
+	div.DTE_Form_Buttons button {
+		position: relative;
+		text-align: center;
+		display: block;
+		margin-top: 0;
+		padding: 5px 15px;
+		cursor: pointer;
+		float: right;
+
+		font-size: 14px;
+		text-shadow: 0 1px 0 white;
+		border: 1px solid #999;
+
+		@include border-radius( 4px );
+		@include box-shadow( 1px, 1px, 3px, #ccc );
+		@include three-stop-gradient( #ffffff 0%, #eee 65%, #f9f9f9 100% );
+
+		&:hover {
+			border: 1px solid #666;
+			@include box-shadow( 1px, 1px, 3px, #999 );
+			@include three-stop-gradient( #f3f3f3 0%, #dbdbdb 65%, #f4f4f4 100% );
+		}
+
+		&:active {
+			@include box-shadow( 1px, 1px, 3px, #999, true );
+		}
+
+		&:focus {
+			border: 1px solid #426c9e;
+			text-shadow: 0 1px 0 #c4def1;
+			@include three-stop-gradient( #a3d0ef 0%, #79ace9 65%, #a3d0ef 100% );
+			outline: none;
+
+			&:after {
+				// Can't animate the background gradient, so we use a white block
+				position: absolute;
+				top: 0;
+				left: 0;
+				right: 0;
+				bottom: 0;
+				background: white;
+				display: block;
+				content: " ";
+
+				@include animation( 1s, buttonPulse );
+			}
+		}
+	}
+
+	&.DTE_Action_Create {}
+
+	&.DTE_Action_Edit {}
+
+	&.DTE_Action_Remove div.DTE_Body_Content {
+		text-align: center;
+		padding: 20px 0;
+	}
+}
+
+@include keyframe( buttonPulse ) {
+    0% { opacity: 0; }
+    100% { opacity: 0.2; }
+}
+
+// TableTools container position for the default Editor styles
+div.DTTT_container {
+	float: left;
+}
+
+
+@import 'editor.fields.scss';
+@import 'editor.main.scss';
+@import 'editor.bubble.scss';
+@import 'editor.inline.scss';
+@import 'editor.lightbox.scss';
+@import 'editor.envelope.scss';
+@import 'editor.datatable.scss';
+

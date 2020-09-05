@@ -31,7 +31,7 @@ def account_config() -> pj.AccountConfig:
     sip_server = sipphone_server()
     sip_user = doorpi.INSTANCE.config["sipphone.server.username"]
     sip_pass = doorpi.INSTANCE.config["sipphone.server.password"]
-    sip_realm = doorpi.INSTANCE.config["sipphone.server.realm"]
+    sip_realm = doorpi.INSTANCE.config["sipphone.server.realm"] or sip_server
 
     if identity:
         identity = identity.replace("\\", "\\\\").replace("\"", "\\\"")

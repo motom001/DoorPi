@@ -10,7 +10,7 @@ from doorpi.sipphone.abc import AbstractSIPPhone
 from . import EVENT_SOURCE, fire_event, config
 from .worker import Worker
 
-LOGGER = logging.getLogger(__name__)
+LOGGER: doorpi.DoorPiLogger = logging.getLogger(__name__)  # type: ignore
 
 
 class Pjsua2(AbstractSIPPhone):
@@ -45,33 +45,33 @@ class Pjsua2(AbstractSIPPhone):
         for dtmf in doorpi.INSTANCE.config.view("sipphone.dtmf"):
             eh.register_event(f"OnDTMF_{dtmf}", EVENT_SOURCE)
 
-        self.__waiting_calls = []  # outgoing calls that are not yet connected
-        self.__ringing_calls = []  # outgoing calls that are currently ringing
-        self.__call_lock = threading.Lock()
+        self._waiting_calls = []  # outgoing calls that are not yet connected
+        self._ringing_calls = []  # outgoing calls that are currently ringing
+        self._call_lock = threading.Lock()
+        self._logwriter = None
         self.current_call = None
         self.dialtone = None
 
-        self.__worker = None
+        self._worker = None
         fire_event("OnSIPPhoneCreate", async_only=True)
         eh.register_action("OnShutdown", CallbackAction(self.stop))
 
     def stop(self):
         LOGGER.debug("Destroying PJSUA2 SIP phone")
 
-        with self.__call_lock:
+        with self._call_lock:
             if self.dialtone is not None:
                 self.dialtone.stop()
-                self.dialtone._DialTonePlayer__player = None
-            self.__worker.shutdown()
-            del self.__worker
+            self._worker.shutdown()
+            del self._worker
         doorpi.INSTANCE.event_handler.unregister_source(
             EVENT_SOURCE, force=True)
 
     def start(self):
         LOGGER.info("Starting PJSUA2 SIP phone")
         LOGGER.trace("Creating worker")
-        self.__worker = Worker(self)
-        self.__worker.setup()
+        self._worker = Worker(self)
+        self._worker.setup()
         LOGGER.info("Start successful")
 
     def call(self, uri):
@@ -81,13 +81,13 @@ class Pjsua2(AbstractSIPPhone):
             return False
         LOGGER.trace("About to call %s (canonicalized: %s)", uri, canonical_uri)
 
-        with self.__call_lock:
+        with self._call_lock:
             if self.current_call is not None:
                 # Another call is already active
                 return False
 
             # Dispatch creation of the call to the main thread
-            self.__waiting_calls += [canonical_uri]
+            self._waiting_calls.append(canonical_uri)
             return True
 
     def dump_call(self) -> dict:
@@ -108,8 +108,8 @@ class Pjsua2(AbstractSIPPhone):
 
     def hangup(self) -> None:
         LOGGER.trace("Hanging up all calls")
-        with self.__call_lock:
-            self.__worker.hangup = True
+        with self._call_lock:
+            self._worker.hangup = True
 
     def is_admin(self, uri: str) -> bool:
         try:

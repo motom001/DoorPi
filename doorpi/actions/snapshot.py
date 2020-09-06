@@ -65,6 +65,7 @@ class URLSnapshotAction(SnapshotAction):
     """Fetches a URL and saves it as snapshot."""
 
     def __init__(self, url):
+        super().__init__()
         self.__url = url
 
     def __call__(self, event_id, extra):
@@ -89,6 +90,7 @@ class PicamSnapshotAction(SnapshotAction):
     """Takes a snapshot from the Pi Camera."""
 
     def __init__(self):
+        super().__init__()
         # Make sure picamera is importable
         import picamera  # pylint: disable=import-error, unused-import
 

@@ -7,7 +7,7 @@ def get(doorpi_obj, name, value):
         "config_status": lambda _: {"infos": [], "warnings": [], "errors": []},
         "session_ids": lambda ws: list(ws.sessions.sessions),
         "sessions": operator.attrgetter("sessions.sessions"),
-        "running": lambda ws: bool(ws),
+        "running": bool,
         "server_name": operator.attrgetter("server_name"),
         "server_port": operator.attrgetter("server_port"),
     }

@@ -5,7 +5,8 @@ import logging
 import os
 from importlib import resources
 from typing import (
-    Any, Dict, Iterator, List, Mapping, Sequence, TextIO, Tuple, Union)
+    Any, ContextManager, Dict, Iterator, List, Mapping, MutableMapping,
+    Sequence, TextIO, Tuple, Union)
 
 import toml
 
@@ -30,10 +31,10 @@ class Configuration:
                 with resources.open_text(_defs, file) as file:
                     self.attach_defs(toml.load(file))
 
-    def load(self, path: Union[str, os.PathLike, TextIO]) -> "Configuration":
+    def load(self, path: Union[str, os.PathLike, TextIO]) -> None:
         """Replace configuration by loading from the given TOML file"""
         self.__values = {}
-        subconf = list(reversed(toml.load(path).items()))
+        subconf = list(toml.load(path).items())
         while subconf:
             key, val = subconf.pop()
             if isinstance(val, dict):
@@ -46,7 +47,7 @@ class Configuration:
     def save(self, path: Union[str, os.PathLike, TextIO]) -> None:
         """Save the configuration into the given TOML file"""
         if isinstance(path, (str, os.PathLike)):
-            ctx = open(path, "w")
+            ctx: ContextManager[TextIO] = open(path, "w")
         else:
             ctx = contextlib.nullcontext(path)
         with ctx as file:
@@ -118,6 +119,20 @@ class Configuration:
             namespace = namespace.setdefault(keypath[i], {})
         namespace[keypath[-1]] = value
 
+    def __delitem__(self, key: Union[str, Sequence[str]]) -> None:
+        keypath = _splitkey(key)
+        keydef, _ = self.keydef(keypath)
+        if "_default" in keydef:
+            namespace = self.__values
+            try:
+                for i in range(len(keypath) - 1):
+                    namespace = namespace[keypath[i]]
+                del namespace[keypath[-1]]
+            except KeyError:
+                pass
+        else:
+            raise KeyError(f"Cannot delete required key {key}")
+
     def view(self, key: Union[str, Sequence[str]]) -> "ConfigView":
         """Return a view on the specified config section"""
         return ConfigView(self, tuple(_splitkey(key)))
@@ -153,7 +168,9 @@ class Configuration:
         return source, wildsegments
 
     @staticmethod
-    def __make_type(keypath: Sequence[str], keydef: Mapping[str, Any]) -> None:
+    def __make_type(
+            keypath: Sequence[str], keydef: MutableMapping[str, Any],
+            ) -> None:
         if "_type" in keydef:
             type_ = types.gettype(keydef["_type"])
         elif "_default" in keydef:

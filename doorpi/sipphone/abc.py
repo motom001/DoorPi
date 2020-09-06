@@ -1,20 +1,21 @@
 """Abstract base class that helps implementing a SIP phone module."""
-from abc import ABCMeta, abstractmethod
+import abc
+from typing import Protocol
 
 
-class AbstractSIPPhone(metaclass=ABCMeta):  # pragma: no cover
+class AbstractSIPPhone(Protocol, metaclass=abc.ABCMeta):  # pragma: no cover
     """Base class for all SIP phone modules
 
     This class defines and documents all public methods that a SIP
     phone module implementation should expose.
     """
 
-    @abstractmethod
+    @abc.abstractmethod
     def get_name(self) -> str:
         """Returns the name of this SIP phone module."""
-        return None
+        return "SIP phone"
 
-    @abstractmethod
+    @abc.abstractmethod
     def __init__(self):
         """Initializes the phone module.
 
@@ -29,8 +30,9 @@ class AbstractSIPPhone(metaclass=ABCMeta):  # pragma: no cover
         events:
 
         """
+        super().__init__()
 
-    @abstractmethod
+    @abc.abstractmethod
     def start(self) -> None:
         """Start the phone module.
 
@@ -38,11 +40,11 @@ class AbstractSIPPhone(metaclass=ABCMeta):  # pragma: no cover
         DoorPi to make and receive calls.
         """
 
-    @abstractmethod
+    @abc.abstractmethod
     def stop(self):
         """Deinitializes the phone module and releases all resources."""
 
-    @abstractmethod
+    @abc.abstractmethod
     def call(self, uri: str) -> bool:
         """Make a call to the specified uri.
 
@@ -57,7 +59,7 @@ class AbstractSIPPhone(metaclass=ABCMeta):  # pragma: no cover
         """
         return False
 
-    @abstractmethod
+    @abc.abstractmethod
     def dump_call(self) -> dict:
         """Dumps information about the current call.
 
@@ -71,11 +73,11 @@ class AbstractSIPPhone(metaclass=ABCMeta):  # pragma: no cover
         """
         return {}
 
-    @abstractmethod
+    @abc.abstractmethod
     def hangup(self) -> None:
         """Hang up all currently active calls."""
 
-    @abstractmethod
+    @abc.abstractmethod
     def is_admin(self, uri: str) -> bool:
         """Check whether ``uri`` is registered as administrator."""
         return False

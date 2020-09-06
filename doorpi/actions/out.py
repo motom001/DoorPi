@@ -37,7 +37,8 @@ class TriggeredOutAction(OutAction):
         self._intpin = intpin
         self._int = threading.Event()
         if intpin:
-            doorpi.INSTANCE.event_handler.register_action(f"OnKeyDown_{intpin}", self.interrupt)
+            doorpi.INSTANCE.event_handler.register_action(
+                f"OnKeyDown_{intpin}", self.interrupt)
 
     def __call__(self, event_id, extra):
         self._setpin(self._value)
@@ -55,8 +56,11 @@ class TriggeredOutAction(OutAction):
             + f" or until {self._intpin} is pressed" if self._intpin else ""
 
     def __repr__(self):
-        return f"out:{self._pin},{self._value},{self._stopval}," \
-            f"{self._holdtime}{',' + self._intpin if self._intpin is not None else ''}"
+        return "".join((
+            "out:",
+            ",".join((self._pin, self._value, self._stopval, self._holdtime)),
+            self._intpin or "",
+        ))
 
 
 @action("out")

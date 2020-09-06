@@ -1,15 +1,19 @@
 """Callbacks from the native library."""
 # pylint: disable=protected-access, invalid-name
+from __future__ import annotations
 
 import logging
+from typing import TYPE_CHECKING
 
 import pjsua2 as pj
 
 import doorpi
 
 from . import fire_event
+if TYPE_CHECKING:
+    from . import glue
 
-LOGGER = logging.getLogger(__name__)
+LOGGER: doorpi.DoorPiLogger = logging.getLogger(__name__)  # type: ignore
 
 
 class AccountCallback(pj.Account):
@@ -19,7 +23,7 @@ class AccountCallback(pj.Account):
 
     # pylint: disable=arguments-differ
     def onIncomingCall(self, iprm: pj.OnIncomingCallParam) -> None:
-        sp = doorpi.INSTANCE.sipphone
+        sp: glue.Pjsua2 = doorpi.INSTANCE.sipphone  # type: ignore
         call = CallCallback(self, iprm.callId)
         callInfo = call.getInfo()
         oprm = pj.CallOpParam(False)
@@ -35,7 +39,7 @@ class AccountCallback(pj.Account):
                 oprm.statusCode = pj.PJSIP_SC_FORBIDDEN
                 event = "OnCallReject"
             else:
-                with sp._Pjsua2__call_lock:
+                with sp._call_lock:
                     if (sp.current_call is not None
                             and sp.current_call.isActive()):
                         LOGGER.info(
@@ -81,7 +85,7 @@ class CallCallback(pj.Call):
 
     def onCallState(self, prm: pj.OnCallStateParam) -> None:
         ci = self.getInfo()
-        sp = doorpi.INSTANCE.sipphone
+        sp: glue.Pjsua2 = doorpi.INSTANCE.sipphone  # type: ignore
 
         if ci.state == pj.PJSIP_INV_STATE_CALLING:
             LOGGER.debug("Call to %r is now calling", ci.remoteUri)
@@ -94,7 +98,7 @@ class CallCallback(pj.Call):
         elif ci.state == pj.PJSIP_INV_STATE_CONFIRMED:
             LOGGER.info("Call to %r was accepted", ci.remoteUri)
             self.__fire_disconnect = True
-            with sp._Pjsua2__call_lock:
+            with sp._call_lock:
                 prm = pj.CallOpParam()
                 if sp.current_call is not None:
                     # (note: this should not be possible)
@@ -102,27 +106,27 @@ class CallCallback(pj.Call):
                     sp.current_call = None
 
                 sp.current_call = self
-                for ring in sp._Pjsua2__ringing_calls:
+                for ring in sp._ringing_calls:
                     if self != ring:
                         ring.hangup(prm)
-                sp._Pjsua2__ringing_calls = []
-                sp._Pjsua2__waiting_calls = []
+                sp._ringing_calls = []
+                sp._waiting_calls = []
                 fire_event("OnCallConnect", remote_uri=ci.remoteUri)
         elif ci.state == pj.PJSIP_INV_STATE_DISCONNECTED:
             LOGGER.info(
                 "Call to %r disconnected after %d seconds (%d total)",
                 ci.remoteUri, ci.connectDuration.sec, ci.totalDuration.sec)
-            with sp._Pjsua2__call_lock:
+            with sp._call_lock:
                 if sp.current_call == self:
                     sp.current_call = None
-                elif self in sp._Pjsua2__ringing_calls:
-                    sp._Pjsua2__ringing_calls.remove(self)
+                elif self in sp._ringing_calls:
+                    sp._ringing_calls.remove(self)
 
                 if self.__fire_disconnect:
                     LOGGER.trace(
                         "Firing disconnect event for call to %r", ci.remoteUri)
                     fire_event("OnCallDisconnect", remote_uri=ci.remoteUri)
-                elif len(sp._Pjsua2__ringing_calls) == 0:
+                elif len(sp._ringing_calls) == 0:
                     LOGGER.info("No call was answered")
                     fire_event("OnCallUnanswered")
                 else:

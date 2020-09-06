@@ -54,8 +54,8 @@ def from_string(confstr: str):
     if atype not in ACTION_REGISTRY:
         raise ValueError(f"Unknown action {atype!r}")
     args = confstr[len(atype) + 1:]
-    args = args.split(",") if len(args) > 0 else []
-    return ACTION_REGISTRY[atype](*args)
+    arglist = args.split(",") if len(args) > 0 else []
+    return ACTION_REGISTRY[atype](*arglist)
 
 
 class Action(metaclass=ABCMeta):

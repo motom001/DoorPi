@@ -31,7 +31,8 @@ class TickAction:
         for i in range(24):
             eh.register_event(f"OnTimeHour{i:02}", __name__)
 
-    def destroy(self):
+    @staticmethod
+    def destroy():
         doorpi.INSTANCE.event_handler.unregister_source(__name__, force=True)
 
     def __call__(self, event_id, extra):

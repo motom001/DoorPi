@@ -60,7 +60,9 @@ class HangupAction:
 
     def __call__(self, event_id, extra):
         if self.__waittime:
-            LOGGER.info("[%s] Hanging up all calls in %s seconds", event_id, self.__waittime)
+            LOGGER.info(
+                "[%s] Hanging up all calls in %s seconds",
+                event_id, self.__waittime)
             time.sleep(self.__waittime)
 
         LOGGER.info("[%s] Hanging up all calls", event_id)

@@ -15,7 +15,7 @@ try:
 except ImportError as err:
     LOGGER.error("DoorPiWeb requirements are not met: %s", err)
     def load():
-        pass
+        return None
 else:
     def load():
         """Load the webserver"""

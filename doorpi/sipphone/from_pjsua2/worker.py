@@ -91,11 +91,11 @@ class Worker():
         if not self.hangup:
             return
 
-        with self.__phone._Pjsua2__call_lock:
+        with self.__phone._call_lock:
             prm = pj.CallOpParam()
-            self.__phone._Pjsua2__waiting_calls = []
+            self.__phone._waiting_calls = []
 
-            for call in self.__phone._Pjsua2__ringing_calls:
+            for call in self.__phone._ringing_calls:
                 try:
                     call.hangup(prm)
                 except pj.Error as err:
@@ -103,7 +103,7 @@ class Worker():
                         continue
                     LOGGER.exception(
                         "Error hanging up a call: %s (ignored)", err.reason)
-            self.__phone._Pjsua2__ringing_calls = []
+            self.__phone._ringing_calls = []
 
             if self.__phone.current_call is not None:
                 self.__phone.current_call.hangup(prm)
@@ -115,16 +115,15 @@ class Worker():
     def checkCallTime(self):
         """Check all current calls and enforce call time restrictions"""
         if (self.__phone.current_call is None
-                and len(self.__phone._Pjsua2__ringing_calls) == 0):
+                and len(self.__phone._ringing_calls) == 0):
             return
-        with self.__phone._Pjsua2__call_lock:
+        with self.__phone._call_lock:
             call = self.__phone.current_call
             if call is not None:
                 ci = call.getInfo()
                 calltime = self.__config["calltime"]
-                if (calltime > 0
-                        and ci.state == pj.PJSIP_INV_STATE_CONFIRMED
-                        and ci.connectDuration.sec >= calltime):
+                if (0 < calltime <= ci.connectDuration.sec
+                        and ci.state == pj.PJSIP_INV_STATE_CONFIRMED):
                     LOGGER.info(
                         "Hanging up call to %s after %d seconds",
                         repr(ci.remoteUri), self.__config["calltime"])
@@ -135,7 +134,7 @@ class Worker():
             else:
                 synthetic_disconnect = False
                 prm = pj.CallOpParam()
-                for call in self.__phone._Pjsua2__ringing_calls:
+                for call in self.__phone._ringing_calls:
                     try:
                         ci = call.getInfo()
                         if ci.totalDuration.sec >= self.__config["ringtime"]:
@@ -143,7 +142,7 @@ class Worker():
                                 "Giving up call to %s after %d seconds",
                                 repr(ci.remoteUri), self.__config["ringtime"])
                             call.hangup(prm)
-                            self.__phone._Pjsua2__ringing_calls.remove(call)
+                            self.__phone._ringing_calls.remove(call)
                             synthetic_disconnect = True
                     except pj.Error as err:
                         if err.reason.endswith("(PJSIP_ESESSIONTERMINATED)"):
@@ -152,19 +151,19 @@ class Worker():
                         else:
                             LOGGER.exception(
                                 "Can't get info for a call: %s", err.reason)
-                        self.__phone._Pjsua2__ringing_calls.remove(call)
+                        self.__phone._ringing_calls.remove(call)
                 if (synthetic_disconnect
-                        and len(self.__phone._Pjsua2__ringing_calls) == 0):
+                        and len(self.__phone._ringing_calls) == 0):
                     # Last ringing call was cancelled
                     fire_event("OnCallUnanswered")
 
     def createCalls(self):
         """Create requested outbound calls"""
-        if len(self.__phone._Pjsua2__waiting_calls) == 0:
+        if len(self.__phone._waiting_calls) == 0:
             return
 
-        with self.__phone._Pjsua2__call_lock:
-            for uri in self.__phone._Pjsua2__waiting_calls:
+        with self.__phone._call_lock:
+            for uri in self.__phone._waiting_calls:
                 LOGGER.info("Calling %s", uri)
                 fire_event("OnCallOutgoing", remote_uri=uri)
                 call = CallCallback(self.__account)
@@ -173,5 +172,5 @@ class Worker():
                     call.makeCall(uri, callprm)
                 except pj.Error as err:
                     LOGGER.error("Error making a call: %s", err.info())
-                self.__phone._Pjsua2__ringing_calls += [call]
-            self.__phone._Pjsua2__waiting_calls = []
+                self.__phone._ringing_calls += [call]
+            self.__phone._waiting_calls = []

@@ -1,13 +1,15 @@
 #!/usr/bin/env python3
 
+"""DoorPi Setup"""
+
+import pathlib
 import sys
-from pathlib import Path
 
 from setuptools import setup, find_packages
 from setuptools.command.install import install
 
 
-BASE_PATH = Path(__file__).resolve().parent
+BASE_PATH = pathlib.Path(__file__).resolve().parent
 ETC = "/etc" if sys.prefix == "/usr" else "etc"
 
 
@@ -20,8 +22,9 @@ class InstallHook(install):
             "package": package,
             "project": self.distribution.metadata.name,
             "prefix": self.prefix,
-            "cfgdir": (
-                f"{self.prefix if sys.prefix == '/usr' else ''}/etc/{package}"),
+            "cfgdir": pathlib.Path(
+                self.prefix if sys.prefix == "/usr" else "", "etc", package
+            ),
         }
         for file in datapath.iterdir():
             if file.suffix != ".in": continue

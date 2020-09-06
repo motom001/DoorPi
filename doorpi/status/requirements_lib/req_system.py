@@ -1,3 +1,3 @@
-import textwrap
+from typing import Any, Dict
 
-REQUIREMENT = {}
+REQUIREMENT: Dict[str, Any] = {}

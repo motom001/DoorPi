@@ -43,7 +43,7 @@ GND -- GND
 RX -- GPIO 14 (TX)
 TX -- GPIO 15 (RX)
 
-IMPORTANT  --- IMPORTANT  ---- IMPORTANT  --- IMPORTANT  ---- IMPORTANT  --- IMPORTANT
+IMPORTANT ---- IMPORTANT ---- IMPORTANT ---- IMPORTANT ---- IMPORTANT
 TODO
 you will also need the libnfc and nfcpy for this to work
 
@@ -60,7 +60,8 @@ you will also need the libnfc and nfcpy for this to work
    sudo mkdir /etc/nfc/devices.d
    sudo cp contrib/libnfc/pn532_uart_on_rpi.conf.sample /etc/nfc/devices.d/pn532_uart_on_rpi.conf
    add the line
-       allow_intrusive_scan = true  <-- checken, ob das wirklich gebraucht wird und was das macht
+       allow_intrusive_scan = true  <-- checken, ob das wirklich gebraucht wird
+                                        und was das macht
    to file /etc/nfc/devices.d/pn532_uart_on_rpi.conf
    cd /home/pi/src/libnfc <-- anpassen
    touch NEWS
@@ -74,8 +75,10 @@ you will also need the libnfc and nfcpy for this to work
    hold a tag near the reader and you should get an output similar to this:
                SAMPLE-OUTPUT einfügen
 2) nfcpy
-   install following this: http://nfcpy.org/latest/topics/get-started.html#installation
-   be sure that serial console is deactivated in kernel (cmdline.txt or raspi-config)
+   install following this:
+        <http://nfcpy.org/latest/topics/get-started.html#installation>
+   be sure that serial console is deactivated in kernel
+   (cmdline.txt or raspi-config)
    test nfcpy using
        python tagtool.py --device tty:AMA0:pn532
    you should see output similar to

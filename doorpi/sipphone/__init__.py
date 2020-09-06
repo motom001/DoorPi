@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """The SIP phone container module for DoorPi.
 
 A SIP phone module is required for DoorPi to make any outgoing calls
@@ -68,12 +67,16 @@ import sys
 import doorpi
 from doorpi import metadata
 
+from .abc import AbstractSIPPhone
+
+__all__ = ["DEFAULT_MEDIA_DIR", "AbstractSIPPhone", "load"]
+
 
 DEFAULT_MEDIA_DIR = "{}/share/{}".format(
     sys.prefix, metadata.distribution.metadata['Name'].lower())
 
 
-def load():
+def load() -> AbstractSIPPhone:
     sipphone_name = doorpi.INSTANCE.config["sipphone.type"]
     try:
         return (

@@ -26,11 +26,14 @@ class StatusfileAction:
 
         try:
             status = DoorPiStatus(doorpi.INSTANCE)
-            content = content.replace("!DOORPI_STATUS.json_beautified!", status.json_beautified)
-            content = content.replace("!DOORPI_STATUS.json!", status.json)
+            content = content.replace(
+                "!DOORPI_STATUS.json_beautified!", status.json_beautified)
+            content = content.replace(
+                "!DOORPI_STATUS.json!", status.json)
         except Exception:  # pylint: disable=broad-except
-            LOGGER.exception("[%s] Error fetching status information for file %s",
-                             event_id, self.__filename)
+            LOGGER.exception(
+                "[%s] Error fetching status information for file %s",
+                event_id, self.__filename)
 
         self.__filename.write_text(content)
 

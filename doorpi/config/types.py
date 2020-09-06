@@ -41,22 +41,22 @@ class ValueType(metaclass=abc.ABCMeta):
     """ABC for value types"""
     __slots__ = ()
 
+    def __init__(self, keypath, keydef):
+        del self, keypath, keydef
+
     @abc.abstractmethod
     def insertcast(self, value: Any) -> Any:
         """Cast ``value`` so it can be inserted into the configuration dict"""
 
-    @staticmethod
-    def querycast(value: Any) -> Any:
+    def querycast(self, value: Any) -> Any:
         """Cast ``value`` after retrieving it from the configuration dict"""
+        del self
         return value
 
 
 class Anything(ValueType):
     """Any value"""
     __slots__ = ()
-
-    def __init__(self, *_):
-        pass
 
     @staticmethod
     def insertcast(value):
@@ -67,8 +67,9 @@ class Int(ValueType):
     """An integer number (1, 2, -5, etc.)"""
     __slots__ = ("_Int__min", "_Int__max")
 
-    def __init__(self, _, keydef):
+    def __init__(self, keypath, keydef):
         # pylint: disable=assigning-non-slot
+        super().__init__(keypath, keydef)
         self.__min = keydef.get("_min", -math.inf)
         self.__max = keydef.get("_max", math.inf)
 
@@ -85,8 +86,9 @@ class Float(ValueType):
     """A floating point number (1.2, -7.9, etc.)"""
     __slots__ = ("_Float__min", "_Float__max")
 
-    def __init__(self, _, keydef):
+    def __init__(self, keypath, keydef):
         # pylint: disable=assigning-non-slot
+        super().__init__(keypath, keydef)
         self.__min = keydef.get("_min", -math.inf)
         self.__max = keydef.get("_max", math.inf)
 
@@ -104,9 +106,6 @@ class Bool(ValueType):
     __true_values = {"true", "yes", "on", "1", 1}
     __false_values = {"false", "no", "off", "0", 0}
     __slots__ = ()
-
-    def __init__(self, *_):
-        pass
 
     @classmethod
     def insertcast(cls, value):
@@ -127,9 +126,6 @@ class String(ValueType):
     """A string of characters"""
     __slots__ = ()
 
-    def __init__(self, *_):
-        pass
-
     @staticmethod
     def insertcast(value):
         if isinstance(value, str):
@@ -149,9 +145,6 @@ class Date(ValueType):
     """A date (without time)"""
     __slots__ = ()
 
-    def __init__(self, *_):
-        pass
-
     @staticmethod
     def insertcast(value):
         if isinstance(value, datetime.datetime):
@@ -164,9 +157,6 @@ class Date(ValueType):
 class Time(ValueType):
     """A time, with or without timezone"""
     __slots__ = ()
-
-    def __init__(self, *_):
-        pass
 
     @staticmethod
     def insertcast(value):
@@ -183,9 +173,6 @@ class DateTime(ValueType):
     """A date and time, with or without timezone"""
     __slots__ = ()
 
-    def __init__(self, *_):
-        pass
-
     @staticmethod
     def insertcast(value):
         if isinstance(value, datetime.datetime):
@@ -197,12 +184,13 @@ class List(ValueType):
     """A list of values"""
     __slots__ = ("_List__membertype",)
 
-    def __init__(self, _, keydef):
+    def __init__(self, keypath, keydef):
         # pylint: disable=assigning-non-slot
+        super().__init__(keypath, keydef)
         membertype = keydef.get("_membertype", "any")
         if membertype == "list":  # pragma: no cover
-            raise ValueError(f"Cannot define a list of lists")
-        self.__membertype = gettype(membertype)
+            raise ValueError("Cannot define a list of lists")
+        self.__membertype = gettype(membertype)(keypath, keydef)
 
     def insertcast(self, value: Any) -> Sequence[Any]:
         # pylint: disable=no-member
@@ -223,6 +211,7 @@ class Enum(ValueType):
     def __init__(self, keypath, keydef):
         # pylint: disable=assigning-non-slot, no-member
         assert len(keypath) >= 2, f"Key path too short: {keypath}"
+        super().__init__(keypath, keydef)
         modulename = f"{__name__.split('.')[0]}.{keypath[0]}"
         module = importlib.import_module(modulename)
         enumname = re.sub(
@@ -258,9 +247,6 @@ class Enum(ValueType):
 class Path(ValueType):
     """A path in the filesystem"""
     __slots__ = ()
-
-    def __init__(self, *_):
-        pass
 
     @staticmethod
     def insertcast(value: Any) -> pathlib.Path:

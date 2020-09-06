@@ -1,11 +1,17 @@
 """Configuration utilities for the PJSUA sipphone module"""
+from __future__ import annotations
 
 import logging
+from typing import TYPE_CHECKING
+
 import pjsua2 as pj
 
 import doorpi
 
-LOGGER = logging.getLogger(__name__)
+if TYPE_CHECKING:
+    from . import glue
+
+LOGGER: doorpi.DoorPiLogger = logging.getLogger(__name__)  # type: ignore
 
 
 def call_timeout() -> int:
@@ -89,7 +95,8 @@ def endpoint_config() -> pj.EpConfig:
     ep_cfg.logConfig.writer = logwriter
     # Bind the LogWriter's lifetime to the sipphone object, so that
     # it won't be garbage-collected prematurely.
-    doorpi.INSTANCE.sipphone.__logwriter = logwriter  # pylint: disable=protected-access
+    sp: glue.Pjsua2 = doorpi.INSTANCE.sipphone  # type: ignore
+    sp._logwriter = logwriter  # pylint: disable=protected-access
 
     return ep_cfg
 
@@ -159,14 +166,16 @@ def setup_audio_devices(adm: pj.AudDevManager) -> None:
         LOGGER.critical("Configured capture device not found! Found devices:")
         list_audio_devices(adm, logging.CRITICAL)
         raise ValueError(
-            f"Configured capture device could not be found: {capture_device}")
+            f"Configured capture device could not be found: {capture_device}"
+        ) from None
     try:
         playback_idx = adm.lookupDev(playback_drv, playback_dev)
     except pj.Error:
         LOGGER.critical("Configured playback device not found! Found devices:")
         list_audio_devices(adm, logging.CRITICAL)
         raise ValueError(
-            f"Configured playback device could not be found: {playback_device}")
+            f"Configured playback device could not be found: {playback_device}"
+        ) from None
     LOGGER.trace(
         "Device indices: capture = %d, playback = %d",
         capture_idx, playback_idx)

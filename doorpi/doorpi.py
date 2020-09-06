@@ -5,10 +5,11 @@ import html
 import itertools
 import logging
 import os
+import pathlib
 import signal
 import sys
 import time
-from pathlib import Path
+from typing import Optional
 
 import doorpi
 from doorpi import config, keyboard, sipphone, web
@@ -27,6 +28,12 @@ if __name__ == "__main__":
 
 class DoorPi:
     """The main DoorPi class that ties everything together."""
+    config: doorpi.config.Configuration
+    event_handler: doorpi.event.handler.EventHandler
+    dpsd: doorpi.status.systemd.DoorPiSD
+    keyboard: doorpi.keyboard.handler.KeyboardHandler
+    sipphone: doorpi.sipphone.abc.AbstractSIPPhone
+    webserver: Optional[doorpi.web.DoorPiWeb]
 
     @property
     def extra_info(self):
@@ -45,19 +52,19 @@ class DoorPi:
     def base_path(self):
         if self._base_path is None:
             name = metadata.distribution.metadata["Name"]
-            base = Path.home() / f"{name.lower()}.ini"
+            base = pathlib.Path.home() / f"{name.lower()}.ini"
             if base.is_file():
-                self._base_path = Path.home()
+                self._base_path = pathlib.Path.home()
             elif sys.platform == "linux":
                 try:
-                    base = Path(os.environ["XDG_CONFIG_HOME"])
+                    base = pathlib.Path(os.environ["XDG_CONFIG_HOME"])
                 except KeyError:
-                    base = Path.home() / ".config"
+                    base = pathlib.Path.home() / ".config"
                 self._base_path = base / name.lower()
             elif sys.platform == "win32":
-                self._base_path = Path(os.environ["APPDATA"]) / name
+                self._base_path = pathlib.Path(os.environ["APPDATA"]) / name
             else:
-                self._base_path = Path.home() / name.lower()
+                self._base_path = pathlib.Path.home() / name.lower()
             LOGGER.info("Auto-selected BasePath %s", self._base_path)
         return self._base_path
 
@@ -129,7 +136,7 @@ class DoorPi:
             "OnTimeTick", f"time_tick:{self.__last_tick}")
 
         # register modules
-        self.webserver = web.load()
+        self.webserver = web.load()  # pylint: disable=assignment-from-none
         self.keyboard = keyboard.load()
         self.sipphone = sipphone.load()
         self.sipphone.start()

@@ -4,7 +4,6 @@ import unittest
 from tempfile import TemporaryDirectory
 from unittest.mock import MagicMock
 
-import doorpi.main
 from doorpi import config
 
 doorpi_instance = None

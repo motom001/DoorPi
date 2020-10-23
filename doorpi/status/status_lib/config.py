@@ -1,4 +1,12 @@
-def get(doorpi_obj, name, value):
+from typing import Any, Iterable
+
+import doorpi.doorpi
+
+
+def get(
+        doorpi_obj: doorpi.doorpi.DoorPi,
+        name: Iterable[str], value: Iterable[str],
+        ) -> Any:
     return_dict = {}
     for section in name:
         try:
@@ -10,5 +18,5 @@ def get(doorpi_obj, name, value):
     return return_dict
 
 
-def is_active(doorpi_object):
+def is_active(doorpi_object: doorpi.doorpi.DoorPi) -> bool:
     return bool(doorpi_object.config)

@@ -1,4 +1,12 @@
-def get(doorpi_obj, name, value):
+from typing import Any, Sequence
+
+import doorpi.doorpi
+
+
+def get(
+        doorpi_obj: doorpi.doorpi.DoorPi,
+        name: Sequence[str], value: Sequence[str],
+        ) -> Any:
     try:
         filter_ = name[0]
     except IndexError:
@@ -12,5 +20,5 @@ def get(doorpi_obj, name, value):
     return doorpi_obj.event_handler.log.get_event_log(max_count, filter_)
 
 
-def is_active(doorpi_object):
-    return bool(doorpi_object.event_handler.db.get_event_log_entries(1, ""))
+def is_active(doorpi_object: doorpi.doorpi.DoorPi) -> bool:
+    return bool(doorpi_object.event_handler.log.get_event_log(1, ""))

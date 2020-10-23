@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import collections.abc
 import contextlib
 import itertools
@@ -19,16 +21,16 @@ flagkeys = frozenset({"_default", "_type"})
 
 class Configuration:
     """The main configuration object"""
-    def __init__(self):
-        self.__values = {}
-        self.__defs = {}
+    def __init__(self) -> None:
+        self.__values: Dict[str, Any] = {}
+        self.__defs: Dict[str, Any] = {}
 
-    def load_builtin_definitions(self):
+    def load_builtin_definitions(self) -> None:
         """Load the built-in key definitions from the ``defs`` directory"""
-        for file in resources.contents(_defs):
-            if file.endswith(".toml") and resources.is_resource(_defs, file):
-                logger.debug("Loading defs from %s", file)
-                with resources.open_text(_defs, file) as file:
+        for fname in resources.contents(_defs):
+            if fname.endswith(".toml") and resources.is_resource(_defs, fname):
+                logger.debug("Loading defs from %s", fname)
+                with resources.open_text(_defs, fname) as file:
                     self.attach_defs(toml.load(file))
 
     def load(self, path: Union[str, os.PathLike, TextIO]) -> None:
@@ -46,16 +48,20 @@ class Configuration:
 
     def save(self, path: Union[str, os.PathLike, TextIO]) -> None:
         """Save the configuration into the given TOML file"""
-        if isinstance(path, (str, os.PathLike)):
+        # Erroneous "Only @runtime_checkable protocols can be used with
+        # instance and class checks"
+        if isinstance(path, (str, os.PathLike)):  # type: ignore[misc]
             ctx: ContextManager[TextIO] = open(path, "w")
         else:
             ctx = contextlib.nullcontext(path)
         with ctx as file:
             toml.dump(self.__values, file)
 
-    def attach_defs(self, defs: Mapping[str, Any]):
+    def attach_defs(self, defs: Mapping[str, Any]) -> None:
         """Attach a dictionary of key definitions to this configuration"""
-        def update_defs(keypath, target, updates):
+        def update_defs(
+                keypath: Tuple[str, ...], target: Dict[str, Any],
+                updates: Mapping[str, Any]) -> None:
             if not isinstance(updates, dict):  # pragma: no cover
                 raise TypeError(
                     "Expected key definition table, got {}"
@@ -110,7 +116,7 @@ class Configuration:
                 raise KeyError(f"No value set for required key {key}") from None
         return keydef["_type"].querycast(value)
 
-    def __setitem__(self, key: Union[str, Sequence[str]], value: Any):
+    def __setitem__(self, key: Union[str, Sequence[str]], value: Any) -> None:
         keypath = _splitkey(key)
         keydef, _ = self.keydef(keypath)
         value = keydef["_type"].insertcast(value)
@@ -133,7 +139,7 @@ class Configuration:
         else:
             raise KeyError(f"Cannot delete required key {key}")
 
-    def view(self, key: Union[str, Sequence[str]]) -> "ConfigView":
+    def view(self, key: Union[str, Sequence[str]]) -> ConfigView:
         """Return a view on the specified config section"""
         return ConfigView(self, tuple(_splitkey(key)))
 
@@ -182,7 +188,7 @@ class Configuration:
 
 class ConfigView(collections.abc.Mapping):
     """A view into a subsection of the Configuration"""
-    def __init__(self, source, path):
+    def __init__(self, source: Configuration, path: Tuple[str, ...]) -> None:
         assert isinstance(path, tuple)
         self.__source = source
         self.__path = path
@@ -193,17 +199,17 @@ class ConfigView(collections.abc.Mapping):
     def __iter__(self) -> Iterator[str]:
         return self.__source.iter(self.__path)
 
-    def __setitem__(self, key: Union[str, Sequence[str]], value: Any):
+    def __setitem__(self, key: Union[str, Sequence[str]], value: Any) -> None:
         self.__source[
             tuple(itertools.chain(self.__path, _splitkey(key)))
         ] = value
 
-    def __getitem__(self, key: Union[str, Sequence[str]]):
+    def __getitem__(self, key: Union[str, Sequence[str]]) -> Any:
         return self.__source[
             tuple(itertools.chain(self.__path, _splitkey(key)))
         ]
 
-    def view(self, subkey: Union[str, Sequence[str]]):
+    def view(self, subkey: Union[str, Sequence[str]]) -> ConfigView:
         """Return a subview onto the ``key`` within this section"""
         return type(self)(
             self.__source,
@@ -211,7 +217,9 @@ class ConfigView(collections.abc.Mapping):
         )
 
 
-def _splitkey(key: Union[str, Sequence[str]]) -> Sequence[str]:
+def _splitkey(key: Union[str, Sequence[str]]) -> List[str]:
     if isinstance(key, str):
         key = key.split(".")
+    elif not isinstance(key, list):
+        key = list(key)
     return key

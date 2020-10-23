@@ -6,7 +6,6 @@ from doorpi.actions import tick
 from . import EVENT_ID, EVENT_EXTRA
 from ..mocks import DoorPi, DoorPiTestCase
 
-
 # The event source
 ES = "doorpi.actions.tick"
 
@@ -39,7 +38,8 @@ class TestTickAction(DoorPiTestCase):
         eh = instance.event_handler
         self.assertEqual(eh.call_count, 2)
         eh.assert_has_calls(
-            [call("OnTimeMonth", ES), call("OnTimeMonthEven", ES)], any_order=True)
+            [call("OnTimeMonth", ES), call("OnTimeMonthEven", ES)],
+            any_order=True)
 
     @patch("doorpi.INSTANCE", new_callable=DoorPi)
     def test_fire_daily(self, instance):
@@ -66,9 +66,11 @@ class TestTickAction(DoorPiTestCase):
 
         eh = instance.event_handler
         self.assertEqual(eh.call_count, 3)
-        eh.assert_has_calls(
-            [call("OnTimeHour", ES), call("OnTimeHourOdd", ES), call("OnTimeHour01", ES)],
-            any_order=True)
+        eh.assert_has_calls([
+            call("OnTimeHour", ES),
+            call("OnTimeHourOdd", ES),
+            call("OnTimeHour01", ES),
+        ], any_order=True)
 
     @patch("doorpi.INSTANCE", new_callable=DoorPi)
     def test_fire_minutely(self, instance):
@@ -81,9 +83,11 @@ class TestTickAction(DoorPiTestCase):
 
         eh = instance.event_handler
         self.assertEqual(eh.call_count, 3)
-        eh.assert_has_calls(
-            [call("OnTimeMinute", ES), call("OnTimeMinuteOdd", ES), call("OnTimeMinute01", ES)],
-            any_order=True)
+        eh.assert_has_calls([
+            call("OnTimeMinute", ES),
+            call("OnTimeMinuteOdd", ES),
+            call("OnTimeMinute01", ES),
+        ], any_order=True)
 
     @patch("doorpi.INSTANCE", new_callable=DoorPi)
     def test_fire_secondly(self, instance):
@@ -96,6 +100,8 @@ class TestTickAction(DoorPiTestCase):
 
         eh = instance.event_handler
         self.assertEqual(eh.call_count, 3)
-        eh.assert_has_calls(
-            [call("OnTimeSecond", ES), call("OnTimeSecondOdd", ES), call("OnTimeSecond01", ES)],
-            any_order=True)
+        eh.assert_has_calls([
+            call("OnTimeSecond", ES),
+            call("OnTimeSecondOdd", ES),
+            call("OnTimeSecond01", ES),
+        ], any_order=True)

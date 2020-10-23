@@ -59,7 +59,6 @@ A proper SIP phone module will fire these events during its life cycle:
 - OnDTMF, OnDTMF_<seq>:
   Fired when the DTMF sequence ``<seq>`` was received.
 """
-
 import importlib
 import logging
 import sys
@@ -71,7 +70,6 @@ from .abc import AbstractSIPPhone
 
 __all__ = ["DEFAULT_MEDIA_DIR", "AbstractSIPPhone", "load"]
 
-
 DEFAULT_MEDIA_DIR = "{}/share/{}".format(
     sys.prefix, metadata.distribution.metadata['Name'].lower())
 
@@ -81,7 +79,7 @@ def load() -> AbstractSIPPhone:
     try:
         return (
             importlib.import_module(f"doorpi.sipphone.from_{sipphone_name}")
-            .instantiate())
+            .instantiate())  # type: ignore
     except ImportError as err:
         raise RuntimeError(
             f"Failed to load sip phone module {sipphone_name}"

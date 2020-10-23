@@ -87,11 +87,11 @@ you will also need the libnfc and nfcpy for this to work
    sudo cp -r nfc /usr/local/lib/python2.7/dist-packages/nfc   <--- CHECKEN!
 /TODO
 """
-
+import datetime
 import logging
 import re
 import threading
-import time
+from typing import Any, Optional
 
 import nfc  # pylint: disable=import-error
 
@@ -102,8 +102,7 @@ LOGGER = logging.getLogger(__name__)
 
 
 class PN532Keyboard(AbstractKeyboard):
-
-    def __init__(self, name):
+    def __init__(self, name: str) -> None:
         super().__init__(name, events=("OnKeyPressed",))
         doorpi.INSTANCE.event_handler.register_event(
             "OnTagUnknown", self._event_source)
@@ -112,18 +111,18 @@ class PN532Keyboard(AbstractKeyboard):
             re.sub(r"^/dev/tty", "", self.config["port"]))
         self.__frontend = nfc.ContactlessFrontend(self.__device)
 
-        self.__exception = None
+        self.__exception: Optional[Exception] = None
         self.__shutdown = False
 
         self.__thread = threading.Thread(target=self.pn532_read)
         self.__thread.start()
 
-    def _deactivate(self):
+    def _deactivate(self) -> None:
         self.__shutdown = True
         self.__frontend.close()
         self.__thread.join()
 
-    def self_check(self):
+    def self_check(self) -> None:
         if self.__exception is not None:
             raise RuntimeError(
                 f"{self.name}: Worker died"
@@ -132,7 +131,7 @@ class PN532Keyboard(AbstractKeyboard):
             raise RuntimeError(
                 f"{self.name}: Worker found dead without exception information")
 
-    def pn532_read(self):
+    def pn532_read(self) -> None:
         """The keyboard's main loop; runs as thread"""
         try:
             while not self.__shutdown:
@@ -140,23 +139,24 @@ class PN532Keyboard(AbstractKeyboard):
         except Exception as ex:  # pylint: disable=broad-except
             self.__exception = ex
 
-    def on_connect(self, tag):
+    def on_connect(self, tag: Any) -> bool:
         """Callback for when the library detects a connected tag."""
         # debounce
-        now = time.time() * 1000
+        now = datetime.datetime.now()
         if now - self.last_key_time <= self._bouncetime:
-            return
+            return False
 
         self.last_key_time = now
         tag = str(tag)
-        id_ = str(tag.split("ID=")[-1:])[2:-2]  # TODO wtf?
+        id_ = tag.split("ID=")[-1]
         LOGGER.info("%s: Tag connected: %r, ID: %r", self.name, tag, id_)
         if id_ in self._inputs:
             self._fire_event("OnKeyPressed", id_)
         else:
             doorpi.INSTANCE.event_handler(
                 "OnTagUnknown", self._event_source,
-                {**self.additional_info, "tag": id_})
+                extra={**self.additional_info, "tag": id_})
+        return False
 
 
 instantiate = PN532Keyboard  # pylint: disable=invalid-name

@@ -1,5 +1,7 @@
 """Classes that handle different configuration value types"""
 # pylint: disable=missing-function-docstring, too-few-public-methods
+from __future__ import annotations
+
 import abc
 import collections.abc
 import datetime
@@ -8,14 +10,14 @@ import importlib
 import math
 import pathlib
 import re
-from typing import Any, Sequence
+from typing import Any, Dict, Mapping, Sequence, Tuple, Type
 
 
-def gettype(typename: str) -> Any:
+def gettype(typename: str) -> Type[ValueType]:
     return _types[typename]
 
 
-def infertype(default: Any) -> Any:
+def infertype(default: Any) -> Type[ValueType]:
     # pylint: disable=too-many-return-statements
     if isinstance(default, bool):
         return Bool
@@ -41,8 +43,8 @@ class ValueType(metaclass=abc.ABCMeta):
     """ABC for value types"""
     __slots__ = ()
 
-    def __init__(self, keypath, keydef):
-        del self, keypath, keydef
+    def __init__(self, name: Sequence[str], keydef: Mapping[str, Any]) -> None:
+        del self, name, keydef
 
     @abc.abstractmethod
     def insertcast(self, value: Any) -> Any:
@@ -59,7 +61,7 @@ class Anything(ValueType):
     __slots__ = ()
 
     @staticmethod
-    def insertcast(value):
+    def insertcast(value: Any) -> Any:
         return value
 
 
@@ -67,13 +69,13 @@ class Int(ValueType):
     """An integer number (1, 2, -5, etc.)"""
     __slots__ = ("_Int__min", "_Int__max")
 
-    def __init__(self, keypath, keydef):
+    def __init__(self, name: Sequence[str], keydef: Mapping[str, Any]) -> None:
         # pylint: disable=assigning-non-slot
-        super().__init__(keypath, keydef)
+        super().__init__(name, keydef)
         self.__min = keydef.get("_min", -math.inf)
         self.__max = keydef.get("_max", math.inf)
 
-    def insertcast(self, value):
+    def insertcast(self, value: Any) -> int:
         # pylint: disable=no-member
         if isinstance(value, int):
             if self.__min <= value <= self.__max:
@@ -86,13 +88,13 @@ class Float(ValueType):
     """A floating point number (1.2, -7.9, etc.)"""
     __slots__ = ("_Float__min", "_Float__max")
 
-    def __init__(self, keypath, keydef):
+    def __init__(self, name: Sequence[str], keydef: Mapping[str, Any]) -> None:
         # pylint: disable=assigning-non-slot
-        super().__init__(keypath, keydef)
+        super().__init__(name, keydef)
         self.__min = keydef.get("_min", -math.inf)
         self.__max = keydef.get("_max", math.inf)
 
-    def insertcast(self, value):
+    def insertcast(self, value: Any) -> float:
         # pylint: disable=no-member
         if isinstance(value, (int, float)):
             if self.__min <= value <= self.__max:
@@ -108,7 +110,7 @@ class Bool(ValueType):
     __slots__ = ()
 
     @classmethod
-    def insertcast(cls, value):
+    def insertcast(cls, value: Any) -> bool:
         if isinstance(value, bool):
             return value
         if hasattr(value, "lower"):
@@ -127,7 +129,7 @@ class String(ValueType):
     __slots__ = ()
 
     @staticmethod
-    def insertcast(value):
+    def insertcast(value: Any) -> str:
         if isinstance(value, str):
             return value
         if isinstance(value, (
@@ -146,7 +148,7 @@ class Date(ValueType):
     __slots__ = ()
 
     @staticmethod
-    def insertcast(value):
+    def insertcast(value: Any) -> datetime.date:
         if isinstance(value, datetime.datetime):
             return datetime.date(value.year, value.month, value.day)
         if isinstance(value, datetime.date):
@@ -159,7 +161,7 @@ class Time(ValueType):
     __slots__ = ()
 
     @staticmethod
-    def insertcast(value):
+    def insertcast(value: Any) -> datetime.time:
         if isinstance(value, datetime.time):
             return value
         if isinstance(value, datetime.datetime):
@@ -174,7 +176,7 @@ class DateTime(ValueType):
     __slots__ = ()
 
     @staticmethod
-    def insertcast(value):
+    def insertcast(value: Any) -> datetime.datetime:
         if isinstance(value, datetime.datetime):
             return value
         raise TypeError(f"Expected date and time, got {value!r}")
@@ -184,22 +186,22 @@ class List(ValueType):
     """A list of values"""
     __slots__ = ("_List__membertype",)
 
-    def __init__(self, keypath, keydef):
+    def __init__(self, name: Sequence[str], keydef: Mapping[str, Any]) -> None:
         # pylint: disable=assigning-non-slot
-        super().__init__(keypath, keydef)
+        super().__init__(name, keydef)
         membertype = keydef.get("_membertype", "any")
         if membertype == "list":  # pragma: no cover
             raise ValueError("Cannot define a list of lists")
-        self.__membertype = gettype(membertype)(keypath, keydef)
+        self.__membertype = gettype(membertype)(name, keydef)
 
-    def insertcast(self, value: Any) -> Sequence[Any]:
+    def insertcast(self, value: Any) -> Tuple[Any, ...]:
         # pylint: disable=no-member
         if (not isinstance(value, collections.abc.Iterable)
                 or isinstance(value, str)):
             value = (value,)
         return tuple(self.__membertype.insertcast(v) for v in value)
 
-    def querycast(self, value: Sequence[Any]) -> Sequence[Any]:
+    def querycast(self, value: Sequence[Any]) -> Tuple[Any, ...]:
         # pylint: disable=no-member
         return tuple(self.__membertype.querycast(v) for v in value)
 
@@ -208,16 +210,14 @@ class Enum(ValueType):
     """One of a set of values"""
     __slots__ = ("_Enum__enum",)
 
-    def __init__(self, keypath, keydef):
+    def __init__(self, name: Sequence[str], keydef: Mapping[str, Any]) -> None:
         # pylint: disable=assigning-non-slot, no-member
-        assert len(keypath) >= 2, f"Key path too short: {keypath}"
-        super().__init__(keypath, keydef)
-        modulename = f"{__name__.split('.')[0]}.{keypath[0]}"
+        assert len(name) >= 2, f"Key path too short: {name}"
+        super().__init__(name, keydef)
+        modulename = f"{__name__.split('.')[0]}.{name[0]}"
         module = importlib.import_module(modulename)
         enumname = re.sub(
-            r"(^|_+)[a-z]",
-            lambda match: match.group(0)[-1].upper(),
-            keypath[-1])
+            r"(^|_+)[a-z]", lambda match: match.group(0)[-1].upper(), name[-1])
         try:
             self.__enum = getattr(module, enumname)
         except AttributeError:
@@ -226,7 +226,7 @@ class Enum(ValueType):
                 enumname, vals, module=modulename))
             setattr(module, enumname, self.__enum)
 
-    def insertcast(self, value):
+    def insertcast(self, value: Any) -> enum.Enum:
         # pylint: disable=no-member
         if isinstance(value, self.__enum):
             return value
@@ -261,7 +261,7 @@ class Path(ValueType):
         return value.expanduser()
 
 
-_types = {
+_types: Dict[str, Type[ValueType]] = {
     "any": Anything,
     "int": Int,
     "float": Float,

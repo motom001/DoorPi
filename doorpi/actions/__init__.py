@@ -21,11 +21,15 @@ but the rest of DoorPi still functions as normal.
 For more details of the required methods on action classes, see the
 definition of `Action` below.
 """
+from __future__ import annotations
 
-import importlib
+import abc
+import importlib.util
 import logging
 import pkgutil
-from abc import ABCMeta, abstractmethod
+from typing import (
+    Any, Callable, Dict, Mapping, Optional, Protocol, TypeVar,
+    runtime_checkable)
 
 import doorpi
 
@@ -33,10 +37,12 @@ import doorpi
 LOGGER = logging.getLogger(__name__)
 ACTION_REGISTRY = {}
 
+_T = TypeVar("_T", bound=Callable)
 
-def action(name: str):
+
+def action(name: str) -> Callable[[_T], _T]:
     """Tag a callable as action instantiator"""
-    def register_action(func):
+    def register_action(func: _T) -> _T:
         if ":" in name:
             raise ValueError(f"Invalid action name {name}")
         if name in ACTION_REGISTRY:
@@ -46,7 +52,7 @@ def action(name: str):
     return register_action
 
 
-def from_string(confstr: str):
+def from_string(confstr: str) -> Optional[Action]:
     """Instantiates an action from a configuration string."""
     atype = confstr.split(":")[0]
     if not atype:
@@ -58,11 +64,12 @@ def from_string(confstr: str):
     return ACTION_REGISTRY[atype](*arglist)
 
 
-class Action(metaclass=ABCMeta):
+@runtime_checkable
+class Action(Protocol, metaclass=abc.ABCMeta):
     """Abstract base class that defines an action's interface."""
 
-    @abstractmethod
-    def __init__(self, *args):
+    @abc.abstractmethod
+    def __init__(self, *args: str) -> None:
         """Construct the action with the given arguments.
 
         Arguments are taken from the config file and split at commas.
@@ -77,9 +84,10 @@ class Action(metaclass=ABCMeta):
             def __init__(self, *args):
                 argstring = ",".join(args)
         """
+        super().__init__()
 
-    @abstractmethod
-    def __call__(self, event_id, extra):
+    @abc.abstractmethod
+    def __call__(self, event_id: str, extra: Mapping[str, Any]) -> None:
         """Execute the action.
 
         Arguments:
@@ -90,8 +98,8 @@ class Action(metaclass=ABCMeta):
                    the last time this event was fired.
         """
 
-    @abstractmethod
-    def __str__(self):
+    @abc.abstractmethod
+    def __str__(self) -> str:
         """A human readable representation of this action
 
         str(some_action) should result in a human-readable string that
@@ -100,8 +108,8 @@ class Action(metaclass=ABCMeta):
         """
         return ""
 
-    @abstractmethod
-    def __repr__(self):
+    @abc.abstractmethod
+    def __repr__(self) -> str:
         """Form an action string
 
         repr(some_action) should reassemble the string which originally
@@ -119,8 +127,9 @@ class CallbackAction(Action):
     to wrap functions or (bound) methods, so that they can be executed
     in response to a certain event by the event manager.
     """
-
-    def __init__(self, callback, *args, **kw):
+    def __init__(
+            self, callback: Callable[..., Any], *args: Any, **kw: Any,
+            ) -> None:
         super().__init__()
         if not callable(callback):
             raise ValueError("Callback must be callable")
@@ -128,15 +137,17 @@ class CallbackAction(Action):
         self._args = args
         self._kw = kw
 
-    def __call__(self, event_id, extra):
+    def __call__(self, event_id: str, extra: Mapping[str, Any]) -> None:
+        del event_id, extra
         self._callback(*self._args, **self._kw)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"{self.__class__.__name__} for {self._callback!r}"
 
-    def __repr__(self):
-        return "<internal callback to" \
-               f" {self._callback!r} (args={self._args}, kwargs={self._kw})>"
+    def __repr__(self) -> str:
+        return (
+            "<internal callback to"
+            f" {self._callback!r} (args={self._args}, kwargs={self._kw})>")
 
 
 class CheckAction(CallbackAction):
@@ -146,21 +157,28 @@ class CheckAction(CallbackAction):
     appropriate exception in case an internal error is detected. The
     exception will be logged and DoorPi will shut down.
     """
-
-    def __call__(self, event_id, extra):
+    def __call__(self, event_id: str, extra: Mapping[str, Any]) -> None:
         try:
             super().__call__(event_id, extra)
         except Exception:  # pylint: disable=broad-except
             LOGGER.exception("[%s] *** Internal self check failed", event_id)
             doorpi.INSTANCE.doorpi_shutdown()
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"<internal self-check with {self._callback!r}>"
 
 
-for _, module, _ in pkgutil.iter_modules(__path__, f"{__name__}."):
+module = _ = None
+spec = importlib.util.find_spec(__name__)
+assert spec is not None
+for _, module, _ in pkgutil.iter_modules(
+        spec.submodule_search_locations or [], f"{__name__}."):
     try:
         importlib.import_module(module)
     except Exception as exc:  # pylint: disable=broad-except
-        LOGGER.error("Unable to load actions from %s: %s: %s",
-                     module, exc.__class__.__name__, exc)
+        LOGGER.error(
+            "Unable to load actions from %s: %s: %s",
+            module, exc.__class__.__name__, exc)
+if module is None:
+    raise RuntimeError("Could not load any action modules")
+del module, spec, _

@@ -1,23 +1,32 @@
-from pathlib import Path
 import json
 import logging
+import pathlib
 import sqlite3
+from typing import Any, Mapping, Optional, Tuple, TypedDict
 
 LOGGER = logging.getLogger(__name__)
+
+
+class EventLogEntry(TypedDict):
+    event_id: str
+    fired_by: str
+    event_name: str
+    start_time: float
+    additional_infos: str
 
 
 class EventLog:
     """Record keeper about fired events and executed actions"""
 
-    def __init__(self, db):
+    def __init__(self, db: str) -> None:
         if not sqlite3.threadsafety:
             raise RuntimeError(
                 "Your version of SQLite is not compiled thread-safe!")
 
-        db = Path(db)
-        db.parent.mkdir(parents=True, exist_ok=True)
+        dbpath = pathlib.Path(db)
+        dbpath.parent.mkdir(parents=True, exist_ok=True)
         self._db = sqlite3.connect(
-            database=str(db),
+            database=str(dbpath),
             timeout=1,
             isolation_level=None,
             check_same_thread=False
@@ -45,7 +54,7 @@ class EventLog:
                 INSERT INTO metadata VALUES ('db_version', '1');
                 """)
 
-    def count_event_log_entries(self, filter_=""):
+    def count_event_log_entries(self, filter_: str = "") -> int:
         """Count the event log entries that match ``filter_``
 
         Args:
@@ -63,7 +72,9 @@ class EventLog:
             LOGGER.exception("Error counting event log with filter %r", filter_)
             return -1
 
-    def get_event_log(self, max_count=100, filter_=""):
+    def get_event_log(
+            self, max_count: int = 100, filter_: str = "",
+            ) -> Tuple[EventLogEntry, ...]:
         """Get event records from the event log
 
         Args:
@@ -80,7 +91,6 @@ class EventLog:
             * ``start_time``: The timestamp when the event fired.
             * ``additional_infos``: A JSON object with auxiliary info.
         """
-        return_object = ()
         try:
             cursor = self._db.execute("""
                 SELECT
@@ -97,18 +107,20 @@ class EventLog:
                 ORDER BY start_time ASC
                 LIMIT ?""", (f"%{filter_}%",) * 4 + (max_count,))
 
-            return_object = tuple({
+            return tuple(EventLogEntry({
                 "event_id": row[0],
                 "fired_by": row[1],
                 "event_name": row[2],
                 "start_time": row[3],
                 "additional_infos": row[4]
-            } for row in cursor)
+            }) for row in cursor)
         except sqlite3.Error:
             LOGGER.exception("Error reading event log with filter %r", filter_)
-        return return_object
+            return ()
 
-    def log_event(self, event_id, source, event, start_time, extra):
+    def log_event(
+            self, event_id: str, source: str, event: str, start_time: float,
+            extra: Optional[Mapping[str, Any]]) -> None:
         """Insert an event into the event log
 
         Args:
@@ -118,18 +130,19 @@ class EventLog:
             start_time: The timestamp when the event fired
             extra: A JSON-serializable object with auxiliary info
         """
-        extra = json.dumps(extra, sort_keys=True) if extra else ""
         try:
             with self._db:
                 self._db.execute(
                     "INSERT INTO event_log VALUES (?, ?, ?, ?, ?)",
-                    (event_id, source, event, start_time, extra))
+                    (event_id, source, event, start_time,
+                     json.dumps(extra, sort_keys=True) if extra else ""))
         except sqlite3.Error:
             LOGGER.exception(
                 "[%s] Cannot insert event %s into event log",
                 event_id, event)
 
-    def log_action(self, event_id, action_name, start_time):
+    def log_action(
+            self, event_id: str, action_name: str, start_time: float) -> None:
         """Insert an executed action into the event log
 
         Args:
@@ -147,6 +160,6 @@ class EventLog:
                 "[%s] Cannot insert action %s into event log",
                 event_id, action_name)
 
-    def destroy(self):
+    def destroy(self) -> None:
         """Shut down the event log"""
         self._db.close()

@@ -1,23 +1,24 @@
 """The internal tick action."""
-
 import datetime
+from typing import Any, Mapping
 
 import doorpi
-from . import action, CallbackAction
+from . import Action, CallbackAction, action
 
 
 @action("time_tick")
-class TickAction:
+class TickAction(Action):
     """The internal tick action."""
-
-    def __init__(self, last_tick):
+    def __init__(self, last_tick: str) -> None:
+        super().__init__()
         self.__last_tick = datetime.datetime.fromtimestamp(float(last_tick))
 
         eh = doorpi.INSTANCE.event_handler
         if __name__ in eh.sources:
-            raise RuntimeError("Attempt to instatiate multiple TickActions")
+            raise RuntimeError("Attempt to instantiate multiple TickActions")
         eh.register_source(__name__)
-        eh.register_action("OnShutdown", CallbackAction(self.destroy))
+        eh.register_action("OnShutdown", CallbackAction(
+            eh.unregister_source, __name__, force=True))
 
         for i in ("Second", "Minute", "Hour", "Day", "Week", "Month", "Year"):
             eh.register_event(f"OnTime{i}", __name__)
@@ -28,14 +29,10 @@ class TickAction:
             for j in range(60):
                 eh.register_event(f"OnTime{i}{j:02}", __name__)
 
-        for i in range(24):
-            eh.register_event(f"OnTimeHour{i:02}", __name__)
+        for j in range(24):
+            eh.register_event(f"OnTimeHour{j:02}", __name__)
 
-    @staticmethod
-    def destroy():
-        doorpi.INSTANCE.event_handler.unregister_source(__name__, force=True)
-
-    def __call__(self, event_id, extra):
+    def __call__(self, event_id: str, extra: Mapping[str, Any]) -> None:
         now = datetime.datetime.now()
 
         if now.year != self.__last_tick.year:
@@ -54,18 +51,18 @@ class TickAction:
         self.__last_tick = now
 
     @staticmethod
-    def _fire_event(event, num):
+    def _fire_event(event: str, num: int) -> None:
         eh = doorpi.INSTANCE.event_handler
         eh(f"OnTime{event}", __name__)
         eh(f"OnTime{event}{('Even', 'Odd')[num % 2]}", __name__)
 
     @classmethod
-    def _fire_event_numbered(cls, event, num):
+    def _fire_event_numbered(cls, event: str, num: int) -> None:
         cls._fire_event(event, num)
         doorpi.INSTANCE.event_handler(f"OnTime{event}{num:02}", __name__)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return "Perform regular housekeeping tasks"
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return "<internal tick>"

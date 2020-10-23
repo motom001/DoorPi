@@ -6,7 +6,6 @@ from doorpi.actions import call
 from . import EVENT_ID, EVENT_EXTRA
 from ..mocks import DoorPi, DoorPiTestCase
 
-
 SIPURL = "sip:null@null"
 
 

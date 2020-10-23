@@ -12,7 +12,9 @@ class TestEventLog(DoorPiTestCase):
         el = EventLog("./events.db")
         db = sqlite3.connect("events.db")
         self.assertEqual(
-            "1", db.execute("SELECT value FROM metadata WHERE key = 'db_version'").fetchone()[0])
+            "1",
+            db.execute("SELECT value FROM metadata WHERE key = 'db_version'")
+            .fetchone()[0])
         db.close()
         el.destroy()
 
@@ -85,4 +87,6 @@ class TestEventLog(DoorPiTestCase):
         el.destroy()
         db = sqlite3.connect("events.db")
         cur = db.execute("SELECT * FROM action_log")
-        self.assertEqual((("00TEST", "-", 0.0),), tuple((r[0], r[1], r[2]) for r in cur))
+        self.assertEqual(
+            (("00TEST", "-", 0.0),),
+            tuple((r[0], r[1], r[2]) for r in cur))

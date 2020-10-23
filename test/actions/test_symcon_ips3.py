@@ -7,7 +7,6 @@ from doorpi.actions import symcon_ips3
 from . import EVENT_ID, EVENT_EXTRA
 from ..mocks import DoorPi, DoorPiTestCase
 
-
 stub_config = """\
 [ip_symcon]
 server = "localhost"
@@ -75,4 +74,5 @@ class TestIPSRPCCallFromVariableAction(DoorPiTestCase):
         with patch("requests.post", post):
             ac(EVENT_ID, EVENT_EXTRA)
 
-        instance.sipphone.call.assert_called_once_with("**1")  # value set in fake_post above
+        # value set in fake_post above
+        instance.sipphone.call.assert_called_once_with("**1")

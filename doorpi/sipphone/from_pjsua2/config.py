@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
 import pjsua2 as pj
 
@@ -91,7 +91,8 @@ def endpoint_config() -> pj.EpConfig:
     ep_cfg.logConfig.decor = False
 
     native_logger = ".".join(__name__.split(".")[:-1] + ["native"])
-    logwriter = DoorPiLogWriter(logging.getLogger(native_logger))
+    logwriter = DoorPiLogWriter(
+        cast(doorpi.DoorPiLogger, logging.getLogger(native_logger)))
     ep_cfg.logConfig.writer = logwriter
     # Bind the LogWriter's lifetime to the sipphone object, so that
     # it won't be garbage-collected prematurely.
@@ -254,11 +255,11 @@ def setup_audio_echo_cancellation(adm: pj.AudDevManager) -> None:
 # pylint: disable=too-few-public-methods
 class DoorPiLogWriter(pj.LogWriter):
     """Redirects output from the PJSUA2 native module to a Python logger"""
-    def __init__(self, logger):
+    def __init__(self, logger: doorpi.DoorPiLogger) -> None:
         super().__init__()
         self.__logger = logger
 
-    def write(self, entry):
+    def write(self, entry: pj.LogEntry) -> None:
         if entry.level <= 1:
             self.__logger.error("%s", entry.msg)
         elif entry.level <= 2:

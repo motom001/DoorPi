@@ -61,8 +61,8 @@ and the RDM's RX (header P1 pin 2) to the Pi's UART TXD (pin 8).
 >
 > Similar precaution is not needed for PI_TXD -> RDM_RX.
 """
-
 import logging
+from typing import Any
 
 import doorpi
 
@@ -72,22 +72,21 @@ LOGGER = logging.getLogger(__name__)
 
 
 class RDM6300Keyboard(SeriallyConnectedKeyboard):
-
-    def __init__(self, name):
+    def __init__(self, name: str) -> None:
         super().__init__(name)
         doorpi.INSTANCE.event_handler.register_event(
             "OnTagUnknown", self._event_source)
 
-        self._input_start_flag = "\x02"
-        self._input_stop_flag = "\x03"
+        self._input_start_flag = b"\x02"
+        self._input_stop_flag = b"\x03"
         self._input_max_size = 14
         self._baudrate = 9600
 
-    def output(self, pin, value):
-        # stub
+    def output(self, pin: str, value: Any) -> bool:
+        del value  # stub
         raise ValueError(f"Unknown output pin {self.name}.{pin}")
 
-    def process_buffer(self, buf):
+    def process_buffer(self, buf: bytes) -> None:
         if not buf.startswith(self._input_start_flag):
             LOGGER.error(
                 "%s: Invalid UART data; expected START flag: %r",
@@ -102,24 +101,24 @@ class RDM6300Keyboard(SeriallyConnectedKeyboard):
         tag = int(buf[5:-3], 16)
         LOGGER.info("%s: Found tag %d", self.name, tag)
         if tag in self._inputs:
-            self._fire_event("OnKeyPressed", tag)
+            self._fire_event("OnKeyPressed", str(tag))
         else:
             doorpi.INSTANCE.event_handler(
                 "OnTagUnknown", self._event_source,
-                {**self.additional_info, "tag": tag})
+                extra={**self.additional_info, "tag": tag})
 
 
-def verify_crc(string):
+def verify_crc(string: bytes) -> bool:
     """Verify the embedded checksum in the passed string"""
-    crc = (int(string[11], 16) << 4) + int(string[12], 16)
+    crc = int(string[11:13], base=16)
     return crc == calculate_crc(string)
 
 
-def calculate_crc(string):
+def calculate_crc(string: bytes) -> int:
     """Calculate the checksum of the passed string"""
     crc = 0
     for i in range(1, 10, 2):
-        crc ^= ((int(string[i], 16)) << 4) + int(string[i + 1], 16)
+        crc ^= int(string[i : i+2], base=16)
     return crc
 
 

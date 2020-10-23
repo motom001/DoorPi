@@ -1,7 +1,7 @@
 """Abstract base class that helps implementing a keyboard module."""
-
 import datetime
 import logging
+from typing import Any, Dict, Iterable, List, Optional
 
 import doorpi
 from doorpi import keyboard
@@ -14,34 +14,27 @@ LOGGER = logging.getLogger(__name__)
 
 class AbstractKeyboard():
     """Common functionality and helpers for keyboard modules"""
+    name: str; "The configured name of this keyboard"
+    last_key: Optional[str]; "The last triggered input"
+    last_key_time: datetime.datetime; "The time when last_key was triggered"
+    config: doorpi.config.ConfigView; "View on this keyboard's configuration"
+
+    _bouncetime: datetime.timedelta; "The configured ``bouncetime``"
+    _event_source: str; """The "event source" name of this keyboard"""
+    _high_polarity: bool; "Configured keyboard polarity (True = HIGH)"
+    _inputs: List[str]; "All configured input pin names"
+    _outputs: Dict[str, bool]; "Configured output pins and their current states"
+    _pressed_on_key_down: bool
+    """Fire OnKeyPressed together with OnKeyDown (otherwise OnKeyUp)"""
 
     def __init__(
-            self, name,
-            *, events=("OnKeyPressed", "OnKeyUp", "OnKeyDown")):
+            self, name: str, *,
+            events: Iterable[str] = ("OnKeyPressed", "OnKeyUp", "OnKeyDown")):
         """Common initialization
 
         This should be called before keyboard-specific initialization
-        is done in subclass __init__. It will set the following class
-        members:
-
-        * self.name = The name passed in
-        * self.last_key = None; will hold the last triggered input
-        * self.last_key_time = now; will hold the datetime when the
-                               ``last_key`` was pressed
-        * self.config = A ``ConfigView`` for the keyboard specific
-                        configuration.
-        * self._bouncetime = "bouncetime" in config
-        * self._event_source = The "event source" name that is used to
-                               associate events with this keyboard.
-        * self._high_polarity = A boolean describing the configured
-                                keyboard polarity (HIGH = True).
-        * self._inputs = A list with all configured inputs
-        * self._outputs = A dict with all configured outputs mapping to
-                          their current states.
-        * self._pressed_on_key_down = True if OnKeyPressed should be
-              fired together with OnKeyDown, False for OnKeyUp. This is
-              handled automatically by the helper functions
-              `_fire_OnKeyDown` and `_fire_OnKeyUp`.
+        is done in subclass __init__. It will handle initialization of
+        the attributes documented for this base class.
 
         Subclasses should also bring all pins to a known state at the
         end of their __init__. They need not go through `self.output()`
@@ -50,13 +43,14 @@ class AbstractKeyboard():
         of `self._high_polarity`, so take care to `_normalize(False)`
         before actually passing it to the pin.
 
-        Arguments:
-        * `name`: The keyboard's name as passed in from the handler.
-        * `events`: A tuple of event names that will be registered for
-                    each configured input, in three forms:
-                    1) the unmangled event name
-                    2) EventName_InputName
-                    3) EventName_KeyboardName.InputName
+        Args:
+            name: The keyboard's name as passed in from the handler.
+            events: A tuple of event names that will be registered for
+                each configured input, in three forms:
+
+                1.  The unmangled event name
+                2.  EventName_InputName
+                3.  EventName_KeyboardName.InputName
         """
         # pylint: disable=no-member  # Only available at runtime
 
@@ -69,14 +63,15 @@ class AbstractKeyboard():
         LOGGER.debug("Creating %s", self)
 
         self.config = doorpi.INSTANCE.config.view(("keyboard", name))
-        self._bouncetime = self.config["bouncetime"]
+        self._bouncetime = datetime.timedelta(
+            seconds=self.config["bouncetime"])
         self._event_source = f"keyboard.{self.__class__.__name__}.{name}"
         self._inputs = list(self.config.view("input"))
         self._outputs = dict.fromkeys(self.config.view("output"), False)
         self._pressed_on_key_down = self.config["pressed_on_key_down"]
 
         polarity = self.config["polarity"]
-        self._high_polarity = polarity == keyboard.Polarity.HIGH
+        self._high_polarity = polarity == keyboard.Polarity.HIGH  # type: ignore
 
         eh = doorpi.INSTANCE.event_handler
         eh.register_source(self._event_source)
@@ -89,22 +84,22 @@ class AbstractKeyboard():
 
         eh.register_action("OnShutdown", CallbackAction(self.destroy))
 
-    def destroy(self):
+    def destroy(self) -> None:
         self._deactivate()
         doorpi.INSTANCE.event_handler.unregister_source(
             self._event_source, force=True)
 
-    def __str__(self):  # pragma: no cover
+    def __str__(self) -> str:  # pragma: no cover
         return f"{self.name} keyboard ({self.type})"
 
-    def _deactivate(self):
+    def _deactivate(self) -> None:
         """Deactivate the keyboard in preparation for shutdown
 
         This will be called right before actually deleting the
         keyboard, and can be used e.g. to deactivate worker threads.
         """
 
-    def input(self, pin):
+    def input(self, pin: str) -> bool:
         """Read an input pin
 
         This function returns the current value of the given input pin
@@ -114,7 +109,7 @@ class AbstractKeyboard():
             raise ValueError(f"Unknown input pin {self.name}.{pin}")
         return False
 
-    def output(self, pin, value):
+    def output(self, pin: str, value: Any) -> bool:
         """Set output pin ``pin`` to ``value``
 
         This function sets the given output pin to the given value. A
@@ -137,7 +132,7 @@ class AbstractKeyboard():
             raise ValueError(f"Unknown output pin {self.name}.{pin}")
         return False
 
-    def self_check(self):
+    def self_check(self) -> None:
         """Check the correct functioning of this keyboard
 
         This function will be periodically called to verify the keyboard
@@ -149,22 +144,22 @@ class AbstractKeyboard():
     # -----------------------------------------------------------------
 
     @property
-    def type(self):  # pragma: no cover
+    def type(self) -> str:  # pragma: no cover
         """A human-readable keyboard type description"""
         return type(self).__name__
 
     @property
-    def inputs(self):  # pragma: no cover
+    def inputs(self) -> List[str]:  # pragma: no cover
         """The list of input pins that this keyboard uses"""
         return list(self._inputs)
 
     @property
-    def outputs(self):  # pragma: no cover
+    def outputs(self) -> Dict[str, bool]:  # pragma: no cover
         """Maps this keyboard's output pins to their current states"""
         return dict(self._outputs)
 
     @property
-    def additional_info(self):  # pragma: no cover
+    def additional_info(self) -> Dict[str, Optional[str]]:  # pragma: no cover
         """A dict with information about this keyboard
 
         The dict available here provides the following information:
@@ -182,11 +177,11 @@ class AbstractKeyboard():
         }
 
     @property
-    def pressed_keys(self):  # pragma: no cover
+    def pressed_keys(self) -> List[str]:  # pragma: no cover
         """A list of currently pressed input pins"""
         return [p for p in self._inputs if self.input(p)]
 
-    def _normalize(self, value):
+    def _normalize(self, value: Any) -> bool:
         """Normalize the passed value to a bool
 
         This function normalizes an arbitrary value to a bool. If the
@@ -202,7 +197,7 @@ class AbstractKeyboard():
             value = not value
         return value
 
-    def _fire_event(self, event_name, pin):
+    def _fire_event(self, event_name: str, pin: str) -> None:
         eh = doorpi.INSTANCE.event_handler
         doorpi.INSTANCE.keyboard.last_key = self.last_key = f"{self.name}.{pin}"
 
@@ -212,12 +207,12 @@ class AbstractKeyboard():
         eh.fire_event(
             f"{event_name}_{self.name}.{pin}", self._event_source, extra=extra)
 
-    def _fire_keyup(self, pin):
+    def _fire_keyup(self, pin: str) -> None:
         self._fire_event("OnKeyUp", pin)
         if not self._pressed_on_key_down:
             self._fire_event("OnKeyPressed", pin)
 
-    def _fire_keydown(self, pin):
+    def _fire_keydown(self, pin: str) -> None:
         self._fire_event("OnKeyDown", pin)
         if self._pressed_on_key_down:
             self._fire_event("OnKeyPressed", pin)

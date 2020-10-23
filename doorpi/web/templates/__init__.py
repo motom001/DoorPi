@@ -11,7 +11,9 @@ _T = TypeVar("_T")
 
 class DoorPiWebTemplateLoader(jinja2.BaseLoader):
     """The Jinja2 template loader for DoorPiWeb"""
-    def get_source(self, environment, template):
+    def get_source(
+            self, environment: jinja2.Environment, template: str,
+            ) -> Tuple[str, Optional[str], Callable[[], bool]]:
         try:
             _, resource = _get_resource(
                 template, resources.read_text)

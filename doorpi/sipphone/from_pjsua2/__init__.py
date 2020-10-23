@@ -1,6 +1,6 @@
 """The PJSUA2 SIP phone module for DoorPi."""
-
 import logging
+from typing import Optional
 
 import doorpi
 
@@ -8,7 +8,10 @@ EVENT_SOURCE = "sipphone.pjsua"
 LOGGER = logging.getLogger(__name__)
 
 
-def fire_event(event_name, async_only=False, *, remote_uri=None):
+def fire_event(
+        event_name: str, async_only: bool = False, *,
+        remote_uri: Optional[str] = None,
+        ) -> None:
     """Helper function to ease firing events.
 
     Normally all DoorPi events are fired asynchronously, however this
@@ -27,6 +30,6 @@ def fire_event(event_name, async_only=False, *, remote_uri=None):
         eh.fire_event_sync(f"{event_name}_S", EVENT_SOURCE, extra=extra)
 
 
-def instantiate(*args, **kw):
-    from .glue import Pjsua2  # pylint: disable=import-outside-toplevel
-    return Pjsua2(*args, **kw)
+from . import glue  # pylint: disable=wrong-import-position
+
+instantiate = glue.Pjsua2  # pylint: disable=invalid-name

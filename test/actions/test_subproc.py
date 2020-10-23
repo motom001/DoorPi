@@ -5,7 +5,6 @@ from doorpi.actions import subproc
 from . import EVENT_ID, EVENT_EXTRA
 from ..mocks import DoorPi, DoorPiTestCase
 
-
 # A command that is successful (i.e. returns 0)
 TEST_CMD_SUCCESS = "/bin/true"
 # A command that fails (i.e. returns non-zero)
@@ -24,7 +23,9 @@ class TestOSExecuteAction(DoorPiTestCase):
 
         self.assertEqual(len(cm.records), 2)
         self.assertEqual(cm.records[0].args, (EVENT_ID, cmd))
-        self.assertEqual(cm.records[1].args, (EVENT_ID, result) if result != 0 else (EVENT_ID,))
+        self.assertEqual(
+            cm.records[1].args,
+            (EVENT_ID, result) if result != 0 else (EVENT_ID,))
 
     def test_successful(self):
         self._do_test(TEST_CMD_SUCCESS, 0)

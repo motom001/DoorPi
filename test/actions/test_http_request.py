@@ -13,20 +13,20 @@ class Namespace:
 
 class TestHTTPRequestAction(DoorPiTestCase):
 
-    def test_file_scheme(self):
-        with self.assertRaises(ValueError, msg="file:// scheme must be invalid"):
+    def test_file_scheme_is_invalid(self):
+        with self.assertRaises(ValueError):
             http_request.HTTPRequestAction("file://localhost/tmp/test.txt")
 
-    def test_ftp_scheme(self):
-        with self.assertRaises(ValueError, msg="ftp:// scheme must be invalid"):
+    def test_ftp_scheme_is_invalid(self):
+        with self.assertRaises(ValueError):
             http_request.HTTPRequestAction("ftp://www.doorpi.org")
 
-    def test_empty_domain(self):
-        with self.assertRaises(ValueError, msg="Empty domain name must be invalid"):
+    def test_empty_domain_is_invalid(self):
+        with self.assertRaises(ValueError):
             http_request.HTTPRequestAction("http:///test.html")
 
-    def test_empty_scheme(self):
-        with self.assertRaises(ValueError, msg="Empty scheme must be invalid"):
+    def test_empty_scheme_is_invalid(self):
+        with self.assertRaises(ValueError):
             http_request.HTTPRequestAction("://www.doorpi.org")
 
     @patch("requests.get")

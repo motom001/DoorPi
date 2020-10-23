@@ -1,24 +1,25 @@
 """This module contains the "glue class", which binds PJSUA2 to DoorPi."""
 import logging
 import threading
+from typing import Any, List, Optional
+
 import pjsua2 as pj
 
 import doorpi
 from doorpi.actions import CallbackAction
 from doorpi.sipphone.abc import AbstractSIPPhone
 
-from . import EVENT_SOURCE, fire_event, config
-from .worker import Worker
+from . import EVENT_SOURCE, fire_event, config, fileio, worker
 
 LOGGER: doorpi.DoorPiLogger = logging.getLogger(__name__)  # type: ignore
 
 
 class Pjsua2(AbstractSIPPhone):
     """Implements the SIP phone module interface for DoorPi."""
-    def get_name(self):
+    def get_name(self) -> str:
         return "pjsua2"
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
 
         eh = doorpi.INSTANCE.event_handler
@@ -45,18 +46,22 @@ class Pjsua2(AbstractSIPPhone):
         for dtmf in doorpi.INSTANCE.config.view("sipphone.dtmf"):
             eh.register_event(f"OnDTMF_{dtmf}", EVENT_SOURCE)
 
-        self._waiting_calls = []  # outgoing calls that are not yet connected
-        self._ringing_calls = []  # outgoing calls that are currently ringing
+        # outgoing calls that are not yet connected
+        self._waiting_calls: List[str] = []
+        # outgoing calls that are currently ringing
+        self._ringing_calls: List[pj.Call] = []
         self._call_lock = threading.Lock()
-        self._logwriter = None
-        self.current_call = None
-        self.dialtone = None
+        self._logwriter: Optional[Any] = None
+        self.current_call: Optional[pj.Call] = None
+        self.dialtone: Optional[fileio.DialTonePlayer] = None
+        self.recorder: Optional[fileio.CallRecorder] = None
 
-        self._worker = None
+        self._worker: Optional[worker.Worker] = None
         fire_event("OnSIPPhoneCreate", async_only=True)
         eh.register_action("OnShutdown", CallbackAction(self.stop))
 
-    def stop(self):
+    def stop(self) -> None:
+        assert self._worker is not None
         LOGGER.debug("Destroying PJSUA2 SIP phone")
 
         with self._call_lock:
@@ -67,14 +72,13 @@ class Pjsua2(AbstractSIPPhone):
         doorpi.INSTANCE.event_handler.unregister_source(
             EVENT_SOURCE, force=True)
 
-    def start(self):
+    def start(self) -> None:
         LOGGER.info("Starting PJSUA2 SIP phone")
         LOGGER.trace("Creating worker")
-        self._worker = Worker(self)
-        self._worker.setup()
+        self._worker = worker.Worker(self)
         LOGGER.info("Start successful")
 
-    def call(self, uri):
+    def call(self, uri: str) -> bool:
         try:
             canonical_uri = self.canonicalize_uri(uri)
         except ValueError:
@@ -108,6 +112,7 @@ class Pjsua2(AbstractSIPPhone):
 
     def hangup(self) -> None:
         LOGGER.trace("Hanging up all calls")
+        assert self._worker is not None
         with self._call_lock:
             self._worker.hangup = True
 

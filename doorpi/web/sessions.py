@@ -2,35 +2,47 @@
 import itertools
 import logging
 import time
+from typing import AbstractSet, Dict, Optional, TypedDict
 
 import doorpi
 
 LOGGER = logging.getLogger(__name__)
 
 
+class DoorPiWebSession(TypedDict):
+    username: str
+    remote_client: str
+    session_starttime: float
+    readpermissions: AbstractSet[str]
+    writepermissions: AbstractSet[str]
+    groups: AbstractSet[str]
+
+
 class SessionHandler:
     """The DoorPiWeb session handler"""
-    def __init__(self):
+    def __init__(self) -> None:
         doorpi.INSTANCE.event_handler.register_event(
             "WebServerCreateNewSession", __name__)
         doorpi.INSTANCE.event_handler.register_event(
             "WebServerAuthUnknownUser", __name__)
         doorpi.INSTANCE.event_handler.register_event(
             "WebServerAuthWrongPassword", __name__)
-        self.sessions = {}
+        self.sessions: Dict[str, DoorPiWebSession] = {}
 
     @staticmethod
-    def destroy():
+    def destroy() -> None:
         """Destroy the session handler"""
         doorpi.INSTANCE.event_handler.unregister_source(__name__, force=True)
 
-    def get_session(self, session_id):
+    def get_session(self, session_id: str) -> Optional[DoorPiWebSession]:
         """Return the session identified by ``session_id``"""
         return self.sessions.get(session_id)
 
     __call__ = get_session
 
-    def build_security_object(self, username, password, remote_client=""):
+    def build_security_object(
+            self, username: str, password: str, remote_client: str = "",
+            ) -> Optional[DoorPiWebSession]:
         """Authenticate and authorize a user"""
         conf = doorpi.INSTANCE.config.view("web")
 
@@ -52,14 +64,14 @@ class SessionHandler:
                 })
             return None
 
-        web_session = dict(
-            username=username,
-            remote_client=remote_client,
-            session_starttime=time.time(),
-            readpermissions=[],
-            writepermissions=[],
-            groups=[]
-        )
+        web_session = DoorPiWebSession({
+            "username": username,
+            "remote_client": remote_client,
+            "session_starttime": time.time(),
+            "readpermissions": frozenset(),
+            "writepermissions": frozenset(),
+            "groups": frozenset(),
+        })
 
         web_session["groups"] = {
             group for group, users in conf.view("groups").items()
@@ -72,16 +84,16 @@ class SessionHandler:
             if web_session["groups"] & set(groups)}
 
         web_session["writepermissions"] = frozenset(
-            itertools.chain.from_iterable(
-                conf["areas", area] for area in write_areas))
+            map(str, itertools.chain.from_iterable(
+                conf["areas", area] for area in write_areas)))
         web_session["readpermissions"] = frozenset(
-            itertools.chain.from_iterable(
-                conf["areas", area] for area in read_areas)
+            map(str, itertools.chain.from_iterable(
+                conf["areas", area] for area in read_areas))
         ) | web_session["writepermissions"]
 
-        doorpi.INSTANCE.event_handler("WebServerCreateNewSession", __name__, {
-            "session": web_session
-        })
+        doorpi.INSTANCE.event_handler(
+            "WebServerCreateNewSession", __name__,
+            extra={"session": web_session})
 
         self.sessions[web_session['username']] = web_session
         return web_session

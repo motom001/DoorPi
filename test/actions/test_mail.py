@@ -8,7 +8,6 @@ from doorpi.actions import mail, snapshot
 from . import EVENT_ID, EVENT_EXTRA
 from ..mocks import DoorPi, DoorPiTestCase
 
-
 stub_config = """\
 [snapshots]
 directory = "snaps"
@@ -43,8 +42,10 @@ class TestMailAction(DoorPiTestCase):
     @patch("doorpi.INSTANCE", new_callable=DoorPi)
     def test_send_plain(self, instance, smtp):
         instance.config.load(io.StringIO(stub_config))
-        smtp.return_value.__enter__.return_value.send_message.return_value = (200, b"OK")
-        ac = mail.MailAction("test@localhost", "Test subject", "Test body", "false")
+        smtp.return_value.__enter__.return_value.send_message.return_value = (
+            200, b"OK")
+        ac = mail.MailAction(
+            "test@localhost", "Test subject", "Test body", "false")
 
         with self.assertLogs("doorpi.actions.mail", "INFO"):
             ac(EVENT_ID, EVENT_EXTRA)
@@ -63,11 +64,13 @@ class TestMailAction(DoorPiTestCase):
     @patch("doorpi.INSTANCE", new_callable=DoorPi)
     def test_send_snapshot(self, instance, smtp):
         instance.config.load(io.StringIO(stub_config))
-        smtp.return_value.__enter__.return_value.send_message.return_value = (200, b"OK")
+        smtp.return_value.__enter__.return_value.send_message.return_value = (
+            200, b"OK")
         snapshot_file = snapshot.SnapshotAction.get_next_path()
         snapshot_file.touch()
 
-        ac = mail.MailAction("test@localhost", "Test subject", "Test body", "true")
+        ac = mail.MailAction(
+            "test@localhost", "Test subject", "Test body", "true")
         with self.assertLogs("doorpi.actions.mail", "INFO"):
             ac(EVENT_ID, EVENT_EXTRA)
 

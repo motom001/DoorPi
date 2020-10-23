@@ -3,26 +3,30 @@
 import email.message
 import logging
 import smtplib
+from typing import Any, Mapping, Optional
 
 import doorpi
 from doorpi import metadata
 from doorpi.actions import snapshot
-from . import action
+from . import Action, action
 
 LOGGER = logging.getLogger(__name__)
 
 
 @action("mail")
 @action("mailto")
-class MailAction:
+class MailAction(Action):
     """Send an email"""
     def __init__(
-            self, to, subject="Doorbell",
-            text="Someone rang the door!", attach_snapshot="false"):
-        self.__to = str(to)
-        self.__subject = str(subject)
+            self, to: str, subject: str = "Doorbell",
+            text: str = "Someone rang the door!",
+            attach_snapshot: str = "false"
+            ) -> None:
+        super().__init__()
+        self.__to = to
+        self.__subject = subject
         self.__snap = (
-            str(attach_snapshot).lower().strip() in {"true", "yes", "on", "1"})
+            attach_snapshot.lower().strip() in {"true", "yes", "on", "1"})
 
         cfg = doorpi.INSTANCE.config.view("mail")
         self.__host = cfg["server"]
@@ -45,7 +49,7 @@ class MailAction:
 
         if text.startswith("/"):
             # Read actual text from file
-            self.__textfile = text
+            self.__textfile: Optional[str] = text
             with open(text, "rt") as textfile:
                 self.__text = textfile.read()
         else:
@@ -66,7 +70,7 @@ class MailAction:
                 else smtplib.SMTP(self.__host, self.__port) as smtp:
             self._start_session(smtp)
 
-    def __call__(self, event_id, extra):
+    def __call__(self, event_id: str, extra: Mapping[str, Any]) -> None:
         msg = email.message.EmailMessage()
         msg["From"] = self.__from or '"{}" <{}@{}>'.format(
             metadata.distribution.metadata["Name"], self.__user, self.__host)
@@ -91,30 +95,32 @@ class MailAction:
                 LOGGER.exception(
                     "[%s] Cannot attach snapshot to email", event_id)
 
-        with smtplib.SMTP_SSL(self.__host, self.__port) if self.__ssl \
-                else smtplib.SMTP(self.__host, self.__port) as smtp:
-            self._start_session(smtp)
-            retval = smtp.send_message(msg)
-
-        if retval[0] >= 400:
-            LOGGER.error(
-                "[%s] Failed sending email to %s: %d %s",
-                event_id, self.__to, retval[0], retval[1].decode("utf-8"))
+        session: smtplib.SMTP
+        if self.__ssl:
+            session = smtplib.SMTP_SSL(self.__host, self.__port)
         else:
-            LOGGER.info(
-                "[%s] Sent email to %s: %d %s",
-                event_id, self.__to, retval[0], retval[1].decode("utf-8"))
+            session = smtplib.SMTP(self.__host, self.__port)
+        try:
+            with session as smtp:
+                self._start_session(smtp)
+                smtp.send_message(msg)
+        except smtplib.SMTPException as err:
+            LOGGER.error(
+                "[%s] Failed sending email to %s: %s: %s",
+                event_id, self.__to, type(err).__name__, err)
+        else:
+            LOGGER.info("[%s] Sent email to %s", event_id, self.__to)
 
-    def _start_session(self, smtp):
+    def _start_session(self, smtp: smtplib.SMTP) -> None:
         if self.__starttls:
             smtp.starttls()
         if self.__user:
             smtp.login(self.__user, self.__pass)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"Send a mail to {self.__to}"
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (
             f"mailto:{self.__to},{self.__subject},"
             f"{self.__textfile or self.__text},{self.__snap}")

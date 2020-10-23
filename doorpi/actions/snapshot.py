@@ -4,19 +4,19 @@
 import datetime
 import logging
 import pathlib
+from typing import Any, Mapping, List
 
 import doorpi
-from . import action
+from . import Action, action
 
 LOGGER = logging.getLogger(__name__)
 DOORPI_SECTION = "DoorPi"
 
 
-class SnapshotAction:
+class SnapshotAction(Action):
     """Base class for snapshotting actions."""
-
     @classmethod
-    def cleanup(cls):
+    def cleanup(cls) -> None:
         """Cleans out the snapshot directory
 
         The oldest snapshots are deleted until the directory only
@@ -35,7 +35,7 @@ class SnapshotAction:
                 LOGGER.exception("Could not clean up snapshot %s", fi.name)
 
     @staticmethod
-    def get_base_path():
+    def get_base_path() -> pathlib.Path:
         """Fetches the snapshot directory path from the configuration."""
 
         path = doorpi.INSTANCE.config["snapshots.directory"]
@@ -46,7 +46,7 @@ class SnapshotAction:
         return path
 
     @classmethod
-    def get_next_path(cls):
+    def get_next_path(cls) -> pathlib.Path:
         """Computes the next snapshot's path."""
 
         path = (
@@ -55,7 +55,7 @@ class SnapshotAction:
         return path
 
     @classmethod
-    def list_all(cls):
+    def list_all(cls) -> List[pathlib.Path]:
         """Lists all snapshot files in the snapshot directory."""
         return sorted(f for f in cls.get_base_path().iterdir() if f.is_file())
 
@@ -64,11 +64,11 @@ class SnapshotAction:
 class URLSnapshotAction(SnapshotAction):
     """Fetches a URL and saves it as snapshot."""
 
-    def __init__(self, url):
+    def __init__(self, url: str) -> None:
         super().__init__()
         self.__url = url
 
-    def __call__(self, event_id, extra):
+    def __call__(self, event_id: str, extra: Mapping[str, Any]) -> None:
         import requests
 
         response = requests.get(self.__url, stream=True)
@@ -78,10 +78,10 @@ class URLSnapshotAction(SnapshotAction):
 
         self.cleanup()
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"Save the image from {self.__url} as snapshot"
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"snap_url:{self.__url}"
 
 
@@ -89,12 +89,12 @@ class URLSnapshotAction(SnapshotAction):
 class PicamSnapshotAction(SnapshotAction):
     """Takes a snapshot from the Pi Camera."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
         # Make sure picamera is importable
         import picamera  # pylint: disable=import-error, unused-import
 
-    def __call__(self, event_id, extra):
+    def __call__(self, event_id: str, extra: Mapping[str, Any]) -> None:
         import picamera  # pylint: disable=import-error
 
         with picamera.PiCamera() as cam:
@@ -103,8 +103,8 @@ class PicamSnapshotAction(SnapshotAction):
 
         self.cleanup()
 
-    def __str__(self):
+    def __str__(self) -> str:
         return "Take a snapshot from the Pi Camera"
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return "snap_picam:"

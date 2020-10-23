@@ -51,9 +51,9 @@ Events will only be triggered if the logical pin state changes. If a
 "high" value is written to a file that contains a different "high"
 value, no event will be triggered. The same applies for "low" values.
 """
-
 import logging
-from pathlib import Path
+import pathlib
+from typing import Any, Literal, Optional
 
 import watchdog.events
 import watchdog.observers
@@ -67,7 +67,7 @@ LOGGER = logging.getLogger(__name__)
 class FilesystemKeyboard(
         AbstractKeyboard, watchdog.events.FileSystemEventHandler):
 
-    def __init__(self, name):
+    def __init__(self, name: str) -> None:
         super().__init__(name)
 
         self.__reset_input = self.config["reset_input"]
@@ -97,7 +97,7 @@ class FilesystemKeyboard(
         self.__observer.schedule(self, str(self.__base_path_input))
         self.__observer.start()
 
-    def destroy(self):
+    def destroy(self) -> None:
         # pylint: disable=broad-except
         self._deactivate()
         doorpi.INSTANCE.event_handler.unregister_source(
@@ -131,12 +131,12 @@ class FilesystemKeyboard(
                     self.name, pindir, ex)
         super().destroy()
 
-    def _deactivate(self):
+    def _deactivate(self) -> None:
         self.__observer.stop()
         self.__observer.join()
         super()._deactivate()
 
-    def input(self, pin):
+    def input(self, pin: str) -> bool:
         super().input(pin)
         val = self.__read_file(self.__base_path_input / pin)
         if val is None:
@@ -149,7 +149,7 @@ class FilesystemKeyboard(
             self.__input_states[pin] = val
         return val
 
-    def output(self, pin, value):
+    def output(self, pin: str, value: Any) -> bool:
         super().output(pin, value)
         LOGGER.debug("%s: Setting pin %s to %s", self.name, pin, value)
         if self.__write_file(self.__base_path_output / pin, value):
@@ -157,7 +157,7 @@ class FilesystemKeyboard(
             return True
         return False
 
-    def __read_file(self, pin):
+    def __read_file(self, pin: pathlib.Path) -> Optional[bool]:
         try:
             val = pin.read_text()
         except OSError as err:
@@ -165,12 +165,13 @@ class FilesystemKeyboard(
                 "%s: Cannot read from pin %s: %s: %s",
                 self.name, pin, type(err).__name__, err)
             return None
-        val = val.strip().split()
-        if not val or not val[0]:
+        valwords = val.strip().split()
+        if not valwords or not valwords[0]:
             return None
-        return self._normalize(val[0])
+        return self._normalize(valwords[0])
 
-    def __write_file(self, pin, value=False):
+    def __write_file(
+            self, pin: pathlib.Path, value: Any = False) -> Literal[True]:
         value = self._normalize(value)
         try:
             pin.write_text("1\n" if value else "0\n")
@@ -180,12 +181,12 @@ class FilesystemKeyboard(
                 self.name, pin, type(err).__name__, err)
         return True
 
-    def on_modified(self, event):
+    def on_modified(self, event: watchdog.events.FileSystemEvent) -> None:
         "Called by the watchdog library when an inotify event was triggered"
         if not isinstance(event, watchdog.events.FileModifiedEvent):
             return
 
-        pin = Path(event.src_path)
+        pin = pathlib.Path(event.src_path)
         if pin.name not in self._inputs or pin.parent != self.__base_path_input:
             LOGGER.warning(
                 "%s: Received unsolicited FileModifiedEvent for %s",
@@ -207,7 +208,7 @@ class FilesystemKeyboard(
                 self.name, pin, val)
             return
 
-        self.__input_states[pin] = val
+        self.__input_states[pin.name] = val
         if val:
             LOGGER.info(
                 "%s: Pin %s flanked to logical TRUE, firing OnKeyDown",

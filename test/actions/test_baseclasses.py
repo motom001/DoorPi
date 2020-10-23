@@ -27,7 +27,8 @@ class TestActionInstantiation(DoorPiTestCase):
         registry.__contains__.return_value = True
         doorpi.actions.from_string("log:foo,bar,baz")
         registry.__getitem__.assert_called_once_with("log")
-        registry.__getitem__.return_value.assert_called_once_with("foo", "bar", "baz")
+        registry.__getitem__.return_value.assert_called_once_with(
+            "foo", "bar", "baz")
 
     def test_emptystring(self):
         ac = doorpi.actions.from_string("")
@@ -41,7 +42,8 @@ class TestCallbackAction(DoorPiTestCase):
         ac = doorpi.actions.CallbackAction(
             mock, "some arg", kw="some keyword arg", args=["foo", "bar"])
         ac(EVENT_ID, EVENT_EXTRA)
-        mock.assert_called_once_with("some arg", kw="some keyword arg", args=["foo", "bar"])
+        mock.assert_called_once_with(
+            "some arg", kw="some keyword arg", args=["foo", "bar"])
 
     def test_callback_uncallable(self):
         with self.assertRaises(ValueError):

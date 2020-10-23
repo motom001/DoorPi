@@ -1,22 +1,20 @@
 """Abstract base class that helps implementing a SIP phone module."""
 import abc
-from typing import Protocol
 
 
-class AbstractSIPPhone(Protocol, metaclass=abc.ABCMeta):  # pragma: no cover
+class AbstractSIPPhone(metaclass=abc.ABCMeta):  # pragma: no cover
     """Base class for all SIP phone modules
 
     This class defines and documents all public methods that a SIP
     phone module implementation should expose.
     """
-
     @abc.abstractmethod
     def get_name(self) -> str:
         """Returns the name of this SIP phone module."""
         return "SIP phone"
 
     @abc.abstractmethod
-    def __init__(self):
+    def __init__(self) -> None:
         """Initializes the phone module.
 
         During __init__, the phone module should perform at least these
@@ -41,7 +39,7 @@ class AbstractSIPPhone(Protocol, metaclass=abc.ABCMeta):  # pragma: no cover
         """
 
     @abc.abstractmethod
-    def stop(self):
+    def stop(self) -> None:
         """Deinitializes the phone module and releases all resources."""
 
     @abc.abstractmethod

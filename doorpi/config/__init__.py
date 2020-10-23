@@ -157,5 +157,4 @@ The following types cannot be inferred and must be explicitly given:
         empty are automatically cleaned up as well.  If the configured
         path points to a directory, it will be removed recursively.
 """
-
-from .configuration import Configuration
+from .configuration import Configuration, ConfigView

@@ -46,11 +46,14 @@ The following events are defined for keyboard modules:
   tag that was not registered was detected. The tag's ID is supplied in
   the event's extra information as `tag`.
 """
-from . import handler
+from __future__ import annotations
+
+import doorpi
 
 HIGH_LEVEL = frozenset({"1", "high", "on", "true"})
 
 
-def load() -> handler.KeyboardHandler:
+def load() -> doorpi.keyboard.handler.KeyboardHandler:
     """Loads the keyboard handler."""
+    from . import handler  # pylint: disable=import-outside-toplevel
     return handler.KeyboardHandler()

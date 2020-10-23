@@ -5,7 +5,6 @@ from doorpi.actions import log
 from . import EVENT_ID, EVENT_EXTRA
 from ..mocks import DoorPi, DoorPiTestCase
 
-
 LOGMSG = "Test log message"
 
 

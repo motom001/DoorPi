@@ -38,7 +38,8 @@ class TestURLSnapshotAction(SnapshotTestCase):
         with self.assertLogs("doorpi.actions.snapshot", "INFO"):
             snapshot.SnapshotAction.cleanup()
 
-        expected_files = [f"1970-01-01 00:{i:02d}:00.jpg" for i in range(50, 60)]
+        expected_files = [
+            f"1970-01-01 00:{i:02d}:00.jpg" for i in range(50, 60)]
         actual_files = sorted(f.name for f in self.snap_path.iterdir())
         self.assertEqual(actual_files, expected_files)
 
@@ -46,12 +47,14 @@ class TestURLSnapshotAction(SnapshotTestCase):
 class TestPicamSnapshotAction(SnapshotTestCase):
 
     def setUp(self):
+        # pylint: disable=import-outside-toplevel, unused-import
         try:
-            import picamera  # pylint: disable=import-outside-toplevel
+            import picamera
         except ImportError as err:
             if err.name == "picamera":
                 self.skipTest("picamera module not available")
-            else: raise
+            else:
+                raise
         super().setUp()
 
     @patch("picamera.PiCamera")

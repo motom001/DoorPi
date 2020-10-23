@@ -7,7 +7,6 @@ from doorpi.actions import statusfile
 from . import EVENT_ID, EVENT_EXTRA
 from ..mocks import DoorPi, DoorPiTestCase
 
-
 CONTENT = """
 
 !BASEPATH!, some content

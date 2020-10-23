@@ -1,7 +1,5 @@
 #!/usr/bin/env python3
-
 """The application launcher module."""
-
 import argparse
 import sys
 import logging
@@ -20,7 +18,7 @@ LOGGER = logging.getLogger(__name__)
 LOG_LEVEL = logging.INFO
 
 
-def init_logger(args):
+def init_logger(args: argparse.Namespace) -> None:
     """Initializes the logging module with DoorPi settings."""
     # check if we're connected to the journal
     journal = False
@@ -53,10 +51,11 @@ def init_logger(args):
             logging.getLogger(lg).setLevel(logging.DEBUG)
     if args.trace is not None:
         for lg in args.trace:
-            logging.getLogger(lg).setLevel(logging.TRACE)
+            logging.getLogger(lg).setLevel(
+                logging.TRACE)  # type: ignore[attr-defined]
 
 
-def parse_arguments():
+def parse_arguments() -> argparse.Namespace:
     """Parses command line arguments."""
     dpmeta = metadata.distribution.metadata
     arg_parser = argparse.ArgumentParser(
@@ -91,7 +90,7 @@ def parse_arguments():
     return arg_parser.parse_args(args=sys.argv[1:])
 
 
-def entry_point():
+def entry_point() -> None:
     """Zero-argument entry point for use with setuptools/distribute."""
     args = parse_arguments()
     init_logger(args)

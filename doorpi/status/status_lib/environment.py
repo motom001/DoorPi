@@ -1,9 +1,12 @@
 import importlib
 import logging
 import time
+from typing import Any, Dict, Iterable
 
+import doorpi.doorpi
 
-LOGGER = logging.getLogger(__name__)
+LOGGER: doorpi.DoorPiLogger
+LOGGER = logging.getLogger(__name__)  # type: ignore
 DEFAULT_MODULE_ATTR = frozenset({
     "__doc__", "__file__", "__name__", "__package__", "__path__", "__version__"
 })
@@ -13,17 +16,17 @@ try:
     import docutils.core
 except ModuleNotFoundError:
     LOGGER.error("``docutils`` not installed, cannot render HTML descriptions")
-    def rsttohtml(rst):
+    def rsttohtml(rst: str) -> str:
         return f"<pre>{rst}</pre>"
 else:
-    def rsttohtml(rst):
+    def rsttohtml(rst: str) -> str:
         return docutils.core.publish_parts(
             rst, writer_name="html",
             settings_overrides={"input_encoding": "unicode"}
         )["fragment"]
 
 
-def check_module_status(module):
+def check_module_status(module: Dict[str, Any]) -> Dict[str, Any]:
     module["is_fulfilled"] = not module.get("fulfilled_with_one")
     for module_name in module["libraries"]:
         status = {}
@@ -52,11 +55,11 @@ def check_module_status(module):
     return module
 
 
-def load_module_status(module_name):
+def load_module_status(module_name: str) -> Dict[str, Any]:
     LOGGER.debug("Parsing requirements texts for %s", module_name)
-    module = importlib.import_module(
+    module: Dict[str, Any] = importlib.import_module(
         f"doorpi.status.requirements_lib.{module_name}"
-    ).REQUIREMENT
+    ).REQUIREMENT  # type: ignore[attr-defined]
 
     # parse reStructuredText descriptions to HTML:
     # the top-level module.text_description and _configuration
@@ -107,7 +110,10 @@ LOGGER.debug(
 del _STARTTIME
 
 
-def get(doorpi_obj, name, value):
+def get(
+        doorpi_obj: doorpi.doorpi.DoorPi,
+        name: Iterable[str], value: Iterable[str],
+        ) -> Dict[str, Any]:
     del doorpi_obj, value
     if not name:
         name = [""]
@@ -121,6 +127,6 @@ def get(doorpi_obj, name, value):
     return status
 
 
-def is_active(doorpi_object):
+def is_active(doorpi_object: doorpi.doorpi.DoorPi) -> bool:
     del doorpi_object
     return True

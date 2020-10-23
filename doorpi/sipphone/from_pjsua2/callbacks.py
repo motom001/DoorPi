@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Tuple
 
 import pjsua2 as pj
 
@@ -17,8 +17,7 @@ LOGGER: doorpi.DoorPiLogger = logging.getLogger(__name__)  # type: ignore
 
 
 class AccountCallback(pj.Account):
-
-    def __init__(self):
+    def __init__(self) -> None:
         pj.Account.__init__(self)
 
     # pylint: disable=arguments-differ
@@ -54,14 +53,18 @@ class AccountCallback(pj.Account):
                         oprm.statusCode = pj.PJSIP_SC_OK
                         event = "OnCallIncoming"
                         sp.current_call = call
-        finally:
             call.answer(oprm)
             fire_event(event, remote_uri=callInfo.remoteUri)
+        except Exception:
+            LOGGER.exception("Error while handling incoming call")
+            oprm.statusCode = pj.PJSIP_SC_FORBIDDEN
+            call.answer(oprm)
 
 
 class CallCallback(pj.Call):
-
-    def __init__(self, acc: AccountCallback, callId=pj.PJSUA_INVALID_ID):
+    def __init__(
+            self, acc: AccountCallback, callId: int = pj.PJSUA_INVALID_ID,
+            ) -> None:
         LOGGER.trace("Constructing call with callId %s", callId)
         super().__init__(acc, callId)
 
@@ -70,7 +73,7 @@ class CallCallback(pj.Call):
             doorpi.INSTANCE.config.view("sipphone.dtmf").keys())
         self.__fire_disconnect = False
 
-    def __getAudioVideoMedia(self):
+    def __getAudioVideoMedia(self) -> Tuple[pj.AudioMedia, pj.VideoMedia]:
         """Helper function that returns the first audio and video media"""
 
         audio = None
@@ -80,7 +83,7 @@ class CallCallback(pj.Call):
             if ci.media[i].type == pj.PJMEDIA_TYPE_AUDIO and audio is None:
                 audio = pj.AudioMedia.typecastFromMedia(self.getMedia(i))
             if ci.media[i].type == pj.PJMEDIA_TYPE_VIDEO and video is None:
-                video = pj.AudioMedia.typecastFromMedia(self.getMedia(i))
+                video = pj.VideoMedia.typecastFromMedia(self.getMedia(i))
         return (audio, video)
 
     def onCallState(self, prm: pj.OnCallStateParam) -> None:

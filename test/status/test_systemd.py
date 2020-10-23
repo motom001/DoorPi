@@ -6,7 +6,6 @@ from doorpi.status.systemd import DoorPiSD
 
 from ..mocks import DoorPiTestCase
 
-
 SOCKET_PATH = "/tmp/doorpi_test_sdnotify"
 
 ABSTRACT_SOCKET_PATH = "@sdnotify"
@@ -67,7 +66,8 @@ class TestDoorPiSD(DoorPiTestCase):
         with self.assertLogs("doorpi.status.systemd", "INFO"):
             dpsd = DoorPiSD()
 
-        mocksock.assert_called_once_with(family=socket.AF_UNIX, type=socket.SOCK_DGRAM)
+        mocksock.assert_called_once_with(
+            family=socket.AF_UNIX, type=socket.SOCK_DGRAM)
 
         dpsd.ready()
         dpsd.reloading()
@@ -79,7 +79,8 @@ class TestDoorPiSD(DoorPiTestCase):
             ((b"READY=1", self.expected_socket_path),),
             ((b"RELOADING=1", self.expected_socket_path),),
             ((b"STOPPING=1", self.expected_socket_path),),
-            ((b"STATUS=" + "\U0001F408".encode("utf-8") + br"\n", self.expected_socket_path),),
+            (("STATUS=\U0001F408\\n".encode("utf-8"),
+              self.expected_socket_path),),
             ((b"WATCHDOG=1", self.expected_socket_path),),
         ])
 

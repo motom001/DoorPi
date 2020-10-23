@@ -1,20 +1,22 @@
 import logging
 import os
 import socket
+from typing import Optional
 
 LOGGER = logging.getLogger(__name__)
 
 
 class DoorPiSD:
+    sockaddr: Optional[str]
+    socket: Optional[socket.socket]
 
-    def __init__(self):
-        self.sockaddr = None
-        self.socket = None
+    def __init__(self) -> None:
+        self.sockaddr = self.socket = None
         if "NOTIFY_SOCKET" in os.environ:
             LOGGER.info("Enabling sd-notify protocol")
             self.sockaddr = os.environ["NOTIFY_SOCKET"]
             if self.sockaddr.startswith("@"):
-                self.sockaddr = "\0" + self.sockaddr[1:]
+                self.sockaddr = self.sockaddr.replace("@", "\0", 1)
 
             # open notify socket
             try:
@@ -26,7 +28,7 @@ class DoorPiSD:
             LOGGER.info(
                 "No NOTIFY_SOCKET in environment, sd-notify protocol disabled")
 
-    def ready(self):
+    def ready(self) -> None:
         """Tell the service manager that we are ready
 
         Inform the manager that service startup has completed
@@ -35,7 +37,7 @@ class DoorPiSD:
         """
         return self.__send("READY=1")
 
-    def reloading(self):
+    def reloading(self) -> None:
         """Tell the service manager that we are reloading configuration
 
         Inform the service manager that we have begun reloading our
@@ -43,11 +45,11 @@ class DoorPiSD:
         """
         return self.__send("RELOADING=1")
 
-    def stopping(self):
+    def stopping(self) -> None:
         """Tell the service manager that we are shutting down"""
         return self.__send("STOPPING=1")
 
-    def status(self, msg):
+    def status(self, msg: str) -> None:
         """Describe the service state for humans
 
         Passes a human readable, single-line status string back to the
@@ -55,7 +57,7 @@ class DoorPiSD:
         """
         return self.__send("STATUS={}".format(msg.replace("\n", "\\n")))
 
-    def watchdog(self):
+    def watchdog(self) -> None:
         """Tell the service manager that we are still alive
 
         Tell the manager to update its watchdog timestamp. This is the
@@ -65,7 +67,7 @@ class DoorPiSD:
         return self.__send("WATCHDOG=1")
 
     @staticmethod
-    def get_watchdog_timeout_usec():
+    def get_watchdog_timeout_usec() -> Optional[int]:
         """Get the configured watchdog timeout
 
         Returns the configured watchdog timeout in microseconds. If
@@ -79,18 +81,18 @@ class DoorPiSD:
         will return None.
         """
         if ("WATCHDOG_USEC" not in os.environ
-                or os.environ["WATCHDOG_USEC"] == "0"):
+                or (usec := os.environ["WATCHDOG_USEC"]) == "0"):
             return None  # no timeout given
         if ("WATCHDOG_PID" in os.environ
                 and os.environ["WATCHDOG_PID"] != str(os.getpid())):
             return None  # wrong PID
-        return int(os.environ["WATCHDOG_USEC"])
+        return int(usec)
 
-    def __send(self, msg):
+    def __send(self, msg: str) -> None:
         """Actually send the messages to the daemon.
+
         This is used internally, and should not be called directly.
         """
-
         if self.socket is None or self.sockaddr is None:
             return
         try:

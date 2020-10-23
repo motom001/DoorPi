@@ -50,24 +50,27 @@ If the keyboard hardware does not send a special stop flag, leave the
 "input_stop_flag" option empty. In that case, each character sent over
 the wire will be handled separately.
 """
-
 import collections
+import datetime
 import logging
 import threading
-import time
+from typing import Any, Deque, Iterable, Optional
 
 import serial  # pylint: disable=import-error
 
+import doorpi
+
 from .abc import AbstractKeyboard
 
-LOGGER = logging.getLogger(__name__)
+LOGGER: doorpi.DoorPiLogger = logging.getLogger(__name__)  # type: ignore
 
 
 class SeriallyConnectedKeyboard(AbstractKeyboard):
-
-    def __init__(self, name, *, events=("OnKeyPressed",)):
+    def __init__(
+            self, name: str, *,
+            events: Iterable[str] = ("OnKeyPressed",),
+            ) -> None:
         super().__init__(name, events=events)
-        self.last_key_time = 0
 
         port = self.config["port"]
         baudrate = self.config["baudrate"]
@@ -94,17 +97,17 @@ class SeriallyConnectedKeyboard(AbstractKeyboard):
         self._ser.open()
 
         self._shutdown = False
-        self._exception = None
+        self._exception: Optional[Exception] = None
         self._thread = threading.Thread(target=self.read_serial)
         self._thread.start()
 
-    def _deactivate(self):
+    def _deactivate(self) -> None:
         self._shutdown = True
         if self._ser and self._ser.isOpen():
             self._ser.close()
         self._thread.join()
 
-    def output(self, pin, value):
+    def output(self, pin: str, value: Any) -> bool:
         super().output(pin, value)
         value = self._normalize(value)
 
@@ -122,14 +125,14 @@ class SeriallyConnectedKeyboard(AbstractKeyboard):
         self._ser.flush()
         return True
 
-    def self_check(self):
+    def self_check(self) -> None:
         if self._exception is not None:
             raise RuntimeError(f"{self.name}: Worker died") from self._exception
         if not self._thread.is_alive():
             raise RuntimeError(
                 f"{self.name}: Worker found dead without exception information")
 
-    def read_serial(self):
+    def read_serial(self) -> None:
         """Serial connection read function
 
         This function is run in a separate thread to listen for key
@@ -137,7 +140,7 @@ class SeriallyConnectedKeyboard(AbstractKeyboard):
         """
 
         buflen = self._input_max_size
-        buf = collections.deque(maxlen=buflen + 1)  # + 1 to detect overflows
+        buf: Deque[bytes] = collections.deque(maxlen=buflen + 1)
         stopflag = self._input_stop_flag
         try:
             while not self._shutdown:
@@ -152,7 +155,7 @@ class SeriallyConnectedKeyboard(AbstractKeyboard):
                     if buf[i] != stopflag[i]:
                         break
                 else:  # STOP flag exists (or is empty)
-                    now = time.time() * 1000
+                    now = datetime.datetime.now()
                     if len(buf) > buflen:  # buffer overrun
                         LOGGER.warning(
                             "%s: Buffer overflow (> %d), discarding input",
@@ -171,7 +174,7 @@ class SeriallyConnectedKeyboard(AbstractKeyboard):
             if not self._shutdown:
                 self._exception = ex
 
-    def process_buffer(self, buf):
+    def process_buffer(self, buf: bytes) -> None:
         """Process the buffer contents
 
         This function is called by the worker thread to process the
@@ -181,13 +184,13 @@ class SeriallyConnectedKeyboard(AbstractKeyboard):
         The buffer is passed as undecoded bytes object. The passed
         buffer does not include the STOP flag.
         """
-
+        decbuf = buf.decode("utf-8")
         for key in self._inputs:
-            if buf == key:
-                self._fire_event("OnKeyPressed", buf)
+            if decbuf == key:
+                self._fire_event("OnKeyPressed", decbuf)
                 break
         else:
-            LOGGER.trace("%s: Ignoring unknown key %s", self.name, buf)
+            LOGGER.trace("%s: Ignoring unknown key %s", self.name, decbuf)
 
 
 instantiate = SeriallyConnectedKeyboard  # pylint: disable=invalid-name

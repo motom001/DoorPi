@@ -1,7 +1,10 @@
 """The Worker class."""
 # pylint: disable=protected-access, invalid-name
+from __future__ import annotations
 
 import logging
+from typing import TYPE_CHECKING
+
 import pjsua2 as pj
 
 import doorpi
@@ -11,29 +14,19 @@ from . import EVENT_SOURCE, config, fire_event
 from .callbacks import AccountCallback, CallCallback
 from .fileio import DialTonePlayer, CallRecorder
 
+if TYPE_CHECKING:  # pragma: no cover
+    from . import glue
+
 LOGGER = logging.getLogger(__name__)
 
 
 class Worker():
     """Keeps everything running and performs housekeeping tasks"""
-
-    def __init__(self, sipphone):
+    def __init__(self, sipphone: glue.Pjsua2) -> None:
         self.__phone = sipphone
-        self.__ep = None
-        self.__account = None
-
         self.__config = doorpi.INSTANCE.config.view("sipphone")
-
         self.hangup = False
 
-    def shutdown(self):
-        """Destroys the native library."""
-        doorpi.INSTANCE.event_handler.fire_event_sync(
-            "OnSIPPhoneDestroy", EVENT_SOURCE)
-        self.__ep.libDestroy()
-
-    def setup(self):
-        """Initializes the native library."""
         LOGGER.info("Initializing native library")
         self.__ep = pj.Endpoint()
         # N.B.: from PJSIP's perspective, the thread that calls
@@ -78,7 +71,13 @@ class Worker():
         eh.fire_event_sync("OnSIPPhoneStart", EVENT_SOURCE)
         LOGGER.debug("Initialization complete")
 
-    def handleNativeEvents(self):
+    def shutdown(self) -> None:
+        """Destroys the native library."""
+        doorpi.INSTANCE.event_handler.fire_event_sync(
+            "OnSIPPhoneDestroy", EVENT_SOURCE)
+        self.__ep.libDestroy()
+
+    def handleNativeEvents(self) -> None:
         """Poll events from the native library"""
         num_ev = self.__ep.libHandleEvents(0)
         if num_ev < 0:
@@ -86,7 +85,7 @@ class Worker():
                 "Error while handling PJSUA2 native events: {msg} ({errno})"
                 .format(errno=-num_ev, msg=self.__ep.utilStrError(-num_ev)))
 
-    def checkHangupAll(self):
+    def checkHangupAll(self) -> None:
         """Check if hanging up all calls was requested"""
         if not self.hangup:
             return
@@ -112,7 +111,7 @@ class Worker():
                 fire_event("OnCallDisconnect", remote_uri="sip:null@null")
             self.hangup = False
 
-    def checkCallTime(self):
+    def checkCallTime(self) -> None:
         """Check all current calls and enforce call time restrictions"""
         if (self.__phone.current_call is None
                 and len(self.__phone._ringing_calls) == 0):
@@ -157,7 +156,7 @@ class Worker():
                     # Last ringing call was cancelled
                     fire_event("OnCallUnanswered")
 
-    def createCalls(self):
+    def createCalls(self) -> None:
         """Create requested outbound calls"""
         if len(self.__phone._waiting_calls) == 0:
             return

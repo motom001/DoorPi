@@ -1,34 +1,47 @@
 import collections
+import itertools
 import logging
 import random
 import string
 import threading
 import time
+from typing import (
+    Any, Callable, Dict, List, Mapping, Optional, Set, Tuple, Union)
 
-import doorpi
 import doorpi.actions
 
-from .log import EventLog
+from . import log
 
-LOGGER = logging.getLogger(__name__)
+LOGGER: doorpi.DoorPiLogger = logging.getLogger(__name__)  # type: ignore
+
+ActionCallable = Callable[[str, Mapping[str, Any]], Any]
+RegistrableAction = Union[str, "doorpi.actions.Action", ActionCallable]
 
 
-def generate_id(size=6, chars=string.ascii_uppercase + string.digits):
+def generate_id() -> str:
     """Generates a random event ID."""
+    size = 6
+    chars = "".join((string.ascii_uppercase, string.digits))
     return "".join(random.choice(chars) for _ in range(size))
 
 
 class EventHandler:
     """The event handler and action dispatcher."""
+    actions: Dict[str, List[ActionCallable]]
+    events: Dict[str, Set[str]]
+    extra_info: Dict[str, Any]
+    sources: List[str]
 
-    def __init__(self):
+    __active: bool
+
+    def __init__(self) -> None:
         conf = doorpi.INSTANCE.config
         db_path = conf["eventlog"]
-        self.log = EventLog(db_path)
+        self.log = log.EventLog(db_path)
 
         self.actions = collections.defaultdict(list)
         self.events = collections.defaultdict(set)
-        self.extra_info = {}
+        self.extra_info = {"LastKey": "NotSetYet", "event": {}}
         self.sources = []
         self.__active = True
 
@@ -46,38 +59,38 @@ class EventHandler:
                 LOGGER.debug("Registering action %r for DTMF %r", action, seq)
                 self.register_action(f"OnDTMF_{seq}", action)
 
-    def destroy(self):
+    def destroy(self) -> None:
         """Shut down the event handler"""
         self.__active = False
         self.log.destroy()
 
     @property
-    def event_history(self):
+    def event_history(self) -> Tuple[log.EventLogEntry, ...]:
         return self.log.get_event_log()
 
     @property
-    def threads(self):
+    def threads(self) -> List[threading.Thread]:
         """List event threads managed by the handler"""
         return [
             t for t in threading.enumerate()
             if t.name.startswith("DoorPi Event")]
 
     @property
-    def idle(self):
+    def idle(self) -> bool:
         """Return whether the handler is currently idle"""
         return not self.threads
 
-    def get_events_by_source(self, source):
+    def get_events_by_source(self, source: str) -> Set[str]:
         """Group all known events by the sources that can fire them"""
-        return [ev for ev in self.events if source in self.events[ev]]
+        return {ev for ev in self.events if source in self.events[ev]}
 
-    def register_source(self, source):
+    def register_source(self, source: str) -> None:
         """Register a new event source"""
         if source not in self.sources:
             self.sources.append(source)
             LOGGER.debug("Added event source %s", source)
 
-    def register_event(self, event, source):
+    def register_event(self, event: str, source: str) -> None:
         """Register an event to be fired from the named event source"""
         suppress_logs = _suppress_logs(event)
         if not suppress_logs:
@@ -85,7 +98,7 @@ class EventHandler:
         self.register_source(source)
 
         if source not in self.events[event]:
-            self.events[event] |= {source}
+            self.events[event].add(source)
             if not suppress_logs:
                 LOGGER.debug("Registered source %s for event %s", source, event)
         else:
@@ -93,7 +106,10 @@ class EventHandler:
                 "Multiple registrations for event %s from source %s",
                 event, source)
 
-    def fire_event(self, event, source, *, extra=None):
+    def fire_event(
+            self, event: str, source: str, *,
+            extra: Dict[str, Any] = None
+            ) -> None:
         """Fire an event asynchronously"""
         if not self.__active:
             return
@@ -104,7 +120,10 @@ class EventHandler:
             name=f"DoorPi Event {event} from {source}"
         ).start()
 
-    def fire_event_sync(self, event, source, *, extra=None):
+    def fire_event_sync(
+            self, event: str, source: str, *,
+            extra: Dict[str, Any] = None
+            ) -> None:
         """Fire an event synchronously"""
         if not self.__active:
             return
@@ -182,7 +201,7 @@ class EventHandler:
         self.extra_info[event]["last_finished"] = time.time()
         self.extra_info[event]["last_duration"] = time.time() - start_time
 
-    def _unregister_event(self, event, source):
+    def _unregister_event(self, event: str, source: str) -> bool:
         suppress_logs = _suppress_logs(event)
         if not suppress_logs:
             LOGGER.debug("Unregistering event %s from source %s", event, source)
@@ -203,12 +222,14 @@ class EventHandler:
 
         return True
 
-    def unregister_event(self, event, source):
+    def unregister_event(self, event: str, source: str) -> None:
         """Unregister an event from a source"""
         if self._unregister_event(event, source):
             self.unregister_source(source, force=None)
 
-    def unregister_source(self, source, *, force=False):
+    def unregister_source(
+            self, source: str, *, force: Optional[bool] = False,
+            ) -> None:
         """Unregister an event source
 
         Args:
@@ -235,25 +256,32 @@ class EventHandler:
         if source in self.sources:
             self.sources.remove(source)
 
-    def register_action(self, event, action, *, oneshot=False):
+    def register_action(
+            self, event: str, action: RegistrableAction, *,
+            oneshot: bool = False,
+            ) -> None:
         """Register an action to execute when the ``event`` fires
 
         Args:
             oneshot: Only execute the action once and remove it afterwards
         """
+        action_obj: Optional[ActionCallable]
         if isinstance(action, str):
-            action = doorpi.actions.from_string(action)
-        elif not callable(action):
+            action_obj = doorpi.actions.from_string(action)
+        elif callable(action):
+            action_obj = action
+        else:
             raise ValueError("action must be a str or callable")
 
-        if event not in self.actions:
-            self.actions[event] = []
-        self.actions[event].append(action)
+        if action_obj is None:
+            return
+
+        self.actions.setdefault(event, []).append(action_obj)
 
         LOGGER.trace("Registered action %s for event %s", action, event)
 
     __call__ = fire_event
 
 
-def _suppress_logs(event_name):
+def _suppress_logs(event_name: str) -> bool:
     return "OnTime" in event_name

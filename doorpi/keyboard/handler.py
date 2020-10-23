@@ -1,10 +1,10 @@
 """This module houses the keyboard handler."""
-
 import importlib
 import logging
+from typing import Any, Dict, Optional, Tuple
 
-import doorpi
-from doorpi.actions import CheckAction
+import doorpi.actions
+import doorpi.keyboard.abc
 
 LOGGER = logging.getLogger(__name__)
 
@@ -15,8 +15,12 @@ class KeyboardHandler:
     This class is responsible for constructing the individual keyboard
     instances, dispatching output events to and querying inputs from them.
     """
+    last_key: Optional[str]
 
-    def __init__(self):
+    __aliases: Dict[str, Dict[str, str]]
+    __keyboards: Dict[str, doorpi.keyboard.abc.AbstractKeyboard]
+
+    def __init__(self) -> None:
         self.last_key = None
 
         self.__aliases = {}
@@ -34,7 +38,7 @@ class KeyboardHandler:
 
             self.__keyboards[kbname] = kb = (
                 importlib.import_module(f"doorpi.keyboard.from_{kbtype}")
-                .instantiate(kbname))
+                .instantiate(kbname))  # type: ignore[attr-defined]
 
             LOGGER.debug("Registering input pins for %r", kbname)
             for pin, actions in kb.config.view("input").items():
@@ -52,9 +56,10 @@ class KeyboardHandler:
                     raise ValueError(f"Duplicate pin alias {kbname}.{alias}")
                 self.__aliases[kbname][alias] = pin
 
-        eh.register_action("OnTimeTick", CheckAction(self.self_check))
+        eh.register_action(
+            "OnTimeTick", doorpi.actions.CheckAction(self.self_check))
 
-    def input(self, pinpath):
+    def input(self, pinpath: str) -> bool:
         """Polls an input for its current value."""
         try:
             kb, _, pin = self._decode_pinpath(pinpath)
@@ -68,7 +73,7 @@ class KeyboardHandler:
             LOGGER.exception("Error reading from pin %s", pinpath)
         return False
 
-    def output(self, pinpath, value):
+    def output(self, pinpath: str, value: Any) -> bool:
         """Sets an output pin to a value."""
         try:
             kb, kbname, pinalias = self._decode_pinpath(pinpath)
@@ -80,7 +85,7 @@ class KeyboardHandler:
             LOGGER.exception("Cannot output to pin %s", pinpath)
         return False
 
-    def self_check(self):
+    def self_check(self) -> None:
         """Checks integrity of this handler and all attached keyboards.
 
         If a keyboard fails its self check, it will be logged and the
@@ -96,8 +101,12 @@ class KeyboardHandler:
         if abort:
             doorpi.INSTANCE.doorpi_shutdown()
 
-    def enumerate_outputs(self):
-        """Enumerates all known output pins."""
+    def enumerate_outputs(self) -> Dict[str, str]:
+        """Enumerates all known output pins
+
+        Returns:
+            A dict mapping pin aliases to the fully qualified pin names
+        """
         pins = {}
         for kbname, kbaliases in self.__aliases.items():
             pins.update({
@@ -105,7 +114,9 @@ class KeyboardHandler:
                 for alias, pin in kbaliases.items()})
         return pins
 
-    def _decode_pinpath(self, pinpath):
+    def _decode_pinpath(
+            self, pinpath: str,
+            ) -> Tuple[doorpi.keyboard.abc.AbstractKeyboard, str, str]:
         try:
             kbname, pin = pinpath.split(".")
         except ValueError:

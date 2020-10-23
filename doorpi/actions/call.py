@@ -6,8 +6,8 @@ import time
 from typing import Any, Mapping
 
 import doorpi
-from . import Action, action
 
+from . import Action, action
 
 LOGGER = logging.getLogger(__name__)
 
@@ -15,6 +15,7 @@ LOGGER = logging.getLogger(__name__)
 @action("call")
 class CallAction(Action):
     """Calls a static number."""
+
     def __init__(self, url: str) -> None:
         super().__init__()
         self.__url = url
@@ -33,6 +34,7 @@ class CallAction(Action):
 @action("file_call_value")
 class CallFromFileAction(Action):
     """Reads a number from a file and calls it."""
+
     def __init__(self, filename: str) -> None:
         super().__init__()
         self.__filename = pathlib.Path(filename)
@@ -55,6 +57,7 @@ class CallFromFileAction(Action):
 @action("hangup")
 class HangupAction(Action):
     """Hangs up all currently ongoing calls."""
+
     def __init__(self, waittime: str = "0") -> None:
         super().__init__()
         self.__waittime = float(waittime)
@@ -63,7 +66,9 @@ class HangupAction(Action):
         if self.__waittime:
             LOGGER.info(
                 "[%s] Hanging up all calls in %s seconds",
-                event_id, self.__waittime)
+                event_id,
+                self.__waittime,
+            )
             time.sleep(self.__waittime)
 
         LOGGER.info("[%s] Hanging up all calls", event_id)

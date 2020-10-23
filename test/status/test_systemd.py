@@ -13,7 +13,6 @@ EXPECTED_ABSTRACT_SOCKET_PATH = "\0sdnotify"
 
 
 class TestDoorPiSDInactive(DoorPiTestCase):
-
     def setUp(self):
         super().setUp()
         # Make sure the environment is clean
@@ -41,7 +40,6 @@ class TestDoorPiSDInactive(DoorPiTestCase):
 
 
 class TestDoorPiSD(DoorPiTestCase):
-
     def setUp(self):
         super().setUp()
         os.environ["WATCHDOG_USEC"] = str(4_000_000)
@@ -67,7 +65,8 @@ class TestDoorPiSD(DoorPiTestCase):
             dpsd = DoorPiSD()
 
         mocksock.assert_called_once_with(
-            family=socket.AF_UNIX, type=socket.SOCK_DGRAM)
+            family=socket.AF_UNIX, type=socket.SOCK_DGRAM
+        )
 
         dpsd.ready()
         dpsd.reloading()
@@ -75,18 +74,24 @@ class TestDoorPiSD(DoorPiTestCase):
         dpsd.status("\U0001F408\n")
         dpsd.watchdog()
 
-        self.assertEqual(mocksock().sendto.call_args_list, [
-            ((b"READY=1", self.expected_socket_path),),
-            ((b"RELOADING=1", self.expected_socket_path),),
-            ((b"STOPPING=1", self.expected_socket_path),),
-            (("STATUS=\U0001F408\\n".encode("utf-8"),
-              self.expected_socket_path),),
-            ((b"WATCHDOG=1", self.expected_socket_path),),
-        ])
+        self.assertEqual(
+            mocksock().sendto.call_args_list,
+            [
+                ((b"READY=1", self.expected_socket_path),),
+                ((b"RELOADING=1", self.expected_socket_path),),
+                ((b"STOPPING=1", self.expected_socket_path),),
+                (
+                    (
+                        "STATUS=\U0001F408\\n".encode("utf-8"),
+                        self.expected_socket_path,
+                    ),
+                ),
+                ((b"WATCHDOG=1", self.expected_socket_path),),
+            ],
+        )
 
 
 class TestDoorPiSDAbstractSocketNamespace(TestDoorPiSD):
-
     def setUp(self):
         super().setUp()
         os.environ["NOTIFY_SOCKET"] = ABSTRACT_SOCKET_PATH

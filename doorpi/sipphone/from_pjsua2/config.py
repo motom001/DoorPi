@@ -40,8 +40,8 @@ def account_config() -> pj.AccountConfig:
     sip_realm = doorpi.INSTANCE.config["sipphone.server.realm"] or sip_server
 
     if identity:
-        identity = identity.replace("\\", "\\\\").replace("\"", "\\\"")
-        acfg.idUri = f"\"{identity}\" <sip:{sip_user}@{sip_server}>"
+        identity = identity.replace("\\", "\\\\").replace('"', '\\"')
+        acfg.idUri = f'"{identity}" <sip:{sip_user}@{sip_server}>'
     else:
         acfg.idUri = f"sip:{sip_user}@{sip_server}"
 
@@ -92,7 +92,8 @@ def endpoint_config() -> pj.EpConfig:
 
     native_logger = ".".join(__name__.split(".")[:-1] + ["native"])
     logwriter = DoorPiLogWriter(
-        cast(doorpi.DoorPiLogger, logging.getLogger(native_logger)))
+        cast(doorpi.DoorPiLogger, logging.getLogger(native_logger))
+    )
     ep_cfg.logConfig.writer = logwriter
     # Bind the LogWriter's lifetime to the sipphone object, so that
     # it won't be garbage-collected prematurely.
@@ -108,7 +109,8 @@ def recorder_config() -> dict:
         "path": (
             doorpi.INSTANCE.config["sipphone.recording.path"]
             if doorpi.INSTANCE.config["sipphone.recording.enabled"]
-            else None),
+            else None
+        ),
         "early": doorpi.INSTANCE.config["sipphone.recording.dial"],
         "keep": doorpi.INSTANCE.config["sipphone.recording.keep"],
     }
@@ -154,7 +156,8 @@ def setup_audio_devices(adm: pj.AudDevManager) -> None:
         LOGGER.critical("No audio devices configured! Detected audio devices:")
         list_audio_devices(adm, logging.CRITICAL)
         raise ValueError(
-            "No audio devices configured (See log for possible options)")
+            "No audio devices configured (See log for possible options)"
+        )
 
     capture_drv = capture_device.split(":")[0]
     # The split-rejoin is necessary to handle device names with ":"
@@ -179,7 +182,9 @@ def setup_audio_devices(adm: pj.AudDevManager) -> None:
         ) from None
     LOGGER.trace(
         "Device indices: capture = %d, playback = %d",
-        capture_idx, playback_idx)
+        capture_idx,
+        playback_idx,
+    )
     adm.setCaptureDev(capture_idx)
     adm.setPlaybackDev(playback_idx)
 
@@ -196,7 +201,8 @@ def setup_audio_volume(adm: pj.AudDevManager) -> None:
             LOGGER.error(
                 "Unable to set playback volume "
                 "(Set sipphone.playback.volume to -1 to silence this)\n%s",
-                err.info())
+                err.info(),
+            )
     if capture_volume >= 0:
         LOGGER.trace("Setting capture volume to %d", playback_volume)
         try:
@@ -205,15 +211,16 @@ def setup_audio_volume(adm: pj.AudDevManager) -> None:
             LOGGER.error(
                 "Unable to set capture volume "
                 "(Set sipphone.capture.volume to -1 to silence this)\n%s",
-                err.info())
+                err.info(),
+            )
 
 
 def setup_audio_codecs(endpoint: pj.Endpoint) -> None:
     """Configures the enabled codecs in PJSUA2."""
     allcodecs = endpoint.codecEnum2()
     LOGGER.debug(
-        "Supported audio codecs: %s",
-        ", ".join(c.codecId for c in allcodecs))
+        "Supported audio codecs: %s", ", ".join(c.codecId for c in allcodecs)
+    )
     confcodecs = doorpi.INSTANCE.config["sipphone.codecs"]
     if not confcodecs:
         return
@@ -237,7 +244,10 @@ def setup_audio_codecs(endpoint: pj.Endpoint) -> None:
             break
         LOGGER.trace(
             "Changing priority of codec %s from %d to %d",
-            codec.codecId, codec.priority, new_priority)
+            codec.codecId,
+            codec.priority,
+            new_priority,
+        )
         endpoint.codecSetPriority(codec.codecId, new_priority)
 
 
@@ -255,6 +265,7 @@ def setup_audio_echo_cancellation(adm: pj.AudDevManager) -> None:
 # pylint: disable=too-few-public-methods
 class DoorPiLogWriter(pj.LogWriter):
     """Redirects output from the PJSUA2 native module to a Python logger"""
+
     def __init__(self, logger: doorpi.DoorPiLogger) -> None:
         super().__init__()
         self.__logger = logger

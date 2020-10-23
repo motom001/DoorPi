@@ -1,11 +1,11 @@
 import io
 import json
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
 
 from doorpi.actions import symcon_ips3
 
-from . import EVENT_ID, EVENT_EXTRA
 from ..mocks import DoorPi, DoorPiTestCase
+from . import EVENT_EXTRA, EVENT_ID
 
 stub_config = """\
 [ip_symcon]
@@ -27,11 +27,17 @@ def fake_post(*args, data, **kw):
     if data["method"] == "IPS_VariableExists":
         return DummyResponse(json.dumps({"result": True}).encode("utf-8"))
     if data["method"] == "IPS_GetVariable":
-        return DummyResponse(json.dumps({"result": {
-            "VariableValue": {
-                "ValueType": symcon_ips3.IPSVariableType.STRING.value,
-            },
-        }}).encode("utf-8"))
+        return DummyResponse(
+            json.dumps(
+                {
+                    "result": {
+                        "VariableValue": {
+                            "ValueType": symcon_ips3.IPSVariableType.STRING.value,
+                        },
+                    }
+                }
+            ).encode("utf-8")
+        )
     if data["method"] == "GetValue":
         return DummyResponse(json.dumps({"result": "**1"}).encode("utf-8"))
     if data["method"] == "SetValue":
@@ -40,7 +46,6 @@ def fake_post(*args, data, **kw):
 
 
 class TestIPSRPCSetValueAction(DoorPiTestCase):
-
     @patch("doorpi.INSTANCE", new_callable=DoorPi)
     def test_validation(self, instance):
         instance.config.load(io.StringIO(stub_config))
@@ -59,7 +64,6 @@ class TestIPSRPCSetValueAction(DoorPiTestCase):
 
 
 class TestIPSRPCCallFromVariableAction(DoorPiTestCase):
-
     @patch("doorpi.INSTANCE", new_callable=DoorPi)
     def test_instantiation(self, instance):
         instance.config.load(io.StringIO(stub_config))

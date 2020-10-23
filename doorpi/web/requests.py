@@ -13,14 +13,25 @@ import re
 import sys
 import urllib.parse
 from typing import (
-    Any, Dict, Mapping, Optional, Sequence, Tuple, Type, TypeVar, TypedDict,
-    Union, cast)
+    Any,
+    Dict,
+    Mapping,
+    Optional,
+    Sequence,
+    Tuple,
+    Type,
+    TypedDict,
+    TypeVar,
+    Union,
+    cast,
+)
 
 import jinja2
 
 import doorpi
 from doorpi import metadata
 from doorpi.actions import snapshot
+
 from . import templates
 
 LOGGER = logging.getLogger(__name__)
@@ -37,6 +48,7 @@ WebResource = Tuple[
 
 class ControlCommandResult(TypedDict):
     """The result of a control command"""
+
     success: bool
     message: str
 
@@ -51,17 +63,18 @@ class BadRequestError(Exception):
 
 class DoorPiWebRequestHandler(http.server.BaseHTTPRequestHandler):
     """The DoorPiWeb request handler"""
+
     environment: jinja2.Environment
     server: doorpi.web.DoorPiWeb
 
     def log_error(
-            self, format: str, *args: Any  # pylint: disable=redefined-builtin
-            ) -> None:
+        self, format: str, *args: Any  # pylint: disable=redefined-builtin
+    ) -> None:
         LOGGER.error(f"[%s] {format}", self.client_address[0], *args)
 
     def log_message(
-            self, format: str, *args: Any  # pylint: disable=redefined-builtin
-            ) -> None:
+        self, format: str, *args: Any  # pylint: disable=redefined-builtin
+    ) -> None:
         LOGGER.debug(f"[%s] {format}", self.client_address[0], *args)
 
     @classmethod
@@ -121,7 +134,8 @@ class DoorPiWebRequestHandler(http.server.BaseHTTPRequestHandler):
             else:
                 params = {}
             api_endpoint = self.API_ENDPOINTS.get(
-                path.path.split("/")[1], "_resource")
+                path.path.split("/")[1], "_resource"
+            )
 
             result, mime = getattr(self, api_endpoint)(path.path, params)
         except BadRequestError:
@@ -146,29 +160,33 @@ class DoorPiWebRequestHandler(http.server.BaseHTTPRequestHandler):
             else:
                 dirs.append(item)
 
-        return_html = "".join(itertools.chain(
-            ("<!DOCTYPE html><html lang=\"en\"><head></head>"
-             "<body><a href=\"..\">..</a><br/>",),
-            (f"<a href=\"./{dir_}\">{dir_}</a><br/>" for dir_ in dirs),
-            (f"<a href=\"./{file}\">{file}</a><br/>" for file in files),
-            ("</body></html>",),
-        ))
+        return_html = "".join(
+            itertools.chain(
+                (
+                    '<!DOCTYPE html><html lang="en"><head></head>'
+                    '<body><a href="..">..</a><br/>',
+                ),
+                (f'<a href="./{dir_}">{dir_}</a><br/>' for dir_ in dirs),
+                (f'<a href="./{file}">{file}</a><br/>' for file in files),
+                ("</body></html>",),
+            )
+        )
         return (return_html, "text/html")
 
     def return_redirection(self, location: str) -> None:
         """Serve a document that redirects to ``location``"""
         message = (
             "<html><head>"
-            "<meta http-equiv=\"refresh\" content=\"0;url={location}\">"
+            '<meta http-equiv="refresh" content="0;url={location}">'
             "</head><body>"
-            "<a href=\"{location}\">{location}</a>"
+            '<a href="{location}">{location}</a>'
             "</body></html>"
         ).format(location=html.escape(location, True))
         self.return_message(message, "text/html", 307, ("Location", location))
 
     def canonicalize_filename(
-            self, url: Union[str, pathlib.Path]
-            ) -> pathlib.Path:
+        self, url: Union[str, pathlib.Path]
+    ) -> pathlib.Path:
         """Canonicalize and validate the requested filename"""
         if not isinstance(url, pathlib.Path):
             url = pathlib.Path(url)
@@ -186,14 +204,15 @@ class DoorPiWebRequestHandler(http.server.BaseHTTPRequestHandler):
         raise FileNotFoundError(url)
 
     def return_message(
-            self, message: Union[bytes, str] = "",
-            content_type: str = "text/plain",
-            http_code: int = 200,
-            *headers: Tuple[str, str]
-            ) -> None:
+        self,
+        message: Union[bytes, str] = "",
+        content_type: str = "text/plain",
+        http_code: int = 200,
+        *headers: Tuple[str, str],
+    ) -> None:
         """Send ``message`` to the client"""
         self.send_response(http_code)
-        self.send_header("WWW-Authenticate", "Basic realm=\"DoorPi\"")
+        self.send_header("WWW-Authenticate", 'Basic realm="DoorPi"')
         self.send_header("Server", metadata.distribution.metadata["Name"])
         self.send_header("Content-type", content_type)
         self.send_header("Connection", "close")
@@ -201,11 +220,12 @@ class DoorPiWebRequestHandler(http.server.BaseHTTPRequestHandler):
             self.send_header(*header)
         self.end_headers()
         self.wfile.write(
-            message.encode("utf-8") if isinstance(message, str) else message)
+            message.encode("utf-8") if isinstance(message, str) else message
+        )
 
     def check_authentication(
-            self, parsed_path: urllib.parse.ParseResult
-            ) -> None:
+        self, parsed_path: urllib.parse.ParseResult
+    ) -> None:
         """Perform authentication and authorization checks
 
         Raises:
@@ -219,33 +239,48 @@ class DoorPiWebRequestHandler(http.server.BaseHTTPRequestHandler):
                     LOGGER.debug("public resource: %s", parsed_path.path)
                     return
 
-            username, password = self.headers["authorization"] \
-                .replace("Basic ", "").decode("base64").split(":", 1)
+            username, password = (
+                self.headers["authorization"]
+                .replace("Basic ", "")
+                .decode("base64")
+                .split(":", 1)
+            )
 
             user_session = self.server.sessions.get_session(username)
             if not user_session:
                 user_session = self.server.sessions.build_security_object(
-                    username, password)
+                    username, password
+                )
 
             if not user_session:
                 LOGGER.debug(
-                    "need authentication (no session): %s", parsed_path.path)
+                    "need authentication (no session): %s", parsed_path.path
+                )
                 raise AuthenticationRequiredError()
 
             for write_permission in user_session["writepermissions"]:
                 if re.match(write_permission, parsed_path.path):
-                    LOGGER.info("user %s has write permissions: %s",
-                                user_session["username"], parsed_path.path)
+                    LOGGER.info(
+                        "user %s has write permissions: %s",
+                        user_session["username"],
+                        parsed_path.path,
+                    )
                     return
 
             for read_permission in user_session["readpermissions"]:
                 if re.match(read_permission, parsed_path.path):
-                    LOGGER.info("user %s has read permissions: %s",
-                                user_session["username"], parsed_path.path)
+                    LOGGER.info(
+                        "user %s has read permissions: %s",
+                        user_session["username"],
+                        parsed_path.path,
+                    )
                     return
 
-            LOGGER.warning("user %s has no permissions: %s",
-                           user_session["username"], parsed_path.path)
+            LOGGER.warning(
+                "user %s has no permissions: %s",
+                user_session["username"],
+                parsed_path.path,
+            )
             raise AuthenticationRequiredError()
         except AuthenticationRequiredError:
             raise
@@ -254,8 +289,8 @@ class DoorPiWebRequestHandler(http.server.BaseHTTPRequestHandler):
             raise AuthenticationRequiredError() from err
 
     def _api_control(
-            self, path: Sequence[str], params: Mapping[str, Sequence[Any]]
-            ) -> WebResource:
+        self, path: Sequence[str], params: Mapping[str, Sequence[Any]]
+    ) -> WebResource:
         if len(path) != 2:
             raise BadRequestError()
         command = path[1]
@@ -269,8 +304,8 @@ class DoorPiWebRequestHandler(http.server.BaseHTTPRequestHandler):
 
     @staticmethod
     def _api_control_trigger_event(
-            params: Mapping[str, Sequence[Any]]
-            ) -> ControlCommandResult:
+        params: Mapping[str, Sequence[Any]]
+    ) -> ControlCommandResult:
         try:
             ev_name = _assert_value_type(params["event"][0], str)
             ev_source = _assert_value_type(params["source"][0], str)
@@ -278,19 +313,21 @@ class DoorPiWebRequestHandler(http.server.BaseHTTPRequestHandler):
             if "extra" in params:
                 ev_extra = _assert_value_type(params["extra"][0], dict)
                 collections.deque(
-                    (_assert_value_type(i, str) for i in ev_extra.values()), 0)
+                    (_assert_value_type(i, str) for i in ev_extra.values()), 0
+                )
             else:
                 ev_extra = None
         except (IndexError, TypeError) as err:
             raise BadRequestError() from err
         doorpi.INSTANCE.event_handler.fire_event(
-            ev_name, ev_source, extra=ev_extra)
+            ev_name, ev_source, extra=ev_extra
+        )
         return {"success": True, "message": "Event was fired"}
 
     @staticmethod
     def _api_control_config_value_get(
-            params: Mapping[str, Any]
-            ) -> ControlCommandResult:
+        params: Mapping[str, Any]
+    ) -> ControlCommandResult:
         try:
             key = _assert_value_type(params["key"][0], str)
         except (IndexError, KeyError, TypeError) as err:
@@ -306,8 +343,8 @@ class DoorPiWebRequestHandler(http.server.BaseHTTPRequestHandler):
 
     @staticmethod
     def _api_control_config_value_set(
-            params: Mapping[str, Any]
-            ) -> ControlCommandResult:
+        params: Mapping[str, Any]
+    ) -> ControlCommandResult:
         try:
             doorpi.INSTANCE.config[params["key"][0]] = params["value"][0]
         except (IndexError, KeyError, TypeError, ValueError) as err:
@@ -317,8 +354,8 @@ class DoorPiWebRequestHandler(http.server.BaseHTTPRequestHandler):
 
     @staticmethod
     def _api_control_config_value_delete(
-            params: Mapping[str, Sequence[Any]]
-            ) -> ControlCommandResult:
+        params: Mapping[str, Sequence[Any]]
+    ) -> ControlCommandResult:
         try:
             key = params["key"][0]
         except (IndexError, KeyError) as err:
@@ -333,8 +370,8 @@ class DoorPiWebRequestHandler(http.server.BaseHTTPRequestHandler):
 
     @staticmethod
     def _api_control_config_save(
-            params: Mapping[str, Sequence[Any]]
-            ) -> ControlCommandResult:
+        params: Mapping[str, Sequence[Any]]
+    ) -> ControlCommandResult:
         try:
             file = _assert_value_type(params["configfile"][0], str)
             doorpi.INSTANCE.config.save(file)
@@ -344,18 +381,19 @@ class DoorPiWebRequestHandler(http.server.BaseHTTPRequestHandler):
             return {"success": True, "message": ""}
 
     def _api_help(
-            self, path: str, params: Mapping[str, Sequence[Any]]
-            ) -> WebResource:
+        self, path: str, params: Mapping[str, Sequence[Any]]
+    ) -> WebResource:
         return self._resource(
-            path.replace("/help", "/dashboard/parts"), params)
+            path.replace("/help", "/dashboard/parts"), params
+        )
 
     def _api_mirror(
-            self, path: str, params: Mapping[str, Sequence[Any]]
-            ) -> WebResource:
+        self, path: str, params: Mapping[str, Sequence[Any]]
+    ) -> WebResource:
         message_parts = [
             "CLIENT VALUES:",
-            "client_address=%s (%s)" % (
-                self.client_address, self.address_string()),
+            "client_address=%s (%s)"
+            % (self.client_address, self.address_string()),
             "command=%s" % self.command,
             "path=%s" % self.path,
             "real path=%s" % path,
@@ -377,8 +415,8 @@ class DoorPiWebRequestHandler(http.server.BaseHTTPRequestHandler):
 
     @staticmethod
     def _api_status(
-            _: str, params: Mapping[str, Sequence[Any]]
-            ) -> WebResource:
+        _: str, params: Mapping[str, Sequence[Any]]
+    ) -> WebResource:
         try:
             modules = _assert_value_type(params.get("modules", [""])[0], str)
             names = _assert_value_type(params.get("name", [""])[0], str)
@@ -387,29 +425,32 @@ class DoorPiWebRequestHandler(http.server.BaseHTTPRequestHandler):
             raise BadRequestError() from err
 
         status = doorpi.INSTANCE.get_status(
-            modules=modules, name=names, value=values)
+            modules=modules, name=names, value=values
+        )
         return (json_encoder.encode(status.dictionary), "application/json")
 
     def _resource(
-            self, rawpath: str, params: Mapping[str, Sequence[Any]]
-            ) -> WebResource:
+        self, rawpath: str, params: Mapping[str, Sequence[Any]]
+    ) -> WebResource:
         """Serve a resource for the dashboard"""
         path = pathlib.PurePosixPath(rawpath)
 
         if path.suffix in PARSABLE_FILE_EXTENSIONS:
             try:
                 return (
-                    self.environment.get_template(path.as_posix())
-                    .render(
+                    self.environment.get_template(path.as_posix()).render(
                         doorpi=doorpi.INSTANCE,
                         params=params,
                         code_min=("", ".min")[
-                            LOGGER.getEffectiveLevel() <= logging.DEBUG],
+                            LOGGER.getEffectiveLevel() <= logging.DEBUG
+                        ],
                         proginfo="{} - version: {}".format(
                             metadata.distribution.metadata["Name"],
-                            metadata.distribution.metadata["Version"]),
+                            metadata.distribution.metadata["Version"],
+                        ),
                     ),
-                    "text/html")
+                    "text/html",
+                )
             except jinja2.TemplateNotFound as err:
                 raise FileNotFoundError(*err.args) from None
         else:
@@ -425,6 +466,7 @@ class DoorPiWebRequestHandler(http.server.BaseHTTPRequestHandler):
 
 class SetAsTupleJSONEncoder(json.JSONEncoder):
     """A JSON encoder that encodes ``set()`` instances as tuples"""
+
     def default(self, o: Any) -> Any:
         if isinstance(o, (set, frozenset)):
             return tuple(o)
@@ -434,7 +476,8 @@ class SetAsTupleJSONEncoder(json.JSONEncoder):
 def _assert_value_type(value: Any, cls: Type[_T]) -> _T:
     if not isinstance(value, cls):
         raise TypeError(
-            f"Invalid parameter type: {type(value)}, expected {cls}")
+            f"Invalid parameter type: {type(value)}, expected {cls}"
+        )
     return value
 
 

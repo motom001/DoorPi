@@ -7,12 +7,23 @@ import logging
 import os
 from importlib import resources
 from typing import (
-    Any, ContextManager, Dict, Iterator, List, Mapping, MutableMapping,
-    Sequence, TextIO, Tuple, Union)
+    Any,
+    ContextManager,
+    Dict,
+    Iterator,
+    List,
+    Mapping,
+    MutableMapping,
+    Sequence,
+    TextIO,
+    Tuple,
+    Union,
+)
 
 import toml
 
-from . import defs as _defs, types
+from . import defs as _defs
+from . import types
 
 logger = logging.getLogger(__name__)
 
@@ -21,6 +32,7 @@ flagkeys = frozenset({"_default", "_type"})
 
 class Configuration:
     """The main configuration object"""
+
     def __init__(self) -> None:
         self.__values: Dict[str, Any] = {}
         self.__defs: Dict[str, Any] = {}
@@ -42,7 +54,8 @@ class Configuration:
             if isinstance(val, dict):
                 subconf.extend(
                     (f"{key}.{subkey}", subval)
-                    for subkey, subval in val.items())
+                    for subkey, subval in val.items()
+                )
             else:
                 self[key] = val
 
@@ -59,13 +72,18 @@ class Configuration:
 
     def attach_defs(self, defs: Mapping[str, Any]) -> None:
         """Attach a dictionary of key definitions to this configuration"""
+
         def update_defs(
-                keypath: Tuple[str, ...], target: Dict[str, Any],
-                updates: Mapping[str, Any]) -> None:
+            keypath: Tuple[str, ...],
+            target: Dict[str, Any],
+            updates: Mapping[str, Any],
+        ) -> None:
             if not isinstance(updates, dict):  # pragma: no cover
                 raise TypeError(
-                    "Expected key definition table, got {}"
-                    .format(type(updates).__name__))
+                    "Expected key definition table, got {}".format(
+                        type(updates).__name__
+                    )
+                )
 
             update_is_namespace = not set(updates) & flagkeys
             target_is_namespace = not set(target) & flagkeys
@@ -73,25 +91,29 @@ class Configuration:
                 raise ValueError(  # pragma: no cover
                     "Cannot convert from {} to {}".format(
                         ("key", "namespace")[target_is_namespace],
-                        ("key", "namespace")[update_is_namespace]))
+                        ("key", "namespace")[update_is_namespace],
+                    )
+                )
 
             if not update_is_namespace:
                 target.clear()
-                target.update({
-                    k: v for k, v in updates.items()
-                    if k.startswith("_")})
+                target.update(
+                    {k: v for k, v in updates.items() if k.startswith("_")}
+                )
                 self.__make_type(keypath, target)
                 if "_default" in target:
                     target["_default"] = target["_type"].insertcast(
-                        target["_default"])
+                        target["_default"]
+                    )
             else:
                 for key, val in updates.items():
                     if key.startswith("_"):
                         target[key[1:]] = val
                     else:
                         update_defs(
-                            keypath + (key,),
-                            target.setdefault(key, {}), val)
+                            keypath + (key,), target.setdefault(key, {}), val
+                        )
+
         update_defs((), self.__defs, defs.get("config", {}))
 
     def keydef(self, key: Union[str, Sequence[str]]) -> Tuple[Dict, List]:
@@ -113,7 +135,9 @@ class Configuration:
             try:
                 value = keydef["_default"]
             except KeyError:
-                raise KeyError(f"No value set for required key {key}") from None
+                raise KeyError(
+                    f"No value set for required key {key}"
+                ) from None
         return keydef["_type"].querycast(value)
 
     def __setitem__(self, key: Union[str, Sequence[str]], value: Any) -> None:
@@ -175,8 +199,9 @@ class Configuration:
 
     @staticmethod
     def __make_type(
-            keypath: Sequence[str], keydef: MutableMapping[str, Any],
-            ) -> None:
+        keypath: Sequence[str],
+        keydef: MutableMapping[str, Any],
+    ) -> None:
         if "_type" in keydef:
             type_ = types.gettype(keydef["_type"])
         elif "_default" in keydef:
@@ -188,6 +213,7 @@ class Configuration:
 
 class ConfigView(collections.abc.Mapping):
     """A view into a subsection of the Configuration"""
+
     def __init__(self, source: Configuration, path: Tuple[str, ...]) -> None:
         assert isinstance(path, tuple)
         self.__source = source
@@ -213,7 +239,7 @@ class ConfigView(collections.abc.Mapping):
         """Return a subview onto the ``key`` within this section"""
         return type(self)(
             self.__source,
-            tuple(itertools.chain(self.__path, _splitkey(subkey)))
+            tuple(itertools.chain(self.__path, _splitkey(subkey))),
         )
 
 

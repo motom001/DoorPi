@@ -20,7 +20,7 @@ MODULES = (
     "history_snapshot",
     # "history_action",
     "environment",
-    "webserver"
+    "webserver",
 )
 
 
@@ -34,11 +34,12 @@ class DoorPiStatus:
         return json.dumps(self.dictionary, sort_keys=True, indent=4)
 
     def __init__(
-            self, doorpi_obj: doorpi.doorpi.DoorPi,
-            modules: Optional[Sequence[str]] = None,
-            value: Optional[Sequence[str]] = (),
-            name: Optional[Sequence[str]] = (),
-            ) -> None:
+        self,
+        doorpi_obj: doorpi.doorpi.DoorPi,
+        modules: Optional[Sequence[str]] = None,
+        value: Optional[Sequence[str]] = (),
+        name: Optional[Sequence[str]] = (),
+    ) -> None:
         if not modules:
             modules = MODULES
         self.dictionary: Dict[str, Dict[str, Any]] = {}
@@ -55,12 +56,15 @@ class DoorPiStatus:
                     f"doorpi.status.status_lib.{module}"
                 ).get  # type: ignore
                 self.dictionary[module] = getter_func(
-                    doorpi_obj=doorpi_obj, name=name, value=value)
+                    doorpi_obj=doorpi_obj, name=name, value=value
+                )
             except Exception:  # pylint: disable=broad-except
                 LOGGER.exception(
-                    "Cannot collect status information for %s", module)
+                    "Cannot collect status information for %s", module
+                )
                 self.dictionary[module] = {
-                    "Error": f"Could not collect information about {module}"}
+                    "Error": f"Could not collect information about {module}"
+                }
 
 
 collect_status = DoorPiStatus  # pylint: disable=invalid-name

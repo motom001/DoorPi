@@ -1,6 +1,5 @@
 import os
 import unittest
-
 from tempfile import TemporaryDirectory
 from unittest.mock import MagicMock
 
@@ -26,7 +25,6 @@ def DoorPi():
 
 
 class DoorPiTestCase(unittest.TestCase):
-
     def setUp(self):
         global doorpi_instance
         doorpi_instance = None

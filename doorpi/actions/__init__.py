@@ -28,11 +28,17 @@ import importlib.util
 import logging
 import pkgutil
 from typing import (
-    Any, Callable, Dict, Mapping, Optional, Protocol, TypeVar,
-    runtime_checkable)
+    Any,
+    Callable,
+    Dict,
+    Mapping,
+    Optional,
+    Protocol,
+    TypeVar,
+    runtime_checkable,
+)
 
 import doorpi
-
 
 LOGGER = logging.getLogger(__name__)
 ACTION_REGISTRY = {}
@@ -42,6 +48,7 @@ _T = TypeVar("_T", bound=Callable)
 
 def action(name: str) -> Callable[[_T], _T]:
     """Tag a callable as action instantiator"""
+
     def register_action(func: _T) -> _T:
         if ":" in name:
             raise ValueError(f"Invalid action name {name}")
@@ -49,6 +56,7 @@ def action(name: str) -> Callable[[_T], _T]:
             raise ValueError(f"Non-unique action name {name}")
         ACTION_REGISTRY[name] = func
         return func
+
     return register_action
 
 
@@ -59,7 +67,7 @@ def from_string(confstr: str) -> Optional[Action]:
         return None
     if atype not in ACTION_REGISTRY:
         raise ValueError(f"Unknown action {atype!r}")
-    args = confstr[len(atype) + 1:]
+    args = confstr[len(atype) + 1 :]
     arglist = args.split(",") if len(args) > 0 else []
     return ACTION_REGISTRY[atype](*arglist)
 
@@ -127,9 +135,13 @@ class CallbackAction(Action):
     to wrap functions or (bound) methods, so that they can be executed
     in response to a certain event by the event manager.
     """
+
     def __init__(
-            self, callback: Callable[..., Any], *args: Any, **kw: Any,
-            ) -> None:
+        self,
+        callback: Callable[..., Any],
+        *args: Any,
+        **kw: Any,
+    ) -> None:
         super().__init__()
         if not callable(callback):
             raise ValueError("Callback must be callable")
@@ -147,7 +159,8 @@ class CallbackAction(Action):
     def __repr__(self) -> str:
         return (
             "<internal callback to"
-            f" {self._callback!r} (args={self._args}, kwargs={self._kw})>")
+            f" {self._callback!r} (args={self._args}, kwargs={self._kw})>"
+        )
 
 
 class CheckAction(CallbackAction):
@@ -157,6 +170,7 @@ class CheckAction(CallbackAction):
     appropriate exception in case an internal error is detected. The
     exception will be logged and DoorPi will shut down.
     """
+
     def __call__(self, event_id: str, extra: Mapping[str, Any]) -> None:
         try:
             super().__call__(event_id, extra)
@@ -172,13 +186,17 @@ module = _ = None
 spec = importlib.util.find_spec(__name__)
 assert spec is not None
 for _, module, _ in pkgutil.iter_modules(
-        spec.submodule_search_locations or [], f"{__name__}."):
+    spec.submodule_search_locations or [], f"{__name__}."
+):
     try:
         importlib.import_module(module)
     except Exception as exc:  # pylint: disable=broad-except
         LOGGER.error(
             "Unable to load actions from %s: %s: %s",
-            module, exc.__class__.__name__, exc)
+            module,
+            exc.__class__.__name__,
+            exc,
+        )
 if module is None:
     raise RuntimeError("Could not load any action modules")
 del module, spec, _

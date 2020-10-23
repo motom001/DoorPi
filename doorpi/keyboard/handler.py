@@ -15,6 +15,7 @@ class KeyboardHandler:
     This class is responsible for constructing the individual keyboard
     instances, dispatching output events to and querying inputs from them.
     """
+
     last_key: Optional[str]
 
     __aliases: Dict[str, Dict[str, str]]
@@ -30,22 +31,27 @@ class KeyboardHandler:
         conf = doorpi.INSTANCE.config.view("keyboard")
         LOGGER.info(
             "Instantiating %d keyboard(s): %s",
-            len(conf), ", ".join(conf.keys()))
+            len(conf),
+            ", ".join(conf.keys()),
+        )
 
         for kbname in conf.keys():
             kbtype = conf[kbname, "type"].name
             LOGGER.debug("Instantiating keyboard %r (from_%s)", kbname, kbtype)
 
-            self.__keyboards[kbname] = kb = (
-                importlib.import_module(f"doorpi.keyboard.from_{kbtype}")
-                .instantiate(kbname))  # type: ignore[attr-defined]
+            self.__keyboards[kbname] = kb = importlib.import_module(
+                f"doorpi.keyboard.from_{kbtype}"
+            ).instantiate(
+                kbname
+            )  # type: ignore[attr-defined]
 
             LOGGER.debug("Registering input pins for %r", kbname)
             for pin, actions in kb.config.view("input").items():
                 for action in actions:
                     if action:
                         eh.register_action(
-                            f"OnKeyPressed_{kbname}.{pin}", action)
+                            f"OnKeyPressed_{kbname}.{pin}", action
+                        )
 
             LOGGER.debug("Registering output pins for %r", kbname)
             self.__aliases[kbname] = {}
@@ -57,7 +63,8 @@ class KeyboardHandler:
                 self.__aliases[kbname][alias] = pin
 
         eh.register_action(
-            "OnTimeTick", doorpi.actions.CheckAction(self.self_check))
+            "OnTimeTick", doorpi.actions.CheckAction(self.self_check)
+        )
 
     def input(self, pinpath: str) -> bool:
         """Polls an input for its current value."""
@@ -109,14 +116,15 @@ class KeyboardHandler:
         """
         pins = {}
         for kbname, kbaliases in self.__aliases.items():
-            pins.update({
-                alias: f"{kbname}.{pin}"
-                for alias, pin in kbaliases.items()})
+            pins.update(
+                {alias: f"{kbname}.{pin}" for alias, pin in kbaliases.items()}
+            )
         return pins
 
     def _decode_pinpath(
-            self, pinpath: str,
-            ) -> Tuple[doorpi.keyboard.abc.AbstractKeyboard, str, str]:
+        self,
+        pinpath: str,
+    ) -> Tuple[doorpi.keyboard.abc.AbstractKeyboard, str, str]:
         try:
             kbname, pin = pinpath.split(".")
         except ValueError:

@@ -2,12 +2,11 @@ from unittest.mock import MagicMock, patch
 
 import doorpi.actions
 
-from . import EVENT_ID, EVENT_EXTRA
 from ..mocks import DoorPi, DoorPiTestCase
+from . import EVENT_EXTRA, EVENT_ID
 
 
 class TestActionInstantiation(DoorPiTestCase):
-
     @patch("doorpi.actions.ACTION_REGISTRY")
     def test_nocolon(self, registry):
         registry.__contains__.return_value = True
@@ -28,7 +27,8 @@ class TestActionInstantiation(DoorPiTestCase):
         doorpi.actions.from_string("log:foo,bar,baz")
         registry.__getitem__.assert_called_once_with("log")
         registry.__getitem__.return_value.assert_called_once_with(
-            "foo", "bar", "baz")
+            "foo", "bar", "baz"
+        )
 
     def test_emptystring(self):
         ac = doorpi.actions.from_string("")
@@ -36,14 +36,15 @@ class TestActionInstantiation(DoorPiTestCase):
 
 
 class TestCallbackAction(DoorPiTestCase):
-
     def test_callback(self):
         mock = MagicMock()
         ac = doorpi.actions.CallbackAction(
-            mock, "some arg", kw="some keyword arg", args=["foo", "bar"])
+            mock, "some arg", kw="some keyword arg", args=["foo", "bar"]
+        )
         ac(EVENT_ID, EVENT_EXTRA)
         mock.assert_called_once_with(
-            "some arg", kw="some keyword arg", args=["foo", "bar"])
+            "some arg", kw="some keyword arg", args=["foo", "bar"]
+        )
 
     def test_callback_uncallable(self):
         with self.assertRaises(ValueError):
@@ -51,7 +52,6 @@ class TestCallbackAction(DoorPiTestCase):
 
 
 class TestCheckAction(DoorPiTestCase):
-
     def test_check_passing(self):
         mock = MagicMock()
         ac = doorpi.actions.CheckAction(mock)

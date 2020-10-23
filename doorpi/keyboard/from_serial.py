@@ -67,19 +67,21 @@ LOGGER: doorpi.DoorPiLogger = logging.getLogger(__name__)  # type: ignore
 
 class SeriallyConnectedKeyboard(AbstractKeyboard):
     def __init__(
-            self, name: str, *,
-            events: Iterable[str] = ("OnKeyPressed",),
-            ) -> None:
+        self,
+        name: str,
+        *,
+        events: Iterable[str] = ("OnKeyPressed",),
+    ) -> None:
         super().__init__(name, events=events)
 
         port = self.config["port"]
         baudrate = self.config["baudrate"]
 
         self._input_max_size = self.config["input_buffer_size"]
-        self._input_stop_flag = (
-            self.config["input_stop_flag"].encode("utf-8"))
-        self._output_stop_flag = (
-            self.config["output_stop_flag"].encode("utf-8"))
+        self._input_stop_flag = self.config["input_stop_flag"].encode("utf-8")
+        self._output_stop_flag = self.config["output_stop_flag"].encode(
+            "utf-8"
+        )
 
         if not port:
             raise ValueError(f"{self.name}: port must not be empty")
@@ -113,7 +115,8 @@ class SeriallyConnectedKeyboard(AbstractKeyboard):
 
         if not self._ser or not self._ser.isOpen():
             LOGGER.error(
-                "%s: Cannot write to keyboard: connection not open", self.name)
+                "%s: Cannot write to keyboard: connection not open", self.name
+            )
             return False
 
         if not value:
@@ -127,10 +130,13 @@ class SeriallyConnectedKeyboard(AbstractKeyboard):
 
     def self_check(self) -> None:
         if self._exception is not None:
-            raise RuntimeError(f"{self.name}: Worker died") from self._exception
+            raise RuntimeError(
+                f"{self.name}: Worker died"
+            ) from self._exception
         if not self._thread.is_alive():
             raise RuntimeError(
-                f"{self.name}: Worker found dead without exception information")
+                f"{self.name}: Worker found dead without exception information"
+            )
 
     def read_serial(self) -> None:
         """Serial connection read function
@@ -146,7 +152,8 @@ class SeriallyConnectedKeyboard(AbstractKeyboard):
             while not self._shutdown:
                 chars = self._ser.read()
                 LOGGER.trace(
-                    "%s: Read %r from serial connection", self.name, chars)
+                    "%s: Read %r from serial connection", self.name, chars
+                )
                 if not chars:
                     continue
                 buf += chars
@@ -159,7 +166,9 @@ class SeriallyConnectedKeyboard(AbstractKeyboard):
                     if len(buf) > buflen:  # buffer overrun
                         LOGGER.warning(
                             "%s: Buffer overflow (> %d), discarding input",
-                            self.name, buflen)
+                            self.name,
+                            buflen,
+                        )
                     elif now < self.last_key_time + self._bouncetime:
                         # debounce
                         pass

@@ -11,9 +11,11 @@ LOGGER = logging.getLogger(__name__)
 
 ALLOWED_SCHEMES = {"http", "https"}
 
+
 @action("http_request")
 class HTTPRequestAction(Action):
     """Performs a GET request to the given URL."""
+
     def __init__(self, *args: str) -> None:
         super().__init__()
         self.__url = ",".join(args)
@@ -28,7 +30,10 @@ class HTTPRequestAction(Action):
         resp = requests.get(self.__url)
         LOGGER.info(
             "[%s] Server response: %d %s",
-            event_id, resp.status_code, resp.reason)
+            event_id,
+            resp.status_code,
+            resp.reason,
+        )
 
     def __str__(self) -> str:
         return f"HTTP Request to {self.__url}"

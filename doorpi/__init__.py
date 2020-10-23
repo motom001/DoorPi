@@ -13,6 +13,7 @@ logging.addLevelName(logging.TRACE, "TRACE")  # type: ignore
 
 class DoorPiLogger(logging.getLoggerClass()):  # type: ignore
     """Logger subclass that adds the TRACE level"""
+
     def trace(self, message: str, *args: Any, **kw: Any) -> None:
         """Logs with TRACE level"""
         if self.isEnabledFor(logging.TRACE):  # type: ignore # pragma: no cover

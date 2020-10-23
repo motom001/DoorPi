@@ -21,12 +21,14 @@ class DoorPiSD:
             # open notify socket
             try:
                 self.socket = socket.socket(
-                    family=socket.AF_UNIX, type=socket.SOCK_DGRAM)
+                    family=socket.AF_UNIX, type=socket.SOCK_DGRAM
+                )
             except OSError:
                 LOGGER.exception("Unable to open notification socket")
         else:
             LOGGER.info(
-                "No NOTIFY_SOCKET in environment, sd-notify protocol disabled")
+                "No NOTIFY_SOCKET in environment, sd-notify protocol disabled"
+            )
 
     def ready(self) -> None:
         """Tell the service manager that we are ready
@@ -80,11 +82,14 @@ class DoorPiSD:
         corresponding environment variables were unset, this function
         will return None.
         """
-        if ("WATCHDOG_USEC" not in os.environ
-                or (usec := os.environ["WATCHDOG_USEC"]) == "0"):
+        if (
+            "WATCHDOG_USEC" not in os.environ
+            or (usec := os.environ["WATCHDOG_USEC"]) == "0"
+        ):
             return None  # no timeout given
-        if ("WATCHDOG_PID" in os.environ
-                and os.environ["WATCHDOG_PID"] != str(os.getpid())):
+        if "WATCHDOG_PID" in os.environ and os.environ["WATCHDOG_PID"] != str(
+            os.getpid()
+        ):
             return None  # wrong PID
         return int(usec)
 
@@ -99,4 +104,5 @@ class DoorPiSD:
             self.socket.sendto(msg.encode("utf-8"), self.sockaddr)
         except OSError:
             LOGGER.exception(
-                "Unable to send status information to service manager")
+                "Unable to send status information to service manager"
+            )

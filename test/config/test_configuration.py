@@ -16,10 +16,12 @@ class TestConfigDefs(DoorPiTestCase):
     def test_attached_defs_can_be_retrieved(self):
         keydef = {
             "testkey": {"_type": "string", "_default": "foo"},
-            "testns": {"testns2": {
-                "testkey": {"_default": 3},
-                "testkey2": {"_default": -7.8},
-            }},
+            "testns": {
+                "testns2": {
+                    "testkey": {"_default": 3},
+                    "testkey2": {"_default": -7.8},
+                }
+            },
         }
 
         conf_obj = config.Configuration()
@@ -61,11 +63,15 @@ class TestConfigDefs(DoorPiTestCase):
         self.assertIsInstance(actual["_type"], config.types.String)
 
     def test_attaching_enum_def_creates_nonexisting_enum(self):
-        keydef = {"config": {"test_key": {
-            "_type": "enum",
-            "_values": ["foo", "bar", "baz"],
-            "_default": "bar",
-        }}}
+        keydef = {
+            "config": {
+                "test_key": {
+                    "_type": "enum",
+                    "_values": ["foo", "bar", "baz"],
+                    "_default": "bar",
+                }
+            }
+        }
 
         if hasattr(config, "TestKey"):
             raise RuntimeError("'config.TestKey' already exists")
@@ -75,28 +81,35 @@ class TestConfigDefs(DoorPiTestCase):
             conf_obj.attach_defs({"config": keydef})
 
             self.assertTrue(
-                hasattr(config, "TestKey"),
-                msg="Enum was not created")
+                hasattr(config, "TestKey"), msg="Enum was not created"
+            )
             self.assertTrue(
                 issubclass(config.TestKey, enum.Enum),
-                msg="Created object is not an Enum subclass")
+                msg="Created object is not an Enum subclass",
+            )
             expected_members = [("foo", 1), ("bar", 2), ("baz", 3)]
             for attr, val in expected_members:
                 self.assertTrue(
                     hasattr(config.TestKey, attr),
-                    msg=f"Created Enum does not have {attr!r}")
+                    msg=f"Created Enum does not have {attr!r}",
+                )
                 self.assertEqual(config.TestKey[attr].value, val)
 
     def test_attaching_enum_def_reuses_existing_enum(self):
-        keydef = {"config": {"test_key": {
-            "_type": "enum",
-            "_default": "bar",
-        }}}
+        keydef = {
+            "config": {
+                "test_key": {
+                    "_type": "enum",
+                    "_default": "bar",
+                }
+            }
+        }
 
         class TestKey(enum.Enum):
             foo = enum.auto()
             bar = enum.auto()
             baz = enum.auto()
+
         config.TestKey = TestKey
 
         with promise_deletion(config, "TestKey"):
@@ -106,6 +119,7 @@ class TestConfigDefs(DoorPiTestCase):
             self.assertIs(TestKey, config.TestKey)
             keydef, _ = conf_obj.keydef("config.test_key")
             self.assertIs(TestKey.foo, keydef["_type"].insertcast("foo"))
+
 
 class TestConfigLoadSave(DoorPiTestCase):
     def test_config_can_be_loaded_from_file_given_as_str(self):
@@ -162,17 +176,21 @@ class TestConfigLoadSave(DoorPiTestCase):
             conf_obj.save(target)
 
     def test_loading_and_saving_results_in_same_file(self):
-        expected = io.StringIO(textwrap.dedent("""\
+        expected = io.StringIO(
+            textwrap.dedent(
+                """\
             testkey = "Testvalue"
 
             [testsection]
             testkey2 = 7
-            """))
+            """
+            )
+        )
         keydefs = {
             "testkey": {"_type": "string"},
             "testsection": {
                 "testkey2": {"_type": "int"},
-            }
+            },
         }
 
         conf_obj = config.Configuration()
@@ -189,6 +207,7 @@ class TestConfigLoadSave(DoorPiTestCase):
         with assert_no_raise(self):
             conf_obj.load_builtin_definitions()
 
+
 class TestConfigGetSet(DoorPiTestCase):
     def test_setting_invalid_value_type_raises(self):
         values = [
@@ -204,17 +223,25 @@ class TestConfigGetSet(DoorPiTestCase):
         for type_, value in values:
             with self.subTest(type=type_, value=value):
                 conf_obj = config.Configuration()
-                conf_obj.attach_defs({"config": {
-                    "testkey": {"_type": type_},
-                }})
+                conf_obj.attach_defs(
+                    {
+                        "config": {
+                            "testkey": {"_type": type_},
+                        }
+                    }
+                )
                 with self.assertRaises((TypeError, ValueError)):
                     conf_obj["testkey"] = value
 
     def test_set_values_can_be_retrieved(self):
         conf_obj = config.Configuration()
-        conf_obj.attach_defs({"config": {
-            "testkey": {"_type": "string"},
-        }})
+        conf_obj.attach_defs(
+            {
+                "config": {
+                    "testkey": {"_type": "string"},
+                }
+            }
+        )
 
         conf_obj["testkey"] = "foo"
         self.assertEqual("foo", conf_obj["testkey"])
@@ -227,18 +254,24 @@ class TestConfigGetSet(DoorPiTestCase):
             ("string", '"teststring"', "teststring"),
             ("date", "2020-01-20", datetime.date(2020, 1, 20)),
             ("time", "01:30:59", datetime.time(1, 30, 59)),
-            ("datetime",
-             "2020-01-20T01:30:59",
-             datetime.datetime(2020, 1, 20, 1, 30, 59)),
+            (
+                "datetime",
+                "2020-01-20T01:30:59",
+                datetime.datetime(2020, 1, 20, 1, 30, 59),
+            ),
             ("list", "['foo', 'bar', 'baz']", ("foo", "bar", "baz")),
             ("path", '"/tmp"', pathlib.Path("/tmp")),
         ]
         for type_, configval, expected in values:
             with self.subTest(type=type_, value=configval):
                 conf_obj = config.Configuration()
-                conf_obj.attach_defs({"config": {
-                    "testkey": {"_type": type_},
-                }})
+                conf_obj.attach_defs(
+                    {
+                        "config": {
+                            "testkey": {"_type": type_},
+                        }
+                    }
+                )
                 conf_obj.load(io.StringIO(f"testkey = {configval!s}"))
 
                 actual = conf_obj["testkey"]
@@ -246,15 +279,21 @@ class TestConfigGetSet(DoorPiTestCase):
                 self.assertEqual(actual, expected)
 
     def test_loaded_enums_can_be_retrieved(self):
-        keydef = {"config": {"test_key": {
-            "_type": "enum",
-            "_values": ["foo", "bar", "baz"],
-            "_default": "bar",
-        }}}
-        conffile = textwrap.dedent("""\
+        keydef = {
+            "config": {
+                "test_key": {
+                    "_type": "enum",
+                    "_values": ["foo", "bar", "baz"],
+                    "_default": "bar",
+                }
+            }
+        }
+        conffile = textwrap.dedent(
+            """\
             [config]
             test_key = 'baz'
-            """)
+            """
+        )
 
         with promise_deletion(config, "TestKey"):
             conf_obj = config.Configuration()
@@ -282,28 +321,39 @@ class TestConfigGetSet(DoorPiTestCase):
             ("string", True, "True"),
             ("string", datetime.date(2020, 1, 20), "2020-01-20"),
             ("string", datetime.time(1, 30, 59), "01:30:59"),
-            ("string",
-             datetime.datetime(2020, 1, 20, 1, 30, 59),
-             "2020-01-20 01:30:59"),
+            (
+                "string",
+                datetime.datetime(2020, 1, 20, 1, 30, 59),
+                "2020-01-20 01:30:59",
+            ),
             ("path", "/tmp", pathlib.Path("/tmp")),
         ]
         for type_, testvalue, expected in values:
             with self.subTest(type=type_, value=testvalue):
                 conf_obj = config.Configuration()
-                conf_obj.attach_defs({"config": {
-                    "testkey": {"_type": type_},
-                }})
+                conf_obj.attach_defs(
+                    {
+                        "config": {
+                            "testkey": {"_type": type_},
+                        }
+                    }
+                )
                 conf_obj["testkey"] = testvalue
 
                 self.assertEqual(expected, conf_obj["testkey"])
 
     def test_reading_key_without_default_value_raises_KeyError(self):
         conf_obj = config.Configuration()
-        conf_obj.attach_defs({"config": {
-            "testkey": {"_type": "string"},
-        }})
+        conf_obj.attach_defs(
+            {
+                "config": {
+                    "testkey": {"_type": "string"},
+                }
+            }
+        )
 
         self.assertRaises(KeyError, operator.itemgetter("testkey"), conf_obj)
+
 
 class TestConfigKeydef(DoorPiTestCase):
     def test_getting_keydef_of_namespace_raises_KeyError(self):
@@ -331,43 +381,56 @@ class TestConfigKeydef(DoorPiTestCase):
         _, wildsegments = conf_obj.keydef("namespace.key")
         self.assertEqual(wildsegments, ["key"])
 
+
 class ConfigView(DoorPiTestCase):
     def test_iterates_over_keys_with_values(self):
-        keydef = {"namespace": {
-            "key1": {"_default": True},
-            "key2": {"_default": "foo"},
-            "key3": {"subkey": {"_default": 10}},
-        }}
+        keydef = {
+            "namespace": {
+                "key1": {"_default": True},
+                "key2": {"_default": "foo"},
+                "key3": {"subkey": {"_default": 10}},
+            }
+        }
         conf_obj = config.Configuration()
         conf_obj.attach_defs({"config": keydef})
-        conf_obj.load(io.StringIO(textwrap.dedent("""\
+        conf_obj.load(
+            io.StringIO(
+                textwrap.dedent(
+                    """\
             [namespace]
             key1 = false
             key2 = "bar"
             key3 = {subkey = 3}
-            """)))
+            """
+                )
+            )
+        )
 
         self.assertEqual(
-            set(conf_obj.view("namespace")),
-            set(keydef["namespace"].keys()))
+            set(conf_obj.view("namespace")), set(keydef["namespace"].keys())
+        )
 
     def test_does_not_iterate_over_unset_keys(self):
-        keydef = {"namespace": {
-            "key1": {"_default": True},
-            "key2": {"_default": "foo"},
-            "key3": {"subkey": {"_default": 10}},
-        }}
+        keydef = {
+            "namespace": {
+                "key1": {"_default": True},
+                "key2": {"_default": "foo"},
+                "key3": {"subkey": {"_default": 10}},
+            }
+        }
         conf_obj = config.Configuration()
         conf_obj.attach_defs({"config": keydef})
 
         self.assertEqual(set(conf_obj.view("namespace")), set())
 
     def test_cannot_iterate_over_valuekeys(self):
-        keydef = {"namespace": {
-            "key1": {"_default": True},
-            "key2": {"_default": "foo"},
-            "key3": {"subkey": {"_default": 10}},
-        }}
+        keydef = {
+            "namespace": {
+                "key1": {"_default": True},
+                "key2": {"_default": "foo"},
+                "key3": {"subkey": {"_default": 10}},
+            }
+        }
         conf_obj = config.Configuration()
         conf_obj.attach_defs({"config": keydef})
 
@@ -375,19 +438,27 @@ class ConfigView(DoorPiTestCase):
             iter(conf_obj.view("namespace.key1"))
 
     def test_returns_number_of_keys_as_len(self):
-        keydef = {"namespace": {
-            "key1": {"_default": True},
-            "key2": {"_default": "foo"},
-            "key3": {"subkey": {"_default": 10}},
-        }}
+        keydef = {
+            "namespace": {
+                "key1": {"_default": True},
+                "key2": {"_default": "foo"},
+                "key3": {"subkey": {"_default": 10}},
+            }
+        }
         conf_obj = config.Configuration()
         conf_obj.attach_defs({"config": keydef})
-        conf_obj.load(io.StringIO(textwrap.dedent("""\
+        conf_obj.load(
+            io.StringIO(
+                textwrap.dedent(
+                    """\
             [namespace]
             key1 = false
             key2 = "bar"
             key3 = {subkey = 3}
-            """)))
+            """
+                )
+            )
+        )
 
         self.assertEqual(len(conf_obj.view("namespace")), 3)
 
@@ -412,11 +483,7 @@ class ConfigView(DoorPiTestCase):
         self.assertEqual(conf_obj["namespace.key"], "bar")
 
     def test_can_create_subview(self):
-        keydef = {
-            "namespace": {
-                "subspace": {"key": {"_default": "foo"}}
-            }
-        }
+        keydef = {"namespace": {"subspace": {"key": {"_default": "foo"}}}}
         conf_obj = config.Configuration()
         conf_obj.attach_defs({"config": keydef})
 

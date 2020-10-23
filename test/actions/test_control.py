@@ -2,12 +2,11 @@ from unittest.mock import patch
 
 from doorpi.actions import control
 
-from . import EVENT_ID, EVENT_EXTRA
 from ..mocks import DoorPi, DoorPiTestCase
+from . import EVENT_EXTRA, EVENT_ID
 
 
 class TestActionSleep(DoorPiTestCase):
-
     @patch("doorpi.actions.control.sleep")
     @patch("doorpi.INSTANCE", new_callable=DoorPi)
     def test_action(self, _, sleep):

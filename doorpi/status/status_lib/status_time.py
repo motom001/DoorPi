@@ -5,9 +5,10 @@ import doorpi.doorpi
 
 
 def get(
-        doorpi_obj: doorpi.doorpi.DoorPi,
-        name: Iterable[str], value: Iterable[str],
-        ) -> str:
+    doorpi_obj: doorpi.doorpi.DoorPi,
+    name: Iterable[str],
+    value: Iterable[str],
+) -> str:
     del doorpi_obj, name, value
     return str(datetime.datetime.now())
 

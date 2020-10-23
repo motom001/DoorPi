@@ -12,24 +12,37 @@ from . import HIGH_LEVEL
 LOGGER = logging.getLogger(__name__)
 
 
-class AbstractKeyboard():
+class AbstractKeyboard:
     """Common functionality and helpers for keyboard modules"""
-    name: str; "The configured name of this keyboard"
-    last_key: Optional[str]; "The last triggered input"
-    last_key_time: datetime.datetime; "The time when last_key was triggered"
-    config: doorpi.config.ConfigView; "View on this keyboard's configuration"
 
-    _bouncetime: datetime.timedelta; "The configured ``bouncetime``"
-    _event_source: str; """The "event source" name of this keyboard"""
-    _high_polarity: bool; "Configured keyboard polarity (True = HIGH)"
-    _inputs: List[str]; "All configured input pin names"
-    _outputs: Dict[str, bool]; "Configured output pins and their current states"
+    name: str
+    "The configured name of this keyboard"
+    last_key: Optional[str]
+    "The last triggered input"
+    last_key_time: datetime.datetime
+    "The time when last_key was triggered"
+    config: doorpi.config.ConfigView
+    "View on this keyboard's configuration"
+
+    _bouncetime: datetime.timedelta
+    "The configured ``bouncetime``"
+    _event_source: str
+    """The "event source" name of this keyboard"""
+    _high_polarity: bool
+    "Configured keyboard polarity (True = HIGH)"
+    _inputs: List[str]
+    "All configured input pin names"
+    _outputs: Dict[str, bool]
+    "Configured output pins and their current states"
     _pressed_on_key_down: bool
     """Fire OnKeyPressed together with OnKeyDown (otherwise OnKeyUp)"""
 
     def __init__(
-            self, name: str, *,
-            events: Iterable[str] = ("OnKeyPressed", "OnKeyUp", "OnKeyDown")):
+        self,
+        name: str,
+        *,
+        events: Iterable[str] = ("OnKeyPressed", "OnKeyUp", "OnKeyDown"),
+    ):
         """Common initialization
 
         This should be called before keyboard-specific initialization
@@ -64,7 +77,8 @@ class AbstractKeyboard():
 
         self.config = doorpi.INSTANCE.config.view(("keyboard", name))
         self._bouncetime = datetime.timedelta(
-            seconds=self.config["bouncetime"])
+            seconds=self.config["bouncetime"]
+        )
         self._event_source = f"keyboard.{self.__class__.__name__}.{name}"
         self._inputs = list(self.config.view("input"))
         self._outputs = dict.fromkeys(self.config.view("output"), False)
@@ -80,14 +94,17 @@ class AbstractKeyboard():
         for pin in self._inputs:
             for ev in events:
                 eh.register_event(f"{ev}_{pin}", self._event_source)
-                eh.register_event(f"{ev}_{self.name}.{pin}", self._event_source)
+                eh.register_event(
+                    f"{ev}_{self.name}.{pin}", self._event_source
+                )
 
         eh.register_action("OnShutdown", CallbackAction(self.destroy))
 
     def destroy(self) -> None:
         self._deactivate()
         doorpi.INSTANCE.event_handler.unregister_source(
-            self._event_source, force=True)
+            self._event_source, force=True
+        )
 
     def __str__(self) -> str:  # pragma: no cover
         return f"{self.name} keyboard ({self.type})"
@@ -199,13 +216,16 @@ class AbstractKeyboard():
 
     def _fire_event(self, event_name: str, pin: str) -> None:
         eh = doorpi.INSTANCE.event_handler
-        doorpi.INSTANCE.keyboard.last_key = self.last_key = f"{self.name}.{pin}"
+        doorpi.INSTANCE.keyboard.last_key = (
+            self.last_key
+        ) = f"{self.name}.{pin}"
 
         extra = self.additional_info
         eh.fire_event(event_name, self._event_source, extra=extra)
         eh.fire_event(f"{event_name}_{pin}", self._event_source, extra=extra)
         eh.fire_event(
-            f"{event_name}_{self.name}.{pin}", self._event_source, extra=extra)
+            f"{event_name}_{self.name}.{pin}", self._event_source, extra=extra
+        )
 
     def _fire_keyup(self, pin: str) -> None:
         self._fire_event("OnKeyUp", pin)

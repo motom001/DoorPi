@@ -75,7 +75,8 @@ class RDM6300Keyboard(SeriallyConnectedKeyboard):
     def __init__(self, name: str) -> None:
         super().__init__(name)
         doorpi.INSTANCE.event_handler.register_event(
-            "OnTagUnknown", self._event_source)
+            "OnTagUnknown", self._event_source
+        )
 
         self._input_start_flag = b"\x02"
         self._input_stop_flag = b"\x03"
@@ -90,12 +91,14 @@ class RDM6300Keyboard(SeriallyConnectedKeyboard):
         if not buf.startswith(self._input_start_flag):
             LOGGER.error(
                 "%s: Invalid UART data; expected START flag: %r",
-                self.name, buf)
+                self.name,
+                buf,
+            )
             return
         if not verify_crc(buf):
             LOGGER.error(
-                "%s: Invalid UART data (checksum mismatch): %r",
-                self.name, buf)
+                "%s: Invalid UART data (checksum mismatch): %r", self.name, buf
+            )
             return
 
         tag = int(buf[5:-3], 16)
@@ -104,8 +107,10 @@ class RDM6300Keyboard(SeriallyConnectedKeyboard):
             self._fire_event("OnKeyPressed", str(tag))
         else:
             doorpi.INSTANCE.event_handler(
-                "OnTagUnknown", self._event_source,
-                extra={**self.additional_info, "tag": tag})
+                "OnTagUnknown",
+                self._event_source,
+                extra={**self.additional_info, "tag": tag},
+            )
 
 
 def verify_crc(string: bytes) -> bool:
@@ -118,7 +123,7 @@ def calculate_crc(string: bytes) -> int:
     """Calculate the checksum of the passed string"""
     crc = 0
     for i in range(1, 10, 2):
-        crc ^= int(string[i : i+2], base=16)
+        crc ^= int(string[i : i + 2], base=16)
     return crc
 
 

@@ -4,9 +4,10 @@ import doorpi.doorpi
 
 
 def get(
-        doorpi_obj: doorpi.doorpi.DoorPi,
-        name: Iterable[str], value: Iterable[str],
-        ) -> Any:
+    doorpi_obj: doorpi.doorpi.DoorPi,
+    name: Iterable[str],
+    value: Iterable[str],
+) -> Any:
     return_dict = {}
     for section in name:
         try:
@@ -14,7 +15,9 @@ def get(
         except KeyError:
             pass
         else:
-            return_dict[section] = {k: v for k, v in view.items() if k in value}
+            return_dict[section] = {
+                k: v for k, v in view.items() if k in value
+            }
     return return_dict
 
 

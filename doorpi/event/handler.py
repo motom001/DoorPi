@@ -6,7 +6,16 @@ import string
 import threading
 import time
 from typing import (
-    Any, Callable, Dict, List, Mapping, Optional, Set, Tuple, Union)
+    Any,
+    Callable,
+    Dict,
+    List,
+    Mapping,
+    Optional,
+    Set,
+    Tuple,
+    Union,
+)
 
 import doorpi.actions
 
@@ -27,6 +36,7 @@ def generate_id() -> str:
 
 class EventHandler:
     """The event handler and action dispatcher."""
+
     actions: Dict[str, List[ActionCallable]]
     events: Dict[str, Set[str]]
     extra_info: Dict[str, Any]
@@ -72,8 +82,10 @@ class EventHandler:
     def threads(self) -> List[threading.Thread]:
         """List event threads managed by the handler"""
         return [
-            t for t in threading.enumerate()
-            if t.name.startswith("DoorPi Event")]
+            t
+            for t in threading.enumerate()
+            if t.name.startswith("DoorPi Event")
+        ]
 
     @property
     def idle(self) -> bool:
@@ -100,16 +112,19 @@ class EventHandler:
         if source not in self.events[event]:
             self.events[event].add(source)
             if not suppress_logs:
-                LOGGER.debug("Registered source %s for event %s", source, event)
+                LOGGER.debug(
+                    "Registered source %s for event %s", source, event
+                )
         else:
             LOGGER.warning(
                 "Multiple registrations for event %s from source %s",
-                event, source)
+                event,
+                source,
+            )
 
     def fire_event(
-            self, event: str, source: str, *,
-            extra: Dict[str, Any] = None
-            ) -> None:
+        self, event: str, source: str, *, extra: Dict[str, Any] = None
+    ) -> None:
         """Fire an event asynchronously"""
         if not self.__active:
             return
@@ -117,13 +132,12 @@ class EventHandler:
             target=self.fire_event_sync,
             args=(event, source),
             kwargs={"extra": extra},
-            name=f"DoorPi Event {event} from {source}"
+            name=f"DoorPi Event {event} from {source}",
         ).start()
 
     def fire_event_sync(
-            self, event: str, source: str, *,
-            extra: Dict[str, Any] = None
-            ) -> None:
+        self, event: str, source: str, *, extra: Dict[str, Any] = None
+    ) -> None:
         """Fire an event synchronously"""
         if not self.__active:
             return
@@ -134,15 +148,18 @@ class EventHandler:
 
         if source not in self.sources:
             LOGGER.warning(
-                "Unknown event source %s, skipping %s", source, event)
+                "Unknown event source %s, skipping %s", source, event
+            )
             return
         if event not in self.events:
             LOGGER.warning(
-                "Unknown event %s (from source %s), skipping", event, source)
+                "Unknown event %s (from source %s), skipping", event, source
+            )
             return
         if source not in self.events[event]:
             LOGGER.warning(
-                "Source %s not registered for %s, skipping", source, event)
+                "Source %s not registered for %s, skipping", source, event
+            )
             return
 
         if event not in self.actions:
@@ -156,11 +173,13 @@ class EventHandler:
         if not suppress_logs:
             self.log.log_event(event_id, source, event, start_time, extra)
 
-        extra.update({
-            "last_fired": str(start_time),
-            "source": source,
-            "event_id": event_id
-        })
+        extra.update(
+            {
+                "last_fired": str(start_time),
+                "source": source,
+                "event_id": event_id,
+            }
+        )
 
         # copy over info from last event run
         last_info = self.extra_info.get(event, {})
@@ -171,7 +190,10 @@ class EventHandler:
         if not suppress_logs:
             LOGGER.debug(
                 "[%s] Executing %d action(s) for %s",
-                event_id, len(self.actions[event]), event)
+                event_id,
+                len(self.actions[event]),
+                event,
+            )
 
         oneshot_actions = []
         for action in self.actions[event]:
@@ -184,8 +206,11 @@ class EventHandler:
             except Exception:  # pylint: disable=broad-except
                 try:
                     LOGGER.exception(
-                        "[%s] Error executing action \"%s\" for event %s",
-                        event_id, action, event)
+                        '[%s] Error executing action "%s" for event %s',
+                        event_id,
+                        action,
+                        event,
+                    )
                 except Exception:  # pylint: disable=broad-except
                     LOGGER.exception("[%s] Error executing an action")
 
@@ -204,7 +229,9 @@ class EventHandler:
     def _unregister_event(self, event: str, source: str) -> bool:
         suppress_logs = _suppress_logs(event)
         if not suppress_logs:
-            LOGGER.debug("Unregistering event %s from source %s", event, source)
+            LOGGER.debug(
+                "Unregistering event %s from source %s", event, source
+            )
 
         if event not in self.events:
             LOGGER.error("Attempt to unregister unknown event %s", event)
@@ -213,7 +240,9 @@ class EventHandler:
         if source not in self.events[event]:
             LOGGER.error(
                 "Attempt to unregister unknown source %s from event %s",
-                source, event)
+                source,
+                event,
+            )
             return False
 
         self.events[event] -= {source}
@@ -228,8 +257,11 @@ class EventHandler:
             self.unregister_source(source, force=None)
 
     def unregister_source(
-            self, source: str, *, force: Optional[bool] = False,
-            ) -> None:
+        self,
+        source: str,
+        *,
+        force: Optional[bool] = False,
+    ) -> None:
         """Unregister an event source
 
         Args:
@@ -237,8 +269,8 @@ class EventHandler:
                 events associated.
         """
         LOGGER.debug(
-            "Removing source %s%s",
-            source, " with force" if force else "")
+            "Removing source %s%s", source, " with force" if force else ""
+        )
 
         events = self.get_events_by_source(source)
         if events:
@@ -246,7 +278,10 @@ class EventHandler:
                 LOGGER.error(
                     "Attempt to unregister source %s,"
                     " which is used for %d events: %s",
-                    source, len(events), ", ".join(events))
+                    source,
+                    len(events),
+                    ", ".join(events),
+                )
             if not force:
                 return
 
@@ -257,9 +292,12 @@ class EventHandler:
             self.sources.remove(source)
 
     def register_action(
-            self, event: str, action: RegistrableAction, *,
-            oneshot: bool = False,
-            ) -> None:
+        self,
+        event: str,
+        action: RegistrableAction,
+        *,
+        oneshot: bool = False,
+    ) -> None:
         """Register an action to execute when the ``event`` fires
 
         Args:

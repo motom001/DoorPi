@@ -9,9 +9,11 @@ LOGGER = logging.getLogger(__name__)
 
 
 def fire_event(
-        event_name: str, async_only: bool = False, *,
-        remote_uri: Optional[str] = None,
-        ) -> None:
+    event_name: str,
+    async_only: bool = False,
+    *,
+    remote_uri: Optional[str] = None,
+) -> None:
     """Helper function to ease firing events.
 
     Normally all DoorPi events are fired asynchronously, however this

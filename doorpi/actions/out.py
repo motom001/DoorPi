@@ -3,11 +3,13 @@ import threading
 from typing import Any, Mapping
 
 import doorpi
+
 from . import Action, action
 
 
 class OutAction(Action):
     """Sets a GPIO pin to a constant value."""
+
     def __init__(self, pin: str, value: str) -> None:
         super().__init__()
         self._pin = pin
@@ -30,9 +32,16 @@ class OutAction(Action):
 
 class TriggeredOutAction(OutAction):
     """Holds a GPIO pin at a value for some time before setting it back."""
+
     def __init__(
-            self, pin: str, startval: str, stopval: str,
-            holdtime: str, intpin: str = None, /) -> None:
+        self,
+        pin: str,
+        startval: str,
+        stopval: str,
+        holdtime: str,
+        intpin: str = None,
+        /,
+    ) -> None:
         super().__init__(pin, startval)
         self._stopval = stopval
         self._holdtime = float(holdtime)
@@ -40,7 +49,8 @@ class TriggeredOutAction(OutAction):
         self._int = threading.Event()
         if intpin:
             doorpi.INSTANCE.event_handler.register_action(
-                f"OnKeyDown_{intpin}", self.interrupt)
+                f"OnKeyDown_{intpin}", self.interrupt
+            )
 
     def __call__(self, event_id: str, extra: Mapping[str, Any]) -> None:
         self._setpin(self._value)
@@ -54,18 +64,28 @@ class TriggeredOutAction(OutAction):
         self._int.set()
 
     def __str__(self) -> str:
-        return f"Hold {self._pin} at {self._value} for {self._holdtime}s" \
-            + f" or until {self._intpin} is pressed" if self._intpin else ""
+        return (
+            f"Hold {self._pin} at {self._value} for {self._holdtime}s"
+            + f" or until {self._intpin} is pressed"
+            if self._intpin
+            else ""
+        )
 
     def __repr__(self) -> str:
-        return "".join((
-            "out:",
-            ",".join((
-                self._pin, self._value, self._stopval,
-                str(self._holdtime)
-            )),
-            self._intpin or "",
-        ))
+        return "".join(
+            (
+                "out:",
+                ",".join(
+                    (
+                        self._pin,
+                        self._value,
+                        self._stopval,
+                        str(self._holdtime),
+                    )
+                ),
+                self._intpin or "",
+            )
+        )
 
 
 @action("out")

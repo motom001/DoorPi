@@ -8,6 +8,7 @@ from . import Action, action
 @action("sleep")
 class SleepAction(Action):
     """Delays event execution."""
+
     def __init__(self, time: str) -> None:
         super().__init__()
         self.__time = float(time)

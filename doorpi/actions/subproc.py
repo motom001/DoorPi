@@ -12,6 +12,7 @@ LOGGER = logging.getLogger(__name__)
 @action("os_execute")
 class OSExecuteAction(Action):
     """Executes a command"""
+
     def __init__(self, *cmd: str) -> None:
         super().__init__()
         self.__cmd = ",".join(cmd)
@@ -25,7 +26,9 @@ class OSExecuteAction(Action):
         else:
             LOGGER.info(
                 "[%s] Command returned with code %d",
-                event_id, result.returncode)
+                event_id,
+                result.returncode,
+            )
 
     def __str__(self) -> str:
         return f"Run shell code {self.__cmd}"

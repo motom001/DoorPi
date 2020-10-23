@@ -8,6 +8,7 @@ from typing import Any, Mapping, Optional
 import doorpi
 from doorpi import metadata
 from doorpi.actions import snapshot
+
 from . import Action, action
 
 LOGGER = logging.getLogger(__name__)
@@ -17,16 +18,23 @@ LOGGER = logging.getLogger(__name__)
 @action("mailto")
 class MailAction(Action):
     """Send an email"""
+
     def __init__(
-            self, to: str, subject: str = "Doorbell",
-            text: str = "Someone rang the door!",
-            attach_snapshot: str = "false"
-            ) -> None:
+        self,
+        to: str,
+        subject: str = "Doorbell",
+        text: str = "Someone rang the door!",
+        attach_snapshot: str = "false",
+    ) -> None:
         super().__init__()
         self.__to = to
         self.__subject = subject
-        self.__snap = (
-            attach_snapshot.lower().strip() in {"true", "yes", "on", "1"})
+        self.__snap = attach_snapshot.lower().strip() in {
+            "true",
+            "yes",
+            "on",
+            "1",
+        }
 
         cfg = doorpi.INSTANCE.config.view("mail")
         self.__host = cfg["server"]
@@ -66,14 +74,16 @@ class MailAction(Action):
             raise ValueError("Cannot combine SSL and STARTTLS")
 
         # Test the SMTP connection by greeting the server and logging in
-        with smtplib.SMTP_SSL(self.__host, self.__port) if self.__ssl \
-                else smtplib.SMTP(self.__host, self.__port) as smtp:
+        with smtplib.SMTP_SSL(
+            self.__host, self.__port
+        ) if self.__ssl else smtplib.SMTP(self.__host, self.__port) as smtp:
             self._start_session(smtp)
 
     def __call__(self, event_id: str, extra: Mapping[str, Any]) -> None:
         msg = email.message.EmailMessage()
         msg["From"] = self.__from or '"{}" <{}@{}>'.format(
-            metadata.distribution.metadata["Name"], self.__user, self.__host)
+            metadata.distribution.metadata["Name"], self.__user, self.__host
+        )
         msg["To"] = self.__to
         msg["Subject"] = doorpi.INSTANCE.parse_string(self.__subject)
 
@@ -87,13 +97,19 @@ class MailAction(Action):
                 snapfile = snapshot.SnapshotAction.list_all()[-1]
                 snap_data = snapfile.read_bytes()
                 msg.add_attachment(
-                    snap_data, "application", "octet-stream", cte="base64",
-                    disposition="attachment", filename=snapfile.name)
+                    snap_data,
+                    "application",
+                    "octet-stream",
+                    cte="base64",
+                    disposition="attachment",
+                    filename=snapfile.name,
+                )
             except IndexError:
                 LOGGER.error("[%s] No snapshots to attach to email", event_id)
             except Exception:  # pylint: disable=broad-except
                 LOGGER.exception(
-                    "[%s] Cannot attach snapshot to email", event_id)
+                    "[%s] Cannot attach snapshot to email", event_id
+                )
 
         session: smtplib.SMTP
         if self.__ssl:
@@ -107,7 +123,11 @@ class MailAction(Action):
         except smtplib.SMTPException as err:
             LOGGER.error(
                 "[%s] Failed sending email to %s: %s: %s",
-                event_id, self.__to, type(err).__name__, err)
+                event_id,
+                self.__to,
+                type(err).__name__,
+                err,
+            )
         else:
             LOGGER.info("[%s] Sent email to %s", event_id, self.__to)
 
@@ -123,4 +143,5 @@ class MailAction(Action):
     def __repr__(self) -> str:
         return (
             f"mailto:{self.__to},{self.__subject},"
-            f"{self.__textfile or self.__text},{self.__snap}")
+            f"{self.__textfile or self.__text},{self.__snap}"
+        )

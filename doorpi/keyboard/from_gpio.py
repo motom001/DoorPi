@@ -38,10 +38,14 @@ class GPIOKeyboard(AbstractKeyboard):
         gpio.setup(self._inputs, gpio.IN, pull_up_down=pull)
         for input_pin in self._inputs:
             gpio.add_event_detect(
-                input_pin, gpio.BOTH, callback=self.event_detect,
+                input_pin,
+                gpio.BOTH,
+                callback=self.event_detect,
                 bouncetime=(
                     self._bouncetime.days * 3600 * 24
-                    + self._bouncetime.seconds))
+                    + self._bouncetime.seconds
+                ),
+            )
 
         gpio.setup(self._outputs.keys(), gpio.OUT)
         for output_pin in self._outputs:

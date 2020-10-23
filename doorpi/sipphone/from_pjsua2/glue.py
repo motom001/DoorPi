@@ -9,13 +9,14 @@ import doorpi
 from doorpi.actions import CallbackAction
 from doorpi.sipphone.abc import AbstractSIPPhone
 
-from . import EVENT_SOURCE, fire_event, config, fileio, worker
+from . import EVENT_SOURCE, config, fileio, fire_event, worker
 
 LOGGER: doorpi.DoorPiLogger = logging.getLogger(__name__)  # type: ignore
 
 
 class Pjsua2(AbstractSIPPhone):
     """Implements the SIP phone module interface for DoorPi."""
+
     def get_name(self) -> str:
         return "pjsua2"
 
@@ -24,21 +25,31 @@ class Pjsua2(AbstractSIPPhone):
 
         eh = doorpi.INSTANCE.event_handler
         for ev in [
-                # Fired by this class
-                "OnSIPPhoneCreate",
-                "OnCallOutgoing", "OnCallOutgoing_S",
-                # Fired by AccountCallback
-                "BeforeCallIncoming", "OnCallIncoming",
-                "OnCallBusy", "OnCallReject",
-                "BeforeCallIncoming_S", "OnCallIncoming_S",
-                "OnCallBusy_S", "OnCallReject_S",
-                # Fired by CallCallback (all) / Worker (unanswered)
-                "OnCallConnect", "OnCallUnanswered",
-                "OnCallConnect_S", "OnCallUnanswered_S",
-                # Fired by Worker
-                "OnSIPPhoneStart", "OnSIPPhoneDestroy",
-                "OnCallDisconnect", "OnCallTimeExceeded",
-                "OnCallDisconnect_S", "OnCallTimeExceeded_S",
+            # Fired by this class
+            "OnSIPPhoneCreate",
+            "OnCallOutgoing",
+            "OnCallOutgoing_S",
+            # Fired by AccountCallback
+            "BeforeCallIncoming",
+            "OnCallIncoming",
+            "OnCallBusy",
+            "OnCallReject",
+            "BeforeCallIncoming_S",
+            "OnCallIncoming_S",
+            "OnCallBusy_S",
+            "OnCallReject_S",
+            # Fired by CallCallback (all) / Worker (unanswered)
+            "OnCallConnect",
+            "OnCallUnanswered",
+            "OnCallConnect_S",
+            "OnCallUnanswered_S",
+            # Fired by Worker
+            "OnSIPPhoneStart",
+            "OnSIPPhoneDestroy",
+            "OnCallDisconnect",
+            "OnCallTimeExceeded",
+            "OnCallDisconnect_S",
+            "OnCallTimeExceeded_S",
         ]:
             eh.register_event(ev, EVENT_SOURCE)
 
@@ -70,7 +81,8 @@ class Pjsua2(AbstractSIPPhone):
             self._worker.shutdown()
             del self._worker
         doorpi.INSTANCE.event_handler.unregister_source(
-            EVENT_SOURCE, force=True)
+            EVENT_SOURCE, force=True
+        )
 
     def start(self) -> None:
         LOGGER.info("Starting PJSUA2 SIP phone")
@@ -83,7 +95,9 @@ class Pjsua2(AbstractSIPPhone):
             canonical_uri = self.canonicalize_uri(uri)
         except ValueError:
             return False
-        LOGGER.trace("About to call %s (canonicalized: %s)", uri, canonical_uri)
+        LOGGER.trace(
+            "About to call %s (canonicalized: %s)", uri, canonical_uri
+        )
 
         with self._call_lock:
             if self.current_call is not None:
@@ -102,11 +116,11 @@ class Pjsua2(AbstractSIPPhone):
             ci = cc.getInfo()
             return {
                 "direction": (
-                    "outgoing" if ci.role == pj.PJSIP_ROLE_UAC
-                    else "incoming"),
+                    "outgoing" if ci.role == pj.PJSIP_ROLE_UAC else "incoming"
+                ),
                 "remote_uri": ci.remoteUri,
                 "total_time": ci.connectDuration,
-                "camera": False
+                "camera": False,
             }
         return {}
 
@@ -126,7 +140,8 @@ class Pjsua2(AbstractSIPPhone):
         for admin_number in conf["sipphone.admins"]:
             if admin_number == "*":
                 LOGGER.trace(
-                    "Found '*' in config: everything is an admin number")
+                    "Found '*' in config: everything is an admin number"
+                )
                 return True
             if canonical_uri == self.canonicalize_uri(admin_number):
                 LOGGER.trace("%s is admin number %s", uri, admin_number)

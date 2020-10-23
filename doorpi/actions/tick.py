@@ -3,12 +3,14 @@ import datetime
 from typing import Any, Mapping
 
 import doorpi
+
 from . import Action, CallbackAction, action
 
 
 @action("time_tick")
 class TickAction(Action):
     """The internal tick action."""
+
     def __init__(self, last_tick: str) -> None:
         super().__init__()
         self.__last_tick = datetime.datetime.fromtimestamp(float(last_tick))
@@ -17,8 +19,10 @@ class TickAction(Action):
         if __name__ in eh.sources:
             raise RuntimeError("Attempt to instantiate multiple TickActions")
         eh.register_source(__name__)
-        eh.register_action("OnShutdown", CallbackAction(
-            eh.unregister_source, __name__, force=True))
+        eh.register_action(
+            "OnShutdown",
+            CallbackAction(eh.unregister_source, __name__, force=True),
+        )
 
         for i in ("Second", "Minute", "Hour", "Day", "Week", "Month", "Year"):
             eh.register_event(f"OnTime{i}", __name__)

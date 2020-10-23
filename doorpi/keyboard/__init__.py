@@ -56,4 +56,5 @@ HIGH_LEVEL = frozenset({"1", "high", "on", "true"})
 def load() -> doorpi.keyboard.handler.KeyboardHandler:
     """Loads the keyboard handler."""
     from . import handler  # pylint: disable=import-outside-toplevel
+
     return handler.KeyboardHandler()

@@ -13,6 +13,7 @@ ETC = "/etc" if sys.prefix == "/usr" else "etc"
 
 class InstallHook(setuptools.command.install.install):
     """Hook for ``install`` command that processes template files (*.in)"""
+
     def run(self):
         datapath = BASE_PATH / "data"
         package = self.distribution.metadata.name.lower()

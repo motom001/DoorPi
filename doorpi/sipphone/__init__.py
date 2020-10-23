@@ -71,15 +71,16 @@ from .abc import AbstractSIPPhone
 __all__ = ["DEFAULT_MEDIA_DIR", "AbstractSIPPhone", "load"]
 
 DEFAULT_MEDIA_DIR = "{}/share/{}".format(
-    sys.prefix, metadata.distribution.metadata['Name'].lower())
+    sys.prefix, metadata.distribution.metadata["Name"].lower()
+)
 
 
 def load() -> AbstractSIPPhone:
     sipphone_name = doorpi.INSTANCE.config["sipphone.type"]
     try:
-        return (
-            importlib.import_module(f"doorpi.sipphone.from_{sipphone_name}")
-            .instantiate())  # type: ignore
+        return importlib.import_module(
+            f"doorpi.sipphone.from_{sipphone_name}"
+        ).instantiate()  # type: ignore
     except ImportError as err:
         raise RuntimeError(
             f"Failed to load sip phone module {sipphone_name}"

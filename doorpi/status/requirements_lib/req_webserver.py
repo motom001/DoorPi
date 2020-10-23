@@ -1,7 +1,8 @@
 import textwrap
 
 REQUIREMENT = {
-    "text_description": textwrap.dedent("""\
+    "text_description": textwrap.dedent(
+        """\
         Der Webserver ist Kontroll- und Konfigurationsoberfläche sowie die
         Schnittstelle per Webservice.  Es können Dateien angefragt werden (z.B.
         ``index.html``), die aus dem Dateisystem geladen werden (reale
@@ -88,5 +89,6 @@ REQUIREMENT = {
                 "/login.html",
                 "/favicon.ico",
             ]
-            """),
+            """
+    ),
 }

@@ -1,12 +1,12 @@
 """The DoorPiWeb server"""
 from __future__ import annotations
 
+import http.server
 import logging
 import os
 import pathlib
 import socket
 import threading
-import http.server
 from typing import Optional
 
 import doorpi
@@ -18,10 +18,14 @@ try:
     from . import requests, sessions
 except ImportError as err:
     LOGGER.error("DoorPiWeb requirements are not met: %s", err)
+
     def load() -> Optional[DoorPiWeb]:
         """Load the webserver"""
         return None
+
+
 else:
+
     def load() -> Optional[DoorPiWeb]:
         """Load the webserver"""
         try:
@@ -34,19 +38,24 @@ else:
 
 class DoorPiWeb(http.server.ThreadingHTTPServer):
     """The DoorPiWeb server"""
+
     def __init__(self) -> None:
         self.config = doorpi.INSTANCE.config.view("web")
         self.sessions = sessions.SessionHandler()
         self.www: pathlib.Path = self.config["root"]
         self._thread = threading.Thread(
-            target=self.serve_forever, name="Webserver Thread")
+            target=self.serve_forever, name="Webserver Thread"
+        )
 
         super().__init__(
             (self.config["ip"], self.config["port"]),
-            requests.DoorPiWebRequestHandler)
+            requests.DoorPiWebRequestHandler,
+        )
         LOGGER.info(
             "Starting web server on http://%s:%d",
-            self.server_name, self.server_port)
+            self.server_name,
+            self.server_port,
+        )
         LOGGER.info("Serving files from %s", self.www)
 
         requests.DoorPiWebRequestHandler.prepare()
@@ -61,7 +70,8 @@ class DoorPiWeb(http.server.ThreadingHTTPServer):
 
     def shutdown(self) -> None:
         doorpi.INSTANCE.event_handler.fire_event_sync(
-            "OnWebServerStop", __name__)
+            "OnWebServerStop", __name__
+        )
         super().shutdown()
         if self.sessions:
             self.sessions.destroy()

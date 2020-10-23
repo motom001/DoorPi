@@ -18,7 +18,7 @@ supporters = (
     "Michael Hauer <frrr@gmx.at>",
     "Andreas Schwarz <doorpi@schwarz-ketsch.de>",
     "Max Rößler <max_kr@gmx.de>",
-    "missing someone? -> sorry -> mail me"
+    "missing someone? -> sorry -> mail me",
 )
 
 # created with: http://patorjk.com/software/taag/#p=display&f=Ogre&t=DoorPi
@@ -36,7 +36,8 @@ Supporter:  {supporters}
     project=distribution.metadata["Name"],
     version=distribution.metadata["Version"],
     author="{} <{}>".format(
-        distribution.metadata["Author"],
-        distribution.metadata["Author-email"]),
+        distribution.metadata["Author"], distribution.metadata["Author-email"]
+    ),
     supporters="\n            ".join(supporters),
-    url=distribution.metadata["Home-page"])
+    url=distribution.metadata["Home-page"],
+)

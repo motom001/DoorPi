@@ -8,6 +8,7 @@ class AbstractSIPPhone(metaclass=abc.ABCMeta):  # pragma: no cover
     This class defines and documents all public methods that a SIP
     phone module implementation should expose.
     """
+
     @abc.abstractmethod
     def get_name(self) -> str:
         """Returns the name of this SIP phone module."""

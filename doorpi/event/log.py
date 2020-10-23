@@ -21,7 +21,8 @@ class EventLog:
     def __init__(self, db: str) -> None:
         if not sqlite3.threadsafety:
             raise RuntimeError(
-                "Your version of SQLite is not compiled thread-safe!")
+                "Your version of SQLite is not compiled thread-safe!"
+            )
 
         dbpath = pathlib.Path(db)
         dbpath.parent.mkdir(parents=True, exist_ok=True)
@@ -29,11 +30,12 @@ class EventLog:
             database=str(dbpath),
             timeout=1,
             isolation_level=None,
-            check_same_thread=False
+            check_same_thread=False,
         )
 
         with self._db:
-            self._db.executescript("""
+            self._db.executescript(
+                """
                 CREATE TABLE IF NOT EXISTS event_log (
                     event_id TEXT,
                     fired_by TEXT,
@@ -52,7 +54,8 @@ class EventLog:
                     value TEXT
                 );
                 INSERT INTO metadata VALUES ('db_version', '1');
-                """)
+                """
+            )
 
     def count_event_log_entries(self, filter_: str = "") -> int:
         """Count the event log entries that match ``filter_``
@@ -61,20 +64,27 @@ class EventLog:
             filter_: A SQLite LIKE substring to filter any column
         """
         try:
-            return self._db.execute("""
+            return self._db.execute(
+                """
                 SELECT COUNT(*) FROM event_log
                 WHERE event_id LIKE ?
                 OR fired_by LIKE ?
                 OR event_name LIKE ?
                 OR start_time LIKE ?
-            """, (f"%{filter_}%",) * 4).fetchone()[0]
+            """,
+                (f"%{filter_}%",) * 4,
+            ).fetchone()[0]
         except sqlite3.Error:
-            LOGGER.exception("Error counting event log with filter %r", filter_)
+            LOGGER.exception(
+                "Error counting event log with filter %r", filter_
+            )
             return -1
 
     def get_event_log(
-            self, max_count: int = 100, filter_: str = "",
-            ) -> Tuple[EventLogEntry, ...]:
+        self,
+        max_count: int = 100,
+        filter_: str = "",
+    ) -> Tuple[EventLogEntry, ...]:
         """Get event records from the event log
 
         Args:
@@ -92,7 +102,8 @@ class EventLog:
             * ``additional_infos``: A JSON object with auxiliary info.
         """
         try:
-            cursor = self._db.execute("""
+            cursor = self._db.execute(
+                """
                 SELECT
                     event_id,
                     fired_by,
@@ -105,22 +116,34 @@ class EventLog:
                 OR event_name LIKE ?
                 OR start_time LIKE ?
                 ORDER BY start_time ASC
-                LIMIT ?""", (f"%{filter_}%",) * 4 + (max_count,))
+                LIMIT ?""",
+                (f"%{filter_}%",) * 4 + (max_count,),
+            )
 
-            return tuple(EventLogEntry({
-                "event_id": row[0],
-                "fired_by": row[1],
-                "event_name": row[2],
-                "start_time": row[3],
-                "additional_infos": row[4]
-            }) for row in cursor)
+            return tuple(
+                EventLogEntry(
+                    {
+                        "event_id": row[0],
+                        "fired_by": row[1],
+                        "event_name": row[2],
+                        "start_time": row[3],
+                        "additional_infos": row[4],
+                    }
+                )
+                for row in cursor
+            )
         except sqlite3.Error:
             LOGGER.exception("Error reading event log with filter %r", filter_)
             return ()
 
     def log_event(
-            self, event_id: str, source: str, event: str, start_time: float,
-            extra: Optional[Mapping[str, Any]]) -> None:
+        self,
+        event_id: str,
+        source: str,
+        event: str,
+        start_time: float,
+        extra: Optional[Mapping[str, Any]],
+    ) -> None:
         """Insert an event into the event log
 
         Args:
@@ -134,15 +157,22 @@ class EventLog:
             with self._db:
                 self._db.execute(
                     "INSERT INTO event_log VALUES (?, ?, ?, ?, ?)",
-                    (event_id, source, event, start_time,
-                     json.dumps(extra, sort_keys=True) if extra else ""))
+                    (
+                        event_id,
+                        source,
+                        event,
+                        start_time,
+                        json.dumps(extra, sort_keys=True) if extra else "",
+                    ),
+                )
         except sqlite3.Error:
             LOGGER.exception(
-                "[%s] Cannot insert event %s into event log",
-                event_id, event)
+                "[%s] Cannot insert event %s into event log", event_id, event
+            )
 
     def log_action(
-            self, event_id: str, action_name: str, start_time: float) -> None:
+        self, event_id: str, action_name: str, start_time: float
+    ) -> None:
         """Insert an executed action into the event log
 
         Args:
@@ -154,11 +184,14 @@ class EventLog:
             with self._db:
                 self._db.execute(
                     "INSERT INTO action_log VALUES (?, ?, ?, ?)",
-                    (event_id, action_name, start_time, ""))
+                    (event_id, action_name, start_time, ""),
+                )
         except sqlite3.Error:
             LOGGER.exception(
                 "[%s] Cannot insert action %s into event log",
-                event_id, action_name)
+                event_id,
+                action_name,
+            )
 
     def destroy(self) -> None:
         """Shut down the event log"""

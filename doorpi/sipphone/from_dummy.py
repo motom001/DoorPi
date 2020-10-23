@@ -3,7 +3,6 @@
 import logging
 
 import doorpi
-
 from doorpi.actions import CallbackAction
 from doorpi.sipphone.abc import AbstractSIPPhone
 
@@ -12,6 +11,7 @@ LOGGER = logging.getLogger(__name__)
 
 class DummyPhone(AbstractSIPPhone):
     """A dummy SIP phone that does not actually place any calls."""
+
     def get_name(self) -> str:  # pragma: no cover
         return "dummy phone"
 

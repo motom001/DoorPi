@@ -7,22 +7,34 @@ import doorpi.doorpi
 
 LOGGER: doorpi.DoorPiLogger
 LOGGER = logging.getLogger(__name__)  # type: ignore
-DEFAULT_MODULE_ATTR = frozenset({
-    "__doc__", "__file__", "__name__", "__package__", "__path__", "__version__"
-})
+DEFAULT_MODULE_ATTR = frozenset(
+    {
+        "__doc__",
+        "__file__",
+        "__name__",
+        "__package__",
+        "__path__",
+        "__version__",
+    }
+)
 
 
 try:
     import docutils.core
 except ModuleNotFoundError:
     LOGGER.error("``docutils`` not installed, cannot render HTML descriptions")
+
     def rsttohtml(rst: str) -> str:
         return f"<pre>{rst}</pre>"
+
+
 else:
+
     def rsttohtml(rst: str) -> str:
         return docutils.core.publish_parts(
-            rst, writer_name="html",
-            settings_overrides={"input_encoding": "unicode"}
+            rst,
+            writer_name="html",
+            settings_overrides={"input_encoding": "unicode"},
         )["fragment"]
 
 
@@ -76,7 +88,8 @@ def load_module_status(module_name: str) -> Dict[str, Any]:
             if ent.startswith("text_"):
                 lib_req[ent] = rsttohtml(lib_req[ent])
                 LOGGER.trace(
-                    "Parsed %s.libraries.%s.%s", module_name, lib_name, ent)
+                    "Parsed %s.libraries.%s.%s", module_name, lib_name, ent
+                )
 
     # module.[configuration, events].*.description
     for ent in ("configuration", "events"):
@@ -84,9 +97,11 @@ def load_module_status(module_name: str) -> Dict[str, Any]:
             for sub in range(len(module.setdefault(ent, []))):
                 try:
                     module[ent][sub]["description"] = rsttohtml(
-                        module[ent][sub]["description"])
+                        module[ent][sub]["description"]
+                    )
                     LOGGER.trace(
-                        "Parsed %s.%s.%s.description", module_name, ent, sub)
+                        "Parsed %s.%s.%s.description", module_name, ent, sub
+                    )
                 except KeyError:
                     pass
         except KeyError:
@@ -102,18 +117,20 @@ REQUIREMENTS_DOORPI = {
     "event_handler": load_module_status("req_event_handler"),
     "webserver": load_module_status("req_webserver"),
     "keyboard": load_module_status("req_keyboard"),
-    "system": load_module_status("req_system")
+    "system": load_module_status("req_system"),
 }
 LOGGER.debug(
     "Parsing requirements texts took %dms",
-    int((time.time() - _STARTTIME) * 1000))
+    int((time.time() - _STARTTIME) * 1000),
+)
 del _STARTTIME
 
 
 def get(
-        doorpi_obj: doorpi.doorpi.DoorPi,
-        name: Iterable[str], value: Iterable[str],
-        ) -> Dict[str, Any]:
+    doorpi_obj: doorpi.doorpi.DoorPi,
+    name: Iterable[str],
+    value: Iterable[str],
+) -> Dict[str, Any]:
     del doorpi_obj, value
     if not name:
         name = [""]

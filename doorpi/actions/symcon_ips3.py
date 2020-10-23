@@ -7,6 +7,7 @@ from typing import Any, Dict, Mapping, TypedDict
 import requests
 
 import doorpi
+
 from . import Action, action
 
 LOGGER = logging.getLogger(__name__)
@@ -18,6 +19,7 @@ TRUE_VALUES = {"true", "yes", "on", "1"}
 @enum.unique
 class IPSVariableType(enum.Enum):
     """Types of variables known to Symcon IPS v3"""
+
     BOOLEAN = 0
     INTEGER = 1
     FLOAT = 2
@@ -32,6 +34,7 @@ class IPSConfig(TypedDict):
 
 class IPSConnector:
     """Helper class that facilitates connecting to a Symcon IPS"""
+
     @property
     def config(self) -> IPSConfig:
         """Retrieves the IPS config from DoorPi."""
@@ -43,12 +46,9 @@ class IPSConnector:
         )
 
     def _do_request(self, method: str, *prm: Any) -> Dict[str, Any]:
-        payload = json.dumps({
-            "method": method,
-            "params": prm,
-            "jsonrpc": "2.0",
-            "id": 0
-        }).encode("utf-8")
+        payload = json.dumps(
+            {"method": method, "params": prm, "jsonrpc": "2.0", "id": 0}
+        ).encode("utf-8")
 
         response = requests.post(
             self.config["webservice_url"],
@@ -96,6 +96,7 @@ class IPSConnector:
 
 class IPSSetValueAction(IPSConnector, Action):
     """Sets a variable in the IPS."""
+
     def __init__(self, key: str, value: str) -> None:
         super().__init__()
         self.__key = int(key)
@@ -113,6 +114,7 @@ class IPSSetValueAction(IPSConnector, Action):
 
 class IPSCallFromVariableAction(IPSConnector, Action):
     """Calls the number that is stored in the IPS."""
+
     def __init__(self, key: str) -> None:
         super().__init__()
         self.__key = int(key)
@@ -125,7 +127,10 @@ class IPSCallFromVariableAction(IPSConnector, Action):
 
         LOGGER.info(
             "[%s] Got phone number %s from variable %s",
-            event_id, repr(uri), self.__key)
+            event_id,
+            repr(uri),
+            self.__key,
+        )
         doorpi.INSTANCE.sipphone.call(uri)
 
     def __str__(self) -> str:

@@ -41,6 +41,7 @@ def infertype(default: Any) -> Type[ValueType]:
 
 class ValueType(metaclass=abc.ABCMeta):
     """ABC for value types"""
+
     __slots__ = ()
 
     def __init__(self, name: Sequence[str], keydef: Mapping[str, Any]) -> None:
@@ -58,6 +59,7 @@ class ValueType(metaclass=abc.ABCMeta):
 
 class Anything(ValueType):
     """Any value"""
+
     __slots__ = ()
 
     @staticmethod
@@ -67,6 +69,7 @@ class Anything(ValueType):
 
 class Int(ValueType):
     """An integer number (1, 2, -5, etc.)"""
+
     __slots__ = ("_Int__min", "_Int__max")
 
     def __init__(self, name: Sequence[str], keydef: Mapping[str, Any]) -> None:
@@ -86,6 +89,7 @@ class Int(ValueType):
 
 class Float(ValueType):
     """A floating point number (1.2, -7.9, etc.)"""
+
     __slots__ = ("_Float__min", "_Float__max")
 
     def __init__(self, name: Sequence[str], keydef: Mapping[str, Any]) -> None:
@@ -105,6 +109,7 @@ class Float(ValueType):
 
 class Bool(ValueType):
     """A boolean value, i.e. true/false, on/off, 1/0 etc."""
+
     __true_values = {"true", "yes", "on", "1", 1}
     __false_values = {"false", "no", "off", "0", 0}
     __slots__ = ()
@@ -126,15 +131,24 @@ class Bool(ValueType):
 
 class String(ValueType):
     """A string of characters"""
+
     __slots__ = ()
 
     @staticmethod
     def insertcast(value: Any) -> str:
         if isinstance(value, str):
             return value
-        if isinstance(value, (
-                int, float, bool, datetime.date,
-                datetime.datetime, datetime.time)):
+        if isinstance(
+            value,
+            (
+                int,
+                float,
+                bool,
+                datetime.date,
+                datetime.datetime,
+                datetime.time,
+            ),
+        ):
             return str(value)
         raise ValueError(f"Expected string, got {value!r}")
 
@@ -145,6 +159,7 @@ class Password(String):
 
 class Date(ValueType):
     """A date (without time)"""
+
     __slots__ = ()
 
     @staticmethod
@@ -158,6 +173,7 @@ class Date(ValueType):
 
 class Time(ValueType):
     """A time, with or without timezone"""
+
     __slots__ = ()
 
     @staticmethod
@@ -166,13 +182,18 @@ class Time(ValueType):
             return value
         if isinstance(value, datetime.datetime):
             return datetime.time(
-                value.hour, value.minute, value.second, value.microsecond,
-                tzinfo=value.tzinfo)
+                value.hour,
+                value.minute,
+                value.second,
+                value.microsecond,
+                tzinfo=value.tzinfo,
+            )
         raise TypeError(f"Expected time, got {value!r}")
 
 
 class DateTime(ValueType):
     """A date and time, with or without timezone"""
+
     __slots__ = ()
 
     @staticmethod
@@ -184,6 +205,7 @@ class DateTime(ValueType):
 
 class List(ValueType):
     """A list of values"""
+
     __slots__ = ("_List__membertype",)
 
     def __init__(self, name: Sequence[str], keydef: Mapping[str, Any]) -> None:
@@ -196,8 +218,9 @@ class List(ValueType):
 
     def insertcast(self, value: Any) -> Tuple[Any, ...]:
         # pylint: disable=no-member
-        if (not isinstance(value, collections.abc.Iterable)
-                or isinstance(value, str)):
+        if not isinstance(value, collections.abc.Iterable) or isinstance(
+            value, str
+        ):
             value = (value,)
         return tuple(self.__membertype.insertcast(v) for v in value)
 
@@ -208,6 +231,7 @@ class List(ValueType):
 
 class Enum(ValueType):
     """One of a set of values"""
+
     __slots__ = ("_Enum__enum",)
 
     def __init__(self, name: Sequence[str], keydef: Mapping[str, Any]) -> None:
@@ -217,13 +241,15 @@ class Enum(ValueType):
         modulename = f"{__name__.split('.')[0]}.{name[0]}"
         module = importlib.import_module(modulename)
         enumname = re.sub(
-            r"(^|_+)[a-z]", lambda match: match.group(0)[-1].upper(), name[-1])
+            r"(^|_+)[a-z]", lambda match: match.group(0)[-1].upper(), name[-1]
+        )
         try:
             self.__enum = getattr(module, enumname)
         except AttributeError:
             vals = keydef["_values"]
-            self.__enum = enum.unique(enum.Enum(
-                enumname, vals, module=modulename))
+            self.__enum = enum.unique(
+                enum.Enum(enumname, vals, module=modulename)
+            )
             setattr(module, enumname, self.__enum)
 
     def insertcast(self, value: Any) -> enum.Enum:
@@ -246,6 +272,7 @@ class Enum(ValueType):
 
 class Path(ValueType):
     """A path in the filesystem"""
+
     __slots__ = ()
 
     @staticmethod

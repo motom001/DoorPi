@@ -2,8 +2,8 @@ from unittest.mock import patch
 
 from doorpi.actions import http_request
 
-from . import EVENT_ID, EVENT_EXTRA
 from ..mocks import DoorPiTestCase
+from . import EVENT_EXTRA, EVENT_ID
 
 
 class Namespace:
@@ -12,7 +12,6 @@ class Namespace:
 
 
 class TestHTTPRequestAction(DoorPiTestCase):
-
     def test_file_scheme_is_invalid(self):
         with self.assertRaises(ValueError):
             http_request.HTTPRequestAction("file://localhost/tmp/test.txt")

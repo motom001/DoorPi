@@ -1,7 +1,8 @@
 import textwrap
 
 REQUIREMENT = {
-    "text_description": textwrap.dedent("""\
+    "text_description": textwrap.dedent(
+        """\
         Die Aufgabe von einem Keyboard innerhalb von DoorPi ist es, Eingaben
         und Ausgaben zu steuern. Keyboard bezieht sich dabei nicht auf die
         Tastatur, sondern auf ein Brett mit Knöpfen und LEDs.  DoorPi ist in der
@@ -85,5 +86,6 @@ REQUIREMENT = {
            - der RFID-Chip mit dem Code "2345678" öffnet den fensteroeffner
 
         Wobei ``!BASEPATH!`` für das Home-Verzeichnis von DoorPi steht.
-        """),
+        """
+    ),
 }

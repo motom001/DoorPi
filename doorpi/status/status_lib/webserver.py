@@ -5,9 +5,10 @@ import doorpi.doorpi
 
 
 def get(
-        doorpi_obj: doorpi.doorpi.DoorPi,
-        name: Iterable[str], value: Iterable[str],
-        ) -> Dict[str, Any]:
+    doorpi_obj: doorpi.doorpi.DoorPi,
+    name: Iterable[str],
+    value: Iterable[str],
+) -> Dict[str, Any]:
     del value
     status_getters: Dict[str, Callable[[doorpi.web.DoorPiWeb], Any]] = {
         "config_status": lambda _: {"infos": [], "warnings": [], "errors": []},
@@ -24,7 +25,9 @@ def get(
     else:
         return {
             n: status_getters[n](doorpi_obj.webserver)
-            for n in name if n in status_getters}
+            for n in name
+            if n in status_getters
+        }
 
 
 def is_active(doorpi_object: doorpi.doorpi.DoorPi) -> bool:

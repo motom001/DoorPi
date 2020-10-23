@@ -3,14 +3,13 @@ from unittest.mock import patch
 
 from doorpi.actions import call
 
-from . import EVENT_ID, EVENT_EXTRA
 from ..mocks import DoorPi, DoorPiTestCase
+from . import EVENT_EXTRA, EVENT_ID
 
 SIPURL = "sip:null@null"
 
 
 class TestActionCall(DoorPiTestCase):
-
     @patch("doorpi.INSTANCE", new_callable=DoorPi)
     def test_action(self, instance):
         ac = call.CallAction(SIPURL)
@@ -21,7 +20,6 @@ class TestActionCall(DoorPiTestCase):
 
 
 class TestActionFileCallValue(DoorPiTestCase):
-
     @patch("doorpi.INSTANCE", new_callable=DoorPi)
     def test_instantiation(self, instance):
         with NamedTemporaryFile(mode="w") as tmpfile:
@@ -49,7 +47,6 @@ class TestActionFileCallValue(DoorPiTestCase):
 
 
 class TestActionHangup(DoorPiTestCase):
-
     @patch("doorpi.INSTANCE", new_callable=DoorPi)
     def test_action(self, instance):
         ac = call.HangupAction()

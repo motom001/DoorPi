@@ -4,9 +4,10 @@
 import datetime
 import logging
 import pathlib
-from typing import Any, Mapping, List
+from typing import Any, List, Mapping
 
 import doorpi
+
 from . import Action, action
 
 LOGGER = logging.getLogger(__name__)
@@ -15,6 +16,7 @@ DOORPI_SECTION = "DoorPi"
 
 class SnapshotAction(Action):
     """Base class for snapshotting actions."""
+
     @classmethod
     def cleanup(cls) -> None:
         """Cleans out the snapshot directory
@@ -49,9 +51,9 @@ class SnapshotAction(Action):
     def get_next_path(cls) -> pathlib.Path:
         """Computes the next snapshot's path."""
 
-        path = (
-            cls.get_base_path()
-            / datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S.jpg"))
+        path = cls.get_base_path() / datetime.datetime.now().strftime(
+            "%Y-%m-%d %H:%M:%S.jpg"
+        )
         return path
 
     @classmethod

@@ -96,6 +96,7 @@ from typing import Any, Optional
 import nfc  # pylint: disable=import-error
 
 import doorpi
+
 from .abc import AbstractKeyboard
 
 LOGGER = logging.getLogger(__name__)
@@ -105,10 +106,12 @@ class PN532Keyboard(AbstractKeyboard):
     def __init__(self, name: str) -> None:
         super().__init__(name, events=("OnKeyPressed",))
         doorpi.INSTANCE.event_handler.register_event(
-            "OnTagUnknown", self._event_source)
+            "OnTagUnknown", self._event_source
+        )
 
         self.__device = "tty:{}:pn532".format(
-            re.sub(r"^/dev/tty", "", self.config["port"]))
+            re.sub(r"^/dev/tty", "", self.config["port"])
+        )
         self.__frontend = nfc.ContactlessFrontend(self.__device)
 
         self.__exception: Optional[Exception] = None
@@ -129,7 +132,8 @@ class PN532Keyboard(AbstractKeyboard):
             ) from self.__exception
         if not self.__thread.is_alive():
             raise RuntimeError(
-                f"{self.name}: Worker found dead without exception information")
+                f"{self.name}: Worker found dead without exception information"
+            )
 
     def pn532_read(self) -> None:
         """The keyboard's main loop; runs as thread"""
@@ -154,8 +158,10 @@ class PN532Keyboard(AbstractKeyboard):
             self._fire_event("OnKeyPressed", id_)
         else:
             doorpi.INSTANCE.event_handler(
-                "OnTagUnknown", self._event_source,
-                extra={**self.additional_info, "tag": id_})
+                "OnTagUnknown",
+                self._event_source,
+                extra={**self.additional_info, "tag": id_},
+            )
         return False
 
 

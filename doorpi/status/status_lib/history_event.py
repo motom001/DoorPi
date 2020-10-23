@@ -4,9 +4,10 @@ import doorpi.doorpi
 
 
 def get(
-        doorpi_obj: doorpi.doorpi.DoorPi,
-        name: Sequence[str], value: Sequence[str],
-        ) -> Any:
+    doorpi_obj: doorpi.doorpi.DoorPi,
+    name: Sequence[str],
+    value: Sequence[str],
+) -> Any:
     try:
         filter_ = name[0]
     except IndexError:

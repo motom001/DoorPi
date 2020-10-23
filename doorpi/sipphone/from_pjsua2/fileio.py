@@ -25,16 +25,18 @@ class DialTonePlayer:
     _level: float
 
     def __init__(
-            self, filename: Union[str, pathlib.Path, None], loudness: float
-            ) -> None:
+        self, filename: Union[str, pathlib.Path, None], loudness: float
+    ) -> None:
         eh = doorpi.INSTANCE.event_handler
 
         if filename is None:
             ctx = resources.path(doorpi.sipphone, "dialtone.wav")
             eh.register_action(
-                "OnShutdown", CallbackAction(
-                    ctx.__exit__,  # pylint: disable=no-member
-                    None, None, None))
+                "OnShutdown",
+                CallbackAction(
+                    ctx.__exit__, None, None, None  # pylint: disable=no-member
+                ),
+            )
             filename = ctx.__enter__()  # pylint: disable=no-member
 
         self._player = pj.AudioMediaPlayer()
@@ -63,7 +65,8 @@ class DialTonePlayer:
 
         if self._target is None:
             self._target = (
-                pj.Endpoint.instance().audDevManager().getPlaybackDevMedia())
+                pj.Endpoint.instance().audDevManager().getPlaybackDevMedia()
+            )
         self._player.startTransmit(self._target)
 
     def stop(self) -> None:
@@ -78,9 +81,13 @@ class DialTonePlayer:
 
 class CallRecorder:
     """Records calls"""
+
     def __init__(
-            self, path: Optional[pathlib.Path], early: bool, keep: int,
-            ) -> None:
+        self,
+        path: Optional[pathlib.Path],
+        early: bool,
+        keep: int,
+    ) -> None:
         self.__path = path
         self.__early = early
         self.__keep = keep
@@ -104,11 +111,12 @@ class CallRecorder:
                 self.__path.mkdir(parents=True, exist_ok=True)
             except OSError:
                 LOGGER.exception(
-                    "Cannot create recording directory, unable to record call")
+                    "Cannot create recording directory, unable to record call"
+                )
                 return
-            fname = (
-                self.__path / datetime.datetime.now().strftime(
-                    "recording_%Y-%m-%d_%H-%M-%S.wav"))
+            fname = self.__path / datetime.datetime.now().strftime(
+                "recording_%Y-%m-%d_%H-%M-%S.wav"
+            )
             LOGGER.debug("Starting recording into file %s", fname)
             try:
                 self.__recorder = pj.AudioMediaRecorder()
@@ -118,17 +126,21 @@ class CallRecorder:
                 self.__recorder = None
                 return
 
-            pj.Endpoint.instance().audDevManager().getCaptureDevMedia() \
-                .startTransmit(self.__recorder)
+            pj.Endpoint.instance().audDevManager().getCaptureDevMedia().startTransmit(
+                self.__recorder
+            )
 
         call = cast(
             doorpi.sipphone.from_pjsua2.glue.Pjsua2,
             doorpi.INSTANCE.sipphone,
         ).current_call
         if call is not None:
-            LOGGER.debug("Recording call to %s", repr(call.getInfo().remoteUri))
-            call._CallCallback__getAudioVideoMedia()[0] \
-                .startTransmit(self.__recorder)
+            LOGGER.debug(
+                "Recording call to %s", repr(call.getInfo().remoteUri)
+            )
+            call._CallCallback__getAudioVideoMedia()[0].startTransmit(
+                self.__recorder
+            )
 
     def startEarly(self) -> None:
         """Start recording if configured to record while dialing"""
@@ -154,9 +166,10 @@ class CallRecorder:
         files = []
         try:
             files = [
-                f for f in self.__path.iterdir()
-                if f.name.startswith("recording_")
-                and f.name.endswith(".wav")]
+                f
+                for f in self.__path.iterdir()
+                if f.name.startswith("recording_") and f.name.endswith(".wav")
+            ]
         except FileNotFoundError:
             LOGGER.warning("%s does not exist, skipping cleanup", self.__path)
         except OSError:

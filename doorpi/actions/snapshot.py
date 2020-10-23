@@ -65,7 +65,10 @@ class URLSnapshotAction(SnapshotAction):
     """Fetches a URL and saves it as snapshot."""
 
     def __init__(self, url: str) -> None:
+        import requests
+
         super().__init__()
+
         self.__url = url
 
     def __call__(self, event_id: str, extra: Mapping[str, Any]) -> None:

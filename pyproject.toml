@@ -7,3 +7,13 @@ requires = [
 
 [tool.setuptools_scm]
 # This section must exist for setuptools_scm to work
+
+[tool.pylint.basic]
+variable-rgx = '[a-z][a-z0-9_]+'
+
+[tool.pylint.format]
+expected-line-ending-format = "LF"
+
+[tool.pylint.messages_control]
+disable = "no-else-return"
+enable = "c-extension-no-member"

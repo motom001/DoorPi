@@ -51,8 +51,8 @@ def init_logger(args: argparse.Namespace) -> None:
     if args.trace is not None:
         for lg in args.trace:
             logging.getLogger(lg).setLevel(
-                logging.TRACE
-            )  # type: ignore[attr-defined]
+                logging.TRACE  # type: ignore[attr-defined]
+            )
 
 
 def parse_arguments() -> argparse.Namespace:

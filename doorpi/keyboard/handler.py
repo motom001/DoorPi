@@ -41,9 +41,9 @@ class KeyboardHandler:
 
             self.__keyboards[kbname] = kb = importlib.import_module(
                 f"doorpi.keyboard.from_{kbtype}"
-            ).instantiate(
+            ).instantiate(  # type: ignore[attr-defined]
                 kbname
-            )  # type: ignore[attr-defined]
+            )
 
             LOGGER.debug("Registering input pins for %r", kbname)
             for pin, actions in kb.config.view("input").items():

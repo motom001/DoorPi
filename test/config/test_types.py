@@ -1,4 +1,5 @@
 import datetime
+import enum
 import pathlib
 from unittest import mock
 
@@ -41,10 +42,15 @@ class ConfigTypes(DoorPiTestCase):
         self.assertRaises(TypeError, conf_obj.attach_defs, {"config": keydef})
 
     def test_insertcast(self):
-        # pylint: disable=no-member
-        with promise_deletion(config, "test_key"):
+        with promise_deletion(config, "TestKey"):
+
+            class TestKey(enum.Enum):
+                FOO = 1
+                BAR = 2
+
+            config.TestKey = TestKey
             enumtype = types.Enum(
-                ("config", "test_key"), {"_values": ["FOO", "BAR"]}
+                ("config", "test_key"), {"_enumcls": "doorpi.config.TestKey"}
             )
 
             for typeobj, source, expected in (
@@ -86,8 +92,8 @@ class ConfigTypes(DoorPiTestCase):
                 ),
                 (types.List(("config", "test_key"), {}), 1, (1,)),
                 (types.List(("config", "test_key"), {}), "foo", ("foo",)),
-                (enumtype, "FOO", config.TestKey.FOO),
-                (enumtype, 1, config.TestKey.FOO),
+                (enumtype, "FOO", TestKey.FOO),
+                (enumtype, 1, TestKey.FOO),
                 (
                     types.Path(("config", "test_key"), {}),
                     "~",
@@ -103,9 +109,14 @@ class ConfigTypes(DoorPiTestCase):
                     self.assertEqual(typeobj.insertcast(source), expected)
 
     def test_querycast(self):
+        class TestKey(enum.Enum):
+            FOO = enum.auto()
+            BAR = enum.auto()
+
         with promise_deletion(config, "test_key"):
+            config.TestKey = TestKey
             enumtype = types.Enum(
-                ("config", "test_key"), {"_values": ["FOO", "BAR"]}
+                ("config", "test_key"), {"_enumcls": "doorpi.config.TestKey"}
             )
 
             for typeobj, source, expected in (
@@ -120,6 +131,7 @@ class ConfigTypes(DoorPiTestCase):
                     pathlib.Path("~"),
                     pathlib.Path.home(),
                 ),
+                (enumtype, TestKey.FOO, TestKey.FOO),
             ):
                 with self.subTest(type=type(typeobj).__name__, value=source):
                     self.assertEqual(typeobj.querycast(source), expected)

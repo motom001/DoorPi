@@ -37,7 +37,7 @@ Currently supported keyboard types:
 * ``rdm6300``: RDM6300 RFID module (requires ``serial``).
 * ``serial``: Serially connected keyboard (requires ``serial``)."""
 _type = "enum"
-_values = ["filesystem", "gpio", "piface", "pn532", "rdm6300", "serial"]
+_enumcls = "doorpi.keyboard.enums.KeyboardType"
 
 [config.keyboard."*".bouncetime]
 _description = "Software debounce time (ms)"
@@ -51,7 +51,7 @@ A polarity of ``HIGH`` means ``VCC=true`` and ``GND=false`` on a pin.
 A polarity of ``LOW`` reverses these interpretations. Affects both
 input and output pins."""
 _type = "enum"
-_values = ["HIGH", "LOW"]
+_enumcls = "doorpi.keyboard.enums.Polarity"
 _default = "HIGH"
 
 [config.keyboard."*".pressed_on_key_down]
@@ -74,13 +74,13 @@ _type = "path"
 [config.keyboard."*".mode]
 _description = "[gpio] Pin numbering mode (BOARD is recommended)"
 _type = "enum"
-_values = ["BOARD", "BCM"]
+_enumcls = "doorpi.keyboard.enums.GPIOMode"
 _default = "BOARD"
 
 [config.keyboard."*".pull_up_down]
 _description = "[gpio] Configure internal pull-up/down resistors"
 _type = "enum"
-_values = ["OFF", "UP", "DOWN"]
+_enumcls = "doorpi.keyboard.enums.GPIOPull"
 _default = "OFF"
 
 [config.keyboard."*".port]

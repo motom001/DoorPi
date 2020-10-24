@@ -166,9 +166,7 @@ _default = ""
 [config.sipphone.video.resolution]
 _description = "Resolution of the video stream"
 _type = "enum"
-_values = [
-    "1080p", "uxga", "sxga", "720p", "xga", "svga",
-    "4cif", "vga", "cif", "qvga", "qcif"]
+_enumcls = "doorpi.sipphone.abc.VideoResolution"
 _default = "vga"
 
 [config.sipphone.video.codec]

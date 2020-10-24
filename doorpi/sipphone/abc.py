@@ -1,5 +1,11 @@
 """Abstract base class that helps implementing a SIP phone module."""
 import abc
+import enum
+
+__all__ = [
+    "AbstractSIPPhone",
+    "VideoResolution",
+]
 
 
 class AbstractSIPPhone(metaclass=abc.ABCMeta):  # pragma: no cover
@@ -80,3 +86,21 @@ class AbstractSIPPhone(metaclass=abc.ABCMeta):  # pragma: no cover
     def is_admin(self, uri: str) -> bool:
         """Check whether ``uri`` is registered as administrator."""
         return False
+
+
+VideoResolution = enum.Enum(
+    "VideoResolution",
+    {
+        "1080p": enum.auto(),
+        "uxga": enum.auto(),
+        "sxga": enum.auto(),
+        "720p": enum.auto(),
+        "xga": enum.auto(),
+        "svga": enum.auto(),
+        "4cif": enum.auto(),
+        "vga": enum.auto(),
+        "cif": enum.auto(),
+        "qvga": enum.auto(),
+        "qcif": enum.auto(),
+    },
+)

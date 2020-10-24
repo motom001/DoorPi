@@ -62,44 +62,12 @@ class TestConfigDefs(DoorPiTestCase):
 
         self.assertIsInstance(actual["_type"], config.types.String)
 
-    def test_attaching_enum_def_creates_nonexisting_enum(self):
-        keydef = {
-            "config": {
-                "test_key": {
-                    "_type": "enum",
-                    "_values": ["foo", "bar", "baz"],
-                    "_default": "bar",
-                }
-            }
-        }
-
-        if hasattr(config, "TestKey"):
-            raise RuntimeError("'config.TestKey' already exists")
-
-        with promise_deletion(config, "TestKey"):
-            conf_obj = config.Configuration()
-            conf_obj.attach_defs({"config": keydef})
-
-            self.assertTrue(
-                hasattr(config, "TestKey"), msg="Enum was not created"
-            )
-            self.assertTrue(
-                issubclass(config.TestKey, enum.Enum),
-                msg="Created object is not an Enum subclass",
-            )
-            expected_members = [("foo", 1), ("bar", 2), ("baz", 3)]
-            for attr, val in expected_members:
-                self.assertTrue(
-                    hasattr(config.TestKey, attr),
-                    msg=f"Created Enum does not have {attr!r}",
-                )
-                self.assertEqual(config.TestKey[attr].value, val)
-
     def test_attaching_enum_def_reuses_existing_enum(self):
         keydef = {
             "config": {
                 "test_key": {
                     "_type": "enum",
+                    "_enumcls": "doorpi.config.TestKey",
                     "_default": "bar",
                 }
             }
@@ -116,7 +84,7 @@ class TestConfigDefs(DoorPiTestCase):
             conf_obj = config.Configuration()
             conf_obj.attach_defs({"config": keydef})
 
-            self.assertIs(TestKey, config.TestKey)
+            self.assertIs(TestKey, TestKey)
             keydef, _ = conf_obj.keydef("config.test_key")
             self.assertIs(TestKey.foo, keydef["_type"].insertcast("foo"))
 
@@ -279,11 +247,16 @@ class TestConfigGetSet(DoorPiTestCase):
                 self.assertEqual(actual, expected)
 
     def test_loaded_enums_can_be_retrieved(self):
+        class TestKey(enum.Enum):
+            foo = enum.auto()
+            bar = enum.auto()
+            baz = enum.auto()
+
         keydef = {
             "config": {
                 "test_key": {
                     "_type": "enum",
-                    "_values": ["foo", "bar", "baz"],
+                    "_enumcls": "doorpi.config.TestKey",
                     "_default": "bar",
                 }
             }
@@ -296,6 +269,7 @@ class TestConfigGetSet(DoorPiTestCase):
         )
 
         with promise_deletion(config, "TestKey"):
+            config.TestKey = TestKey
             conf_obj = config.Configuration()
             conf_obj.attach_defs({"config": keydef})
             conf_obj.load(io.StringIO(conffile))

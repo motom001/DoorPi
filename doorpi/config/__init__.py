@@ -116,22 +116,18 @@ The following types cannot be inferred and must be explicitly given:
 
 *   ``enum``: An enumeration value.
 
-    The possible values can be defined in one of two ways.  The first
-    way is to define them in the defaults table itself with the
-    ``_values`` key.  The configuration system will create an
-    :class:`enum.Enum` with the same name as the configuration key in
-    the module named by the first component of the namespace path (e.g.
-    if the key is defined as ``mymod.submod.key``, the Enum will be
-    created in the module ``mymod``).  The Enum keys are the possible
-    values given in the defaults file, and the Enum values are numbers
-    starting with 1.  This method keeps the possible values next to the
-    default value and is thus preferred.
+    Enums use subclasses of :class:`enum.Enum` to validate configuration
+    values.  Both the name and the value of the Enum can be used in the
+    configuration file to refer to a specific member.  When fetching the
+    value from the ``Configuration`` object, the Enum member
+    corresponding to the given value is returned.
 
-    The second way is to define an :class:`enum.Enum` at the mentioned
-    place yourself.  The config module will import that Enum and use it
-    instead of creating its own.  This allows to associate more data
-    with each configuration value, but also splits the information into
-    two different places.
+    ``enum`` types accept the following additional key in their defaults
+    table:
+
+    *   ``_enumcls``: The path to the Enum subclass using dot notation.
+        The module will be imported and the class definition stored in
+        the configuration parser.
 *   ``path``: A filesystem path.
 
     Paths are always returned as :class:`pathlib.Path` instances.  If a

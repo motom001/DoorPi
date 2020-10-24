@@ -238,19 +238,21 @@ class Enum(ValueType):
         # pylint: disable=assigning-non-slot, no-member
         assert len(name) >= 2, f"Key path too short: {name}"
         super().__init__(name, keydef)
-        modulename = f"{__name__.split('.')[0]}.{name[0]}"
-        module = importlib.import_module(modulename)
-        enumname = re.sub(
-            r"(^|_+)[a-z]", lambda match: match.group(0)[-1].upper(), name[-1]
-        )
-        try:
-            self.__enum = getattr(module, enumname)
-        except AttributeError:
-            vals = keydef["_values"]
-            self.__enum = enum.unique(
-                enum.Enum(enumname, vals, module=modulename)
+        lastdot = keydef["_enumcls"].rfind(".")
+        if lastdot < 0:
+            raise ValueError(
+                f"Invalid enumcls for {name!r}: {keydef['_enumcls']!r}"
             )
-            setattr(module, enumname, self.__enum)
+        enumname = keydef["_enumcls"][lastdot + 1 :]
+        module = importlib.import_module(keydef["_enumcls"][:lastdot])
+        self.__enum = getattr(module, enumname)
+        if not (
+            isinstance(self.__enum, type)
+            and issubclass(self.__enum, enum.Enum)
+        ):
+            raise ValueError(
+                f"enumcls is not an Enum subclass: {keydef['_enumcls']!r}"
+            )
 
     def insertcast(self, value: Any) -> enum.Enum:
         # pylint: disable=no-member

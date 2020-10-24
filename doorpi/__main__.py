@@ -134,5 +134,4 @@ def entry_point() -> None:
         instance.destroy()
 
 
-if __name__ == "__main__":
-    entry_point()
+entry_point()

@@ -30,7 +30,7 @@ class InstallHook(setuptools.command.install.install):
                 continue
             content = file.read_text()
             for key, val in substkeys.items():
-                content = content.replace(f"!!{key}!!", val)
+                content = content.replace(f"!!{key}!!", str(val))
             file.with_suffix("").write_text(content)
         super().run()
 

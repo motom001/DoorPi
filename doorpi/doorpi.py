@@ -11,7 +11,7 @@ import pathlib
 import signal
 import sys
 import time
-from typing import TYPE_CHECKING, Any, Mapping, Optional
+from typing import TYPE_CHECKING, Any, Mapping, Optional, Sequence
 
 import doorpi
 import doorpi.actions.snapshot
@@ -60,9 +60,9 @@ class DoorPi:
 
     def get_status(
         self,
-        modules: str = "",
-        value: str = "",
-        name: str = "",
+        modules: Optional[Sequence[str]] = None,
+        value: Sequence[str] = (),
+        name: Sequence[str] = (),
     ) -> doorpi.status.status_class.DoorPiStatus:
         return doorpi.status.status_class.DoorPiStatus(
             self, modules, value, name

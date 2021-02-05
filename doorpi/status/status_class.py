@@ -37,8 +37,8 @@ class DoorPiStatus:
         self,
         doorpi_obj: doorpi.doorpi.DoorPi,
         modules: Optional[Sequence[str]] = None,
-        value: Optional[Sequence[str]] = (),
-        name: Optional[Sequence[str]] = (),
+        value: Sequence[str] = (),
+        name: Sequence[str] = (),
     ) -> None:
         if not modules:
             modules = MODULES

@@ -39,7 +39,7 @@ class DoorPi:
     dpsd: doorpi.status.systemd.DoorPiSD
     keyboard: doorpi.keyboard.handler.KeyboardHandler
     sipphone: doorpi.sipphone.abc.AbstractSIPPhone
-    webserver: Optional[doorpi.web.DoorPiWeb]
+    webserver: Optional[threading.Thread]
 
     _base_path: Optional[pathlib.Path]
     __args: Any
@@ -165,7 +165,7 @@ class DoorPi:
         )
 
         # register modules
-        self.webserver = doorpi.web.load()  # pylint: disable=E1128
+        self.webserver = doorpi.web.load()  # pylint: disable=E1111, E1128
         self.keyboard = doorpi.keyboard.load()
         self.sipphone = doorpi.sipphone.load()
         self.sipphone.start()

@@ -8,7 +8,7 @@ import requests
 
 import doorpi
 
-from . import Action, action
+from . import Action
 
 LOGGER = logging.getLogger(__name__)
 TRUE_VALUES = {"true", "yes", "on", "1"}
@@ -140,7 +140,6 @@ class IPSCallFromVariableAction(IPSConnector, Action):
         return f"symcon_ips3:call,{self.__key}"
 
 
-@action("symcon_ips3")
 def instantiate(ipsaction: str, *params: str) -> Action:
     """Creates the action named by ``ipsaction``."""
     try:

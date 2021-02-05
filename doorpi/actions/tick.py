@@ -4,10 +4,9 @@ from typing import Any, Mapping
 
 import doorpi
 
-from . import Action, CallbackAction, action
+from . import Action, CallbackAction
 
 
-@action("time_tick")
 class TickAction(Action):
     """The internal tick action."""
 

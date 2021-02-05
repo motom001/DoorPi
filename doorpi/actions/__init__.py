@@ -24,6 +24,7 @@ definition of `Action` below.
 from __future__ import annotations
 
 import abc
+import importlib.metadata
 import importlib.util
 import logging
 import pkgutil
@@ -41,23 +42,8 @@ from typing import (
 import doorpi
 
 LOGGER = logging.getLogger(__name__)
-ACTION_REGISTRY = {}
 
 _T = TypeVar("_T", bound=Callable)
-
-
-def action(name: str) -> Callable[[_T], _T]:
-    """Tag a callable as action instantiator"""
-
-    def register_action(func: _T) -> _T:
-        if ":" in name:
-            raise ValueError(f"Invalid action name {name}")
-        if name in ACTION_REGISTRY:
-            raise ValueError(f"Non-unique action name {name}")
-        ACTION_REGISTRY[name] = func
-        return func
-
-    return register_action
 
 
 def from_string(confstr: str) -> Optional[Action]:
@@ -65,11 +51,17 @@ def from_string(confstr: str) -> Optional[Action]:
     atype = confstr.split(":")[0]
     if not atype:
         return None
-    if atype not in ACTION_REGISTRY:
-        raise ValueError(f"Unknown action {atype!r}")
+    try:
+        entrypoint = next(
+            i
+            for i in importlib.metadata.entry_points()["doorpi.actions"]
+            if i.name == atype
+        )
+    except StopIteration:
+        raise ValueError(f"Unknown action {atype!r}") from None
     args = confstr[len(atype) + 1 :]
     arglist = args.split(",") if len(args) > 0 else []
-    return ACTION_REGISTRY[atype](*arglist)
+    return entrypoint.load()(*arglist)
 
 
 @runtime_checkable
@@ -180,23 +172,3 @@ class CheckAction(CallbackAction):
 
     def __repr__(self) -> str:
         return f"<internal self-check with {self._callback!r}>"
-
-
-module = _ = None
-spec = importlib.util.find_spec(__name__)
-assert spec is not None
-for _, module, _ in pkgutil.iter_modules(
-    spec.submodule_search_locations or [], f"{__name__}."
-):
-    try:
-        importlib.import_module(module)
-    except Exception as exc:  # pylint: disable=broad-except
-        LOGGER.error(
-            "Unable to load actions from %s: %s: %s",
-            module,
-            exc.__class__.__name__,
-            exc,
-        )
-if module is None:
-    raise RuntimeError("Could not load any action modules")
-del module, spec, _

@@ -7,12 +7,11 @@ from typing import Any, Mapping
 
 import doorpi
 
-from . import Action, action
+from . import Action
 
 LOGGER = logging.getLogger(__name__)
 
 
-@action("call")
 class CallAction(Action):
     """Calls a static number."""
 
@@ -30,8 +29,6 @@ class CallAction(Action):
         return f"call:{self.__url}"
 
 
-@action("callf")
-@action("file_call_value")
 class CallFromFileAction(Action):
     """Reads a number from a file and calls it."""
 
@@ -54,7 +51,6 @@ class CallFromFileAction(Action):
         return f"file_call_value:{self.__filename}"
 
 
-@action("hangup")
 class HangupAction(Action):
     """Hangs up all currently ongoing calls."""
 

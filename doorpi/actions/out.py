@@ -4,7 +4,7 @@ from typing import Any, Mapping
 
 import doorpi
 
-from . import Action, action
+from . import Action
 
 
 class OutAction(Action):
@@ -88,7 +88,6 @@ class TriggeredOutAction(OutAction):
         )
 
 
-@action("out")
 def instantiate(*args: str) -> Action:
     """Create an ``out:`` action"""
     if len(args) <= 2:

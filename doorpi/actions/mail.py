@@ -9,13 +9,11 @@ import doorpi
 from doorpi import metadata
 from doorpi.actions import snapshot
 
-from . import Action, action
+from . import Action
 
 LOGGER = logging.getLogger(__name__)
 
 
-@action("mail")
-@action("mailto")
 class MailAction(Action):
     """Send an email"""
 

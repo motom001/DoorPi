@@ -70,6 +70,10 @@ class Pjsua2(AbstractSIPPhone):
         self._worker: Optional[worker.Worker] = None
         fire_event("OnSIPPhoneCreate", async_only=True)
         eh.register_action("OnShutdown", CallbackAction(self.stop))
+        eh.register_action(
+            "OnWebServerStart",
+            CallbackAction(self._register_thread, "DoorPiWeb"),
+        )
 
     def stop(self) -> None:
         assert self._worker is not None
@@ -169,3 +173,10 @@ class Pjsua2(AbstractSIPPhone):
             canonical_uri = f"{canonical_uri}@{config.sipphone_server()}"
         LOGGER.trace("Canonicalized URI %r as %r", uri, canonical_uri)
         return canonical_uri
+
+    def _register_thread(self, name: str) -> None:
+        if self._worker is None:
+            raise RuntimeError(
+                "Cannot register threads before phone was started"
+            )
+        pj.Endpoint.instance().libRegisterThread(name)

@@ -117,6 +117,7 @@ def main() -> None:
     LOGGER.debug("DoorPi starting with arguments: %s", args)
 
     instance = doorpi.DoorPi(args)
+    del args
     try:
         os.chdir(instance.base_path)
         instance.prepare()

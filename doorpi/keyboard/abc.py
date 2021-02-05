@@ -4,6 +4,7 @@ import logging
 from typing import Any, Dict, Iterable, List, Optional
 
 import doorpi
+import doorpi.keyboard.enums
 from doorpi import keyboard
 from doorpi.actions import CallbackAction
 
@@ -65,8 +66,6 @@ class AbstractKeyboard:
                 2.  EventName_InputName
                 3.  EventName_KeyboardName.InputName
         """
-        # pylint: disable=no-member  # Only available at runtime
-
         if not name:
             raise ValueError("Keyboard name must not be empty")
 
@@ -85,7 +84,7 @@ class AbstractKeyboard:
         self._pressed_on_key_down = self.config["pressed_on_key_down"]
 
         polarity = self.config["polarity"]
-        self._high_polarity = polarity == keyboard.Polarity.HIGH  # type: ignore
+        self._high_polarity = polarity is keyboard.enums.Polarity.HIGH
 
         eh = doorpi.INSTANCE.event_handler
         eh.register_source(self._event_source)

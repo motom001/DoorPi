@@ -37,7 +37,7 @@ Test:
   stage: test
   script:
     - pip install -e ".[files_pseudokb,rfid,test,web]"
-    - coverage run --branch --source doorpi -m unittest -b
+    - coverage run --branch --source doorpi -m unittest discover -b -s test -t .
     - coverage report --skip-covered
     - coverage xml -o coverage.xml
   coverage: '/^TOTAL.+?(\d+\%)$/'

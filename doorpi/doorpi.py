@@ -11,7 +11,7 @@ import pathlib
 import signal
 import sys
 import time
-from typing import TYPE_CHECKING, Any, Mapping, Optional
+from typing import TYPE_CHECKING, Any, Mapping, Optional, Sequence
 
 import doorpi
 import doorpi.actions.snapshot
@@ -42,7 +42,6 @@ class DoorPi:
     webserver: Optional[doorpi.web.DoorPiWeb]
 
     _base_path: Optional[pathlib.Path]
-    __args: Any
     __deadlysignals: int
     __last_tick: float
     __prepared: bool
@@ -60,9 +59,9 @@ class DoorPi:
 
     def get_status(
         self,
-        modules: str = "",
-        value: str = "",
-        name: str = "",
+        modules: Optional[Sequence[str]] = None,
+        value: Sequence[str] = (),
+        name: Sequence[str] = (),
     ) -> doorpi.status.status_class.DoorPiStatus:
         return doorpi.status.status_class.DoorPiStatus(
             self, modules, value, name
@@ -93,9 +92,10 @@ class DoorPi:
             raise RuntimeError("Only one DoorPi instance can be created")
         doorpi.INSTANCE = self
 
+        self.configfile = pathlib.Path(args.configfile)
         self.config = doorpi.config.Configuration()
         self.config.load_builtin_definitions()
-        self.config.load(args.configfile)
+        self.config.load(self.configfile)
         try:
             self._base_path = self.config["base_path"]
         except KeyError:
@@ -106,7 +106,6 @@ class DoorPi:
         self.sipphone = None  # type: ignore
         self.webserver = None
 
-        self.__args = args
         self.__deadlysignals = 0
         self.__prepared = False
         self.__shutdown = False
@@ -135,7 +134,6 @@ class DoorPi:
             raise Exception("Force-exiting due to signal")
 
     def prepare(self) -> None:
-        LOGGER.debug("given arguments: %s", self.__args)
         self.dpsd = doorpi.status.systemd.DoorPiSD()
 
         # setup signal handlers for HUP, INT, TERM

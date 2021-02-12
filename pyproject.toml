@@ -26,5 +26,10 @@ variable-rgx = '[a-z][a-z0-9_]+'
 expected-line-ending-format = "LF"
 
 [tool.pylint.messages_control]
-disable = "no-else-return"
-enable = "c-extension-no-member"
+disable = [
+  "too-many-ancestors",
+  "no-else-return",
+]
+enable = [
+  "c-extension-no-member",
+]

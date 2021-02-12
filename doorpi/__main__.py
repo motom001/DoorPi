@@ -109,14 +109,15 @@ def parse_arguments() -> argparse.Namespace:
     return arg_parser.parse_args(args=sys.argv[1:])
 
 
-def entry_point() -> None:
-    """Zero-argument entry point for use with setuptools/distribute."""
+def main() -> None:
+    """Run DoorPi as standalone service"""
     args = parse_arguments()
     init_logger(args)
     LOGGER.info(metadata.epilog)
     LOGGER.debug("DoorPi starting with arguments: %s", args)
 
     instance = doorpi.DoorPi(args)
+    del args
     try:
         os.chdir(instance.base_path)
         instance.prepare()
@@ -134,4 +135,5 @@ def entry_point() -> None:
         instance.destroy()
 
 
-entry_point()
+if __name__ == "__main__":
+    main()

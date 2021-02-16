@@ -163,6 +163,3 @@ class PN532Keyboard(AbstractKeyboard):
                 extra={**self.additional_info, "tag": id_},
             )
         return False
-
-
-instantiate = PN532Keyboard  # pylint: disable=invalid-name

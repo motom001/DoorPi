@@ -79,6 +79,3 @@ class GPIOKeyboard(AbstractKeyboard):
         gpio.output(pin_id, value)
         self._outputs[pin] = value
         return True
-
-
-instantiate = GPIOKeyboard  # pylint: disable=invalid-name

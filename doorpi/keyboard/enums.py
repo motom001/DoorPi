@@ -1,6 +1,7 @@
 """Enumeration types used in the configuration file"""
 
 import enum
+import importlib.metadata
 
 __all__ = [
     "GPIOMode",
@@ -8,6 +9,16 @@ __all__ = [
     "KeyboardType",
     "Polarity",
 ]
+
+
+KeyboardType = enum.Enum(  # type: ignore[misc]
+    "KeyboardType",
+    (
+        (i.name, i)
+        for i in importlib.metadata.entry_points()["doorpi.keyboards"]
+    ),
+    module=__name__,
+)
 
 
 class GPIOMode(enum.Enum):
@@ -28,23 +39,6 @@ class GPIOPull(enum.Enum):
     """Use the internal pull-up resistors"""
     DOWN = enum.auto()
     """Use the internal pull-down resistors"""
-
-
-class KeyboardType(enum.Enum):
-    """The type of keyboard"""
-
-    filesystem = enum.auto()
-    """Pseudo-keyboard using files (requires ``watchdog``)"""
-    gpio = enum.auto()
-    """Raspberry Pi onboard header (requires ``RPi.GPIO``)"""
-    piface = enum.auto()
-    """PiFace IO expander (requires ``piface``)"""
-    pn532 = enum.auto()
-    """PN532 NFC module (requires ``nfc``)"""
-    rdm6300 = enum.auto()
-    """RDM6300 RFID module (requires ``serial``)"""
-    serial = enum.auto()
-    """Serially connected keyboard (requires ``serial``)"""
 
 
 class Polarity(enum.Enum):

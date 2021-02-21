@@ -78,9 +78,16 @@ DEFAULT_MEDIA_DIR = "{}/share/{}".format(
 def load() -> AbstractSIPPhone:
     sipphone_name = doorpi.INSTANCE.config["sipphone.type"]
     try:
-        return importlib.import_module(
-            f"doorpi.sipphone.from_{sipphone_name}"
-        ).instantiate()  # type: ignore
+        entrypoint = next(
+            i
+            for i in importlib.metadata.entry_points()["doorpi.sipphones"]
+            if i.name == sipphone_name
+        )
+    except StopIteration:
+        raise ValueError(f"Unknow SIP phone {sipphone_name!r}") from None
+
+    try:
+        return entrypoint.load()()
     except ImportError as err:
         raise RuntimeError(
             f"Failed to load sip phone module {sipphone_name}"

@@ -253,6 +253,3 @@ class FilesystemKeyboard(
                 pin,
             )
             self._fire_keyup(pin.name)
-
-
-instantiate = FilesystemKeyboard  # pylint: disable=invalid-name

@@ -125,6 +125,3 @@ def calculate_crc(string: bytes) -> int:
     for i in range(1, 10, 2):
         crc ^= int(string[i : i + 2], base=16)
     return crc
-
-
-instantiate = RDM6300Keyboard  # pylint: disable=invalid-name

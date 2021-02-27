@@ -72,6 +72,3 @@ class PifaceKeyboard(AbstractKeyboard):
         pifacedigitalio.digital_write(int(pin), value)
         self._outputs[pin] = value
         return True
-
-
-instantiate = PifaceKeyboard  # pylint: disable=invalid-name

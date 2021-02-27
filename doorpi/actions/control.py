@@ -2,10 +2,9 @@
 from time import sleep
 from typing import Any, Mapping
 
-from . import Action, action
+from . import Action
 
 
-@action("sleep")
 class SleepAction(Action):
     """Delays event execution."""
 

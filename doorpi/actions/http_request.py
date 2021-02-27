@@ -5,14 +5,13 @@ from typing import Any, Mapping
 
 import requests
 
-from . import Action, action
+from . import Action
 
 LOGGER = logging.getLogger(__name__)
 
 ALLOWED_SCHEMES = {"http", "https"}
 
 
-@action("http_request")
 class HTTPRequestAction(Action):
     """Performs a GET request to the given URL."""
 

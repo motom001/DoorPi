@@ -6,12 +6,11 @@ from typing import Any, Mapping
 import doorpi.actions
 from doorpi.status.status_class import DoorPiStatus
 
-from . import Action, action
+from . import Action
 
 LOGGER = logging.getLogger(__name__)
 
 
-@action("statusfile")
 class StatusfileAction(Action):
     """Writes custom-formatted DoorPi status to a file."""
 

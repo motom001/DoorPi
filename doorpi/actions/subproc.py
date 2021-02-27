@@ -3,13 +3,11 @@ import logging
 import subprocess
 from typing import Any, Mapping
 
-from . import Action, action
+from . import Action
 
 LOGGER = logging.getLogger(__name__)
 
 
-@action("exec")
-@action("os_execute")
 class OSExecuteAction(Action):
     """Executes a command"""
 

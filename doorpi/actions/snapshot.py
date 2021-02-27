@@ -8,7 +8,7 @@ from typing import Any, List, Mapping
 
 import doorpi
 
-from . import Action, action
+from . import Action
 
 LOGGER = logging.getLogger(__name__)
 DOORPI_SECTION = "DoorPi"
@@ -62,7 +62,6 @@ class SnapshotAction(Action):
         return sorted(f for f in cls.get_base_path().iterdir() if f.is_file())
 
 
-@action("snap_url")
 class URLSnapshotAction(SnapshotAction):
     """Fetches a URL and saves it as snapshot."""
 
@@ -90,7 +89,6 @@ class URLSnapshotAction(SnapshotAction):
         return f"snap_url:{self.__url}"
 
 
-@action("snap_picam")
 class PicamSnapshotAction(SnapshotAction):
     """Takes a snapshot from the Pi Camera."""
 

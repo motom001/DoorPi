@@ -4,12 +4,11 @@ from typing import Any, Mapping
 
 import doorpi
 
-from . import Action, action
+from . import Action
 
 LOGGER = logging.getLogger(__name__)
 
 
-@action("log")
 class LogAction(Action):
     """Outputs a custom message to the log."""
 

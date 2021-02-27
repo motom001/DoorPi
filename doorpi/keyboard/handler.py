@@ -1,10 +1,10 @@
 """This module houses the keyboard handler."""
-import importlib
 import logging
 from typing import Any, Dict, Optional, Tuple
 
 import doorpi.actions
 import doorpi.keyboard.abc
+import doorpi.keyboard.enums
 
 LOGGER = logging.getLogger(__name__)
 
@@ -21,6 +21,33 @@ class KeyboardHandler:
     __aliases: Dict[str, Dict[str, str]]
     __keyboards: Dict[str, doorpi.keyboard.abc.AbstractKeyboard]
 
+    def __load_keyboard(
+        self, kbname: str, kbtype: str
+    ) -> doorpi.keyboard.abc.AbstractKeyboard:
+        eh = doorpi.INSTANCE.event_handler
+
+        LOGGER.debug("Instantiating keyboard %r (%s)", kbname, kbtype)
+        entrypoint = doorpi.keyboard.enums.KeyboardType[kbtype].value
+        kbcls = entrypoint.load()
+        kb = kbcls(kbname)
+
+        LOGGER.debug("Registering input pins for %r", kbname)
+        for pin, actions in kb.config.view("input").items():
+            for action in actions:
+                if action:
+                    eh.register_action(f"OnKeyPressed_{kbname}.{pin}", action)
+
+        LOGGER.debug("Registering output pins for %r", kbname)
+        self.__aliases[kbname] = {}
+        for pin, alias in kb.config.view("output").items():
+            if not alias:
+                alias = pin
+            if alias in self.__aliases[kbname]:
+                raise ValueError(f"Duplicate pin alias {kbname}.{alias}")
+            self.__aliases[kbname][alias] = pin
+
+        return kb
+
     def __init__(self) -> None:
         self.last_key = None
 
@@ -36,31 +63,9 @@ class KeyboardHandler:
         )
 
         for kbname in conf.keys():
-            kbtype = conf[kbname, "type"].name
-            LOGGER.debug("Instantiating keyboard %r (from_%s)", kbname, kbtype)
-
-            self.__keyboards[kbname] = kb = importlib.import_module(
-                f"doorpi.keyboard.from_{kbtype}"
-            ).instantiate(  # type: ignore[attr-defined]
-                kbname
+            self.__keyboards[kbname] = self.__load_keyboard(
+                kbname, conf[kbname, "type"].name
             )
-
-            LOGGER.debug("Registering input pins for %r", kbname)
-            for pin, actions in kb.config.view("input").items():
-                for action in actions:
-                    if action:
-                        eh.register_action(
-                            f"OnKeyPressed_{kbname}.{pin}", action
-                        )
-
-            LOGGER.debug("Registering output pins for %r", kbname)
-            self.__aliases[kbname] = {}
-            for pin, alias in kb.config.view("output").items():
-                if not alias:
-                    alias = pin
-                if alias in self.__aliases[kbname]:
-                    raise ValueError(f"Duplicate pin alias {kbname}.{alias}")
-                self.__aliases[kbname][alias] = pin
 
         eh.register_action(
             "OnTimeTick", doorpi.actions.CheckAction(self.self_check)

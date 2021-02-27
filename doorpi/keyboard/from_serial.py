@@ -200,6 +200,3 @@ class SeriallyConnectedKeyboard(AbstractKeyboard):
                 break
         else:
             LOGGER.trace("%s: Ignoring unknown key %s", self.name, decbuf)
-
-
-instantiate = SeriallyConnectedKeyboard  # pylint: disable=invalid-name

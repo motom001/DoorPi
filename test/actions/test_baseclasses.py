@@ -7,28 +7,16 @@ from . import EVENT_EXTRA, EVENT_ID
 
 
 class TestActionInstantiation(DoorPiTestCase):
-    @patch("doorpi.actions.ACTION_REGISTRY")
-    def test_nocolon(self, registry):
-        registry.__contains__.return_value = True
-        doorpi.actions.from_string("log")
-        registry.__getitem__.assert_called_once_with("log")
-        registry.__getitem__.return_value.assert_called_once_with()
-
-    @patch("doorpi.actions.ACTION_REGISTRY")
-    def test_colon(self, registry):
-        registry.__contains__.return_value = True
-        doorpi.actions.from_string("log:")
-        registry.__getitem__.assert_called_once_with("log")
-        registry.__getitem__.return_value.assert_called_once_with()
-
-    @patch("doorpi.actions.ACTION_REGISTRY")
-    def test_args(self, registry):
-        registry.__contains__.return_value = True
-        doorpi.actions.from_string("log:foo,bar,baz")
-        registry.__getitem__.assert_called_once_with("log")
-        registry.__getitem__.return_value.assert_called_once_with(
-            "foo", "bar", "baz"
-        )
+    def test_successful_instantiation(self):
+        for title, ac_str, parms in (
+            ("No colon", "log", []),
+            ("Colon, no args", "log:", []),
+            ("Colon + args", "log:foo,bar,baz", ["foo", "bar", "baz"]),
+        ):
+            with self.subTest(title):
+                with patch("doorpi.actions.log.LogAction") as action:
+                    doorpi.actions.from_string(ac_str)
+                    action.assert_called_once_with(*parms)
 
     def test_emptystring(self):
         ac = doorpi.actions.from_string("")

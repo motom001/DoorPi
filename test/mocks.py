@@ -41,10 +41,11 @@ class DoorPiTestCase(unittest.TestCase):
 
 
 @contextlib.contextmanager
-def assert_no_raise(testcase, msg="Exception was raised"):
+def assert_no_raise(testcase, *, cls=Exception, msg="Exception was raised"):
+    """Assert that the ``with`` block does not raise a ``cls`` instance"""
     try:
         yield
-    except Exception as err:
+    except cls as err:
         raise testcase.failureException(msg) from err
 
 

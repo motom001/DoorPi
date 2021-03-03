@@ -1,3 +1,4 @@
+import contextlib
 import os
 import unittest
 from tempfile import TemporaryDirectory
@@ -37,3 +38,23 @@ class DoorPiTestCase(unittest.TestCase):
         doorpi_instance = None
         os.chdir(self.oldpwd)
         self.tmpdir.cleanup()
+
+
+@contextlib.contextmanager
+def assert_no_raise(testcase, msg="Exception was raised"):
+    try:
+        yield
+    except Exception as err:
+        raise testcase.failureException(msg) from err
+
+
+@contextlib.contextmanager
+def promise_deletion(obj, attr):
+    """Delete ``obj.attr`` after the ``with`` block exits"""
+    try:
+        yield None
+    finally:
+        try:
+            delattr(obj, attr)
+        except AttributeError:
+            pass

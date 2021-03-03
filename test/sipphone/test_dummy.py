@@ -1,6 +1,6 @@
 from unittest import mock
 
-from doorpi.sipphone import from_dummy
+from doorpi.sipphone.from_dummy import DummyPhone
 
 from ..mocks import DoorPi, DoorPiTestCase
 
@@ -10,7 +10,7 @@ class DummyPhoneTest(DoorPiTestCase):
     def test_creating_DummyPhone_registers_lifecycle_events_and_fires_oncreate(
         self, instance
     ):
-        from_dummy.instantiate()
+        DummyPhone()
         instance.event_handler.register_event.assert_has_calls(
             [
                 mock.call("OnSIPPhoneCreate", "doorpi.sipphone.from_dummy"),
@@ -24,7 +24,7 @@ class DummyPhoneTest(DoorPiTestCase):
         )
 
     def test_start_fires_onstart(self, instance):
-        from_dummy.instantiate().start()
+        DummyPhone().start()
         instance.event_handler.assert_has_calls(
             [
                 mock.call("OnSIPPhoneCreate", "doorpi.sipphone.from_dummy"),
@@ -34,7 +34,7 @@ class DummyPhoneTest(DoorPiTestCase):
         )
 
     def test_stop_fires_ondestroy(self, instance):
-        from_dummy.instantiate().stop()
+        DummyPhone().stop()
         instance.event_handler.assert_has_calls(
             [
                 mock.call("OnSIPPhoneCreate", "doorpi.sipphone.from_dummy"),
@@ -45,20 +45,20 @@ class DummyPhoneTest(DoorPiTestCase):
 
     def test_call_logs(self, _):
         uri = "sip:test@test"
-        phone = from_dummy.instantiate()
+        phone = DummyPhone()
         with self.assertLogs("doorpi.sipphone.from_dummy", "INFO"):
             phone.call(uri)
 
     def test_hangup_logs(self, _):
-        phone = from_dummy.instantiate()
+        phone = DummyPhone()
         with self.assertLogs("doorpi.sipphone.from_dummy", "INFO"):
             phone.hangup()
 
     def test_nothing_is_admin(self, _):
         uri = "sip:test@test"
-        phone = from_dummy.instantiate()
+        phone = DummyPhone()
         self.assertFalse(phone.is_admin(uri))
 
     def test_call_dump_is_empty(self, _):
-        phone = from_dummy.instantiate()
+        phone = DummyPhone()
         self.assertEqual(phone.dump_call(), {})

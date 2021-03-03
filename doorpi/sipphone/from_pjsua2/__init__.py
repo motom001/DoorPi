@@ -30,8 +30,3 @@ def fire_event(
     eh.fire_event(event_name, EVENT_SOURCE, extra=extra)
     if not async_only:
         eh.fire_event_sync(f"{event_name}_S", EVENT_SOURCE, extra=extra)
-
-
-from . import glue  # pylint: disable=wrong-import-position
-
-instantiate = glue.Pjsua2  # pylint: disable=invalid-name

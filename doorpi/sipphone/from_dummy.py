@@ -46,6 +46,3 @@ class DummyPhone(AbstractSIPPhone):
 
     def is_admin(self, uri: str) -> bool:
         return False
-
-
-instantiate = DummyPhone  # pylint: disable=invalid-name

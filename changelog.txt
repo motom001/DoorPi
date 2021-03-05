@@ -9,6 +9,20 @@ Legend:
 / reference to commit
 ! fix issue or kown bug
 
+Version: 3.0.0b5 (2021-03-05)  {{{1
+-----------------------------------
+
++ DoorPi can now be run using `python -m doorpi`
++ Added a new `waitevent` action
+~ Web server pages are now integrated into the `doorpi` package.
+  A separate installation of the web pages is no longer necessary.
+~ Rewrote the integrated web server based on aiohttp
+~ Changed to using Entrypoints to discover actions, keyboards and sip
+  phone implementations.  This allows to easily extend DoorPi using
+  additional packages, without changes to the DoorPi code itself.
+! Fix "must be str, not PosixPath" in setup.py
+! sip: Fix "realm" auto-setting not occuring
+
 Version: 3.0.0b4 (2020-08-12)  {{{1
 -----------------------------------
 

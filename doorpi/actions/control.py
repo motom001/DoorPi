@@ -3,6 +3,7 @@ import threading
 from time import sleep
 from typing import Any, Mapping
 
+import doorpi.actions
 import doorpi.event
 
 from . import Action
@@ -37,6 +38,8 @@ class WaitEventAction(Action):
         self.__action = action
 
         self.__flag = threading.Event()
+        self.__cb = doorpi.actions.CallbackAction(self.__flag.set)
+        doorpi.INSTANCE.event_handler.actions[eventname].insert(0, self.__cb)
 
     def __call__(self, event_id: str, extra: Mapping[str, Any]) -> None:
         self.__flag.clear()

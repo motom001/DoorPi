@@ -18,6 +18,7 @@ from typing import (
 )
 
 import doorpi.actions
+import doorpi.event
 
 from . import log
 
@@ -203,6 +204,8 @@ class EventHandler:
                 action(event_id, extra)
                 if not suppress_logs:
                     self.log.log_action(event_id, str(action), start_time)
+            except doorpi.event.AbortEventExecution:
+                LOGGER.info("[%s] Aborting event execution early")
             except Exception:  # pylint: disable=broad-except
                 try:
                     LOGGER.exception(

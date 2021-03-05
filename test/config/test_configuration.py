@@ -1,4 +1,3 @@
-import contextlib
 import datetime
 import enum
 import io
@@ -9,7 +8,7 @@ import textwrap
 
 from doorpi import config
 
-from ..mocks import DoorPiTestCase
+from ..mocks import DoorPiTestCase, assert_no_raise, promise_deletion
 
 
 class TestConfigDefs(DoorPiTestCase):
@@ -466,23 +465,3 @@ class ConfigView(DoorPiTestCase):
 
         self.assertEqual(subview["key"], parentview["subspace.key"])
         self.assertEqual(subview["key"], conf_obj["namespace.subspace.key"])
-
-
-@contextlib.contextmanager
-def assert_no_raise(testcase, msg="Exception was raised"):
-    try:
-        yield
-    except Exception as err:
-        raise testcase.failureException(msg) from err
-
-
-@contextlib.contextmanager
-def promise_deletion(obj, attr):
-    """Delete ``obj.attr`` after the ``with`` block exits"""
-    try:
-        yield None
-    finally:
-        try:
-            delattr(obj, attr)
-        except AttributeError:
-            pass

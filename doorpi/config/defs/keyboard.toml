@@ -1,0 +1,115 @@
+[events]
+OnKeyDown = "A key was physically pressed."
+OnKeyUp = "A key was physically released."
+OnKeyPressed = """A key was logically pressed.
+
+This is fired together with OnKeyDown or OnKeyUp, depending on the
+keyboard's configuration. Some implementations only fire this event,
+for example when it's impossible or unreasonable to fire the other two.
+A Prime example for this are the RFID and NFC reader implementations,
+which don't have a notion of keys that can be pressed or not pressed."""
+
+"OnKeyDown_[pin]" = "Like OnKeyDown, but specifically for pin [pin]."
+"OnKeyUp_[pin]" = "Like OnKeyUp, but specifically for pin [pin]."
+"OnKeyPressed_[pin]" = "Like OnKeyPressed, but specifically for pin [pin]."
+"OnKeyDown_[keyboard].[pin]" = "Like OnKeyDown, but for pin [pin] of keyboard [keyboard]."
+"OnKeyUp_[keyboard].[pin]" = "Like OnKeyUp, but for pin [pin] of keyboard [keyboard]."
+"OnKeyPressed_[keyboard].[pin]" = "Like OnKeyPressed, but for pin [pin] of keyboard [keyboard]."
+
+OnTagUnknown = """An unknown RFID / NFC tag was detected.
+
+Fired by the RFID and NFC reader implementations when a tag was
+detected that was not registered in the configuration. The tag's ID is
+supplied in the event's extra information as ``tag``."""
+
+[config.keyboard."*"]
+_description = "Configuration for keyboard \"{0}\""
+
+[config.keyboard."*".type]
+_description = """The type of keyboard "{0}"
+
+Currently supported keyboard types:
+
+* ``filesystem``: pseudo-keyboard using files (requires ``watchdog``).
+* ``gpio``: RaspberryPi onboard header (requires ``RPi.GPIO``).
+* ``piface``: PiFace IO expander (requires ``piface``).
+* ``pn532``: PN532 NFC module (requies ``nfc``).
+* ``rdm6300``: RDM6300 RFID module (requires ``serial``).
+* ``serial``: Serially connected keyboard (requires ``serial``)."""
+_type = "enum"
+_enumcls = "doorpi.keyboard.enums.KeyboardType"
+
+[config.keyboard."*".bouncetime]
+_description = "Software debounce time (ms)"
+_default = 100
+_min = 0
+
+[config.keyboard."*".polarity]
+_description = """The keyboard's logic polarity
+
+A polarity of ``HIGH`` means ``VCC=true`` and ``GND=false`` on a pin.
+A polarity of ``LOW`` reverses these interpretations. Affects both
+input and output pins."""
+_type = "enum"
+_enumcls = "doorpi.keyboard.enums.Polarity"
+_default = "HIGH"
+
+[config.keyboard."*".pressed_on_key_down]
+_description = """Fire OnKeyPressed when the key is pushed down \
+  (false: when it is released)"""
+_default = true
+
+[config.keyboard."*".reset_input]
+_description = "[filesystem] Reset input files after reading them"
+_default = true
+
+[config.keyboard."*".inputdir]
+_description = "[filesystem] Directory holding the input files"
+_type = "path"
+
+[config.keyboard."*".outputdir]
+_description = "[filesystem] Directory holding the output files"
+_type = "path"
+
+[config.keyboard."*".mode]
+_description = "[gpio] Pin numbering mode (BOARD is recommended)"
+_type = "enum"
+_enumcls = "doorpi.keyboard.enums.GPIOMode"
+_default = "BOARD"
+
+[config.keyboard."*".pull_up_down]
+_description = "[gpio] Configure internal pull-up/down resistors"
+_type = "enum"
+_enumcls = "doorpi.keyboard.enums.GPIOPull"
+_default = "OFF"
+
+[config.keyboard."*".port]
+_description = "[pn532/rdm6300/serial] Serial port to connect"
+_type = "path"
+
+[config.keyboard."*".baudrate]
+_description = "[serial] Baud rate of the serial connection"
+_default = 9600
+
+[config.keyboard."*".input_stop_flag]
+_description = "[serial] Stop flag after receiving input"
+_default = "\n"
+
+[config.keyboard."*".input_buffer_size]
+_description = "[serial] Maximum amount of characters to buffer"
+_default = 255
+
+[config.keyboard."*".output_stop_flag]
+_description = "[serial] Stop flag after sending output"
+_default = "\n"
+
+[config.keyboard."*".input."*"]
+_description = "Actions to fire when key {1} is pressed"
+_type = "list"
+_membertype = "string"
+
+[config.keyboard."*".output."*"]
+_description = """Define an alias for key {1}
+
+The alias is a unique name for use in actions like ``out:``."""
+_type = "string"

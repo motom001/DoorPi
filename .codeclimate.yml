@@ -1,0 +1,20 @@
+version: 2
+exclude_patterns:
+  - "doorpi/web/templates/dashboard/bower_components/"
+plugins:
+  duplication:
+    enabled: true
+  bandit:
+    enabled: true
+  fixme:
+    enabled: true
+  markdownlint:
+    enabled: true
+  pep8:
+    enabled: true
+  shellcheck:
+    enabled: true
+  structure:
+    enabled: false
+  sonar-python:
+    enabled: true

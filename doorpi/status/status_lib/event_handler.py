@@ -1,40 +1,37 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
+import operator
+from typing import Any, Dict, Iterable
 
-import logging
-logger = logging.getLogger(__name__)
-logger.debug("%s loaded", __name__)
+import doorpi.doorpi
 
-def get(*args, **kwargs):
-    try:
-        if len(kwargs['name']) == 0: kwargs['name'] = ['']
-        if len(kwargs['value']) == 0: kwargs['value'] = ['']
 
-        event_handler = kwargs['DoorPiObject'].event_handler
+def get(
+    doorpi_obj: doorpi.doorpi.DoorPi,
+    name: Iterable[str],
+    value: Iterable[str],
+) -> Dict[str, Any]:
+    del value
+    status_getters = {
+        "sources": operator.attrgetter("sources"),
+        "events": operator.attrgetter("events"),
+        "events_by_source": lambda eh: {
+            source: eh.get_events_by_source(source) for source in eh.sources
+        },
+        "actions": lambda eh: {
+            event: list(map(str, actions))
+            for event, actions in eh.actions.items()
+        },
+        "threads": lambda eh: str(eh.threads),
+        "idle": operator.attrgetter("idle"),
+    }
 
-        status = {}
-        for name_requested in kwargs['name']:
-            if name_requested in 'sources':
-                status['sources'] = event_handler.sources
-            if name_requested in 'events':
-                status['events'] = event_handler.events
-            if name_requested in 'events_by_source':
-                status['events_by_source'] = event_handler.events_by_source
-            if name_requested in 'actions':
-                status['actions'] = {}
-                for event in event_handler.actions:
-                    status['actions'][event] = []
-                    for action in event_handler.actions[event]:
-                        status['actions'][event].append(str(action))
-            if name_requested in 'threads':
-                status['threads'] = str(event_handler.threads)
-            if name_requested in 'idle':
-                status['idle'] = event_handler.idle
+    if not name:
+        name = status_getters.keys()
+    return {
+        n: status_getters[n](doorpi_obj.event_handler)
+        for n in name
+        if n in status_getters
+    }
 
-        return status
-    except Exception as exp:
-        logger.exception(exp)
-        return {'Error': 'could not create '+str(__name__)+' object - '+str(exp)}
 
-def is_active(doorpi_object):
-    return True if doorpi_object.event_handler else False
+def is_active(doorpi_object: doorpi.doorpi.DoorPi) -> bool:
+    return bool(doorpi_object.event_handler)

@@ -1,0 +1,8 @@
+[Unit]
+Description=DoorPiWeb
+Documentation=https://github.com/motom001/DoorPi/wiki
+PartOf=doorpi.service
+
+[Socket]
+BindIPv6Only=both
+ListenStream=[::1]:50371

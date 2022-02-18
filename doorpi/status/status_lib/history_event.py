@@ -1,26 +1,25 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
+from typing import Any, Sequence
 
-import logging
-logger = logging.getLogger(__name__)
-logger.debug("%s loaded", __name__)
+import doorpi.doorpi
 
-def get(*args, **kwargs):
+
+def get(
+    doorpi_obj: doorpi.doorpi.DoorPi,
+    name: Sequence[str],
+    value: Sequence[str],
+) -> Any:
     try:
-        if len(kwargs['name']) == 0: kwargs['name'] = ['']
-        if len(kwargs['value']) == 0: kwargs['value'] = ['']
+        filter_ = name[0]
+    except IndexError:
+        filter_ = ""
 
-        filter = kwargs['name'][0]
-        try: max_count = int(kwargs['value'][0])
-        except: max_count = 100
+    try:
+        max_count = int(value[0])
+    except (IndexError, ValueError):
+        max_count = 100
 
-        return kwargs['DoorPiObject'].event_handler.db.get_event_log_entries(max_count, filter)
-    except Exception as exp:
-        logger.exception(exp)
-        return {'Error': 'could not create '+str(__name__)+' object - '+str(exp)}
+    return doorpi_obj.event_handler.log.get_event_log(max_count, filter_)
 
-def is_active(doorpi_object):
-    if len(doorpi_object.event_handler.db.get_event_log_entries(1, '')):
-        return True
-    else:
-        return False
+
+def is_active(doorpi_object: doorpi.doorpi.DoorPi) -> bool:
+    return bool(doorpi_object.event_handler.log.get_event_log(1, ""))

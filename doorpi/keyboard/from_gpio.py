@@ -1,123 +1,81 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
 import logging
-logger = logging.getLogger(__name__)
-logger.debug("%s loaded", __name__)
+from typing import Any, Literal
 
-import RPi.GPIO as RPiGPIO # basic for GPIO control
-from doorpi.keyboard.AbstractBaseClass import KeyboardAbstractBaseClass, HIGH_LEVEL, LOW_LEVEL
-import doorpi
+import RPi.GPIO as gpio  # pylint: disable=import-error
+
+from doorpi import keyboard
+
+from .abc import AbstractKeyboard
+
+LOGGER = logging.getLogger(__name__)
+INSTANTIATED = False
 
 
-def get(**kwargs): return GPIO(**kwargs)
+class GPIOKeyboard(AbstractKeyboard):
+    def __init__(self, name: str) -> None:
+        # pylint: disable=no-member  # Only available at runtime
+        global INSTANTIATED
+        if INSTANTIATED:
+            raise RuntimeError("Only one GPIO keyboard may be instantiated")
+        INSTANTIATED = True
 
+        super().__init__(name)
 
-class GPIO(KeyboardAbstractBaseClass):
-    name = 'GPIO Keyboard'
+        gpio.setwarnings(False)
 
-    def __init__(self, input_pins, output_pins, conf_pre, conf_post, keyboard_name,
-                 bouncetime=200, polarity=0, pressed_on_key_down=True, *args, **kwargs):
-        logger.debug("__init__(input_pins = %s, output_pins = %s, bouncetime = %s, polarity = %s)",
-                     input_pins, output_pins, bouncetime, polarity)
-        self.keyboard_name = keyboard_name
-        self._polarity = polarity
-        self._InputPins = map(int, input_pins)
-        self._OutputPins = map(int, output_pins)
-        self._pressed_on_key_down = pressed_on_key_down
+        gpio.setmode((gpio.BOARD, gpio.BCM)[self.config["mode"].value - 1])
 
-        RPiGPIO.setwarnings(False)
-
-        section_name = conf_pre+'keyboard'+conf_post
-        if doorpi.DoorPi().config.get(section_name, 'mode', "BOARD").upper() == "BOARD":
-            RPiGPIO.setmode(RPiGPIO.BOARD)
+        pull = self.config["pull_up_down"]
+        if pull is keyboard.PullUpDown.OFF:  # type: ignore[attr-defined]
+            pull = gpio.PUD_OFF
+        elif pull is keyboard.PullUpDown.UP:  # type: ignore[attr-defined]
+            pull = gpio.PUD_UP
+        elif pull is keyboard.PullUpDown.DOWN:  # type: ignore[attr-defined]
+            pull = gpio.PUD_DOWN
         else:
-            RPiGPIO.setmode(RPiGPIO.BCM)
+            raise ValueError(f"{self.name}: Invalid pull_up_down value")
 
-        # issue 134
-        pull_up_down = doorpi.DoorPi().config.get(section_name, 'pull_up_down', "PUD_OFF").upper()
-        if pull_up_down == "PUD_DOWN":
-            pull_up_down = RPiGPIO.PUD_DOWN
-        elif pull_up_down == "PUD_UP":
-            pull_up_down = RPiGPIO.PUD_UP
-        else:
-            pull_up_down = RPiGPIO.PUD_OFF
-
-        # issue #133
-        try:
-            RPiGPIO.setup(self._InputPins, RPiGPIO.IN, pull_up_down=pull_up_down)
-        except TypeError:
-            logger.warning('you use an old version of GPIO library - fallback to single-register of input pins')
-            for input_pin in self._InputPins:
-                RPiGPIO.setup(input_pin, RPiGPIO.IN, pull_up_down=pull_up_down)
-
-        for input_pin in self._InputPins:
-            RPiGPIO.add_event_detect(
+        gpio.setup(self._inputs, gpio.IN, pull_up_down=pull)
+        for input_pin in self._inputs:
+            gpio.add_event_detect(
                 input_pin,
-                RPiGPIO.BOTH,
+                gpio.BOTH,
                 callback=self.event_detect,
-                bouncetime=int(bouncetime)
+                bouncetime=(
+                    self._bouncetime.days * 3600 * 24
+                    + self._bouncetime.seconds
+                ),
             )
-            self._register_EVENTS_for_pin(input_pin, __name__)
 
-        # issue #133
-        try:
-            RPiGPIO.setup(self._OutputPins, RPiGPIO.OUT)
-        except TypeError:
-            logger.warning('you use an old version of GPIO library - fallback to single-register of input pins')
-            for output_pin in self._OutputPins:
-                RPiGPIO.setup(output_pin, RPiGPIO.OUT)
+        gpio.setup(self._outputs.keys(), gpio.OUT)
+        for output_pin in self._outputs:
+            self.output(output_pin, False)
 
-        # use set_output to register status @ dict self._OutputStatus
-        for output_pin in self._OutputPins:
-            self.set_output(output_pin, 0, False)
+    def destroy(self) -> None:
+        global INSTANTIATED
 
-        self.register_destroy_action()
+        for pin in self._outputs:
+            self.output(pin, False)
+        gpio.cleanup()
+        INSTANTIATED = False
+        super().destroy()
 
-    def destroy(self):
-        if self.is_destroyed:
-            return
-
-        logger.debug("destroy")
-        # shutdown all output-pins
-        for output_pin in self._OutputPins:
-            self.set_output(output_pin, 0, False)
-        RPiGPIO.cleanup()
-        doorpi.DoorPi().event_handler.unregister_source(__name__, True)
-        self.__destroyed = True
-
-    def event_detect(self, pin):
-        if self.status_input(pin):
-            self._fire_OnKeyDown(pin, __name__)
-            if self._pressed_on_key_down:  # issue 134
-                self._fire_OnKeyPressed(pin, __name__)
+    def event_detect(self, pin: str) -> None:
+        """Callback for detected GPIO events."""
+        if self.input(pin):
+            self._fire_keydown(pin)
         else:
-            self._fire_OnKeyUp(pin, __name__)
-            if not self._pressed_on_key_down:  # issue 134
-                self._fire_OnKeyPressed(pin, __name__)
+            self._fire_keyup(pin)
 
-    def status_input(self, pin):
-        if self._polarity is 0:
-            return str(RPiGPIO.input(int(pin))).lower() in HIGH_LEVEL
-        else:
-            return str(RPiGPIO.input(int(pin))).lower() in LOW_LEVEL
+    def input(self, pin: str) -> bool:
+        super().input(pin)
+        pin_id = int(pin)
+        return self._normalize(gpio.input(pin_id))
 
-    def set_output(self, pin, value, log_output=True):
-        parsed_pin = doorpi.DoorPi().parse_string("!"+str(pin)+"!")
-        if parsed_pin != "!"+str(pin)+"!":
-            pin = parsed_pin
-
-        pin = int(pin)
-        value = str(value).lower() in HIGH_LEVEL
-        if self._polarity is 1:
-            value = not value
-        log_output = str(log_output).lower() in HIGH_LEVEL
-
-        if pin not in self._OutputPins:
-            return False
-        if log_output:
-            logger.debug("out(pin = %s, value = %s, log_output = %s)", pin, value, log_output)
-
-        RPiGPIO.output(pin, value)
-        self._OutputStatus[pin] = value
+    def output(self, pin: str, value: Any) -> Literal[True]:
+        super().output(pin, value)
+        pin_id = int(pin)
+        value = self._normalize(value)
+        gpio.output(pin_id, value)
+        self._outputs[pin] = value
         return True

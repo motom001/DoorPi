@@ -1,64 +1,70 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
-import logging
-logger = logging.getLogger(__name__)
-logger.debug("%s loaded", __name__)
-
-import json
-from datetime import datetime
+from __future__ import annotations
 
 import importlib
+import json
+import logging
+from typing import TYPE_CHECKING, Any, Dict, Optional, Sequence
 
-MODULES = [
-    'status_time',
-    #'additional_informations',
-    'config',
-    'keyboard',
-    'sipphone',
-    'event_handler',
-    'history_event',
-    'history_snapshot',
-    #'history_action',
-    'environment',
-    'webserver'
-]
+import doorpi.doorpi
 
-def collect_status(doorpi_object, modules = MODULES, value = list(), name = list()):
-    return DoorPiStatus(doorpi_object, modules, value, name)
+LOGGER = logging.getLogger(__name__)
 
-class DoorPiStatus(object):
+MODULES = (
+    "status_time",
+    # "additional_informations",
+    "config",
+    "keyboard",
+    "sipphone",
+    "event_handler",
+    "history_event",
+    "history_snapshot",
+    # "history_action",
+    "environment",
+    "webserver",
+)
+
+
+class DoorPiStatus:
+    @property
+    def json(self) -> str:
+        return json.dumps(self.dictionary)
 
     @property
-    def dictionary(self): return self.__status
+    def json_beautified(self) -> str:
+        return json.dumps(self.dictionary, sort_keys=True, indent=4)
 
-    @property
-    def json(self): return json.dumps(self.__status)
+    def __init__(
+        self,
+        doorpi_obj: doorpi.doorpi.DoorPi,
+        modules: Optional[Sequence[str]] = None,
+        value: Sequence[str] = (),
+        name: Sequence[str] = (),
+    ) -> None:
+        if not modules:
+            modules = MODULES
+        self.dictionary: Dict[str, Dict[str, Any]] = {}
 
-    @property
-    def json_beautified(self): return json.dumps(self.__status, sort_keys=True, indent=4)
-
-    def __init__(self, DoorPiObject, modules = MODULES, value = list(), name = list()):
-        self.__status = {}
-        self.collect_status(DoorPiObject, modules, value, name)
-
-    def collect_status(self, DoorPiObject, modules = MODULES, value = list(), name = list()):
-        if len(modules) == 0: modules = MODULES
+        if len(modules) == 0:
+            modules = MODULES
 
         for module in modules:
             if module not in MODULES:
-                logger.warning('skipping unknown status module %s', module)
+                LOGGER.warning("Skipping unknown status module %s", module)
                 continue
-            self.__status[module] = {}
             try:
-                self.__status[module] = importlib.import_module('doorpi.status.status_lib.'+module).get(
-                    modules = modules,
-                    module = module,
-                    name = name,
-                    value = value,
-                    DoorPiObject = DoorPiObject
+                getter_func = importlib.import_module(
+                    f"doorpi.status.status_lib.{module}"
+                ).get  # type: ignore
+                self.dictionary[module] = getter_func(
+                    doorpi_obj=doorpi_obj, name=name, value=value
                 )
-            except ImportError as exp:
-                logger.exception('status %s not found @ status.status_lib.%s (msg: %s)', module, module, exp)
-            except Exception as exp:
-                logger.exception('status %s error (msg: %s)', module, exp)
+            except Exception:  # pylint: disable=broad-except
+                LOGGER.exception(
+                    "Cannot collect status information for %s", module
+                )
+                self.dictionary[module] = {
+                    "Error": f"Could not collect information about {module}"
+                }
+
+
+collect_status = DoorPiStatus  # pylint: disable=invalid-name

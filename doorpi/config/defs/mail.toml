@@ -1,0 +1,37 @@
+[config.mail.server]
+_description = "The SMTP server to use for sending e-mails"
+_type = "string"
+
+[config.mail.port]
+_description = "The SMTP server port"
+_default = 587
+_min = 1
+_max = 65535
+
+[config.mail.need_login]
+_description = "Whether the server requires authentication"
+_default = false
+
+[config.mail.username]
+_description = "Login user name"
+_type = "string"
+
+[config.mail.password]
+_description = "Login password"
+_type = "password"
+
+[config.mail.ssl]
+_description = "Use SSL transport encryption"
+_default = false
+
+[config.mail.tls]
+_description = "Use STARTTLS transport encryption"
+_default = false
+
+[config.mail.sender]
+_description = "The sender e-mail identity"
+_type = "string"
+
+[config.mail.signature]
+_description = "Signature to put at the end of every e-mail"
+_default = "!EPILOG!"

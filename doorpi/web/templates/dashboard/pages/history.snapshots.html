@@ -1,0 +1,54 @@
+{% extends "/dashboard/parts/base.html" %}
+{% block content %}
+			<div class="panel-heading">
+				<h1 class="page-header">History - Snapshots</h1>
+			</div>
+			<div class="panel-body">
+				<img class="img-responsive" id="snapshot" src='' alt='' />
+			</div>
+			<div class="panel-footer">
+				<button id="prev" type="button" class="btn btn-primary">Previous</button>
+				<button id="next" type="button" class="btn btn-primary">Next</button>
+			</div>
+			<script>
+				var files = undefined
+				var current = 0
+				$(document).ready(
+					function() {
+						$.getJSON("/status?module=history_snapshot",
+							function(result) {
+								if (result.history_snapshot != null)
+									files = result.history_snapshot
+								showImage(0)
+							});
+						});
+						$("#next").click(function() {
+							showImage(1)
+						});
+						$("#prev").click(function() {
+							showImage(-1)
+						});
+
+						function showImage(direction) {
+							if (files != undefined && files.length > 0) {
+								switch (direction) {
+								case 1:
+									current = current + 1
+									if (current > files.length - 1)
+										current = 0
+									break
+								case -1:
+									current = current - 1;
+									if (current < 0)
+										current = files.length - 1
+									break
+								default:
+									current = 0
+								}
+								document.getElementById("snapshot").src = files[current]
+								document.getElementById("snapshot").alt = files[current]
+							}
+						}
+			</script>
+{% endblock %}
+{# vim:set ts=4 noet sw=0: #}

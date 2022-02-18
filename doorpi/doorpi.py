@@ -1,319 +1,340 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
+"""The main DoorPi module housing the DoorPi class' implementation."""
+from __future__ import annotations
 
-import logging
-logger = logging.getLogger(__name__)
-logger.debug("%s loaded", __name__)
-
-import sys
 import argparse
+import datetime
+import html
+import itertools
+import logging
+import os
+import pathlib
+import signal
+import sys
+import time
+from typing import TYPE_CHECKING, Any, Mapping, Optional, Sequence
 
-import time  # used by: DoorPi.run
-import os  # used by: DoorPi.load_config
+import doorpi
+import doorpi.actions.snapshot
+import doorpi.config
+import doorpi.event.handler
+import doorpi.keyboard
+import doorpi.metadata
+import doorpi.sipphone
+import doorpi.status.status_class
+import doorpi.status.systemd
+import doorpi.web
 
-import datetime  # used by: parse_string
-import cgi  # used by: parse_string
-import tempfile
+LOGGER: doorpi.DoorPiLogger = logging.getLogger(__name__)  # type: ignore
+DEADLY_SIGNALS_ABORT = 3
 
-import metadata
-from keyboard.KeyboardInterface import load_keyboard
-from sipphone.SipphoneInterface import load_sipphone
-from status.webserver import load_webserver
-from conf.config_object import ConfigObject
-from action.handler import EventHandler
-from status.status_class import DoorPiStatus
-#from status.webservice import run_webservice, WebService
-from action.base import SingleAction
+if __name__ == "__main__":
+    raise Exception("use main.py to start DoorPi")
 
 
-class DoorPiShutdownAction(SingleAction): pass
-class DoorPiNotExistsException(Exception): pass
-class DoorPiEventHandlerNotExistsException(Exception): pass
-class DoorPiRestartException(Exception): pass
+class DoorPi:
+    """The main DoorPi class that ties everything together."""
 
-class Singleton(type):
-    _instances = {}
-    def __call__(cls, *args, **kwargs):
-        if cls not in cls._instances:
-            cls._instances[cls] = super(Singleton, cls).__call__(*args, **kwargs)
-        return cls._instances[cls]
+    config: doorpi.config.Configuration
+    event_handler: doorpi.event.handler.EventHandler
+    dpsd: doorpi.status.systemd.DoorPiSD
+    keyboard: doorpi.keyboard.handler.KeyboardHandler
+    sipphone: doorpi.sipphone.abc.AbstractSIPPhone
+    webserver: Optional[threading.Thread]
 
-class DoorPi(object):
-    __metaclass__ = Singleton
-
-    __prepared = False
-
-    __config = None
-    @property
-    def config(self): return self.__config
-
-    __keyboard = None
-    @property
-    def keyboard(self): return self.__keyboard
-    #def get_keyboard(self): return self.__keyboard
-
-    __sipphone = None
-    @property
-    def sipphone(self): return self.__sipphone
+    _base_path: Optional[pathlib.Path]
+    __deadlysignals: int
+    __last_tick: float
+    __prepared: bool
+    __shutdown: bool
 
     @property
-    def additional_informations(self):
-        if self.event_handler is None: return {}
-        else: return self.event_handler.additional_informations
-
-    __event_handler = None
-    @property
-    def event_handler(self): return self.__event_handler
-
-    __webserver = None
-    @property
-    def webserver(self): return self.__webserver
+    def extra_info(self) -> Mapping[str, Any]:
+        if self.event_handler is None:
+            return {}  # type: ignore[unreachable]
+        return self.event_handler.extra_info
 
     @property
-    def status(self): return DoorPiStatus(self)
-    def get_status(self, modules = '', value= '', name = ''): return DoorPiStatus(self, modules, value, name)
+    def status(self) -> doorpi.status.status_class.DoorPiStatus:
+        return doorpi.status.status_class.DoorPiStatus(self)
+
+    def get_status(
+        self,
+        modules: Optional[Sequence[str]] = None,
+        value: Sequence[str] = (),
+        name: Sequence[str] = (),
+    ) -> doorpi.status.status_class.DoorPiStatus:
+        return doorpi.status.status_class.DoorPiStatus(
+            self, modules, value, name
+        )
 
     @property
-    def epilog(self): return metadata.epilog
-
-    @property
-    def name(self): return str(metadata.package)
-    @property
-    def name_and_version(self): return str(metadata.package) + " - version: " + metadata.version
-
-    __shutdown = False
-    @property
-    def shutdown(self): return self.__shutdown
-
-    _base_path = metadata.doorpi_path
-    @property
-    def base_path(self):
+    def base_path(self) -> pathlib.Path:
         if self._base_path is None:
-            try:
-                self._base_path = os.path.join(os.path.expanduser('~'), metadata.package)
-                assert os.access(self._base_path, os.W_OK), 'use fallback for base_path (see tmp path)'
-            except Exception as exp:
-                logger.error(exp)
-                import tempfile
-                self._base_path = tempfile.gettempdir()
+            name = doorpi.metadata.distribution.metadata["Name"]
+            base = pathlib.Path.home() / f"{name.lower()}.ini"
+            if base.is_file():
+                self._base_path = pathlib.Path.home()
+            elif sys.platform == "linux":
+                try:
+                    base = pathlib.Path(os.environ["XDG_CONFIG_HOME"])
+                except KeyError:
+                    base = pathlib.Path.home() / ".config"
+                self._base_path = base / name.lower()
+            elif sys.platform == "win32":
+                self._base_path = pathlib.Path(os.environ["APPDATA"]) / name
+            else:
+                self._base_path = pathlib.Path.home() / name.lower()
+            LOGGER.info("Auto-selected BasePath %s", self._base_path)
         return self._base_path
 
-    def __init__(self, parsed_arguments = None):
-        self.__parsed_arguments = parsed_arguments
-        # for start as daemon - if start as app it will not matter to load this vars
-        self.stdin_path = '/dev/null'
-        self.stdout_path = '/dev/null'
-        self.stderr_path = '/dev/null'
-        self.pidfile_path =  '/var/run/doorpi.pid'
-        self.pidfile_timeout = 5
+    def __init__(self, args: argparse.Namespace) -> None:
+        if not TYPE_CHECKING and doorpi.INSTANCE is not None:
+            raise RuntimeError("Only one DoorPi instance can be created")
+        doorpi.INSTANCE = self
+
+        self.configfile = pathlib.Path(args.configfile)
+        self.config = doorpi.config.Configuration()
+        self.config.load_builtin_definitions()
+        self.config.load(self.configfile)
+        try:
+            self._base_path = self.config["base_path"]
+        except KeyError:
+            self._base_path = None
+        self.dpsd = None  # type: ignore
+        self.event_handler = None  # type: ignore
+        self.keyboard = None  # type: ignore
+        self.sipphone = None  # type: ignore
+        self.webserver = None
+
+        self.__deadlysignals = 0
+        self.__prepared = False
+        self.__shutdown = False
 
         self.__last_tick = time.time()
 
-    def doorpi_shutdown(self, time_until_shutdown=10):
-        time.sleep(time_until_shutdown)
+    def doorpi_shutdown(self, time_until_shutdown: int = 0) -> None:
+        """Tell DoorPi to shut down."""
+        if time_until_shutdown > 0:
+            time.sleep(time_until_shutdown)
         self.__shutdown = True
 
-    def prepare(self, parsed_arguments):
-        logger.debug("prepare")
-        logger.debug("given arguments argv: %s", parsed_arguments)
+    def signal_shutdown(self, signum: int, stackframe: Any) -> None:
+        """Handles signals considered deadly, like INT and TERM."""
+        del stackframe
+        self.__shutdown = True
+        self.__deadlysignals += 1
+        LOGGER.info(
+            "Caught deadly signal %s (%d / %d)",
+            signal.Signals(signum).name,  # pylint: disable=no-member
+            self.__deadlysignals,
+            DEADLY_SIGNALS_ABORT,
+        )
 
-        self.__config = ConfigObject.load_config(parsed_arguments.configfile)
-        self._base_path = self.config.get('DoorPi', 'base_path', self.base_path)
-        self.__event_handler = EventHandler()
+        if self.__deadlysignals >= DEADLY_SIGNALS_ABORT:
+            raise Exception("Force-exiting due to signal")
 
-        if self.config.config_file is None:
-            self.event_handler.register_action('AfterStartup', self.config.save_config)
-            self.config.get('EVENT_OnStartup', '10', 'sleep:1')
+    def prepare(self) -> None:
+        self.dpsd = doorpi.status.systemd.DoorPiSD()
 
-        if 'test' in parsed_arguments and parsed_arguments.test is True:
-            logger.warning('using only test-mode and destroy after 5 seconds')
-            self.event_handler.register_action('AfterStartup', DoorPiShutdownAction(self.doorpi_shutdown))
+        # setup signal handlers for HUP, INT, TERM
+        handler = self.signal_shutdown
+        signal.signal(signal.SIGHUP, handler)
+        signal.signal(signal.SIGINT, handler)
+        signal.signal(signal.SIGTERM, handler)
+
+        self.event_handler = doorpi.event.handler.EventHandler()
 
         # register own events
-        self.event_handler.register_event('BeforeStartup', __name__)
-        self.event_handler.register_event('OnStartup', __name__)
-        self.event_handler.register_event('AfterStartup', __name__)
-        self.event_handler.register_event('BeforeShutdown', __name__)
-        self.event_handler.register_event('OnShutdown', __name__)
-        self.event_handler.register_event('AfterShutdown', __name__)
-        self.event_handler.register_event('OnTimeTick', __name__)
-        self.event_handler.register_event('OnTimeTickRealtime', __name__)
+        for event in (
+            "BeforeStartup",
+            "OnStartup",
+            "AfterStartup",
+            "BeforeShutdown",
+            "OnShutdown",
+            "AfterShutdown",
+            "OnTimeTick",
+            "OnTimeRapidTick",
+        ):
+            self.event_handler.register_event(event, __name__)
 
         # register base actions
-        self.event_handler.register_action('OnTimeTick', 'time_tick:!last_tick!')
+        self.event_handler.register_action(
+            "OnTimeTick", f"time_tick:{self.__last_tick}"
+        )
 
         # register modules
-        self.__webserver    = load_webserver()
-        self.__keyboard     = load_keyboard()
-        self.__sipphone     = load_sipphone()
+        self.webserver = doorpi.web.load()  # pylint: disable=E1111, E1128
+        self.keyboard = doorpi.keyboard.load()
+        self.sipphone = doorpi.sipphone.load()
         self.sipphone.start()
 
-        # register eventbased actions from configfile
-        for event_section in self.config.get_sections('EVENT_'):
-            logger.info("found EVENT_ section '%s' in configfile", event_section)
-            event_name = event_section[len('EVENT_'):]
-            for action in sorted(self.config.get_keys(event_section)):
-                logger.info("registering action '%s' for event '%s'", action, event_name)
-                self.event_handler.register_action(event_name, self.config.get(event_section, action))
-
-        # register actions for inputpins
-        if 'KeyboardHandler' not in self.keyboard.name:
-            section_name = 'InputPins'
-            for input_pin in sorted(self.config.get_keys(section_name)):
-                self.event_handler.register_action('OnKeyPressed_'+input_pin, self.config.get(section_name, input_pin))
-        else:
-            for keyboard_name in self.keyboard.loaded_keyboards:
-                section_name = keyboard_name+'_InputPins'
-                for input_pin in self.config.get_keys(section_name, log = False):
-                    self.event_handler.register_action(
-                        'OnKeyPressed_'+keyboard_name+'.'+input_pin,
-                        self.config.get(section_name, input_pin)
-                    )
-
-        # register actions for DTMF
-        section_name = 'DTMF'
-        for DTMF in sorted(self.config.get_keys(section_name)):
-            self.event_handler.register_action('OnDTMF_'+DTMF, self.config.get(section_name, DTMF))
-
-        # register keep_alive_led
-        is_alive_led = self.config.get('DoorPi', 'is_alive_led', '')
-        if is_alive_led is not '':
-            self.event_handler.register_action('OnTimeSecondEvenNumber', 'out:%s,HIGH,False'%is_alive_led)
-            self.event_handler.register_action('OnTimeSecondUnevenNumber', 'out:%s,LOW,False'%is_alive_led)
-
         self.__prepared = True
-        return self
 
-    def __del__(self):
-        return self.destroy()
+    def __del__(self) -> None:
+        if self.__prepared:
+            LOGGER.error(
+                "DoorPi is being garbage collected,"
+                " but was not properly shut down!\n"
+                "This is a bug. Please report it to the author/s.\n"
+                "Attempting to shutdown properly (errors may follow)"
+            )
+            self.destroy()
 
-    @property
-    def modules_destroyed(self):
-        if len(self.event_handler.sources) > 1: return False
-        return self.event_handler.idle
+    def destroy(self) -> None:
+        LOGGER.debug("Shutting down DoorPi")
+        self.__shutdown = True
+        self.dpsd.stopping()
 
-    def destroy(self):
-        logger.debug('destroy doorpi')
+        if not self.__prepared:
+            return
 
-        if not self.event_handler or self.event_handler.threads == None:
-            DoorPiEventHandlerNotExistsException("don't try to stop, when not prepared")
-            return False
+        LOGGER.debug(
+            "Threads before starting shutdown: %s", self.event_handler.threads
+        )
 
-        logger.debug("Threads before starting shutdown: %s", self.event_handler.threads)
+        self.event_handler.fire_event_sync("BeforeShutdown", __name__)
+        self.event_handler.fire_event_sync("OnShutdown", __name__)
+        self.event_handler.fire_event_sync("AfterShutdown", __name__)
 
-        self.event_handler.fire_event('BeforeShutdown', __name__)
-        self.event_handler.fire_event_synchron('OnShutdown', __name__)
-        self.event_handler.fire_event('AfterShutdown', __name__)
-
-        timeout = 5
+        timeout = 5.0
         waiting_between_checks = 0.5
-        time.sleep(waiting_between_checks)
-        while timeout > 0 and self.modules_destroyed is not True:
-            # while not self.event_handler.idle and timeout > 0 and len(self.event_handler.sources) > 1:
-            logger.debug('wait %s seconds for threads %s and %s event',
-                         timeout, len(self.event_handler.threads[1:]), len(self.event_handler.sources))
-            logger.trace('still existing threads:       %s', self.event_handler.threads[1:])
-            logger.trace('still existing event sources: %s', self.event_handler.sources)
+
+        while timeout > 0 and not self.event_handler.idle:
+            LOGGER.debug(
+                "Waiting %s seconds for %d events to finish",
+                timeout,
+                len(self.event_handler.threads),
+            )
+            LOGGER.trace(
+                "Still existing event threads: %s", self.event_handler.threads
+            )
+            LOGGER.trace(
+                "Still existing event sources: %s", self.event_handler.sources
+            )
             time.sleep(waiting_between_checks)
             timeout -= waiting_between_checks
 
-        if timeout <= 0:
-            logger.warning("waiting for threads to time out - there are still threads: %s", self.event_handler.threads[1:])
+        if len(self.event_handler.sources) > 1:
+            LOGGER.warning(
+                "Some event sources did not shut down properly: %s",
+                self.event_handler.sources[1:],
+            )
 
-        logger.info('======== DoorPi successfully shutdown ========')
-        return True
+        # unregister modules
+        self.sipphone = self.keyboard = self.webserver = None  # type: ignore
+        self.__prepared = False
 
-    def restart(self):
-        if self.destroy(): self.run()
-        else: raise DoorPiRestartException()
+        doorpi.INSTANCE = None  # type: ignore
+        LOGGER.info("======== DoorPi completed shutting down ========")
 
-    def run(self):
-        logger.debug("run")
-        if not self.__prepared: self.prepare(self.__parsed_arguments)
+    def run(self) -> None:
+        LOGGER.debug("run")
+        if not self.__prepared:
+            self.prepare()
 
-        self.event_handler.fire_event('BeforeStartup', __name__)
-        self.event_handler.fire_event_synchron('OnStartup', __name__)
-        self.event_handler.fire_event('AfterStartup', __name__)
+        self.event_handler.fire_event_sync("BeforeStartup", __name__)
+        self.event_handler.fire_event_sync("OnStartup", __name__)
+        self.event_handler.fire_event_sync("AfterStartup", __name__)
 
-        # self.event_handler.register_action('OnTimeMinuteUnevenNumber', 'doorpi_restart')
+        LOGGER.info("DoorPi started successfully")
+        LOGGER.info("BasePath is %s", self.base_path)
 
-        logger.info('DoorPi started successfully')
-        logger.info('BasePath is %s', self.base_path)
-        if self.__webserver:
-            logger.info('Weburl is %s', self.__webserver.own_url)
-        else:
-            logger.info('no Webserver loaded')
+        # setup watchdog ping and signal startup success
+        self.event_handler.register_action(
+            "OnTimeSecondUnevenNumber",
+            doorpi.actions.CallbackAction(self.dpsd.watchdog),
+        )
+        self.dpsd.ready()
 
-        time_ticks = 0
+        tickrate = 0.05  # seconds between OnTimeRapidTick events
+        tickrate_slow = 10  # rapid ticks between OnTimeTick events
+        last = time.time()
+        next_slowtick = 0.0
 
-        while True and not self.__shutdown:
-            time_ticks += 0.05
-            self.check_time_critical_threads()
-            if time_ticks > 0.5:
+        while not self.__shutdown:
+            self.event_handler.fire_event_sync("OnTimeRapidTick", __name__)
+            next_slowtick -= 1
+
+            if next_slowtick <= 0:
                 self.__last_tick = time.time()
-                self.__event_handler.fire_event_asynchron('OnTimeTick', __name__)
-                time_ticks = 0
-            time.sleep(0.05)
-        return self
+                self.event_handler.fire_event_sync("OnTimeTick", __name__)
+                next_slowtick = tickrate_slow
 
-    def check_time_critical_threads(self):
-        if self.sipphone: self.sipphone.self_check()
+            now = time.time()
+            duration = now - last
 
-    def parse_string(self, input_string):
+            if duration > tickrate:
+                skipped_ticks, duration = divmod(duration, tickrate)
+                LOGGER.warning(
+                    "Tick took too long (%.1fms > %.1fms), skipping %d tick(s)",
+                    duration * 1000,
+                    tickrate * 1000,
+                    skipped_ticks,
+                )
+                LOGGER.warning(
+                    "registered actions for OnTimeRapidTick: %s",
+                    self.event_handler.actions["OnTimeRapidTick"],
+                )
+                LOGGER.warning(
+                    "registered actions for OnTimeTick: %s",
+                    self.event_handler.actions["OnTimeTick"],
+                )
+                last += skipped_ticks * tickrate
+                next_slowtick -= skipped_ticks
+
+            last += tickrate
+            time.sleep(last - now)
+
+    def parse_string(self, input_string: str) -> str:
         parsed_string = datetime.datetime.now().strftime(str(input_string))
 
-        if self.keyboard is None or self.keyboard.last_key is None:
-            self.additional_informations['LastKey'] = "NotSetYet"
-        else:
-            self.additional_informations['LastKey'] = str(self.keyboard.last_key)
+        def format_table_row(key: Any, val: Any) -> str:
+            key = html.escape(str(key))
+            val = (
+                html.escape(str(val))
+                .replace("\r\n", "\n")
+                .replace("\n", "<br>")
+            )
+            return f"<tr><th>{key}</th><td>{val}</td></tr>"
 
-        infos_as_html = '<table>'
-        for key in self.additional_informations.keys():
-            infos_as_html += '<tr><td>'
-            infos_as_html += '<b>'+key+'</b>'
-            infos_as_html += '</td><td>'
-            infos_as_html += '<i>'+cgi.escape(
-                str(self.additional_informations.get(key)).replace("\r\n", "<br />")
-            )+'</i>'
-            infos_as_html += '</td></tr>'
-        infos_as_html += '</table>'
+        infos_as_html = "".join(
+            itertools.chain(
+                ("<table><tbody>",),
+                (
+                    format_table_row(key, val)
+                    for key, val in self.extra_info.items()
+                ),
+                ("</tbody></table>",),
+            )
+        )
 
         mapping_table = {
-            'INFOS_PLAIN':      str(self.additional_informations),
-            'INFOS':            infos_as_html,
-            'BASEPATH':         self.base_path,
-            'last_tick':        str(self.__last_tick)
+            "INFOS_PLAIN": str(self.extra_info),
+            "INFOS": infos_as_html,
+            "BASEPATH": str(self.base_path),
+            "last_tick": str(self.__last_tick),
         }
 
-        for key in metadata.__dict__.keys():
-            if isinstance(metadata.__dict__[key], str):
-                mapping_table[key.upper()] = metadata.__dict__[key]
+        for key, val in doorpi.metadata.__dict__.items():
+            if isinstance(val, str):
+                mapping_table[key.upper()] = val
 
         if self.config:
-            mapping_table.update({
-                'LAST_SNAPSHOT':    str(self.config.get_string('DoorPi', 'last_snapshot', log=False))
-            })
-        if self.keyboard and 'KeyboardHandler' not in self.keyboard.name:
-            for output_pin in self.config.get_keys('OutputPins', log = False):
-                mapping_table[self.config.get('OutputPins', output_pin, log = False)] = output_pin
-        elif self.keyboard and 'KeyboardHandler' in self.keyboard.name:
-            for outputpin_section in self.config.get_sections('_OutputPins', False):
-                for output_pin in self.config.get_keys(outputpin_section, log = False):
-                    mapping_table[self.config.get(outputpin_section, output_pin, log = False)] = output_pin
-
-        for key in mapping_table.keys():
-            parsed_string = parsed_string.replace(
-                "!"+key+"!",
-                mapping_table[key]
+            mapping_table.update(
+                {
+                    "LAST_SNAPSHOT": str(
+                        doorpi.actions.snapshot.SnapshotAction.list_all()[-1]
+                    ),
+                }
             )
 
-        for key in self.additional_informations.keys():
-            parsed_string = parsed_string.replace(
-                "!"+key+"!",
-                str(self.additional_informations[key])
-            )
+        if self.keyboard:
+            mapping_table.update(self.keyboard.enumerate_outputs())
+
+        for key, val in mapping_table.items():
+            parsed_string = parsed_string.replace(f"!{key}!", val)
+
+        for key, val in self.extra_info.items():
+            parsed_string = parsed_string.replace(f"!{key}!", str(val))
 
         return parsed_string
-
-if __name__ == '__main__':
-    raise Exception('use main.py to start DoorPi')

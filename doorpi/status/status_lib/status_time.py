@@ -1,14 +1,18 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
+import datetime
+from typing import Iterable
 
-import logging
-logger = logging.getLogger(__name__)
-logger.debug("%s loaded", __name__)
+import doorpi.doorpi
 
-from datetime import datetime
 
-def get(*args, **kwargs):
-    return str(datetime.now())
+def get(
+    doorpi_obj: doorpi.doorpi.DoorPi,
+    name: Iterable[str],
+    value: Iterable[str],
+) -> str:
+    del doorpi_obj, name, value
+    return str(datetime.datetime.now())
 
-def is_active(doorpi_object):
+
+def is_active(doorpi_object: doorpi.doorpi.DoorPi) -> bool:
+    del doorpi_object
     return True

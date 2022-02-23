@@ -37,131 +37,31 @@ def id_generator(size=6, chars=string.ascii_uppercase + string.digits):
 
 class EventLog(object):
     _db = False
-
-    # doorpi.DoorPi().conf.get_string_parsed('DoorPi', 'eventlog', '!BASEPATH!/conf/eventlog.db')
-    def __init__(self, file_name):
-        if not file_name:
-            return
-        try:
-            if not os.path.exists(os.path.dirname(file_name)):
-                logger.info('Path %s does not exist - creating it now', os.path.dirname(file_name))
-                os.makedirs(os.path.dirname(file_name))
-
-            self._db = sqlite3.connect(
-                database=file_name,
-                timeout=1,
-                check_same_thread=False)
-
-            self.execute_sql('''
-                CREATE TABLE IF NOT EXISTS event_log (
-                    event_id TEXT,
-                    fired_by TEXT,
-                    event_name TEXT,
-                    start_time REAL,
-                    additional_infos TEXT
-                );''')
-            self.execute_sql('''
-                CREATE TABLE IF NOT EXISTS action_log (
-                    event_id TEXT,
-                    action_name TEXT,
-                    start_time REAL,
-                    action_result TEXT
-                );''')
-        except:
-            logger.error('error to create event_db')
+    
+    def __init__(self):
+        return
 
     def get_event_log_entries_count(self, filter=''):
-        logger.debug('request event logs count with filter %s', filter)
-        try:
-            return self.execute_sql('''
-            SELECT COUNT(*)
-            FROM event_log
-            WHERE event_id LIKE '%{filter}%'
-            OR fired_by LIKE '%{filter}%'
-            OR event_name LIKE '%{filter}%'
-            OR start_time LIKE '%{filter}%'
-            '''.format(filter=filter)).fetchone()[0]
-        except Exception as exp:
-            logger.exception(exp)
-            return -1
+        return -1
 
     def get_event_log_entries(self, max_count=100, filter=''):
         logger.debug('request last %s event logs with filter %s', max_count, filter)
-        return_object = []
-        sql_statement = '''
-            SELECT
-                event_id,
-                fired_by,
-                event_name,
-                start_time,
-                additional_infos
-            FROM event_log
-            WHERE event_id LIKE '%{filter}%'
-            OR fired_by LIKE '%{filter}%'
-            OR event_name LIKE '%{filter}%'
-            OR start_time LIKE '%{filter}%'
-            ORDER BY start_time DESC
-            LIMIT {max_count}'''.format(max_count=max_count, filter=filter)
+        return []
 
-        for single_row in self.execute_sql(sql_statement):
-            return_object.append({
-                'event_id': single_row[0],
-                'fired_by': single_row[1],
-                'event_name': single_row[2],
-                'start_time': single_row[3],
-                'additional_infos': single_row[4]
-            })
-        return return_object
-
-    def execute_sql(self, sql):
-        if not self._db:
-            return None
-        return self._db.execute(sql)
 
     def insert_event_log(self, event_id, fired_by, event_name, start_time, additional_infos):
-        sql_statement = '''
-        INSERT INTO event_log VALUES (
-            "{event_id}","{fired_by}","{event_name}",{start_time},"{additional_infos}"
-        );
-        '''.format(
-            event_id=event_id,
-            fired_by=fired_by.replace('"', "'"),
-            event_name=event_name.replace('"', "'"),
-            start_time=start_time,
-            additional_infos=str(additional_infos).replace('"', "'"))
-        self.execute_sql(sql_statement)
-        try:
-            self._db.commit()
-        except:
-            pass
+        pass
 
     def insert_action_log(self, event_id, action_name, start_time, action_result):
-        sql_statement = '''
-        INSERT INTO action_log VALUES (
-            "{event_id}","{action_name}",{start_time},"{action_result}"
-        );
-        '''.format(
-            event_id=event_id,
-            action_name=action_name.replace('"', "'"),
-            start_time=start_time,
-            action_result=str(action_result).replace('"', "'"))
-        self.execute_sql(sql_statement)
-        try:
-            self._db.commit()
-        except:
-            pass
+        pass
 
     def update_event_log(self):
         pass
 
     def destroy(self):
-        try:
-            self._db.close()
-        except:
-            pass
+        pass
 
     __del__ = destroy
-
 
 class EventHandler:
     __Sources = []  # Auflistung Sources
@@ -202,8 +102,7 @@ class EventHandler:
     def additional_informations(self): return self.__additional_informations
 
     def __init__(self):
-        db_path = doorpi.DoorPi().config.get_string_parsed('DoorPi', 'eventlog', '!BASEPATH!/conf/eventlog.db')
-        self.db = EventLog(db_path)
+        self.db = EventLog()
 
     __destroy = False
 

@@ -44,7 +44,8 @@ def find_first_installed_sipphone():
 
     for sipphone_name in list(sipphones.keys()):
         if sipphones[sipphone_name]['status']['installed']:
-            logger.info('found installed sipphone "%s" and use this as default', sipphone_name)
+            logger.info(
+                'found installed sipphone "%s" and use this as default', sipphone_name)
             return sipphone_name
 
     logger.warning('found no installed sipphones and use dummy as default')

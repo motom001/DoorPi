@@ -15,7 +15,7 @@
 #
 #  [nfcreader_InputPins]
 #  1234 = call:**623
-#  #calls **623 when tag-ID 1234 is scanned, logs user1 for this action 
+#  #calls **623 when tag-ID 1234 is scanned, logs user1 for this action
 #  #(NOT the ID itself unless you are using debug mode)
 #
 #  [EVENT_OnKeyPressed_nfcreader.1234]
@@ -141,7 +141,8 @@ class pn532(KeyboardAbstractBaseClass):
         self.last_key_time = 0
 
         section_name = conf_pre + 'keyboard' + conf_post
-        self._device = doorpi.DoorPi().config.get_string_parsed(section_name, 'device', 'tty:AMA0:pn532')
+        self._device = doorpi.DoorPi().config.get_string_parsed(
+            section_name, 'device', 'tty:AMA0:pn532')
         self._InputPins = list(map(str.upper, input_pins))
 
         # Contactless Frontend initialisation
@@ -153,7 +154,7 @@ class pn532(KeyboardAbstractBaseClass):
         except IOError as ex:
             logger.exception(ex)
             return
-        
+
         # register input pins event (input pin = card uid)
         for pin in self._InputPins:
             self._register_EVENTS_for_pin(pin, __name__)

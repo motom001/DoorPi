@@ -38,18 +38,18 @@ class DummyPhone(SipphoneAbstractBaseClass):
     @property
     def current_call_duration(self): return 0
 
-    def __init__(self, whitelist = [], *args, **kwargs):
+    def __init__(self, whitelist=[], *args, **kwargs):
         logger.debug('__init__')
         DoorPi().event_handler.register_action('OnShutdown', self.destroy)
         DoorPi().event_handler.register_event('OnSipPhoneCreate', __name__)
         DoorPi().event_handler.register_event('OnSipPhoneStart', __name__)
         DoorPi().event_handler.register_event('OnSipPhoneDestroy', __name__)
         self.__recorder = DummyRecorder()
-        
+
     def start(self):
         DoorPi().event_handler('OnSipPhoneCreate', __name__)
         DoorPi().event_handler('OnSipPhoneStart', __name__)
-        
+
     def destroy(self):
         DoorPi().event_handler.fire_event_synchron('OnSipPhoneDestroy', __name__)
         DoorPi().event_handler.unregister_source(__name__, True)
@@ -65,6 +65,7 @@ class DummyPhone(SipphoneAbstractBaseClass):
 
     def hangup(self):
         pass
+
 
 class DummyRecorder(RecorderAbstractBaseClass):
     @property
@@ -95,6 +96,8 @@ class DummyRecorder(RecorderAbstractBaseClass):
         except:
             pass
         DoorPi().event_handler.unregister_source(__name__, True)
+
+
 class DummyPlayer(PlayerAbstractBaseClass):
     @property
     def player_filename(self): return ''

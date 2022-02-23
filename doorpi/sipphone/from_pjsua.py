@@ -38,9 +38,9 @@ class Pjsua(SipphoneAbstractBaseClass):
             all_devices = []
             for sound_device in self.lib.enum_snd_dev():
                 all_devices.append({
-                  'name': sound_device,
-                  'capture': True if sound_device.input_channels > 0 else False,
-                  'record': True if sound_device.output_channels > 0 else False})
+                    'name': sound_device,
+                    'capture': True if sound_device.input_channels > 0 else False,
+                    'record': True if sound_device.output_channels > 0 else False})
             return all_devices
         except:
             return []
@@ -86,8 +86,10 @@ class Pjsua(SipphoneAbstractBaseClass):
         DoorPi().event_handler.register_event('OnSipPhoneMakeCall', __name__)
         DoorPi().event_handler.register_event('AfterSipPhoneMakeCall', __name__)
 
-        DoorPi().event_handler.register_event('OnSipPhoneCallTimeoutNoResponse', __name__)
-        DoorPi().event_handler.register_event('OnSipPhoneCallTimeoutMaxCalltime', __name__)
+        DoorPi().event_handler.register_event(
+            'OnSipPhoneCallTimeoutNoResponse', __name__)
+        DoorPi().event_handler.register_event(
+            'OnSipPhoneCallTimeoutMaxCalltime', __name__)
 
         self.__Lib = None
         self.__account = None
@@ -143,7 +145,8 @@ class Pjsua(SipphoneAbstractBaseClass):
 
         call_info = self.current_call.info()
         if call_info.total_time > timeout:
-            logger.info('call timeout - call.info().total_time %s', call_info.total_time)
+            logger.info('call timeout - call.info().total_time %s',
+                        call_info.total_time)
             return self.hangup()
         return True
 
@@ -179,19 +182,22 @@ class Pjsua(SipphoneAbstractBaseClass):
             try:
                 if self.current_call.info().call_time == 0 \
                    and self.current_call.info().total_time > self.call_timeout:
-                    logger.info('call timeout - hangup current call after %s seconds', self.call_timeout)
+                    logger.info(
+                        'call timeout - hangup current call after %s seconds', self.call_timeout)
                     self.current_call.hangup()
                     DoorPi().event_handler('OnSipPhoneCallTimeoutNoResponse', __name__)
 
                 if self.current_call.info().call_time > self.max_call_time:
-                    logger.info('max call time reached - hangup current call after %s seconds', self.max_call_time)
+                    logger.info(
+                        'max call time reached - hangup current call after %s seconds', self.max_call_time)
                     self.current_call.hangup()
                     DoorPi().event_handler('OnSipPhoneCallTimeoutMaxCalltime', __name__)
             except:
                 pass
 
     def call(self, number):
-        DoorPi().event_handler('BeforeSipPhoneMakeCall', __name__, {'number': number})
+        DoorPi().event_handler('BeforeSipPhoneMakeCall',
+                               __name__, {'number': number})
         logger.debug('call(%s)', str(number))
 
         self.lib.thread_register('call_theard')
@@ -200,7 +206,8 @@ class Pjsua(SipphoneAbstractBaseClass):
         sip_uri = ('sip:{0}@{1}').format(number, sip_server)
 
         if self.lib.verify_sip_url(sip_uri) is not 0:
-            logger.warning('SIP-URI %s is not valid (Errorcode: %s)', sip_uri, self.lib.verify_sip_url(sip_uri))
+            logger.warning('SIP-URI %s is not valid (Errorcode: %s)',
+                           sip_uri, self.lib.verify_sip_url(sip_uri))
             return False
 
         logger.debug('SIP-URI %s', sip_uri)
@@ -209,11 +216,13 @@ class Pjsua(SipphoneAbstractBaseClass):
         if not self.current_call or self.current_call.is_valid() is 0:
             lck = self.lib.auto_lock()
             self.current_callcallback = SipPhoneCallCallBack()
-            self.current_call = self.__account.make_call(sip_uri, self.current_callcallback)
+            self.current_call = self.__account.make_call(
+                sip_uri, self.current_callcallback)
             del lck
         elif self.current_call.info().remote_uri == sip_uri:
             if self.current_call.info().total_time <= 1:
-                logger.debug('same call again while call is running since %s seconds? -> skip', str(self.current_call.info().total_time))
+                logger.debug('same call again while call is running since %s seconds? -> skip',
+                             str(self.current_call.info().total_time))
             else:
                 logger.debug('press twice with same call. Hangup current call')
                 # self.current_call.hangup()
@@ -235,13 +244,15 @@ class Pjsua(SipphoneAbstractBaseClass):
             if self.current_call is not None:
                 remote_uri = self.current_call.info().remote_uri
             else:
-                logger.debug('could not catch current call - no parameter and no current_call from doorpi itself')
+                logger.debug(
+                    'could not catch current call - no parameter and no current_call from doorpi itself')
                 return False
 
         possible_admin_numbers = DoorPi().config.get_keys('AdminNumbers')
         for admin_number in possible_admin_numbers:
             if admin_number == '*':
-                logger.info('admin numbers are deactivated by using "*" as single number')
+                logger.info(
+                    'admin numbers are deactivated by using "*" as single number')
                 return True
             if ('sip:{}@').format(admin_number) in remote_uri:
                 logger.debug('%s is an adminnumber', remote_uri)

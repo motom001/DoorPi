@@ -18,7 +18,8 @@ def get(*args, **kwargs):
                 return_dict[section] = {}
                 for value_request in kwargs['value']:
                     for key in kwargs['DoorPiObject'].config.get_keys(section, value_request):
-                        return_dict[section][key] = kwargs['DoorPiObject'].config.get(section, key)
+                        return_dict[section][key] = kwargs['DoorPiObject'].config.get(
+                            section, key)
 
         for section in list(return_dict.keys()):
             if len(return_dict[section]) == 0:
@@ -29,6 +30,6 @@ def get(*args, **kwargs):
         logger.exception(exp)
         return {'Error': 'could not create ' + str(__name__) + ' object - ' + str(exp)}
 
-    
+
 def is_active(doorpi_object):
     return True if doorpi_object.config else False

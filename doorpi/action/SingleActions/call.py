@@ -9,6 +9,7 @@ logger.debug('%s loaded', __name__)
 
 def call(number): doorpi.DoorPi().sipphone.call(number)
 
+
 def get(parameters):
     parameter_list = parameters.split(',')
     if len(parameter_list) is not 1:

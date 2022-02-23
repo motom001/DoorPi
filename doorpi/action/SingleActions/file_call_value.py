@@ -21,6 +21,7 @@ def call_phonenumber_from_file(filename):
         return False
     return True
 
+
 def get(parameters):
     return CallPhoneNumberFromFileAction(call_phonenumber_from_file, filename=parameters)
 

@@ -17,6 +17,7 @@ def sipphone_calltimeout(timeout, *callstate_to_check):
     except:
         return False
 
+
 def get(parameters):
     parameter_list = parameters.split(',')
     if len(parameter_list) < 1:

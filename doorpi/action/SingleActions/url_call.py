@@ -38,6 +38,7 @@ def fire_command(url):
         logger.error(('URLError: {0}').format(exp.reason))
     return False
 
+
 def get(parameters):
     parsed_parameters = doorpi.DoorPi().parse_string(parameters)
     return UrlCallAction(fire_command, url=parsed_parameters)

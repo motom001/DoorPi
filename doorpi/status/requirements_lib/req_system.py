@@ -18,7 +18,8 @@ REQUIREMENT = dict(
             text_test='Der Status kann gestestet werden, indem im Python-Interpreter <code>import importlib</code> eingeben wird.',
             text_configuration='',
             configuration=[],
-            text_links={ 'docs.python.org': 'https://docs.python.org/2.7/library/importlib.html' }
+            text_links={
+                'docs.python.org': 'https://docs.python.org/2.7/library/importlib.html'}
         ),
         os=dict(
             text_warning='',
@@ -28,7 +29,8 @@ REQUIREMENT = dict(
             text_test='Der Status kann gestestet werden, indem im Python-Interpreter <code>import os</code> eingeben wird.',
             text_configuration='',
             configuration=[],
-            text_links={ 'docs.python.org': 'https://docs.python.org/2.7/library/os.html' }
+            text_links={
+                'docs.python.org': 'https://docs.python.org/2.7/library/os.html'}
         ),
         logging=dict(
             text_warning='',
@@ -44,7 +46,8 @@ Es gibt jedoch max. die 10 letzten Log-Dateien - alle älteren werden verworfen.
             text_test='Der Status kann gestestet werden, indem im Python-Interpreter <code>import logging</code> eingeben wird.',
             text_configuration='',
             configuration=[],
-            text_links={ 'docs.python.org': 'https://docs.python.org/2.7/library/logging.html' }
+            text_links={
+                'docs.python.org': 'https://docs.python.org/2.7/library/logging.html'}
         ),
         re=dict(
             text_warning='',
@@ -54,7 +57,8 @@ Es gibt jedoch max. die 10 letzten Log-Dateien - alle älteren werden verworfen.
             text_test='Der Status kann gestestet werden, indem im Python-Interpreter <code>import re</code> eingeben wird.',
             text_configuration='',
             configuration=[],
-            text_links={ 'docs.python.org': 'https://docs.python.org/2.7/library/re.html' }
+            text_links={
+                'docs.python.org': 'https://docs.python.org/2.7/library/re.html'}
         ),
         json=dict(
             text_warning='',
@@ -64,7 +68,8 @@ Es gibt jedoch max. die 10 letzten Log-Dateien - alle älteren werden verworfen.
             text_test='Der Status kann gestestet werden, indem im Python-Interpreter <code>import json</code> eingeben wird.',
             text_configuration='',
             configuration=[],
-            text_links={ 'docs.python.org': 'https://docs.python.org/2.7/library/json.html' }
+            text_links={
+                'docs.python.org': 'https://docs.python.org/2.7/library/json.html'}
         ),
         time=dict(
             text_warning='',
@@ -74,7 +79,8 @@ Es gibt jedoch max. die 10 letzten Log-Dateien - alle älteren werden verworfen.
             text_test='Der Status kann gestestet werden, indem im Python-Interpreter <code>import time</code> eingeben wird.',
             text_configuration='',
             configuration=[],
-            text_links={ 'docs.python.org': 'https://docs.python.org/2.7/library/time.html' }
+            text_links={
+                'docs.python.org': 'https://docs.python.org/2.7/library/time.html'}
         ),
         math=dict(
             text_warning='',
@@ -84,7 +90,8 @@ Es gibt jedoch max. die 10 letzten Log-Dateien - alle älteren werden verworfen.
             text_test='Der Status kann gestestet werden, indem im Python-Interpreter <code>import math</code> eingeben wird.',
             text_configuration='',
             configuration=[],
-            text_links={ 'docs.python.org': 'https://docs.python.org/2.7/library/math.html' }
+            text_links={
+                'docs.python.org': 'https://docs.python.org/2.7/library/math.html'}
         ),
         wave=dict(
             text_warning='',
@@ -94,7 +101,8 @@ Es gibt jedoch max. die 10 letzten Log-Dateien - alle älteren werden verworfen.
             text_test='Der Status kann gestestet werden, indem im Python-Interpreter <code>import wave</code> eingeben wird.',
             text_configuration='',
             configuration=[],
-            text_links={ 'docs.python.org': 'https://docs.python.org/2.7/library/wave.html' }
+            text_links={
+                'docs.python.org': 'https://docs.python.org/2.7/library/wave.html'}
         ),
         array=dict(
             text_warning='',
@@ -104,7 +112,8 @@ Es gibt jedoch max. die 10 letzten Log-Dateien - alle älteren werden verworfen.
             text_test='Der Status kann gestestet werden, in dem im Python-Interpreter <code>import array</code> eingeben wird.',
             text_configuration='',
             configuration=[],
-            text_links={ 'docs.python.org': 'https://docs.python.org/2.7/library/array.html' }
+            text_links={
+                'docs.python.org': 'https://docs.python.org/2.7/library/array.html'}
         ),
         sys=dict(
             text_warning='',
@@ -114,7 +123,8 @@ Es gibt jedoch max. die 10 letzten Log-Dateien - alle älteren werden verworfen.
             text_test='Der Status kann gestestet werden, in dem im Python-Interpreter <code>import importlib</code> eingeben wird.',
             text_configuration='',
             configuration=[],
-            text_links={ 'docs.python.org': 'https://docs.python.org/2.7/library/sys.html' }
+            text_links={
+                'docs.python.org': 'https://docs.python.org/2.7/library/sys.html'}
         ),
         argparse=dict(
             text_warning='',
@@ -124,7 +134,8 @@ Es gibt jedoch max. die 10 letzten Log-Dateien - alle älteren werden verworfen.
             text_test='Der Status kann gestestet werden, indem im Python-Interpreter <code>import argparse</code> eingeben wird.',
             text_configuration='',
             configuration=[],
-            text_links={ 'docs.python.org': 'https://docs.python.org/2.7/library/argparse.html' }
+            text_links={
+                'docs.python.org': 'https://docs.python.org/2.7/library/argparse.html'}
         ),
         datetime=dict(
             text_warning='',
@@ -134,7 +145,8 @@ Es gibt jedoch max. die 10 letzten Log-Dateien - alle älteren werden verworfen.
             text_test='Der Status kann gestestet werden, indem im Python-Interpreter <code>import datetime</code> eingeben wird.',
             text_configuration='',
             configuration=[],
-            text_links={ 'docs.python.org': 'https://docs.python.org/2.7/library/datetime.html' }
+            text_links={
+                'docs.python.org': 'https://docs.python.org/2.7/library/datetime.html'}
         ),
         cgi=dict(
             text_warning='',
@@ -144,7 +156,8 @@ Es gibt jedoch max. die 10 letzten Log-Dateien - alle älteren werden verworfen.
             text_test='Der Status kann gestestet werden, indem im Python-Interpreter <code>import cgi</code> eingeben wird.',
             text_configuration='',
             configuration=[],
-            text_links={ 'docs.python.org': 'https://docs.python.org/2.7/library/cgi.html' }
+            text_links={
+                'docs.python.org': 'https://docs.python.org/2.7/library/cgi.html'}
         ),
         resource=dict(
             text_warning='',
@@ -154,7 +167,8 @@ Es gibt jedoch max. die 10 letzten Log-Dateien - alle älteren werden verworfen.
             text_test='Der Status kann gestestet werden, indem im Python-Interpreter <code>import resource</code> eingeben wird.',
             text_configuration='',
             configuration=[],
-            text_links={ 'docs.python.org': 'https://docs.python.org/2.7/library/resource.html' }
+            text_links={
+                'docs.python.org': 'https://docs.python.org/2.7/library/resource.html'}
         ),
         random=dict(
             text_warning='',
@@ -164,7 +178,8 @@ Es gibt jedoch max. die 10 letzten Log-Dateien - alle älteren werden verworfen.
             text_test='Der Status kann gestestet werden, in dem im Python-Interpreter <code>import random</code> eingeben wird.',
             text_configuration='',
             configuration=[],
-            text_links={ 'docs.python.org': 'https://docs.python.org/2.7/library/random.html' }
+            text_links={
+                'docs.python.org': 'https://docs.python.org/2.7/library/random.html'}
         ),
         string=dict(
             text_warning='',
@@ -174,7 +189,8 @@ Es gibt jedoch max. die 10 letzten Log-Dateien - alle älteren werden verworfen.
             text_test='Der Status kann gestestet werden, indem im Python-Interpreter <code>import string</code> eingeben wird.',
             text_configuration='',
             configuration=[],
-            text_links={ 'docs.python.org': 'https://docs.python.org/2.7/library/string.html' }
+            text_links={
+                'docs.python.org': 'https://docs.python.org/2.7/library/string.html'}
         )
     )
 )

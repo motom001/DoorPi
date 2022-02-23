@@ -10,7 +10,8 @@ import urllib.parse
 def parse_string(raw_string):
     for meta_key in dir(metadata):
         if not meta_key.startswith('__'):
-            raw_string = raw_string.replace(('!!{}!!').format(meta_key),  str(getattr(metadata, meta_key)))
+            raw_string = raw_string.replace(('!!{}!!').format(
+                meta_key),  str(getattr(metadata, meta_key)))
     return raw_string
 
 
@@ -25,6 +26,7 @@ def create_daemon_file():
         print('download successfully - change chmod to 0755 now')
         os.chmod(metadata.daemon_file, 0o755)
         print('finished')
+
 
 if __name__ == '__main__':
     create_daemon_file()

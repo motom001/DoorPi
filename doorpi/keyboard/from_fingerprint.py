@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from doorpi.keyboard.AbstractBaseClass import KeyboardAbstractBaseClass, HIGH_LEVEL, LOW_LEVEL
+from doorpi.keyboard.AbstractBaseClass import KeyboardAbstractBaseClass, HIGH_LEVEL
 import doorpi
 
 import threading
@@ -13,18 +13,23 @@ logger.debug("%s loaded", __name__)
 
 
 def get(**kwargs): return Fingerprint(**kwargs)
+
+
 class Fingerprint(KeyboardAbstractBaseClass):
     name = 'Fingerprint Reader'
 
     def readFingerprint(self):
         try:
             # Sensor initialisieren
-            sensor = PyFingerprint(self.__port, self.__baudrate, self.__sensoraddr, self.__password)
+            sensor = PyFingerprint(
+                self.__port, self.__baudrate, self.__sensoraddr, self.__password)
             if not sensor.verifyPassword():
-                logger.warning('The given fingerprint sensor password is wrong!')
+                logger.warning(
+                    'The given fingerprint sensor password is wrong!')
                 return None
 
-            logger.debug('Currently used templates: ' + str(sensor.getTemplateCount()) + '/' + str(sensor.getStorageCapacity()))
+            logger.debug('Currently used templates: ' +
+                         str(sensor.getTemplateCount()) + '/' + str(sensor.getStorageCapacity()))
             # Sensor-Lesen & Event-Handling
             logger.debug('readFingerprint() started for %s', self.__timeout)
             while (not self._shutdown and self.__active):
@@ -45,8 +50,10 @@ class Fingerprint(KeyboardAbstractBaseClass):
                     # Input-Pin entsprechend der gefundenen Position aktivieren
                     self.last_key = positionNumber
                     self.last_key_time = time.time()
-                    logger.debug('Found template at position #' + str(positionNumber))
-                    logger.debug('The accuracy score is: ' + str(accuracyScore))
+                    logger.debug('Found template at position #' +
+                                 str(positionNumber))
+                    logger.debug('The accuracy score is: ' +
+                                 str(accuracyScore))
 
                     # Finger entweder gar nicht oder nicht exakt genug erkannt.
                     if (positionNumber == -1) or (accuracyScore < self.__security):
@@ -73,14 +80,18 @@ class Fingerprint(KeyboardAbstractBaseClass):
         self.__timeout = 0
 
         # Spezielle Handler fuer (Un-)bekannte Finger registrieren
-        doorpi.DoorPi().event_handler.register_event('OnFingerprintFoundUnknown', __name__)
-        doorpi.DoorPi().event_handler.register_event('OnFingerprintFoundKnown', __name__)
+        doorpi.DoorPi().event_handler.register_event(
+            'OnFingerprintFoundUnknown', __name__)
+        doorpi.DoorPi().event_handler.register_event(
+            'OnFingerprintFoundKnown', __name__)
         # Config-Eintraege lesen, falls dort vorhanden.
         section_name = conf_pre + 'keyboard' + conf_post
         self.__port = doorpi.DoorPi().config.get(section_name, 'port', '/dev/ttyAMA0')
         self.__baudrate = doorpi.DoorPi().config.get_int(section_name, 'baudrate', 57600)
-        self.__sensoraddr = doorpi.DoorPi().config.get(section_name, 'address', 0xFFFFFFFF)
-        self.__password = doorpi.DoorPi().config.get(section_name, 'password', 0x00000000)
+        self.__sensoraddr = doorpi.DoorPi().config.get(
+            section_name, 'address', 0xFFFFFFFF)
+        self.__password = doorpi.DoorPi().config.get(
+            section_name, 'password', 0x00000000)
         self.__security = doorpi.DoorPi().config.get_int(section_name, 'security', 70)
 
         # Events für hinterlegte InputPins registrieren (damit diese auch ausgeloest werden)
@@ -124,7 +135,8 @@ class Fingerprint(KeyboardAbstractBaseClass):
             return False
 
         if log_output:
-            logger.debug('out(pin = %s, value = %s, log_output = %s)', pin, value, log_output)
+            logger.debug('out(pin = %s, value = %s, log_output = %s)',
+                         pin, value, log_output)
 
         # Aktivieren oder deaktivieren?
         old_state = self.__active

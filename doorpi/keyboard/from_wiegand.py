@@ -28,14 +28,18 @@ class Wiegand(KeyboardAbstractBaseClass):
 
         # read config file
         section_name = conf_pre + 'keyboard' + conf_post
-        self._data0 = doorpi.DoorPi().config.get(section_name, 'data0')  # w0 - data signal
-        self._data1 = doorpi.DoorPi().config.get(section_name, 'data1')  # w1 - data signal
-        self._timeout = doorpi.DoorPi().config.get(section_name, 'timeout', 0.25)  # time for reading data signal
+        self._data0 = doorpi.DoorPi().config.get(
+            section_name, 'data0')  # w0 - data signal
+        self._data1 = doorpi.DoorPi().config.get(
+            section_name, 'data1')  # w1 - data signal
+        self._timeout = doorpi.DoorPi().config.get(section_name, 'timeout',
+                                                   0.25)  # time for reading data signal
 
         # init vars
         self._nextInput = ''  # stores input until timeout
         self._validInput = False  # true if valid input found
-        self._lastValidInput = {'fc': -1, 'value': -1}  # stores last valid input and facility code
+        # stores last valid input and facility code
+        self._lastValidInput = {'fc': -1, 'value': -1}
 
         # GPIO pin mapping mode (ATTENTION: from_gpio must be same)
         if doorpi.DoorPi().config.get(section_name, 'mode', "BOARD").upper() == "BOARD":
@@ -48,8 +52,10 @@ class Wiegand(KeyboardAbstractBaseClass):
         RPiGPIO.setup(self._data1, RPiGPIO.IN, pull_up_down=RPiGPIO.PUD_UP)
 
         # register Falling-interupts for data pins (protocoll: w1 + w0 high in standby)
-        RPiGPIO.add_event_detect(self._data0, RPiGPIO.FALLING, callback=self._onDataLow)
-        RPiGPIO.add_event_detect(self._data1, RPiGPIO.FALLING, callback=self._onDataHigh)
+        RPiGPIO.add_event_detect(
+            self._data0, RPiGPIO.FALLING, callback=self._onDataLow)
+        RPiGPIO.add_event_detect(
+            self._data1, RPiGPIO.FALLING, callback=self._onDataHigh)
 
         # register input events (eg. for signal from wiegand device like rfid card)
         for input_pin in self._InputPins:

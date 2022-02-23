@@ -1,34 +1,42 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+from doorpi.action.base import SingleAction
+import doorpi
 import logging
 logger = logging.getLogger(__name__)
 logger.debug("%s loaded", __name__)
 
-import doorpi
-from doorpi.action.base import SingleAction
 
 HIGH_LEVEL = ['1', 'high', 'on', 'true']
 LOW_LEVEL = ['0', 'low', 'off', 'false']
 
-class KeyboardDestroyAction(SingleAction): pass
+
+class KeyboardDestroyAction(SingleAction):
+    pass
+
 
 class KeyboardAbstractBaseClass(object):
 
-    def register_destroy_action(self, destroy_function = False):
-        if destroy_function is False: destroy_function = self.destroy
+    def register_destroy_action(self, destroy_function=False):
+        if destroy_function is False:
+            destroy_function = self.destroy
         return doorpi.DoorPi().event_handler.register_action('OnShutdown', KeyboardDestroyAction(destroy_function))
 
     # -------------methods to implement--------------
-    def __init__(self): raise NotImplementedError("Subclasses should implement this!")
+    def __init__(self): 
+        raise NotImplementedError("Subclasses should implement this!")
 
     # def destroy(self): pass #logger.warning("Subclasses should implement this!")
 
-    def self_test(self): pass # optional - raise NotImplementedError("Subclasses should implement this!")
+    # optional - raise NotImplementedError("Subclasses should implement this!")
+    def self_test(self): pass
 
-    def status_input(self, pin): raise NotImplementedError("Subclasses should implement this!")
+    def status_input(self, pin):
+        raise NotImplementedError("Subclasses should implement this!")
 
-    def set_output(self, pin, value, log_output = True): raise NotImplementedError("Subclasses should implement this!")
+    def set_output(self, pin, value, log_output=True):
+        raise NotImplementedError("Subclasses should implement this!")
     # -----------------------------------------------
 
     keyboard_name = ''
@@ -39,8 +47,10 @@ class KeyboardAbstractBaseClass(object):
 
     @property
     def name(self):
-        if self.keyboard_name is '': return '%s Keyboard' % self.keyboard_typ
-        else: return '%s (Typ: %s) Keyboard' % (self.keyboard_name, self.keyboard_typ)
+        if self.keyboard_name is '':
+            return '%s Keyboard' % self.keyboard_typ
+        else:
+            return '%s (Typ: %s) Keyboard' % (self.keyboard_name, self.keyboard_typ)
 
     _InputPins = []
 
@@ -55,15 +65,15 @@ class KeyboardAbstractBaseClass(object):
     @property
     def output_status(self): return self._OutputStatus
     last_key = None
-    #@property
+    # @property
     #def last_key(self): return self._last_key
 
     @property
     def additional_info(self): return {
-        'keyboard_name'       : self.keyboard_name,
-        'keyboard_typ'        : self.keyboard_typ,
-        'name'                : self.name,
-        'pin'                 : self.last_key
+        'keyboard_name': self.keyboard_name,
+        'keyboard_typ': self.keyboard_typ,
+        'name': self.name,
+        'pin': self.last_key
     }
 
     @property
@@ -92,7 +102,8 @@ class KeyboardAbstractBaseClass(object):
         for event in ['OnKeyPressed', 'OnKeyUp', 'OnKeyDown']:
             doorpi.DoorPi().event_handler.register_event(event, name)
             doorpi.DoorPi().event_handler.register_event(event+'_'+str(pin), name)
-            doorpi.DoorPi().event_handler.register_event(event+'_'+self.keyboard_name+'.'+str(pin), name)
+            doorpi.DoorPi().event_handler.register_event(
+                event+'_'+self.keyboard_name+'.'+str(pin), name)
 
     def _fire_EVENT(self, event_name, pin, name):
         if self.keyboard_name == '':
@@ -101,13 +112,16 @@ class KeyboardAbstractBaseClass(object):
             doorpi.DoorPi().keyboard.last_key = self.last_key = self.keyboard_name+'.'+str(pin)
         doorpi.DoorPi().event_handler(event_name, name, self.additional_info)
         doorpi.DoorPi().event_handler(event_name+'_'+str(pin), name, self.additional_info)
-        doorpi.DoorPi().event_handler(event_name+'_'+self.keyboard_name+'.'+str(pin), name, self.additional_info)
+        doorpi.DoorPi().event_handler(event_name+'_'+self.keyboard_name +
+                                      '.'+str(pin), name, self.additional_info)
 
     def _fire_OnKeyUp(self, pin, name): self._fire_EVENT('OnKeyUp', pin, name)
 
-    def _fire_OnKeyDown(self, pin, name): self._fire_EVENT('OnKeyDown', pin, name)
+    def _fire_OnKeyDown(self, pin, name): self._fire_EVENT(
+        'OnKeyDown', pin, name)
 
-    def _fire_OnKeyPressed(self, pin, name): self._fire_EVENT('OnKeyPressed', pin, name)
+    def _fire_OnKeyPressed(self, pin, name): self._fire_EVENT(
+        'OnKeyPressed', pin, name)
 
     get_input = status_input
     status_inputpin = status_input

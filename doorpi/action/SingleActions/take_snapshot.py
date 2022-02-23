@@ -17,8 +17,13 @@ DOORPI_SECTION = 'DoorPi'
 
 def get_last_snapshot(snapshot_path=None):
     if not snapshot_path:
-        snapshot_path = conf.get_string_parsed(DOORPI_SECTION, 'snapshot_path', '/tmp')
-    files = sorted(glob.glob(os.path.join(snapshot_path, '*.*')), key=os.path.getctime)
+        snapshot_path = conf.get_string_parsed(
+            DOORPI_SECTION, 'snapshot_path', '/tmp')
+    files = sorted(
+        glob.glob(
+            os.path.join(snapshot_path, '*.*')
+        ), key=os.path.getctime
+    )
     if len(files) == 0:
         return False
     return files[-1]
@@ -28,12 +33,18 @@ def get_next_filename(snapshot_path):
     if not os.path.exists(snapshot_path):
         os.makedirs(snapshot_path)
 
-    files = sorted(glob.glob(os.path.join(snapshot_path, '*.*')), key=os.path.getctime)
+    files = sorted(
+        glob.glob(
+            os.path.join(snapshot_path, '*.*')
+        ),
+        key=os.path.getctime
+    )
     if len(files) > conf.get_int(DOORPI_SECTION, 'number_of_snapshots', 10):
         try:
             os.remove(os.path.join(snapshot_path, files[0]))
         except OSError as exp:
-            logger.warning(('delete snapshot file {0} failed with error {1}').format(files[0], exp))
+            logger.warning(
+                ('delete snapshot file {0} failed with error {1}').format(files[0], exp))
 
     return os.path.join(snapshot_path,
                         datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S') + '.jpg')
@@ -75,10 +86,11 @@ def get_snapshot_from_stream(snapshot_path, url):
 
 
 def get(parameters=''):
-    snapshot_path = conf.get_string_parsed(DOORPI_SECTION, 'snapshot_path', '/tmp')
-    if parameters == '': 
+    snapshot_path = conf.get_string_parsed(
+        DOORPI_SECTION, 'snapshot_path', '/tmp')
+    if parameters == '':
         return SnapShotAction(get_snapshot_from_picam, snapshot_path=snapshot_path)
- 
+
     parameter_list = parameters.split(',')
     if len(parameter_list) is not 2:
         return None

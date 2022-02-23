@@ -36,7 +36,8 @@ class GPIO(KeyboardAbstractBaseClass):
             RPiGPIO.setmode(RPiGPIO.BCM)
 
         # set gpio internal pullup state (issue 134)
-        pull_up_down = doorpi.DoorPi().config.get(section_name, 'pull_up_down', 'PUD_OFF').upper()
+        pull_up_down = doorpi.DoorPi().config.get(
+            section_name, 'pull_up_down', 'PUD_OFF').upper()
         if pull_up_down == 'PUD_DOWN':
             pull_up_down = RPiGPIO.PUD_DOWN
         elif pull_up_down == 'PUD_UP':
@@ -46,9 +47,11 @@ class GPIO(KeyboardAbstractBaseClass):
 
         # setup input pins (issue #133)
         try:
-            RPiGPIO.setup(self._InputPins, RPiGPIO.IN, pull_up_down=pull_up_down)
+            RPiGPIO.setup(self._InputPins, RPiGPIO.IN,
+                          pull_up_down=pull_up_down)
         except TypeError:
-            logger.warning('you use an old version of GPIO library - fallback to single-register of input pins')
+            logger.warning(
+                'you use an old version of GPIO library - fallback to single-register of input pins')
             for input_pin in self._InputPins:
                 RPiGPIO.setup(input_pin, RPiGPIO.IN, pull_up_down=pull_up_down)
 
@@ -68,7 +71,8 @@ class GPIO(KeyboardAbstractBaseClass):
         try:
             RPiGPIO.setup(self._OutputPins, RPiGPIO.OUT)
         except TypeError:
-            logger.warning('you use an old version of GPIO library - fallback to single-register of input pins')
+            logger.warning(
+                'you use an old version of GPIO library - fallback to single-register of input pins')
             for output_pin in self._OutputPins:
                 RPiGPIO.setup(output_pin, RPiGPIO.OUT)
 
@@ -122,7 +126,8 @@ class GPIO(KeyboardAbstractBaseClass):
         if pin not in self._OutputPins:
             return False
         if log_output:
-            logger.debug('out(pin = %s, value = %s, log_output = %s)', pin, value, log_output)
+            logger.debug('out(pin = %s, value = %s, log_output = %s)',
+                         pin, value, log_output)
 
         RPiGPIO.output(pin, value)
         self._OutputStatus[pin] = value

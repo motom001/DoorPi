@@ -65,32 +65,40 @@ class SipPhoneAccountCallBack(pj.AccountCallback):
         if DoorPi().sipphone.current_call is not None and DoorPi().sipphone.current_call.is_valid():
             logger.debug('Another call is still active')
             logger.debug('- incoming.remote_uri: %s', call.info().remote_uri)
-            logger.debug('- current.remote_uri : %s', DoorPi().sipphone.current_call.info().remote_uri)
+            logger.debug('- current.remote_uri : %s',
+                         DoorPi().sipphone.current_call.info().remote_uri)
 
             if call.info().remote_uri == DoorPi().sipphone.current_call.info().remote_uri:
-                logger.info('Current call is incoming call - quitting current and connecting to incoming. Maybe connection reset?')
-                DoorPi().event_handler('OnCallReconnect', __name__, {'remote_uri': call.info().remote_uri})
+                logger.info(
+                    'Current call is incoming call - quitting current and connecting to incoming. Maybe connection reset?')
+                DoorPi().event_handler('OnCallReconnect', __name__,
+                                       {'remote_uri': call.info().remote_uri})
                 DoorPi().current_call.hangup()
                 self.answer_call(call)
                 DoorPi().event_handler('AfterCallReconnect', __name__)
                 return
             else:
-                logger.info('Incoming and current call are different - sending busy signal to incoming call')
-                DoorPi().event_handler('OnCallBusy', __name__, {'remote_uri': call.info().remote_uri})
+                logger.info(
+                    'Incoming and current call are different - sending busy signal to incoming call')
+                DoorPi().event_handler('OnCallBusy', __name__,
+                                       {'remote_uri': call.info().remote_uri})
                 call.answer(code=494, reason='Security Agreement Required')
                 DoorPi().event_handler('AfterCallBusy', __name__)
                 return
 
         if DoorPi().sipphone.is_admin_number(call.info().remote_uri):
-            logger.debug('Incoming call from trusted admin number %s -> autoanswer', call.info().remote_uri)
-            DoorPi().event_handler('OnCallIncoming', __name__, {'remote_uri': call.info().remote_uri})
+            logger.debug(
+                'Incoming call from trusted admin number %s -> autoanswer', call.info().remote_uri)
+            DoorPi().event_handler('OnCallIncoming', __name__,
+                                   {'remote_uri': call.info().remote_uri})
             self.answer_call(call)
             DoorPi().event_handler('AfterCallIncoming', __name__)
             return
         else:
-            logger.debug('Incoming call ist not from a trusted admin number %s -> sending busy signal', call.info().remote_uri)
-            DoorPi().event_handler('OnCallReject', __name__, {'remote_uri': call.info().remote_uri})
+            logger.debug(
+                'Incoming call ist not from a trusted admin number %s -> sending busy signal', call.info().remote_uri)
+            DoorPi().event_handler('OnCallReject', __name__,
+                                   {'remote_uri': call.info().remote_uri})
             call.answer(code=494, reason='Security Agreement Required')
             DoorPi().event_handler('AfterCallReject', __name__)
             return
- 

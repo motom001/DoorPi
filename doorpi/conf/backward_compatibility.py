@@ -19,5 +19,6 @@ BACKWARD_COMPATIBILITY_KEYS = {
     }
 }
 
+
 def convert_config_to_json(config_object):
     return config_object

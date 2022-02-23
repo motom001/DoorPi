@@ -35,7 +35,8 @@ class UsbPlain(KeyboardAbstractBaseClass):
                 continue
 
             self._last_received_chars += str(input)
-            logger.debug('new char %s read and is now %s', input, self._last_received_chars)
+            logger.debug('new char %s read and is now %s',
+                         input, self._last_received_chars)
 
             # check wether input is registered as input-pin and take action
             for input_pin in self._InputPins:
@@ -51,11 +52,13 @@ class UsbPlain(KeyboardAbstractBaseClass):
                 self._last_received_chars = ''
             # check for max. input length
             elif len(self._last_received_chars) > self._input_max_size:
-                logger.debug('signal length bigger then max size -> clear received chars')
+                logger.debug(
+                    'signal length bigger then max size -> clear received chars')
                 self._last_received_chars = ''
 
     def __init__(self, input_pins, output_pins, conf_pre, conf_post, keyboard_name, *args, **kwargs):
-        logger.debug('FileSystem.__init__(input_pins = %s, output_pins = %s)', input_pins, output_pins)
+        logger.debug(
+            'FileSystem.__init__(input_pins = %s, output_pins = %s)', input_pins, output_pins)
         self.keyboard_name = keyboard_name
         self._InputPins = list(map(str, input_pins))
         self._OutputPins = list(map(str, output_pins))
@@ -76,12 +79,15 @@ class UsbPlain(KeyboardAbstractBaseClass):
         # read doorpi-config/settings for filesystem keyboard
         self._port = doorpi.DoorPi().config.get(section_name, 'port', '/dev/ttyUSB0')
         self._baudrate = doorpi.DoorPi().config.get_int(section_name, 'baudrate', 9600)
-        self._input_stop_flag = doorpi.DoorPi().config.get(section_name, 'input_stop_flag', OS_LINESEP)
-        self._input_max_size = doorpi.DoorPi().config.get_int(section_name, 'input_max_size', 255)
-        self._output_stop_flag = doorpi.DoorPi().config.get(section_name, 'output_stop_flag', OS_LINESEP)
+        self._input_stop_flag = doorpi.DoorPi().config.get(
+            section_name, 'input_stop_flag', OS_LINESEP)
+        self._input_max_size = doorpi.DoorPi().config.get_int(
+            section_name, 'input_max_size', 255)
+        self._output_stop_flag = doorpi.DoorPi().config.get(
+            section_name, 'output_stop_flag', OS_LINESEP)
 
         # open serial connection
-        self._ser = serial.Serial(port, baudrate)
+        self._ser = serial.Serial(self._port, self._baudrate)
         self._ser.timeout = 1  # block read, 0 for #non-block read, > 0 for timeout block read
         self._ser.close()
         self._ser.open()
@@ -109,7 +115,7 @@ class UsbPlain(KeyboardAbstractBaseClass):
         self.__destroyed = True
 
     def status_input(self, input_pin):
-        logger.debug('status_input for tag %s', tag)
+        logger.debug('status_input for tag %s', input_pin)
         return (input_pin == self.last_key)
 
     def set_output(self, pin, value, log_output=True):

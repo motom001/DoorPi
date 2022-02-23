@@ -56,7 +56,8 @@ def time_tick(last_tick):
 
         for hour in HOUR_RANGE:
             if hour is datetime_now.hour:
-                doorpi.DoorPi().event_handler(('OnTimeHour{0}').format(hour), __name__)
+                doorpi.DoorPi().event_handler(
+                    ('OnTimeHour{0}').format(hour), __name__)
 
     if datetime_now.minute != datetime_past.minute:
         doorpi.DoorPi().event_handler('OnTimeMinute', __name__)
@@ -67,7 +68,8 @@ def time_tick(last_tick):
 
         for minute in MINUTE_RANGE:
             if minute is datetime_now.minute:
-                doorpi.DoorPi().event_handler(('OnTimeMinute{0}').format(minute), __name__)
+                doorpi.DoorPi().event_handler(
+                    ('OnTimeMinute{0}').format(minute), __name__)
 
         if datetime_now.minute % 5 is 0:
             doorpi.DoorPi().event_handler('OnTimeMinuteEvery5', __name__)
@@ -93,17 +95,22 @@ def get(parameters):
     # register timebased_events
     for i in ('Second', 'Minute', 'Hour', 'Day', 'Week', 'Month', 'Year'):
         doorpi.DoorPi().event_handler.register_event(f'OnTime{i}', __name__)
-        doorpi.DoorPi().event_handler.register_event(f'OnTime{i}EvenNumber', __name__)
-        doorpi.DoorPi().event_handler.register_event(f'OnTime{i}UnevenNumber', __name__)
+        doorpi.DoorPi().event_handler.register_event(
+            f'OnTime{i}EvenNumber', __name__)
+        doorpi.DoorPi().event_handler.register_event(
+            f'OnTime{i}UnevenNumber', __name__)
 
     for minute in MINUTE_RANGE:
-        doorpi.DoorPi().event_handler.register_event(('OnTimeMinute{0}').format(minute), __name__)
+        doorpi.DoorPi().event_handler.register_event(
+            ('OnTimeMinute{0}').format(minute), __name__)
     doorpi.DoorPi().event_handler.register_event('OnTimeMinuteEvery5', __name__)
 
     for hour in HOUR_RANGE:
-        doorpi.DoorPi().event_handler.register_event(('OnTimeHour{0}').format(hour), __name__)
+        doorpi.DoorPi().event_handler.register_event(
+            ('OnTimeHour{0}').format(hour), __name__)
 
-    doorpi.DoorPi().event_handler.register_action('OnShutdown', TimeTickDestroyAction(destroy_time_tick))
+    doorpi.DoorPi().event_handler.register_action(
+        'OnShutdown', TimeTickDestroyAction(destroy_time_tick))
 
     return TimeTickAction(time_tick, last_tick)
 

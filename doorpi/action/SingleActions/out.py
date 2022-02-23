@@ -25,5 +25,6 @@ def get(parameters):
 
     return OutAction(doorpi.DoorPi().keyboard.set_output, pin=pin, value=value, log_output=log_output)
 
+
 class OutAction(SingleAction):
     pass

@@ -16,5 +16,6 @@ def get(parameters):
     time = float(parameter_list[0])
     return SleepAction(callback_function, time)
 
+
 class SleepAction(SingleAction):
     pass

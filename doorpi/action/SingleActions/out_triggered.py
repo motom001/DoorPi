@@ -9,6 +9,7 @@ import logging
 logger = logging.getLogger(__name__)
 logger.debug('%s loaded', __name__)
 
+
 def handler(pin, start_value, end_value, timeout, stop_pin):
     doorpi.DoorPi().keyboard.set_output(pin, start_value)
     while timeout > 0 and stop_pin not in doorpi.DoorPi().keyboard.pressed_keys:
@@ -16,11 +17,13 @@ def handler(pin, start_value, end_value, timeout, stop_pin):
         timeout -= 0.1
     doorpi.DoorPi().keyboard.set_output(pin, end_value)
 
+
 def out_triggered(pin, start_value, end_value, timeout, stop_pin):
-    thread = threading.Thread(target=handler, 
+    thread = threading.Thread(target=handler,
                               args=(pin, start_value, end_value, timeout, stop_pin))
     thread.start()
     return True
+
 
 def get(parameters):
     parameter_list = parameters.split(',')
@@ -38,11 +41,12 @@ def get(parameters):
         stop_pin = 'NoStopPinSet'
 
     return OutTriggeredAction(out_triggered,
-        pin=pin,
-        start_value=start_value,
-        end_value=end_value,
-        timeout=timeout,
-        stop_pin=stop_pin)
+                              pin=pin,
+                              start_value=start_value,
+                              end_value=end_value,
+                              timeout=timeout,
+                              stop_pin=stop_pin)
+
 
 class OutTriggeredAction(SingleAction):
     pass

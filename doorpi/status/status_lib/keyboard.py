@@ -26,7 +26,8 @@ def get(*args, **kwargs):
                 for value_requested in kwargs['value']:
                     for input_pin in keyboard.input_pins:
                         if value_requested in input_pin:
-                            status['input'][input_pin] = keyboard.status_input(input_pin)
+                            status['input'][input_pin] = keyboard.status_input(
+                                input_pin)
 
             if name_requested in 'output':
                 status['output'] = keyboard.output_status

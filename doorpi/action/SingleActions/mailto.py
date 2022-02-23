@@ -39,15 +39,16 @@ def fire_action_mail(smtp_to, smtp_subject, smtp_text, smtp_snapshot):
         if (smtp_need_login and (not smtp_user or not smtp_password)):
             logger.error('login needed but not specified')
             return False
-        
+
         smtp_tolist = smtp_to.split()
-        email_signature = doorpi.DoorPi().config.get_string_parsed('SMTP', 'signature', '!EPILOG!')
+        email_signature = doorpi.DoorPi().config.get_string_parsed(
+            'SMTP', 'signature', '!EPILOG!')
 
         if smtp_text.startswith('/'):
             # Read actual text from file
             with open(smtp_text, 'rt') as file:
                 smtp_text = file.read()
-        
+
         if smtp_use_ssl:
             server = smtplib.SMTP_SSL(smtp_host, smtp_port)
         else:
@@ -63,9 +64,11 @@ def fire_action_mail(smtp_to, smtp_subject, smtp_text, smtp_snapshot):
         msg['From'] = smtp_from
         msg['To'] = COMMASPACE.join(smtp_tolist)
         msg['Subject'] = doorpi.DoorPi().parse_string(smtp_subject)
-        msg.attach(MIMEText(doorpi.DoorPi().parse_string(smtp_text), 'html', 'utf-8'))
+        msg.attach(MIMEText(doorpi.DoorPi().parse_string(
+            smtp_text), 'html', 'utf-8'))
         if email_signature and len(email_signature) > 0:
-            msg.attach(MIMEText('\nsent by:\n' + doorpi.DoorPi().epilog, 'plain', 'utf-8'))
+            msg.attach(MIMEText('\nsent by:\n' +
+                       doorpi.DoorPi().epilog, 'plain', 'utf-8'))
 
         # add snapshot? attach MIMEFile to multipart.
         if smtp_snapshot:
@@ -83,7 +86,8 @@ def fire_action_mail(smtp_to, smtp_subject, smtp_text, smtp_snapshot):
                         ('attachment; filename="{0}"').format(os.path.basename(smtp_snapshot)))
                     msg.attach(part)
             except Exception as exp:
-                logger.exception(('could not send mail attachment: {0}').format(exp))
+                logger.exception(
+                    ('could not send mail attachment: {0}').format(exp))
 
         server.sendmail(smtp_from, smtp_tolist, msg.as_string())
         server.quit()

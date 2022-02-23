@@ -14,12 +14,14 @@ def write_status_watchdog(watchdog_path, timeout):
 
     try:
         with open(watchdog_path, 'w+') as watchdog
-            watchdog.write('\n')
-            watchdog.flush()
+        watchdog.write('\n')
+        watchdog.flush()
     except:
-        logger.warning('while action write_status_watchdog - error opening watchdog file')
+        logger.warning(
+            'while action write_status_watchdog - error opening watchdog file')
         return False
     return True
+
 
 def get(parameters):
     parameter_list = parameters.split(',')
@@ -29,6 +31,7 @@ def get(parameters):
     watchdog = parameter_list[0]
     timeout = (5 if len(parameter_list) is not 2 else int(parameter_list[1]))
     return StatusWatchdogAction(write_status_watchdog, watchdog, timeout)
+
 
 class StatusWatchdogAction(SingleAction):
     pass

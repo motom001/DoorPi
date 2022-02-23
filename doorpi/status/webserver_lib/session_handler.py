@@ -25,9 +25,12 @@ class SessionHandler:
     def sessions(self): return self._Sessions
 
     def __init__(self):
-        doorpi.DoorPi().event_handler.register_event('WebServerCreateNewSession', __name__)
-        doorpi.DoorPi().event_handler.register_event('WebServerAuthUnknownUser', __name__)
-        doorpi.DoorPi().event_handler.register_event('WebServerAuthWrongPassword', __name__)
+        doorpi.DoorPi().event_handler.register_event(
+            'WebServerCreateNewSession', __name__)
+        doorpi.DoorPi().event_handler.register_event(
+            'WebServerAuthUnknownUser', __name__)
+        doorpi.DoorPi().event_handler.register_event(
+            'WebServerAuthWrongPassword', __name__)
 
     def destroy(self):
         doorpi.DoorPi().event_handler.unregister_source(__name__, True)
@@ -36,7 +39,8 @@ class SessionHandler:
 
     def get_session(self, session_id):
         if session_id in self._Sessions:
-            logger.trace('session %s found: %s', session_id, self._Sessions[session_id])
+            logger.trace('session %s found: %s', session_id,
+                         self._Sessions[session_id])
             return self._Sessions[session_id]
         else:
             logger.trace('no session with session id %s found', session_id)
@@ -49,9 +53,12 @@ class SessionHandler:
 
     def build_security_object(self, username, password, remote_client=''):
         if not len(self.config.get_keys('User')):
-            self.config.set_value(section='User', key='door', value='pi', password=True)
-            self.config.set_value(section='Group', key='administrator', value='door')
-            self.config.set_value(section='WritePermission', key='administrator', value='installer')
+            self.config.set_value(
+                section='User', key='door', value='pi', password=True)
+            self.config.set_value(
+                section='Group', key='administrator', value='door')
+            self.config.set_value(section='WritePermission',
+                                  key='administrator', value='installer')
             self.config.set_value(section='AREA_installer', key='.*', value='')
 
         groups_with_write_permissions = self.config.get_keys('WritePermission')
@@ -102,9 +109,11 @@ class SessionHandler:
                     web_session['readpermissions'].extend(
                         self.config.get_keys(CONF_AREA_PREFIX + modul))
 
-        web_session['readpermissions'] = list(set(web_session['readpermissions']))
+        web_session['readpermissions'] = list(
+            set(web_session['readpermissions']))
         web_session['readpermissions'].sort()
-        web_session['writepermissions'] = list(set(web_session['writepermissions']))
+        web_session['writepermissions'] = list(
+            set(web_session['writepermissions']))
         web_session['writepermissions'].sort()
 
         doorpi.DoorPi().event_handler('WebServerCreateNewSession', __name__, {

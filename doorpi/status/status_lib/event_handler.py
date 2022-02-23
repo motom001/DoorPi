@@ -5,10 +5,13 @@ import logging
 logger = logging.getLogger(__name__)
 logger.debug("%s loaded", __name__)
 
+
 def get(*args, **kwargs):
     try:
-        if len(kwargs['name']) == 0: kwargs['name'] = ['']
-        if len(kwargs['value']) == 0: kwargs['value'] = ['']
+        if len(kwargs['name']) == 0:
+            kwargs['name'] = ['']
+        if len(kwargs['value']) == 0:
+            kwargs['value'] = ['']
 
         event_handler = kwargs['DoorPiObject'].event_handler
 
@@ -35,6 +38,7 @@ def get(*args, **kwargs):
     except Exception as exp:
         logger.exception(exp)
         return {'Error': 'could not create '+str(__name__)+' object - '+str(exp)}
+
 
 def is_active(doorpi_object):
     return True if doorpi_object.event_handler else False

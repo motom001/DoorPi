@@ -6,8 +6,10 @@ import logging
 logger = logging.getLogger(__name__)
 logger.debug('%s loaded', __name__)
 
+
 def pjsip_handle_events(timeout):
     doorpi.DoorPi().sipphone.self_check(timeout)
+
 
 def get(parameters):
     parameter_list = parameters.split(',')
@@ -16,6 +18,7 @@ def get(parameters):
 
     timeout = int(parameter_list[0])
     return PjsipHandleEventsAction(pjsip_handle_events, timeout=timeout)
+
 
 class PjsipHandleEventsAction(SingleAction):
     pass

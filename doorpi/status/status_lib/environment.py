@@ -7,7 +7,8 @@ import logging
 logger = logging.getLogger(__name__)
 logger.debug('%s loaded', __name__)
 
-DEFAULT_MODULE_ATTR = ['__doc__', '__file__', '__name__', '__package__', '__path__', '__version__']
+DEFAULT_MODULE_ATTR = ['__doc__', '__file__',
+                       '__name__', '__package__', '__path__', '__version__']
 
 
 def check_module_status(module):
@@ -20,7 +21,8 @@ def check_module_status(module):
 
             for attr in DEFAULT_MODULE_ATTR:
                 if attr in content:
-                    status[attr.replace('__', '')] = getattr(package, attr) or ''
+                    status[attr.replace('__', '')] = getattr(
+                        package, attr) or ''
                 else:
                     status[attr.replace('__', '')] = 'unknown'
 
@@ -41,8 +43,10 @@ def check_module_status(module):
 
 
 def load_module_status(module_name):
-    module = importlib.import_module('doorpi.status.requirements_lib.' + module_name).REQUIREMENT
+    module = importlib.import_module(
+        'doorpi.status.requirements_lib.' + module_name).REQUIREMENT
     return check_module_status(module)
+
 
 REQUIREMENTS_DOORPI = {
     'config': load_module_status('req_config'),
@@ -71,6 +75,6 @@ def get(*args, **kwargs):
         logger.exception(exp)
         return {'Error': 'could not create ' + str(__name__) + ' object - ' + str(exp)}
 
-    
+
 def is_active(doorpi_object):
     return True

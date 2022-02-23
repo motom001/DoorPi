@@ -38,14 +38,19 @@ class FileSystem(KeyboardAbstractBaseClass, FileSystemEventHandler):
         self._OutputPins = list(map(str, output_pins))
 
         section_name = conf_pre + 'keyboard' + conf_post
-        self.__reset_input = doorpi.DoorPi().config.get_bool(section_name, 'reset_input', True)
-        self.__base_path_input = doorpi.DoorPi().config.get_string_parsed(section_name, 'base_path_input')
-        self.__base_path_output = doorpi.DoorPi().config.get_string_parsed(section_name, 'base_path_output')
+        self.__reset_input = doorpi.DoorPi().config.get_bool(
+            section_name, 'reset_input', True)
+        self.__base_path_input = doorpi.DoorPi().config.get_string_parsed(
+            section_name, 'base_path_input')
+        self.__base_path_output = doorpi.DoorPi().config.get_string_parsed(
+            section_name, 'base_path_output')
 
         if not self.__base_path_input:
-            raise MissingMandatoryParameter(('base_path_input in {}').format(section_name))
+            raise MissingMandatoryParameter(
+                ('base_path_input in {}').format(section_name))
         if not self.__base_path_output:
-            raise MissingMandatoryParameter(('base_path_output in {}}').format(section_name))
+            raise MissingMandatoryParameter(
+                ('base_path_output in {}}').format(section_name))
 
         os.makedirs(os.path.dirname(self.__base_path_input), exist_ok=True)
         os.makedirs(os.path.dirname(self.__base_path_output), exist_ok=True)
@@ -67,7 +72,7 @@ class FileSystem(KeyboardAbstractBaseClass, FileSystemEventHandler):
     def destroy(self):
         if self.is_destroyed:
             return
-        
+
         # remove all doorpi events for this keyboard
         doorpi.DoorPi().event_handler.unregister_source(__name__, True)
         self.__destroyed = True
@@ -81,27 +86,28 @@ class FileSystem(KeyboardAbstractBaseClass, FileSystemEventHandler):
             except FileNotFoundError:
                 pass
             except Exception as ex:
-                logger.error('Unable to remove virtual input pin %s: %s', input_pin, ex)
+                logger.error(
+                    'Unable to remove virtual input pin %s: %s', input_pin, ex)
         for output_pin in self._OutputPins:
             try:
                 os.remove(os.path.join(self.__base_path_output, output_pin))
             except FileNotFoundError:
                 pass
             except Exception as ex:
-                logger.error('Unable to remove virtual output pin %s: %s', output_pin, ex)
-
+                logger.error(
+                    'Unable to remove virtual output pin %s: %s', output_pin, ex)
 
     def status_input(self, pin):
         if pin not in self._InputPins:
             return False
-        with open(os.path.join(self.__base_path_input, pin), 'r') as file
+        with open(os.path.join(self.__base_path_input, pin), 'r') as file:
             plain_value = file.readline().rstrip()
             if self._polarity is 0:
                 return str(plain_value).lower() in HIGH_LEVEL
             return str(plain_value).lower() in LOW_LEVEL
 
     def __write_file(self, file, value=False):
-        with open(file, 'w') as f
+        with open(file, 'w') as f:
             value = str(value).lower() in HIGH_LEVEL
             if self._polarity is 1:
                 value = not value
@@ -119,12 +125,14 @@ class FileSystem(KeyboardAbstractBaseClass, FileSystemEventHandler):
 
         if pin not in self._OutputPins:
             return False
-        
+
         value = str(value).lower() in HIGH_LEVEL
         log_output = str(log_output).lower() in HIGH_LEVEL
-        written_value = self.__write_file(os.path.join(self.__base_path_output, pin), value)
+        written_value = self.__write_file(
+            os.path.join(self.__base_path_output, pin), value)
         if log_output:
-            logger.debug('out(pin = %s, value = %s, log_output = %s)', pin, written_value, log_output)
+            logger.debug('out(pin = %s, value = %s, log_output = %s)',
+                         pin, written_value, log_output)
 
         self._OutputStatus[pin] = value
         return True
@@ -135,7 +143,8 @@ class FileSystem(KeyboardAbstractBaseClass, FileSystemEventHandler):
         if self.__reset_file:
             if self.__reset_file == event.src_path:
                 self.__reset_file = None
-                logging.debug('reset inputfile will not fire event (%s)', event.src_path)
+                logging.debug(
+                    'reset inputfile will not fire event (%s)', event.src_path)
                 return
             self.__reset_file = event.src_path
             self.__set_input(event.src_path, 'false')

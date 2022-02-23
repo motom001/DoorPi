@@ -14,8 +14,8 @@ class SingleAction:
     @property
     def name(self):
         return ('{0} with args {1} and kwargs {2}').format(
-            self.action_name, 
-            self.__args, 
+            self.action_name,
+            self.__args,
             self.__kwargs)
 
     def __init__(self, callback, *args, **kwargs):
@@ -61,5 +61,6 @@ class SingleAction:
             return importlib.import_module('doorpi.action.SingleActions.' + action_name).get(
                 parameters)
         except:
-            logger.exception('error while creating SingleAction from config string: %s', config_string)
+            logger.exception(
+                'error while creating SingleAction from config string: %s', config_string)
             return None

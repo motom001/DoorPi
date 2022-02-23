@@ -68,25 +68,37 @@ Ergebnis des Beispiels ist, dass:
 
 Wobei !BASEPATH! für das Home-Verzeichnis von DoorPi steht.
 ''',
-    events = [
+    events=[
         dict(name='OnKeyPressed', description='Es wurde eine Taste als betätigt gemeldet. Das kann je nach Keyboard OnKeyUp oder OnKeyDown sein.'),
         dict(name='OnKeyUp', description='Eine Taste wurde wieder losgelassen.'),
-        dict(name='OnKeyDown', description='Eine Taste wurde gedrückt, aber noch nicht wieder los gelassen.'),
-        dict(name='OnKeyPressed_[PinName]', description='Gleich wie OnKeyPressed aber beinhaltet außerdem den Pin-Namen um gezielter mit Actions reagieren zu können.'),
-        dict(name='OnKeyUp_[PinName]', description='Gleich wie OnKeyUp aber beinhaltet außerdem den Pin-Namen um gezielter mit Actions reagieren zu können.'),
-        dict(name='OnKeyDown_[PinName]', description='Gleich wie OnKeyDown aber beinhaltet außerdem den Pin-Namen um gezielter mit Actions reagieren zu können.'),
-        dict(name='OnKeyPressed_[KeyboardName]_[PinName]', description='Gleich wie OnKeyPressed aber beinhaltet außerdem den Keyboard-Namen und den Pin-Namen um ganz exakt mit Actions reagieren zu können.'),
-        dict(name='OnKeyUp_[KeyboardName]_[PinName]', description='Gleich wie OnKeyUp aber beinhaltet außerdem den Keyboard-Namen und den Pin-Namen um ganz exakt mit Actions reagieren zu können.'),
-        dict(name='OnKeyDown_[KeyboardName]_[PinName]', description='Gleich wie OnKeyDown aber beinhaltet außerdem den Keyboard-Namen und den Pin-Namen um ganz exakt mit Actions reagieren zu können.')
+        dict(name='OnKeyDown',
+             description='Eine Taste wurde gedrückt, aber noch nicht wieder los gelassen.'),
+        dict(name='OnKeyPressed_[PinName]',
+             description='Gleich wie OnKeyPressed aber beinhaltet außerdem den Pin-Namen um gezielter mit Actions reagieren zu können.'),
+        dict(name='OnKeyUp_[PinName]',
+             description='Gleich wie OnKeyUp aber beinhaltet außerdem den Pin-Namen um gezielter mit Actions reagieren zu können.'),
+        dict(name='OnKeyDown_[PinName]',
+             description='Gleich wie OnKeyDown aber beinhaltet außerdem den Pin-Namen um gezielter mit Actions reagieren zu können.'),
+        dict(name='OnKeyPressed_[KeyboardName]_[PinName]',
+             description='Gleich wie OnKeyPressed aber beinhaltet außerdem den Keyboard-Namen und den Pin-Namen um ganz exakt mit Actions reagieren zu können.'),
+        dict(name='OnKeyUp_[KeyboardName]_[PinName]',
+             description='Gleich wie OnKeyUp aber beinhaltet außerdem den Keyboard-Namen und den Pin-Namen um ganz exakt mit Actions reagieren zu können.'),
+        dict(name='OnKeyDown_[KeyboardName]_[PinName]',
+             description='Gleich wie OnKeyDown aber beinhaltet außerdem den Keyboard-Namen und den Pin-Namen um ganz exakt mit Actions reagieren zu können.')
     ],
-    configuration = [
-        dict(section='keyboards', key='*', type='string', default='dummy', mandatory=False, description='In der Sektion werden die genutzten Keyboards mit Namen und Typ im Stil <code>[KeyboardName] = [KeyboardTyp]</code> aufgelistet. Die komplette Sektion wird ausgelesen.'),
-        dict(section='[KeyboardName]', key='bouncetime', type='float', default='2000', mandatory=False, description='bouncetime ist ein softwareseitiger Prellschutz innerhalb dessen Zeit in ms alle weiteren Ereignisse ignoriert werden.'),
-        dict(section='[KeyboardName]', key='polarity', type='integer', default='0', mandatory=False, description='polarity verdreht die Logik der Eingänge, so dass HIGH-Pegel = LOW-Pegel und umgedreht. Hat aber nur auf die Eingänge Auswirkung!'),
-        dict(section='[KeyboardName]_InputPins', key='*', type='string', default='', mandatory=False, description='Auflistung der Eingabeschnittstellen im Format <code>[PinName] = [Action]</code>. Bitte dazu die möglichen Actions und deren Syntax beachten!'),
-        dict(section='[KeyboardName]_OutputPins', key='*', type='string', default='', mandatory=False, description='Auflistung der Eingabeschnittstellen im Format <code>[PinName] = [SprechenderPinName]</code> - z.B. gibt es den GPIO Ausgang 27 für den Türöffner, so wäre die Syntax <code>27 = Tueroeffner</code>. Umlaute und Sonderzeichen sollten vermieden werden!')
+    configuration=[
+        dict(section='keyboards', key='*', type='string', default='dummy', mandatory=False,
+             description='In der Sektion werden die genutzten Keyboards mit Namen und Typ im Stil <code>[KeyboardName] = [KeyboardTyp]</code> aufgelistet. Die komplette Sektion wird ausgelesen.'),
+        dict(section='[KeyboardName]', key='bouncetime', type='float', default='2000', mandatory=False,
+             description='bouncetime ist ein softwareseitiger Prellschutz innerhalb dessen Zeit in ms alle weiteren Ereignisse ignoriert werden.'),
+        dict(section='[KeyboardName]', key='polarity', type='integer', default='0', mandatory=False,
+             description='polarity verdreht die Logik der Eingänge, so dass HIGH-Pegel = LOW-Pegel und umgedreht. Hat aber nur auf die Eingänge Auswirkung!'),
+        dict(section='[KeyboardName]_InputPins', key='*', type='string', default='', mandatory=False,
+             description='Auflistung der Eingabeschnittstellen im Format <code>[PinName] = [Action]</code>. Bitte dazu die möglichen Actions und deren Syntax beachten!'),
+        dict(section='[KeyboardName]_OutputPins', key='*', type='string', default='', mandatory=False,
+             description='Auflistung der Eingabeschnittstellen im Format <code>[PinName] = [SprechenderPinName]</code> - z.B. gibt es den GPIO Ausgang 27 für den Türöffner, so wäre die Syntax <code>27 = Tueroeffner</code>. Umlaute und Sonderzeichen sollten vermieden werden!')
     ],
-    libraries = {
+    libraries={
         'pifacedigitalio': dict(
             text_warning='''Neben der reinen Installation vom Python-Modul pifacedigitalio ist es auch wichtig SPI am System zu aktivieren (siehe Links).
 Außerdem muss bei Bestellungen darauf geachtet werden, dass es zwei Versionen gibt (<a href="https://www.rasppishop.de/Piface-Digital-Erweiterung-fuer-Raspberry-Pi">PiFace digital 1</a> und <a href="https://www.rasppishop.de/PiFace-Digital-2-Erweiterungsplatine-/-Modul-fuer-den-Raspberry-Pi-Modell-B-">PiFace digital 2</a>)''',
@@ -100,7 +112,7 @@ Außerdem muss bei Bestellungen darauf geachtet werden, dass es zwei Versionen g
                 'docs.python.org': 'https://docs.python.org/2.7/library/configparser.html',
                 'PiFace Beschreibung auf piface.org.uk': 'http://www.piface.org.uk/products/piface_digital/',
                 'Installationsanleitung auf github': 'http://piface.github.io/pifacedigitalio/installation.html',
-                'SPI und I2C aktivieren': 'http://raspberry.tips/faq/raspberry-pi-spi-und-i2c-aktivieren/' }
+                'SPI und I2C aktivieren': 'http://raspberry.tips/faq/raspberry-pi-spi-und-i2c-aktivieren/'}
         ),
         'RPi.GPIO': dict(
             text_warning='',
@@ -113,7 +125,7 @@ Außerdem muss bei Bestellungen darauf geachtet werden, dass es zwei Versionen g
             text_links={
                 'www.raspberrypi.org': {
                     'GPIO Overview': 'https://www.raspberrypi.org/documentation/hardware/raspberrypi/gpio/README.md',
-                    'GPIO Usage': 'https://www.raspberrypi.org/documentation/usage/gpio/README.md' },
+                    'GPIO Usage': 'https://www.raspberrypi.org/documentation/usage/gpio/README.md'},
                 'RPi.GPIO on pypi': 'https://pypi.python.org/pypi/RPi.GPIO',
                 'Installationsanleitung auf Sourceforge': 'http://sourceforge.net/p/raspberry-gpio-python/wiki/install/'
             }
@@ -192,17 +204,21 @@ Hier die Beschreibung aus der <code>from_rdm6300.py</code>, die <a href="https:/
              how to connect it to the RaspberryPi and how to handle
 </pre>
 ''',
-            text_installation='Das Modul ist im Paket <code>python3-serial</code> (Raspbian) enthalten.',
-            auto_install=False,
-            text_test='Der Status kann gestestet werden, indem im Python-Interpreter <code>import serial</code> eingeben wird.',
-            text_configuration='',
-            configuration=[
-                dict(section='[KeyboardName]', key='port', type='string', default='/dev/ttyAMA0', mandatory=False, description=''),
-                dict(section='[KeyboardName]', key='baudrate', type='integer', default='9600', mandatory=False, description=''),
-                dict(section='[KeyboardName]', key='dismisstime', type='integer', default='5', mandatory=False, description=''),
-            ],
-            text_links={ 'serial @ pypi': 'https://pypi.python.org/pypi/serial' }
-        ),
+                       text_installation='Das Modul ist im Paket <code>python3-serial</code> (Raspbian) enthalten.',
+                       auto_install=False,
+                       text_test='Der Status kann gestestet werden, indem im Python-Interpreter <code>import serial</code> eingeben wird.',
+                       text_configuration='',
+                       configuration=[
+                           dict(section='[KeyboardName]', key='port', type='string',
+                                default='/dev/ttyAMA0', mandatory=False, description=''),
+                           dict(section='[KeyboardName]', key='baudrate', type='integer',
+                                default='9600', mandatory=False, description=''),
+                           dict(section='[KeyboardName]', key='dismisstime',
+                                type='integer', default='5', mandatory=False, description=''),
+                       ],
+                       text_links={
+                           'serial @ pypi': 'https://pypi.python.org/pypi/serial'}
+                       ),
         'watchdog': dict(
             text_warning='Häufiges Lesen und Schreiben von SD-Karten wie im RPi können deren Verschleiß fördern. Eventuell sollte auf tmpfs Verzeichnisse ausgewichen werden.',
             text_description='''Das Python-Modul watchdog wird genutzt um ein dateibasierendes Keyboard zu erstellen.
@@ -215,11 +231,15 @@ Dabei kann eingestellt werden, in welchem Ordner die Dateien liegen, die jeweils
             text_test='Der Status kann gestestet werden, indem im Python-Interpreter <code>import watchdog</code> eingeben wird.',
             text_configuration='',
             configuration=[
-                dict(section='[KeyboardName]', key='base_path_input', type='string', default='', mandatory=False, description='Der Pfad in dem die Eingangspins angelegt werden'),
-                dict(section='[KeyboardName]', key='base_path_output', type='string', default='', mandatory=False, description='Der Pfad in dem die Eingangspins angelegt werden'),
-                dict(section='[KeyboardName]', key='reset_input', type='boolean', default='True', mandatory=False, description='Gibt an ob die Dateien nach Erkennung eines Events durch das Filesystem-Keyboard wieder zurück in den Ausgangszustand versetzt werden')
+                dict(section='[KeyboardName]', key='base_path_input', type='string', default='',
+                     mandatory=False, description='Der Pfad in dem die Eingangspins angelegt werden'),
+                dict(section='[KeyboardName]', key='base_path_output', type='string', default='',
+                     mandatory=False, description='Der Pfad in dem die Eingangspins angelegt werden'),
+                dict(section='[KeyboardName]', key='reset_input', type='boolean', default='True', mandatory=False,
+                     description='Gibt an ob die Dateien nach Erkennung eines Events durch das Filesystem-Keyboard wieder zurück in den Ausgangszustand versetzt werden')
             ],
-            text_links={ 'watchdog @ pypi': 'https://pypi.python.org/pypi/watchdog' }
+            text_links={
+                'watchdog @ pypi': 'https://pypi.python.org/pypi/watchdog'}
         )
     }
 )

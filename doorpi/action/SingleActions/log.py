@@ -8,6 +8,7 @@ logger.debug('%s loaded', __name__)
 
 def log(message): logger.debug(message)
 
+
 def get(parameters):
     parameter_list = parameters.split(',')
     if len(parameter_list) is not 1:
@@ -15,6 +16,7 @@ def get(parameters):
 
     message = parameter_list[0]
     return LogAction(log, message)
+
 
 class LogAction(SingleAction):
     pass

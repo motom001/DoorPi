@@ -120,7 +120,7 @@ class RDM6300(KeyboardAbstractBaseClass):
                     if (input == self._input_stop_flag):
                         # check signal format
                         if buffer.startswith(self._input_start_flag) and \
-                           len(buffer) == self._input_frame_size and \ 
+                           len(buffer) == self._input_frame_size and \
                            RDM6300.verify_checksum(buffer):
                             logger.debug('found tag, checking dismisstime')
                             # signal format ok - to fast?
@@ -135,9 +135,12 @@ class RDM6300(KeyboardAbstractBaseClass):
                                 # card uid registered as input pin?
                                 if self.last_key in self._InputPins:
                                     # call events for uid und common event for known tags
-                                    self._fire_OnKeyDown(self.last_key, __name__)
-                                    self._fire_OnKeyPressed(self.last_key, __name__)
-                                    self._fire_OnKeyUp(self.last_key, __name__)
+                                    self._fire_OnKeyDown(
+                                        self.last_key, __name__)
+                                    self._fire_OnKeyPressed(
+                                        self.last_key, __name__)
+                                    self._fire_OnKeyUp(
+                                        self.last_key, __name__)
                                     doorpi.DoorPi().event_handler('OnFoundKnownTag', __name__)
                                 else:
                                     doorpi.DoorPi().event_handler('OnFoundUnknownTag', __name__)

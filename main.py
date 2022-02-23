@@ -4,7 +4,8 @@ import argparse
 import sys
 import logging
 import logging.handlers
-import os, pathlib
+import os
+import pathlib
 
 if __package__ is None:
     DIR = pathlib.Path(__file__).resolve().parent
@@ -76,7 +77,7 @@ def parse_arguments(argv):
 
 
 def files_preserve_by_path(*paths):
-    
+
     from resource import getrlimit, RLIMIT_NOFILE
 
     wanted = []
@@ -111,9 +112,9 @@ def main_as_daemon(argv):
 
     log_file = os.path.join(metadata.log_folder, "doorpi.log")
     logrotating = logging.handlers.RotatingFileHandler(
-          log_file,
-          maxBytes=5000000,
-          backupCount=10)
+        log_file,
+        maxBytes=5000000,
+        backupCount=10)
 
     global log_level
     logrotating.setLevel(log_level)
@@ -123,13 +124,13 @@ def main_as_daemon(argv):
     print((metadata.epilog))
 
     from daemon import runner
-    from daemon.runner import DaemonRunnerInvalidActionError
     from daemon.runner import DaemonRunnerStartFailureError
     from daemon.runner import DaemonRunnerStopFailureError
 
     daemon_runner = runner.DaemonRunner(doorpi.DoorPi(parsed_arguments))
     # This ensures that the logger file handle does not get closed during daemonization
-    daemon_runner.daemon_context.files_preserve = files_preserve_by_path(log_file)
+    daemon_runner.daemon_context.files_preserve = files_preserve_by_path(
+        log_file)
     try:
         daemon_runner.do_action()
     except DaemonRunnerStopFailureError as ex:
@@ -166,12 +167,11 @@ def entry_point():
     init_logger(sys.argv)
 
     """Zero-argument entry point for use with setuptools/distribute."""
-    if len(sys.argv) > 1 and sys.argv[1] in ['status']:
-        raise SystemExit(get_status_from_doorpi(sys.argv))
-    elif len(sys.argv) > 1 and sys.argv[1] in ['start', 'stop', 'restart', 'reload']:
+    if len(sys.argv) > 1 and sys.argv[1] in ['start', 'stop', 'restart', 'reload']:
         raise SystemExit(main_as_daemon(sys.argv))
     else:
         raise SystemExit(main_as_application(sys.argv))
+
 
 if __name__ == '__main__':
     entry_point()

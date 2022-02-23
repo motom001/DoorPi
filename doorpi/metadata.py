@@ -31,7 +31,7 @@ supporters = [
     'missing someone? -> sorry -> mail me'
 ]
 supporter_string = '\n'.join(supporters)
-copyright = "%s, 2014-%s" % (authors[0], datetime.now().year )
+copyright = "%s, 2014-%s" % (authors[0], datetime.now().year)
 license = 'CC BY-NC 4.0'
 url = 'https://github.com/motom001/DoorPi'
 url_raw = 'https://raw.githubusercontent.com/motom001/DoorPi'
@@ -49,14 +49,14 @@ Contributors:
     {authors}
     {supporters}
 '''.format(
-        license = license,
-        project = project,
-        version = version,
-        authors = '\n'.join(author_strings),
-        supporters = '\n    '.join(supporters),
-        url = url,
-        copyright = copyright
-    )
+    license=license,
+    project=project,
+    version=version,
+    authors='\n'.join(author_strings),
+    supporters='\n    '.join(supporters),
+    url=url,
+    copyright=copyright
+)
 
 
 doorpi_path = None
@@ -75,7 +75,7 @@ if os.name == usedPlattform:
     daemon_args = '--configfile $DOORPI_PATH/conf/doorpi.ini'
     doorpi_executable = '/usr/local/bin/doorpi_cli'
     log_folder = '%s/log' % doorpi_path
-    
+
 if os.name == 'nt':
     usedPlattform = 'windows'
 else:

@@ -69,7 +69,8 @@ class ConfigObject():
             configfile_name = configfile
 
         if not configfile_name:
-            logger.error('No valid configfile found - use parameter --configfile "filename" to specify one')
+            logger.error(
+                'No valid configfile found - use parameter --configfile "filename" to specify one')
             return ConfigObject(config)
 
         logger.info('use configfile: %s', configfile_name)
@@ -82,13 +83,15 @@ class ConfigObject():
         if not configfile:
             configfile = self.find_config(configfile)
         if not configfile:
-            configfile = doorpi.DoorPi().parse_string(os.path.join('!BASEPATH!', 'conf', 'doorpi.ini'))
+            configfile = doorpi.DoorPi().parse_string(
+                os.path.join('!BASEPATH!', 'conf', 'doorpi.ini'))
 
         # if not configfile: return False
         logger.debug('write configfile: %s', configfile)
         try:
             if not os.path.exists(os.path.dirname(configfile)):
-                logger.info('Path %s does not exist - creating it now', os.path.dirname(configfile))
+                logger.info('Path %s does not exist - creating it now',
+                            os.path.dirname(configfile))
                 os.makedirs(os.path.dirname(configfile))
             cfgfile = open(configfile, 'w')
             config = configparser.ConfigParser(allow_no_value=True)
@@ -105,7 +108,8 @@ class ConfigObject():
             return False
 
     def get_string_parsed(self, section, key, default='', log=True, store_if_not_exists=True):
-        raw_string = self.get_string(section, key, default, log, store_if_not_exists=store_if_not_exists)
+        raw_string = self.get_string(
+            section, key, default, log, store_if_not_exists=store_if_not_exists)
         parsed_string = doorpi.DoorPi().parse_string(raw_string)
         logger.debug('parse string "%s" to "%s"', raw_string, parsed_string)
         return parsed_string
@@ -130,14 +134,17 @@ class ConfigObject():
 
     def rename_key(self, section, old_key, new_key, default='', log=True):
         if log:
-            logging.debug('rename key from %s to %s in section %s', old_key, new_key, section)
-        old_value = self.get_string(section, old_key, default, log, store_if_not_exists=False)
+            logging.debug('rename key from %s to %s in section %s',
+                          old_key, new_key, section)
+        old_value = self.get_string(
+            section, old_key, default, log, store_if_not_exists=False)
         self.set_value(section=section, key=new_key, value=old_value, log=log)
         self.delete_key(section, old_key, log=log)
 
     def delete_section(self, section, delete_empty_only=True, log=True):
         if section in self.__sections and len(self.__sections[section]) > 0 and delete_empty_only:
-            logger.warning("could not delete section %s, because it's not empty.", section)
+            logger.warning(
+                "could not delete section %s, because it's not empty.", section)
             return False
 
         try:
@@ -161,7 +168,8 @@ class ConfigObject():
             return True
         except KeyError as exp:
             if log:
-                logger.warning('delete key %s from section %s failed: %s', key, section, exp)
+                logger.warning(
+                    'delete key %s from section %s failed: %s', key, section, exp)
         return False
 
     def get_string(self, section, key, default='', log=True, password=False, store_if_not_exists=True):
@@ -171,7 +179,8 @@ class ConfigObject():
             value = self.__sections[old_section][old_key]
             self.delete_key(old_section, old_key, False)
             self.__sections[section][key] = value
-            logger.warning('found %s - %s in BACKWARD_COMPATIBILITY_KEYS with %s - %s', section, key, old_section, old_key)
+            logger.warning('found %s - %s in BACKWARD_COMPATIBILITY_KEYS with %s - %s',
+                           section, key, old_section, old_key)
         except KeyError:
             try:
                 value = self.__sections[section][key]
@@ -186,47 +195,57 @@ class ConfigObject():
 
         if key.endswith('password') or password:
             if log:
-                logger.trace("get_string for key %s in section %s (default: %s) returns %s", key, section, default, '*******')
+                logger.trace("get_string for key %s in section %s (default: %s) returns %s",
+                             key, section, default, '*******')
         else:
             if log:
-                logger.trace("get_string for key %s in section %s (default: %s) returns %s", key, section, default, value)
+                logger.trace(
+                    "get_string for key %s in section %s (default: %s) returns %s", key, section, default, value)
         return value
 
     def get_float(self, section, key, default=-1, log=True, store_if_not_exists=True):
-        value = self.get_string(section, key, str(default), log=False, store_if_not_exists=store_if_not_exists)
+        value = self.get_string(section, key, str(
+            default), log=False, store_if_not_exists=store_if_not_exists)
         if value is not '':
             value = float(value)
         else:
             value = default
         if log:
-            logger.trace("get_float for key %s in section %s (default: %s) returns %s", key, section, default, value)
+            logger.trace(
+                "get_float for key %s in section %s (default: %s) returns %s", key, section, default, value)
         return value
 
     def get_integer(self, section, key, default=-1, log=True, store_if_not_exists=True):
-        value = self.get(section, key, str(default), log=False, store_if_not_exists=store_if_not_exists)
+        value = self.get(section, key, str(default), log=False,
+                         store_if_not_exists=store_if_not_exists)
         if value is not '':
             value = int(value)
         else:
             value = default
         if log:
-            logger.trace('get_integer for key %s in section %s (default: %s) returns %s', key, section, default, value)
+            logger.trace(
+                'get_integer for key %s in section %s (default: %s) returns %s', key, section, default, value)
         return value
 
     def get_boolean(self, section, key, default=False, log=True, store_if_not_exists=True):
-        value = self.get(section, key, str(default), log=False, store_if_not_exists=store_if_not_exists)
+        value = self.get(section, key, str(default), log=False,
+                         store_if_not_exists=store_if_not_exists)
         value = value.lower() in ['true', 'yes', 'ja', '1']
         if log:
-            logger.trace('get_boolean for key %s in section %s (default: %s) returns %s', key, section, default, value)
+            logger.trace(
+                'get_boolean for key %s in section %s (default: %s) returns %s', key, section, default, value)
         return value
 
     def get_list(self, section, key, default=[], separator=',', log=True, store_if_not_exists=True):
-        value = self.get(section, key, str(default), log=False, store_if_not_exists=store_if_not_exists)
+        value = self.get(section, key, str(default), log=False,
+                         store_if_not_exists=store_if_not_exists)
         if value is not '':
             value = value.split(separator)
         else:
             value = default
         if log:
-            logger.trace('get_list for key %s in section %s (default: %s) returns %s', key, section, default, value)
+            logger.trace(
+                'get_list for key %s in section %s (default: %s) returns %s', key, section, default, value)
         return value
 
     def get_sections(self, filter='', log=True):
@@ -247,7 +266,8 @@ class ConfigObject():
                 if filter in key:
                     return_list.append(key)
         if log:
-            logger.trace('get_keys for section %s returns %s', section, return_list)
+            logger.trace('get_keys for section %s returns %s',
+                         section, return_list)
         return return_list
 
     def get_from_config(self, config, log=True):

@@ -45,14 +45,18 @@ def load_webserver():
     for single_port in possible_ports:
         try:
             server_address = (ip, single_port)
-            doorpiweb_object = DoorPiWeb(server_address, DoorPiWebRequestHandler)
-            logger.info(('Initiating WebService at ip {0} and port {1}').format(ip, single_port))
+            doorpiweb_object = DoorPiWeb(
+                server_address, DoorPiWebRequestHandler)
+            logger.info(
+                ('Initiating WebService at ip {0} and port {1}').format(ip, single_port))
             doorpiweb_object.start()
             if single_port is not port:
-                doorpi.DoorPi().event_handler.register_action('OnTimeSecondEvenNumber', doorpiweb_object.inform_own_url)
+                doorpi.DoorPi().event_handler.register_action(
+                    'OnTimeSecondEvenNumber', doorpiweb_object.inform_own_url)
             return doorpiweb_object
         except Exception as exp:
-            logger.warning(('failed to initiating WebService at ip {0} and port {1} ({2})').format(ip, single_port, exp))
+            logger.warning(('failed to initiating WebService at ip {0} and port {1} ({2})').format(
+                ip, single_port, exp))
 
     return doorpiweb_object
 
@@ -75,20 +79,23 @@ def check_config(config):
 
     for group in groups_with_write_permissions:
         if group not in groups:
-            warnings.append(('group {0} does not exist but is assigned to WritePermission').format(group))
+            warnings.append(
+                ('group {0} does not exist but is assigned to WritePermission').format(group))
 
     if len(groups_with_read_permissions) == 0:
         warnings.append('no ReadPermission found')
 
     for group in groups_with_read_permissions:
         if group not in groups:
-            warnings.append(('group {0} does not exist but is assigned to ReadPermission').format(group))
+            warnings.append(
+                ('group {0} does not exist but is assigned to ReadPermission').format(group))
 
     for group in groups:
         users_in_group = config.get_list('Group', group)
         for user_in_group in users_in_group:
             if user_in_group not in users:
-                warnings.append(('user {0} is assigned to group {1} but does not exist as user').format(user_in_group, group))
+                warnings.append(('user {0} is assigned to group {1} but does not exist as user').format(
+                    user_in_group, group))
 
     config_section = config.get_sections()
 
@@ -96,13 +103,15 @@ def check_config(config):
         modules = config.get_list('WritePermission', group)
         for module in modules:
             if (CONF_AREA_PREFIX + module) not in config_section:
-                warnings.append(('module {0} does not exist but is assigned to group {1} in WritePermission').format(module, group))
+                warnings.append(
+                    ('module {0} does not exist but is assigned to group {1} in WritePermission').format(module, group))
 
     for group in groups_with_read_permissions:
         modules = config.get_list('ReadPermission', group)
         for module in modules:
             if CONF_AREA_PREFIX+module not in config_section:
-                warnings.append(('module {0} does not exist but is assigned to group {1} in ReadPermission').format(module, group))
+                warnings.append(
+                    ('module {0} does not exist but is assigned to group {1} in ReadPermission').format(module, group))
 
     for info in infos:
         logger.info(info)
@@ -151,16 +160,23 @@ class DoorPiWeb(ThreadingMixIn, HTTPServer):
         doorpi.DoorPi().event_handler.register_event('OnWebServerStart', __name__)
         doorpi.DoorPi().event_handler.register_event('OnWebServerStop', __name__)
 
-        self.www = os.path.realpath(doorpi.DoorPi().config.get_string_parsed(DOORPIWEB_SECTION, 'www', '!BASEPATH!/../DoorPiWeb'))
-        self.indexfile = doorpi.DoorPi().config.get_string_parsed(DOORPIWEB_SECTION, 'indexfile', 'index.html')
-        self.loginfile = doorpi.DoorPi().config.get_string_parsed(DOORPIWEB_SECTION, 'loginfile', 'login.html')
-        self.area_public_name = doorpi.DoorPi().config.get_string_parsed(DOORPIWEB_SECTION, 'public', 'AREA_public')
-        self.online_fallback = doorpi.DoorPi().config.get_string_parsed(DOORPIWEB_SECTION, 'online_fallback', 'http://motom001.github.io/DoorPiWeb')
+        self.www = os.path.realpath(doorpi.DoorPi().config.get_string_parsed(
+            DOORPIWEB_SECTION, 'www', '!BASEPATH!/../DoorPiWeb'))
+        self.indexfile = doorpi.DoorPi().config.get_string_parsed(
+            DOORPIWEB_SECTION, 'indexfile', 'index.html')
+        self.loginfile = doorpi.DoorPi().config.get_string_parsed(
+            DOORPIWEB_SECTION, 'loginfile', 'login.html')
+        self.area_public_name = doorpi.DoorPi().config.get_string_parsed(
+            DOORPIWEB_SECTION, 'public', 'AREA_public')
+        self.online_fallback = doorpi.DoorPi().config.get_string_parsed(
+            DOORPIWEB_SECTION, 'online_fallback', 'http://motom001.github.io/DoorPiWeb')
         check_config(self.config)
         logger.info('Serving files from {}'.format(self.www))
 
-        doorpi.DoorPi().event_handler.register_action('OnWebServerStart', WebServerStartupAction(self.handle_while_not_shutdown))
-        doorpi.DoorPi().event_handler.register_action('OnShutdown', WebServerShutdownAction(self.init_shutdown))
+        doorpi.DoorPi().event_handler.register_action('OnWebServerStart',
+                                                      WebServerStartupAction(self.handle_while_not_shutdown))
+        doorpi.DoorPi().event_handler.register_action(
+            'OnShutdown', WebServerShutdownAction(self.init_shutdown))
         doorpi.DoorPi().event_handler('OnWebServerStart', __name__)
 
         DoorPiWebRequestHandler.prepare()
@@ -173,7 +189,8 @@ class DoorPiWeb(ThreadingMixIn, HTTPServer):
     def fake_request(self):
         try:
             from urllib.request import urlopen as fake_request
-            fake_request(('http://{0}:{1}/').format(self.server_name, self.server_port), timeout=0)
+            fake_request(
+                ('http://{0}:{1}/').format(self.server_name, self.server_port), timeout=0)
         except:
             pass
 

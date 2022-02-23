@@ -1,16 +1,16 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+from doorpi import DoorPi
+import pjsua as pj
+import os
+import time
+import datetime
+import threading
 import logging
 logger = logging.getLogger(__name__)
 logger.debug("%s loaded", __name__)
 
-import threading
-import datetime
-import time
-import os
-import pjsua as pj
-from doorpi import DoorPi
 
 class SipPhoneCallCallBack(pj.CallCallback):
 
@@ -19,7 +19,7 @@ class SipPhoneCallCallBack(pj.CallCallback):
     __DTMF = ''
     __possible_DTMF = []
 
-    def __init__(self, PlayerID = None, call = None):
+    def __init__(self, PlayerID=None, call=None):
         logger.debug("__init__")
         self.PlayerID = PlayerID
         self.Lib = pj.Lib.instance()
@@ -48,7 +48,7 @@ class SipPhoneCallCallBack(pj.CallCallback):
         DoorPi().event_handler.unregister_source(__name__, True)
 
     def on_media_state(self):
-        logger.debug("on_media_state (%s)",str(self.call.info().media_state))
+        logger.debug("on_media_state (%s)", str(self.call.info().media_state))
         DoorPi().event_handler('OnCallMediaStateChange', __name__, {
             'remote_uri': self.call.info().remote_uri,
             'media_state': str(self.call.info().media_state)
@@ -62,7 +62,7 @@ class SipPhoneCallCallBack(pj.CallCallback):
         })
 
         if self.call.info().state in [pj.CallState.CONFIRMED] \
-        and self.call.info().media_state == pj.MediaState.ACTIVE:
+                and self.call.info().media_state == pj.MediaState.ACTIVE:
             DoorPi().event_handler('OnCallStateConnect', __name__, {
                 'remote_uri': self.call.info().remote_uri
             })
@@ -70,7 +70,7 @@ class SipPhoneCallCallBack(pj.CallCallback):
             # Connect the call to each side
             self.Lib.conf_connect(call_slot, 0)
             self.Lib.conf_connect(0, call_slot)
-            logger.debug("conneted Media to call_slot %s",str(call_slot))
+            logger.debug("conneted Media to call_slot %s", str(call_slot))
 
             DoorPi().event_handler('AfterCallStateConnect', __name__, {
                 'remote_uri': self.call.info().remote_uri
@@ -86,7 +86,8 @@ class SipPhoneCallCallBack(pj.CallCallback):
                 })
                 self.Lib.conf_disconnect(call_slot, 0)
                 self.Lib.conf_disconnect(0, call_slot)
-                logger.debug("disconneted Media from call_slot %s",str(call_slot))
+                logger.debug(
+                    "disconneted Media from call_slot %s", str(call_slot))
                 DoorPi().event_handler('AfterCallStateDisconnect', __name__, {
                     'remote_uri': self.call.info().remote_uri
                 })
@@ -95,9 +96,8 @@ class SipPhoneCallCallBack(pj.CallCallback):
                     'remote_uri': self.call.info().remote_uri
                 })
 
-
     def on_dtmf_digit(self, digits):
-        logger.debug("on_dtmf_digit (%s)",str(digits))
+        logger.debug("on_dtmf_digit (%s)", str(digits))
 
         self.__DTMF += str(digits)
         for DTMF in self.__possible_DTMF:

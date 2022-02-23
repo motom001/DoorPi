@@ -96,17 +96,17 @@ administrator = status, help # Gruppe administrator darf lesend auf die Resource
         dict(section=CONF_AREA_PREFIX + '*', key='*', type='string', default='', mandatory=False, description='')
     ],
     libraries=dict(
-        'http.server'=dict(
-            text_warning='',
-            text_description='Das Python-Modul http.server ist mit der Klasse HTTPServer die Grundlage für jeden Webserver.',
-            text_installation='Eine Installation ist nicht nötig, da es sich hierbei um ein Python-Standard-Modul handelt.',
-            auto_install=False,
-            text_test='Der Status kann gestestet werden, indem im Python-Interpreter <code>import http.server</code> eingeben wird.',
-            text_configuration='',
-            configuration=[],
-            text_links={ 'docs.python.org': 'https://docs.python.org/2.7/library/basehttpserver.html' }
-        ),
-        'urllib'=dict(
+        # 'http.server'=dict(
+        #     text_warning='',
+        #     text_description='Das Python-Modul http.server ist mit der Klasse HTTPServer die Grundlage für jeden Webserver.',
+        #     text_installation='Eine Installation ist nicht nötig, da es sich hierbei um ein Python-Standard-Modul handelt.',
+        #     auto_install=False,
+        #     text_test='Der Status kann gestestet werden, indem im Python-Interpreter <code>import http.server</code> eingeben wird.',
+        #     text_configuration='',
+        #     configuration=[],
+        #     text_links={ 'docs.python.org': 'https://docs.python.org/2.7/library/basehttpserver.html' }
+        # ),
+        urllib=dict(
             text_warning='',
             text_description='Das Python-Modul urllib wird vom Webserver benötigt, um Anfragen zu verarbeiten.',
             text_installation='Eine Installation ist nicht nötig, da es sich hierbei um ein Python-Standard-Modul handelt.',

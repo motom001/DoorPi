@@ -55,3 +55,4 @@ target/
 
 .pypirc
 doorpi/docs/service/doorpi
+.vscode/launch.json

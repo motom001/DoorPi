@@ -5,9 +5,10 @@ import sys
 import logging
 import logging.handlers
 import os
-from . import metadata
-from . import doorpi
-from resource import getrlimit, RLIMIT_NOFILE
+
+
+from doorpi import metadata
+from doorpi import doorpi
 
 TRACE_LEVEL = 5
 LOG_FORMAT = '%(asctime)s [%(levelname)s]  \t[%(name)s] %(message)s'
@@ -71,6 +72,9 @@ def parse_arguments(argv):
 
 
 def files_preserve_by_path(*paths):
+    
+    from resource import getrlimit, RLIMIT_NOFILE
+
     wanted = []
     for path in paths:
         fd = os.open(path, os.O_RDONLY)
@@ -90,7 +94,7 @@ def files_preserve_by_path(*paths):
 
 
 def main_as_daemon(argv):
-    if argv[1] is 'reload':
+    if argv[1] in ['reload']:
         print('not implemeted yet - use restart instead')
         return 1
     if argv[1] in ['stop']:

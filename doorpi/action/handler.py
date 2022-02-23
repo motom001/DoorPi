@@ -2,7 +2,8 @@
 from .base import SingleAction
 import doorpi
 
-import collections
+
+from collections.abc import Callable
 import threading
 import time  # used by: fire_event_synchron
 from inspect import isfunction, ismethod  # used by: register_action
@@ -24,7 +25,6 @@ class EnumWaitSignalsClass():
 
     DontWaitToFinish = False
     DontWaitToEnd = False
-    async = False
     asyncron = False
 
 EnumWaitSignals = EnumWaitSignalsClass()
@@ -360,9 +360,9 @@ class EventHandler:
             return False
 
     def register_action(self, event_name, action_object, *args, **kwargs):
-        if ismethod(action_object) and isinstance(action_object, collections.Callable):
+        if ismethod(action_object) and isinstance(action_object, Callable):
             action_object = SingleAction(action_object, *args, **kwargs)
-        elif isfunction(action_object) and isinstance(action_object, collections.Callable):
+        elif isfunction(action_object) and isinstance(action_object, Callable):
             action_object = SingleAction(action_object, *args, **kwargs)
         elif not isinstance(action_object, SingleAction):
             action_object = SingleAction.from_string(action_object)

@@ -13,10 +13,10 @@ name: "CodeQL"
 
 on:
   push:
-    branches: [ master ]
+    branches: [ master, configure-CICD-via-GitHub-Actions ]
   pull_request:
     # The branches below must be a subset of the branches above
-    branches: [ master ]
+    branches: [ master, configure-CICD-via-GitHub-Actions ]
   schedule:
     - cron: '31 12 * * 2'
 

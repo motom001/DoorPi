@@ -1,6 +1,6 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+from pickle import NONE
 import sys
 import argparse
 import time  # used by: DoorPi.run
@@ -141,7 +141,7 @@ class DoorPi(object, metaclass=Singleton):
         logger.debug('given arguments argv: %s', parsed_arguments)
         
         # setup signal handlers for HUP, INT, TERM
-        signal.signal(signal.SIGHUP, self.signal_shutdown)
+        if metadata.usedPlattform == 'posix': signal.signal(signal.SIGHUP, self.signal_shutdown)
         signal.signal(signal.SIGINT, self.signal_shutdown)
         signal.signal(signal.SIGTERM, self.signal_shutdown)
 

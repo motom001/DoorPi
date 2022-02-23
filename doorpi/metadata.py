@@ -54,6 +54,10 @@ Supporter:  {supporters}
         url = url)
 
 
+doorpi_path = None
+log_folder = '%s/log' % doorpi_path
+usedPlattform = 'posix'
+
 if os.name == 'posix':
     doorpi_path = os.path.join('/usr/local/etc', package)
 
@@ -68,9 +72,11 @@ if os.name == 'posix':
     daemon_args = '--configfile $DOORPI_PATH/conf/doorpi.ini'
     doorpi_executable = '/usr/local/bin/doorpi_cli'
     log_folder = '%s/log' % doorpi_path
-    if not os.path.exists(doorpi_path):
-        os.makedirs(doorpi_path)
+    
+if os.name == 'nt':
+    usedPlattform = 'windows'
 else:
     raise Exception('os unknown')
 
-
+if doorpi_path is not None and not os.path.exists(doorpi_path):
+    os.makedirs(doorpi_path)

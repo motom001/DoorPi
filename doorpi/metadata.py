@@ -4,12 +4,13 @@
 Information describing the project.
 """
 import os
+from datetime import datetime
 
 # The package name, which is also the "UNIX name" for the project.
 package = 'DoorPi'
 project = "VoIP Door-Intercomstation with Raspberry Pi"
 project_no_spaces = project.replace(' ', '')
-version = '2.5.1'
+version = '2.5.2'
 description = 'provide intercomstation to the doorstation by VoIP'
 keywords = ['intercom', 'VoIP', 'doorstation', 'home automation', 'IoT']
 authors = ['Thomas Meissner']
@@ -30,7 +31,7 @@ supporters = [
     'missing someone? -> sorry -> mail me'
 ]
 supporter_string = '\n'.join(supporters)
-copyright = "%s, 2014-2015" % authors[0]
+copyright = "%s, 2014-%s" % (authors[0], datetime.now().year )
 license = 'CC BY-NC 4.0'
 url = 'https://github.com/motom001/DoorPi'
 url_raw = 'https://raw.githubusercontent.com/motom001/DoorPi'
@@ -42,16 +43,20 @@ epilog = '''
   / /\ / _ \ / _ \| '__/ /_)/ |  version:   {version}
  / /_// (_) | (_) | | / ___/| |  license:   {license}
 /___,' \___/ \___/|_| \/    |_|  URL:       <{url}>
+                                 Copyright: {copyright}
 
-Authors:    {authors}
-Supporter:  {supporters}
+Contributors:
+    {authors}
+    {supporters}
 '''.format(
         license = license,
         project = project,
         version = version,
         authors = '\n'.join(author_strings),
-        supporters = '\n            '.join(supporters),
-        url = url)
+        supporters = '\n    '.join(supporters),
+        url = url,
+        copyright = copyright
+    )
 
 
 doorpi_path = None

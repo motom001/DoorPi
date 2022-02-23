@@ -4,8 +4,12 @@ import argparse
 import sys
 import logging
 import logging.handlers
-import os
+import os, pathlib
 
+if __package__ is None:
+    DIR = pathlib.Path(__file__).resolve().parent
+    sys.path.insert(0, str(DIR.parent))
+    __package__ = DIR.name
 
 from doorpi import metadata
 from doorpi import doorpi

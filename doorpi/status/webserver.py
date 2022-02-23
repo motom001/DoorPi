@@ -36,17 +36,17 @@ CONF_AREA_PREFIX = 'AREA_'
 
 
 def load_webserver():
-    ip = doorpi.DoorPi().config.get(DOORPIWEB_SECTION, 'ip', '')
+    ip = doorpi.DoorPi().config.get(DOORPIWEB_SECTION, 'ip', '127.0.0.1')
     port = doorpi.DoorPi().config.get_int(DOORPIWEB_SECTION, 'port', 80)
 
     doorpiweb_object = False
 
-    possible_ports = [port, 80, 8080, 0]
+    possible_ports = [port, 80, 8080, 5678]
     for single_port in possible_ports:
         try:
             server_address = (ip, single_port)
             doorpiweb_object = DoorPiWeb(server_address, DoorPiWebRequestHandler)
-            logger.info(('Initiating WebService at ip {0} and port {1}').formati(ip, single_port))
+            logger.info(('Initiating WebService at ip {0} and port {1}').format(ip, single_port))
             doorpiweb_object.start()
             if single_port is not port:
                 doorpi.DoorPi().event_handler.register_action('OnTimeSecondEvenNumber', doorpiweb_object.inform_own_url)

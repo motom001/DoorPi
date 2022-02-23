@@ -1,13 +1,13 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+from doorpi.keyboard.AbstractBaseClass import KeyboardAbstractBaseClass, HIGH_LEVEL, LOW_LEVEL
+import doorpi
+
+import RPi.GPIO as RPiGPIO  # basic for GPIO control
 
 import logging
 logger = logging.getLogger(__name__)
-logger.debug("%s loaded", __name__)
-
-import RPi.GPIO as RPiGPIO # basic for GPIO control
-from doorpi.keyboard.AbstractBaseClass import KeyboardAbstractBaseClass, HIGH_LEVEL, LOW_LEVEL
-import doorpi
+logger.debug('%s loaded', __name__)
 
 
 def get(**kwargs): return GPIO(**kwargs)
@@ -18,32 +18,33 @@ class GPIO(KeyboardAbstractBaseClass):
 
     def __init__(self, input_pins, output_pins, conf_pre, conf_post, keyboard_name,
                  bouncetime=200, polarity=0, pressed_on_key_down=True, *args, **kwargs):
-        logger.debug("__init__(input_pins = %s, output_pins = %s, bouncetime = %s, polarity = %s)",
+        logger.debug('__init__(input_pins = %s, output_pins = %s, bouncetime = %s, polarity = %s)',
                      input_pins, output_pins, bouncetime, polarity)
         self.keyboard_name = keyboard_name
         self._polarity = polarity
-        self._InputPins = map(int, input_pins)
-        self._OutputPins = map(int, output_pins)
+        self._InputPins = list(map(int, input_pins))
+        self._OutputPins = list(map(int, output_pins))
         self._pressed_on_key_down = pressed_on_key_down
 
         RPiGPIO.setwarnings(False)
 
-        section_name = conf_pre+'keyboard'+conf_post
-        if doorpi.DoorPi().config.get(section_name, 'mode', "BOARD").upper() == "BOARD":
+        section_name = conf_pre + 'keyboard' + conf_post
+        # set gpio pin mapping schema
+        if doorpi.DoorPi().config.get(section_name, 'mode', 'BOARD').upper() == 'BOARD':
             RPiGPIO.setmode(RPiGPIO.BOARD)
         else:
             RPiGPIO.setmode(RPiGPIO.BCM)
 
-        # issue 134
-        pull_up_down = doorpi.DoorPi().config.get(section_name, 'pull_up_down', "PUD_OFF").upper()
-        if pull_up_down == "PUD_DOWN":
+        # set gpio internal pullup state (issue 134)
+        pull_up_down = doorpi.DoorPi().config.get(section_name, 'pull_up_down', 'PUD_OFF').upper()
+        if pull_up_down == 'PUD_DOWN':
             pull_up_down = RPiGPIO.PUD_DOWN
-        elif pull_up_down == "PUD_UP":
+        elif pull_up_down == 'PUD_UP':
             pull_up_down = RPiGPIO.PUD_UP
         else:
             pull_up_down = RPiGPIO.PUD_OFF
 
-        # issue #133
+        # setup input pins (issue #133)
         try:
             RPiGPIO.setup(self._InputPins, RPiGPIO.IN, pull_up_down=pull_up_down)
         except TypeError:
@@ -51,16 +52,19 @@ class GPIO(KeyboardAbstractBaseClass):
             for input_pin in self._InputPins:
                 RPiGPIO.setup(input_pin, RPiGPIO.IN, pull_up_down=pull_up_down)
 
-        for input_pin in self._InputPins:
-            RPiGPIO.add_event_detect(
-                input_pin,
-                RPiGPIO.BOTH,
-                callback=self.event_detect,
-                bouncetime=int(bouncetime)
-            )
-            self._register_EVENTS_for_pin(input_pin, __name__)
+        # try to register interrupts for all input pins (rising and falling edge)
+        try:
+            for input_pin in self._InputPins:
+                RPiGPIO.add_event_detect(
+                    input_pin,
+                    RPiGPIO.BOTH,
+                    callback=self.event_detect,
+                    bouncetime=int(bouncetime))
+                self._register_EVENTS_for_pin(input_pin, __name__)
+        except RuntimeError:
+            logger.warning('could not add event detection to input pins')
 
-        # issue #133
+        # try to setup output pins (issue #133)
         try:
             RPiGPIO.setup(self._OutputPins, RPiGPIO.OUT)
         except TypeError:
@@ -78,22 +82,24 @@ class GPIO(KeyboardAbstractBaseClass):
         if self.is_destroyed:
             return
 
-        logger.debug("destroy")
+        logger.debug('destroy')
         # shutdown all output-pins
         for output_pin in self._OutputPins:
             self.set_output(output_pin, 0, False)
+        # reset all input pins and remove event detection
         RPiGPIO.cleanup()
+        # unregister all DoorPi Events of this keyboard
         doorpi.DoorPi().event_handler.unregister_source(__name__, True)
         self.__destroyed = True
 
     def event_detect(self, pin):
         if self.status_input(pin):
             self._fire_OnKeyDown(pin, __name__)
-            if self._pressed_on_key_down:  # issue 134
+            if self._pressed_on_key_down:
                 self._fire_OnKeyPressed(pin, __name__)
         else:
             self._fire_OnKeyUp(pin, __name__)
-            if not self._pressed_on_key_down:  # issue 134
+            if not self._pressed_on_key_down:
                 self._fire_OnKeyPressed(pin, __name__)
 
     def status_input(self, pin):
@@ -103,8 +109,8 @@ class GPIO(KeyboardAbstractBaseClass):
             return str(RPiGPIO.input(int(pin))).lower() in LOW_LEVEL
 
     def set_output(self, pin, value, log_output=True):
-        parsed_pin = doorpi.DoorPi().parse_string("!"+str(pin)+"!")
-        if parsed_pin != "!"+str(pin)+"!":
+        parsed_pin = doorpi.DoorPi().parse_string('!' + str(pin) + '!')
+        if parsed_pin != ('!' + str(pin) + '!'):
             pin = parsed_pin
 
         pin = int(pin)
@@ -116,7 +122,7 @@ class GPIO(KeyboardAbstractBaseClass):
         if pin not in self._OutputPins:
             return False
         if log_output:
-            logger.debug("out(pin = %s, value = %s, log_output = %s)", pin, value, log_output)
+            logger.debug('out(pin = %s, value = %s, log_output = %s)', pin, value, log_output)
 
         RPiGPIO.output(pin, value)
         self._OutputStatus[pin] = value

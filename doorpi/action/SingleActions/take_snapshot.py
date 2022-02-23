@@ -1,46 +1,42 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
-import logging
-from doorpi.action.base import SingleAction
 import doorpi
+from doorpi.action.base import SingleAction
+
 import subprocess as sub
 import os
 import datetime
 import glob
 
+import logging
 logger = logging.getLogger(__name__)
-logger.debug("%s loaded", __name__)
-conf = doorpi.DoorPi().config
+logger.debug('%s loaded', __name__)
 
+conf = doorpi.DoorPi().config
 DOORPI_SECTION = 'DoorPi'
 
 
 def get_last_snapshot(snapshot_path=None):
     if not snapshot_path:
         snapshot_path = conf.get_string_parsed(DOORPI_SECTION, 'snapshot_path', '/tmp')
-    files = sorted(glob.glob(os.path.join(snapshot_path, "*.*")), key=os.path.getctime)
-    if len(files) > 0:
-        return files[-1]
-    else:
+    files = sorted(glob.glob(os.path.join(snapshot_path, '*.*')), key=os.path.getctime)
+    if len(files) == 0:
         return False
+    return files[-1]
 
 
 def get_next_filename(snapshot_path):
     if not os.path.exists(snapshot_path):
         os.makedirs(snapshot_path)
 
-    files = sorted(glob.glob(os.path.join(snapshot_path, "*.*")), key=os.path.getctime)
+    files = sorted(glob.glob(os.path.join(snapshot_path, '*.*')), key=os.path.getctime)
     if len(files) > conf.get_int(DOORPI_SECTION, 'number_of_snapshots', 10):
         try:
             os.remove(os.path.join(snapshot_path, files[0]))
         except OSError as exp:
-            logger.warning("couldn't delete snapshot file %s with error %s" % (files[0], exp))
+            logger.warning(('delete snapshot file {0} failed with error {1}').format(files[0], exp))
 
-    return os.path.join(
-        snapshot_path,
-        datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")+".jpg"
-    )
+    return os.path.join(snapshot_path,
+                        datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S') + '.jpg')
 
 
 def get_snapshot_from_picam(snapshot_path):
@@ -64,12 +60,35 @@ def get_snapshot_from_url(snapshot_path, url):
     return filename
 
 
-def get(parameters=""):
+def get_snapshot_from_stream(snapshot_path, url):
+    import cv2
+    filename = get_next_filename(snapshot_path)
+    cap = cv2.VideoCapture(url)
+    if cap.isOpened():
+        ret, frame = cap.read()
+        if ret:
+            cv2.imwrite(filename, frame)
+
+    cap.release()
+    conf.set_value(DOORPI_SECTION, 'last_snapshot', filename)
+    return filename
+
+
+def get(parameters=''):
     snapshot_path = conf.get_string_parsed(DOORPI_SECTION, 'snapshot_path', '/tmp')
-    if parameters == "":
+    if parameters == '': 
         return SnapShotAction(get_snapshot_from_picam, snapshot_path=snapshot_path)
-    else:
-        return SnapShotAction(get_snapshot_from_url, snapshot_path=snapshot_path, url=parameters)
+ 
+    parameter_list = parameters.split(',')
+    if len(parameter_list) is not 2:
+        return None
+
+    type = parameter_list[0]
+    url = parameter_list[1]
+
+    if type.upper() == 'STREAM':
+        return SnapShotAction(get_snapshot_from_stream, snapshot_path=snapshot_path, url=url)
+    return SnapShotAction(get_snapshot_from_url, snapshot_path=snapshot_path, url=url)
 
 
 class SnapShotAction(SingleAction):

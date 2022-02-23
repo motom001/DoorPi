@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
-
 import imp
 import os
 import uuid
 import sys
-import urllib2
+import urllib.request
+import urllib.error
+import urllib.parse
 
 # Check for pip, setuptools and wheel
 try:
@@ -12,8 +13,8 @@ try:
     import setuptools
     import wheel
 except ImportError as exp:
-    print("install missing pip now (%s)" % exp)
-    from get_pip import main as check_for_pip
+    print(('install missing pip now ({})').format(exp))
+    from .get_pip import main as check_for_pip
     old_args = sys.argv
     sys.argv = [sys.argv[0]]
     try:
@@ -22,7 +23,7 @@ except ImportError as exp:
         if e.code == 0:
             os.execv(sys.executable, [sys.executable] + old_args)
         else:
-            print("install pip failed with error code %s" % e.code)
+            print(('install pip failed with error code {}').format(e.code))
             sys.exit(e.code)
 
 base_path = os.path.dirname(os.path.abspath(__file__))
@@ -32,7 +33,7 @@ metadata = imp.load_source('metadata', os.path.join(base_path, 'doorpi', 'metada
 def parse_string(raw_string):
     for meta_key in dir(metadata):
         if not meta_key.startswith('__'):
-            raw_string = raw_string.replace('!!%s!!' % meta_key,  str(getattr(metadata, meta_key)))
+            raw_string = raw_string.replace(('!!{}!!').format(meta_key),  str(getattr(metadata, meta_key)))
     return raw_string
 
 
@@ -49,7 +50,11 @@ def read(filename, parse_file_content=False, new_filename=None):
 
 
 from setuptools import setup, find_packages
-from pip.req import parse_requirements
+try:  # for pip >= 10
+    from pip._internal.req import parse_requirements
+except ImportError:  # for pip <= 9.0.3
+    from pip.req import parse_requirements
+
 install_reqs = parse_requirements(os.path.join(base_path, 'requirements.txt'), session=uuid.uuid1())
 reqs = [str(req.req) for req in install_reqs]
 
@@ -114,11 +119,12 @@ def main():
     try:
         if os.name == 'posix' and os.geteuid() == 0 and \
                 not os.path.isfile(metadata.daemon_file) and not os.path.exists(metadata.daemon_file):
-            with open(metadata.daemon_file, "w") as daemon_file:
-                for line in urllib2.urlopen(metadata.daemon_online_template):
+            with open(metadata.daemon_file, 'w') as daemon_file:
+                for line in urllib.request.urlopen(metadata.daemon_online_template):
                     daemon_file.write(parse_string(line))
-            os.chmod(metadata.daemon_file, 0755)
-    except: pass
+            os.chmod(metadata.daemon_file, 0o755)
+    except:
+        pass
 
     setup(**setup_dict)
 

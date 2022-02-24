@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from setuptools import setup, find_packages
 import imp
 import os
 import uuid
@@ -27,13 +28,15 @@ except ImportError as exp:
             sys.exit(e.code)
 
 base_path = os.path.dirname(os.path.abspath(__file__))
-metadata = imp.load_source('metadata', os.path.join(base_path, 'doorpi', 'metadata.py'))
+metadata = imp.load_source('metadata', os.path.join(
+    base_path, 'doorpi', 'metadata.py'))
 
 
 def parse_string(raw_string):
     for meta_key in dir(metadata):
         if not meta_key.startswith('__'):
-            raw_string = raw_string.replace(('!!{}!!').format(meta_key),  str(getattr(metadata, meta_key)))
+            raw_string = raw_string.replace(('!!{}!!').format(
+                meta_key),  str(getattr(metadata, meta_key)))
     return raw_string
 
 
@@ -49,13 +52,13 @@ def read(filename, parse_file_content=False, new_filename=None):
     return file_content
 
 
-from setuptools import setup, find_packages
 try:  # for pip >= 10
     from pip._internal.req import parse_requirements
 except ImportError:  # for pip <= 9.0.3
     from pip.req import parse_requirements
 
-install_reqs = parse_requirements(os.path.join(base_path, 'requirements.txt'), session=uuid.uuid1())
+install_reqs = parse_requirements(os.path.join(
+    base_path, 'requirements.txt'), session=uuid.uuid1())
 reqs = [str(req.req) for req in install_reqs]
 
 setup_dict = dict(
@@ -127,6 +130,7 @@ def main():
         pass
 
     setup(**setup_dict)
+
 
 if __name__ == '__main__':
     main()

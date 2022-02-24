@@ -75,8 +75,7 @@ if os.name == usedPlattform:
     daemon_args = '--configfile $DOORPI_PATH/conf/doorpi.ini'
     doorpi_executable = '/usr/local/bin/doorpi_cli'
     log_folder = '%s/log' % doorpi_path
-
-if os.name == 'nt':
+elif os.name == 'nt':
     usedPlattform = 'windows'
 else:
     raise Exception('os unknown')

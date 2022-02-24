@@ -9,6 +9,27 @@ Legend:
 / reference to commit
 ! fix issue or kown bug
 
+Version: 2.5.2-alpha (2022-02-24) !!PRE-RELEASE!!
+-------------------------------
+~ version to 2.5.2-alpha
+Welcome to the DoorPi RESTART
+~ Python 3.10 (thx @deviloper-lab)
+~ pep8 coding (mostly)
+~ integrate CodeQL
+~ PEP3120 (UTF-8 default encoding)
++ add .mailmap
++ bare windows-support
+/ based on 845d5e4cdedb9650704192adef854b536702427d PR from deviloper-lab\DoorPi
++ from_fingerprint.py (thx @deviloper-lab)
++ from_wiegand.py (thx @deviloper-lab)
+! fix #202
+! fix #190
+! fix #198
+! fix #203
+! fix #165
+- get_pip.py removed, please install pip first manually
+- remove travis-ci
+
 Version: 2.5.1 (2016-08-01)
 -------------------------------
 ~ version to 2.5.1

@@ -9,7 +9,7 @@ from datetime import datetime
 package = 'DoorPi'
 project = "VoIP Door-Intercomstation with Raspberry Pi"
 project_no_spaces = project.replace(' ', '')
-version = '2.5.2'
+version = '2.5.2-alpha'
 description = 'provide intercomstation to the doorstation by VoIP'
 keywords = ['intercom', 'VoIP', 'doorstation', 'home automation', 'IoT']
 authors = ['Thomas Meissner']

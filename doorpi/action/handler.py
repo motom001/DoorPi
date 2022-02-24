@@ -9,8 +9,6 @@ import time  # used by: fire_event_synchron
 from inspect import isfunction, ismethod  # used by: register_action
 import string
 import random  # used by event_id
-import sqlite3
-import os
 
 import logging
 logger = logging.getLogger(__name__)
@@ -42,7 +40,7 @@ class EventLog(object):
     def __init__(self):
         return
 
-    def get_event_log_entries_count(self, filter=''):
+    def get_event_log_entries_count(self):
         return -1
 
     def get_event_log_entries(self, max_count=100, filter=''):
@@ -50,10 +48,10 @@ class EventLog(object):
                      max_count, filter)
         return []
 
-    def insert_event_log(self, event_id, fired_by, event_name, start_time, additional_infos):
+    def insert_event_log(self):
         pass
 
-    def insert_action_log(self, event_id, action_name, start_time, action_result):
+    def insert_action_log(self):
         pass
 
     def update_event_log(self):
@@ -98,7 +96,7 @@ class EventHandler:
     def threads(self): return threading.enumerate()
 
     @property
-    def idle(self): return len(self.threads) - 1 is 0
+    def idle(self): return len(self.threads) - 1 == 0
 
     @property
     def additional_informations(self): return self.__additional_informations
@@ -126,16 +124,25 @@ class EventHandler:
             self.__Events[event_name] = [event_source]
             if not silent:
                 logger.trace(
-                    "added event_name %s and registered source %s", event_name, event_source)
+                    "added event_name %s and registered source %s",
+                    event_name,
+                    event_source
+                )
         elif event_source not in self.__Events[event_name]:
             self.__Events[event_name].append(event_source)
             if not silent:
                 logger.trace(
-                    'added event_source %s to existing event %s', event_source, event_name)
+                    'added event_source %s to existing event %s',
+                    event_source,
+                    event_name
+                )
         else:
             if not silent:
                 logger.trace(
-                    'nothing to do - event %s from source %s is already known', event_name, event_source)
+                    'nothing to do - event %s from source %s is already known',
+                    event_name,
+                    event_source
+                )
 
     def fire_event(self, event_name, event_source, syncron=False, kwargs=None):
         if syncron is False:
@@ -155,13 +162,13 @@ class EventHandler:
             args=(event_name, event_source, kwargs),
             name=('{} from {}').format(event_name, event_source)).start()
 
-    def fire_event_asynchron_daemon(self, event_name, event_source, kwargs=None):
+    def fire_event_asynchron_daemon(self, evt_name, event_source, kwargs=None):
         logger.trace('fire Event %s from %s asyncron and as daemons',
-                     event_name, event_source)
+                     evt_name, event_source)
         t = threading.Thread(
             target=self.fire_event_synchron,
-            args=(event_name, event_source, kwargs),
-            name=('daemon {0} from {1}').format(event_name, event_source))
+            args=(evt_name, event_source, kwargs),
+            name=('daemon {0} from {1}').format(evt_name, event_source))
         t.daemon = True
         t.start()
 
@@ -185,13 +192,21 @@ class EventHandler:
                            event_name, event_name, event_source)
             return "event unknown"
         if event_source not in self.__Events[event_name]:
-            logger.warning('source %s unknown for this event - skip fire_event %s from %s',
-                           event_name, event_name, event_source)
+            logger.warning(
+                'source %s unknown for this event, skip fire_event %s from %s',
+                event_name,
+                event_name,
+                event_source
+            )
             return "source unknown for this event"
         if event_name not in self.__Actions:
             if not silent:
-                logger.debug('no actions for event %s - skip fire_event %s from %s',
-                             event_name, event_name, event_source)
+                logger.debug(
+                    'no actions for event %s - skip fire_event %s from %s',
+                    event_name,
+                    event_name,
+                    event_source
+                )
             return 'no actions for this event'
 
         if kwargs is None:
@@ -224,25 +239,31 @@ class EventHandler:
                     del action
             except SystemExit as exp:
                 logger.info(
-                    '[%s] Detected SystemExit and shutdown DoorPi (Message: %s)', event_fire_id, exp)
+                    '[%s] Detected SystemExit and shutdown DoorPi (%s)',
+                    event_fire_id, exp)
                 doorpi.DoorPi().destroy()
             except KeyboardInterrupt as exp:
                 logger.info(
-                    '[%s] Detected KeyboardInterrupt and shutdown DoorPi (Message: %s)', event_fire_id, exp)
+                    '[%s] Detected KeyboardInterrupt and shutdown DoorPi (%s)',
+                    event_fire_id, exp)
                 doorpi.DoorPi().destroy()
-            except:
+            except Exception:
                 logger.exception(
-                    '[%s] error while fire action %s for event_name %s', event_fire_id, action, event_name)
+                    '[%s] error while fire action %s for event_name %s',
+                    event_fire_id, action, event_name)
         if not silent:
             logger.trace(
-                '[%s] finished fire_event for event_name %s', event_fire_id, event_name)
+                '[%s] finished fire_event for event_name %s',
+                event_fire_id, event_name)
         self.__additional_informations[event_name]['last_finished'] = str(
             time.time())
         self.__additional_informations[event_name]['last_duration'] = str(
             time.time() - start_time)
         return True
 
-    def unregister_event(self, event_name, event_source, delete_source_when_empty=True):
+    def unregister_event(
+        self, event_name, event_source, delete_source_when_empty=True
+    ):
         try:
             logger.trace('unregister Event %s from %s',
                          event_name, event_source)
@@ -251,10 +272,11 @@ class EventHandler:
             if event_source not in self.__Events[event_name]:
                 return 'source not know for this event'
             self.__Events[event_name].remove(event_source)
-            if len(self.__Events[event_name]) is 0:
+            if len(self.__Events[event_name]) == 0:
                 del self.__Events[event_name]
                 logger.debug(
-                    'no more sources for event %s - remove event too', event_name)
+                    'no more sources for event %s - remove event too',
+                    event_name)
             if delete_source_when_empty:
                 self.unregister_source(event_source)
             logger.trace('event_source %s was removed for event %s',
@@ -262,27 +284,32 @@ class EventHandler:
             return True
         except Exception as exp:
             logger.error(
-                'failed to unregister event %s with error message %s', event_name, exp)
+                'failed to unregister event %s with error message %s',
+                event_name, exp)
             return False
 
-    def unregister_source(self, event_source, force_unregister=False):
+    def unregister_source(self, event_source, force=False):
         try:
-            logger.trace('unregister Eventsource %s and force_unregister is %s',
-                         event_source, force_unregister)
+            logger.trace('unregister Eventsource %s and force unregister %s',
+                         event_source, force)
             if event_source not in self.__Sources:
                 return ('event_source {0} unknown').format(event_source)
             for event_name in list(self.__Events.keys()):
-                if event_source in self.__Events[event_name] and force_unregister:
+                if event_source in self.__Events[event_name] and force:
                     self.unregister_event(event_name, event_source, False)
-                elif event_source in self.__Events[event_name] and not force_unregister:
-                    return ('unregister event_source {0} failed because it is used for event {1}').format(event_source, event_name)
+                elif event_source in self.__Events[event_name] and not force:
+                    return (
+                        'unregister event_source {0} failed' +
+                        'because it is used for event {1}').format(
+                            event_source, event_name)
             if event_source in self.__Sources:
                 self.__Sources.remove(event_source)
             logger.trace('event_source %s was removed', event_source)
             return True
         except Exception as exp:
             logger.exception(
-                'failed to unregister source %s with error message %s', event_source, exp)
+                'failed to unregister source %s with error message %s',
+                event_source, exp)
             return False
 
     def register_action(self, event_name, action_object, *args, **kwargs):
@@ -297,7 +324,9 @@ class EventHandler:
             logger.error('action_object is None')
             return False
 
-        if 'single_fire_action' in list(kwargs.keys()) and kwargs['single_fire_action'] is True:
+        single_fire = kwargs['single_fire_action'] is True
+        if ('single_fire_action' in list(kwargs.keys()) and single_fire):
+
             action_object.single_fire_action = True
             del kwargs['single_fire_action']
 

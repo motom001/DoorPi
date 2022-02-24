@@ -23,7 +23,9 @@ def call_phonenumber_from_file(filename):
 
 
 def get(parameters):
-    return CallPhoneNumberFromFileAction(call_phonenumber_from_file, filename=parameters)
+    return CallPhoneNumberFromFileAction(
+        call_phonenumber_from_file, filename=parameters
+    )
 
 
 class CallPhoneNumberFromFileAction(SingleAction):

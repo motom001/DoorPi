@@ -10,7 +10,9 @@ logger.debug('%s loaded', __name__)
 
 
 def fire_command(command):
-    return subprocess.Popen(command, shell=True, stdout=subprocess.PIPE).stdout.read()
+    return subprocess.Popen(
+        command, shell=True, stdout=subprocess.PIPE
+    ).stdout.read()
 
 
 def get(parameters):

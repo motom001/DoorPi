@@ -21,22 +21,30 @@ def write_statusfile(filename, content):
             doorpi_status_json = doorpi_status.json
 
             content = content.replace(
-                '!DOORPI_STATUS.json_beautified!', doorpi_status_json_beautified)
+                '!DOORPI_STATUS.json_beautified!',
+                doorpi_status_json_beautified
+            )
             content = content.replace(
-                '!DOORPI_STATUS.json!', doorpi_status_json)
-        except:
-            logger.exception('error while creating status')
-    except:
+                '!DOORPI_STATUS.json!',
+                doorpi_status_json
+            )
+        except Exception as exp:
+            logger.exception('error while creating status %s ' % exp)
+    except Exception as exp:
         logger.warning(
-            'while action statusfile - error to get DoorPi().parse_string')
+            'error to get DoorPi().parse_string %s' % exp
+        )
         return False
 
     try:
-        with open(filename, 'w') as file
-        file.write(filecontent)
+        with open(filename, 'w') as file:
+            file.write(content)
     except IOError as e:
-        logger.warning(
-            ('while action statusfile - I/O error({0}): {1}').format(e.errno, e.strerror))
+        logger.warning((
+            'while action statusfile - I/O error({0}): {1}').format(
+                e.errno, e.strerror
+            )
+        )
         return False
     return True
 

@@ -4,7 +4,6 @@ import doorpi
 
 import os
 from .take_snapshot import get_last_snapshot
-import subprocess as sub
 import smtplib  # used by: fire_action_mail
 from email.mime.multipart import MIMEMultipart  # used by: fire_action_mail
 from email.mime.text import MIMEText  # used by: fire_action_mail
@@ -30,12 +29,13 @@ def fire_action_mail(smtp_to, smtp_subject, smtp_text, smtp_snapshot):
         smtp_user = doorpi.DoorPi().config.get('SMTP', 'username')
         smtp_password = doorpi.DoorPi().config.get('SMTP', 'password')
         smtp_from = doorpi.DoorPi().config.get('SMTP', 'from')
-        smtp_use_tls = doorpi.DoorPi().config.get_boolean('SMTP', 'use_tls', False)
-        smtp_use_ssl = doorpi.DoorPi().config.get_boolean('SMTP', 'use_ssl', True)
+        get_config_boolean = doorpi.DoorPi().config.get_boolean
+        smtp_use_tls = get_config_boolean('SMTP', 'use_tls', False)
+        smtp_use_ssl = get_config_boolean('SMTP', 'use_ssl', True)
         if (smtp_use_tls and smtp_use_ssl):
             logger.error('can not combine SSL and STARTTLS')
             return False
-        smtp_need_login = doorpi.DoorPi().config.get_boolean('SMTP', 'need_login', True)
+        smtp_need_login = get_config_boolean('SMTP', 'need_login', True)
         if (smtp_need_login and (not smtp_user or not smtp_password)):
             logger.error('login needed but not specified')
             return False
@@ -83,7 +83,9 @@ def fire_action_mail(smtp_to, smtp_subject, smtp_text, smtp_snapshot):
                     Encoders.encode_base64(part)
                     part.add_header(
                         'Content-Disposition',
-                        ('attachment; filename="{0}"').format(os.path.basename(smtp_snapshot)))
+                        ('attachment; filename="{0}"').format(
+                            os.path.basename(smtp_snapshot)
+                        ))
                     msg.attach(part)
             except Exception as exp:
                 logger.exception(
@@ -91,8 +93,8 @@ def fire_action_mail(smtp_to, smtp_subject, smtp_text, smtp_snapshot):
 
         server.sendmail(smtp_from, smtp_tolist, msg.as_string())
         server.quit()
-    except:
-        logger.exception('error sending mail')
+    except Exception as ex:
+        logger.exception('error sending mail %s' % ex)
         return False
     return True
 

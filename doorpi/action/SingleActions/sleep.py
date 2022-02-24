@@ -10,7 +10,7 @@ logger.debug('%s loaded', __name__)
 
 def get(parameters):
     parameter_list = parameters.split(',')
-    if len(parameter_list) is not 1:
+    if len(parameter_list) != 1:
         return None
 
     time = float(parameter_list[0])

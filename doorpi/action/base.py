@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-from time import sleep
 import importlib
 
 import logging
@@ -22,7 +21,7 @@ class SingleAction:
         self.__callback = callback
         self.__args = args
         self.__kwargs = kwargs
-        if len(self.__class__.__bases__) is 0:
+        if len(self.__class__.__bases__) == 0:
             self.action_name = str(callback)
         else:
             self.action_name = self.__class__.__name__
@@ -37,11 +36,11 @@ class SingleAction:
                          self.__args,
                          self.__kwargs))
         try:
-            if len(self.__args) is not 0 and len(self.__kwargs) is not 0:
+            if len(self.__args) != 0 and len(self.__kwargs) != 0:
                 return self.__callback(*self.__args, **self.__kwargs)
-            elif len(self.__args) is 0 and len(self.__kwargs) is not 0:
+            elif len(self.__args) == 0 and len(self.__kwargs) != 0:
                 return self.__callback(**self.__kwargs)
-            elif len(self.__args) is not 0 and len(self.__kwargs) is 0:
+            elif len(self.__args) != 0 and len(self.__kwargs) == 0:
                 return self.__callback(*self.__args)
             else:
                 return self.__callback()
@@ -56,11 +55,14 @@ class SingleAction:
                 return None
             try:
                 parameters = config_string.split(':', 1)[1]
-            except:
+            except Exception:
                 parameters = ''
-            return importlib.import_module('doorpi.action.SingleActions.' + action_name).get(
-                parameters)
-        except:
+            return importlib.import_module(
+                'doorpi.action.SingleActions.' + action_name
+            ).get(parameters)
+        except Exception:
             logger.exception(
-                'error while creating SingleAction from config string: %s', config_string)
+                'error while creating SingleAction from config string: %s',
+                config_string
+            )
             return None

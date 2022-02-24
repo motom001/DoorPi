@@ -46,7 +46,8 @@ def ips_rpc_check_variable_exists(key, config=None):
 def ips_rpc_get_variable_type(key, config=None):
     if config is None:
         config = ips_rpc_create_config()
-    return ips_rpc_fire('IPS_GetVariable', config, key)['result']['VariableValue']['ValueType']
+    result = ips_rpc_fire('IPS_GetVariable', config, key)
+    return result['result']['VariableValue']['ValueType']
 
 
 def ips_rpc_set_value(key, value, config=None):
@@ -76,7 +77,7 @@ def ips_rpc_set_value(key, value, config=None):
 
 def get(parameters):
     parameter_list = parameters.split(',')
-    if len(parameter_list) is not 2:
+    if len(parameter_list) != 2:
         return None
 
     key = int(parameter_list[0])

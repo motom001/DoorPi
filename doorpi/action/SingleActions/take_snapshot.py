@@ -2,7 +2,6 @@
 import doorpi
 from doorpi.action.base import SingleAction
 
-import subprocess as sub
 import os
 import datetime
 import glob
@@ -43,11 +42,14 @@ def get_next_filename(snapshot_path):
         try:
             os.remove(os.path.join(snapshot_path, files[0]))
         except OSError as exp:
-            logger.warning(
-                ('delete snapshot file {0} failed with error {1}').format(files[0], exp))
+            logger.warning((
+                'delete snapshot file {0} failed with error {1}'
+            ).format(files[0], exp))
 
-    return os.path.join(snapshot_path,
-                        datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S') + '.jpg')
+    return os.path.join(
+        snapshot_path,
+        datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S') + '.jpg'
+    )
 
 
 def get_snapshot_from_picam(snapshot_path):
@@ -89,18 +91,22 @@ def get(parameters=''):
     snapshot_path = conf.get_string_parsed(
         DOORPI_SECTION, 'snapshot_path', '/tmp')
     if parameters == '':
-        return SnapShotAction(get_snapshot_from_picam, snapshot_path=snapshot_path)
+        return SnapShotAction(
+            get_snapshot_from_picam,
+            snapshot_path=snapshot_path
+        )
 
     parameter_list = parameters.split(',')
-    if len(parameter_list) is not 2:
+    if len(parameter_list) != 2:
         return None
 
     type = parameter_list[0]
     url = parameter_list[1]
-
+    cb = get_snapshot_from_url
     if type.upper() == 'STREAM':
-        return SnapShotAction(get_snapshot_from_stream, snapshot_path=snapshot_path, url=url)
-    return SnapShotAction(get_snapshot_from_url, snapshot_path=snapshot_path, url=url)
+        cb = get_snapshot_from_stream
+
+    return SnapShotAction(cb, snapshot_path=snapshot_path, url=url)
 
 
 class SnapShotAction(SingleAction):

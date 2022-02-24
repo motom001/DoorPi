@@ -12,22 +12,24 @@ logger.debug('%s loaded', __name__)
 
 def handler(pin, start_value, end_value, timeout, stop_pin):
     doorpi.DoorPi().keyboard.set_output(pin, start_value)
-    while timeout > 0 and stop_pin not in doorpi.DoorPi().keyboard.pressed_keys:
+    pressed_keys = doorpi.DoorPi().keyboard.pressed_keys
+    while timeout > 0 and stop_pin not in pressed_keys:
         sleep(0.1)
         timeout -= 0.1
     doorpi.DoorPi().keyboard.set_output(pin, end_value)
 
 
 def out_triggered(pin, start_value, end_value, timeout, stop_pin):
-    thread = threading.Thread(target=handler,
-                              args=(pin, start_value, end_value, timeout, stop_pin))
+    thread = threading.Thread(
+        target=handler,
+        args=(pin, start_value, end_value, timeout, stop_pin))
     thread.start()
     return True
 
 
 def get(parameters):
     parameter_list = parameters.split(',')
-    if len(parameter_list) is not 4 and not 5:
+    if len(parameter_list) != 4 and len(parameter_list) != 5:
         return None
 
     pin = parameter_list[0]

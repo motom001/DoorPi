@@ -12,7 +12,7 @@ def call(number): doorpi.DoorPi().sipphone.call(number)
 
 def get(parameters):
     parameter_list = parameters.split(',')
-    if len(parameter_list) is not 1:
+    if len(parameter_list) != 1:
         return None
 
     number = parameter_list[0]

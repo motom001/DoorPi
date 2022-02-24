@@ -13,7 +13,7 @@ def pjsip_handle_events(timeout):
 
 def get(parameters):
     parameter_list = parameters.split(',')
-    if len(parameter_list) is not 1:
+    if len(parameter_list) != 1:
         return None
 
     timeout = int(parameter_list[0])

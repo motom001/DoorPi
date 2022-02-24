@@ -3,8 +3,8 @@ import doorpi
 from doorpi.action.base import SingleAction
 
 import requests
-import json
 from requests.auth import HTTPBasicAuth
+import json
 
 import logging
 logger = logging.getLogger(__name__)
@@ -46,7 +46,8 @@ def ips_rpc_check_variable_exists(key, config=None):
 def ips_rpc_get_variable_type(key, config=None):
     if config is None:
         config = ips_rpc_create_config()
-    return ips_rpc_fire('IPS_GetVariable', config, key)['result']['VariableValue']['ValueType']
+    result = ips_rpc_fire('IPS_GetVariable', config, key)
+    return result['result']['VariableValue']['ValueType']
 
 
 def ips_rpc_get_variable_value(key, config=None):
@@ -65,7 +66,7 @@ def ips_rpc_call_phonenumber_from_variable(key, config=None):
         if type is None:
             raise Exception('type of variable %s unknown', key)
         # variable types (0: boolean, 1: integer, 2: float, 3: string)
-        elif type is not 3:
+        elif type != 3:
             raise Exception("type of variable %s is not a string", key)
 
         phonenumber = ips_rpc_get_variable_value(key, config)
@@ -80,11 +81,13 @@ def ips_rpc_call_phonenumber_from_variable(key, config=None):
 
 def get(parameters):
     parameter_list = parameters.split(',')
-    if len(parameter_list) is not 1:
+    if len(parameter_list) != 1:
         return None
 
     key = int(parameter_list[0])
-    return IPSRpcCallPhonenumberFromVariableAction(ips_rpc_call_phonenumber_from_variable, key)
+    return IPSRpcCallPhonenumberFromVariableAction(
+        ips_rpc_call_phonenumber_from_variable, key
+    )
 
 
 class IPSRpcCallPhonenumberFromVariableAction(SingleAction):

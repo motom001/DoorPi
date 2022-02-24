@@ -11,7 +11,7 @@ def log(message): logger.debug(message)
 
 def get(parameters):
     parameter_list = parameters.split(',')
-    if len(parameter_list) is not 1:
+    if len(parameter_list) != 1:
         return None
 
     message = parameter_list[0]

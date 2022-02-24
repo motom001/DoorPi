@@ -2,8 +2,6 @@
 import doorpi
 from doorpi.action.base import SingleAction
 
-from time import sleep
-
 import logging
 logger = logging.getLogger(__name__)
 logger.debug('%s loaded', __name__)
@@ -13,8 +11,10 @@ def sipphone_calltimeout(timeout, *callstate_to_check):
     # import pjsua
     try:
         doorpi.DoorPi().sipphone.lib.thread_register('pjsip_handle_events')
-        return doorpi.DoorPi().sipphone.call_timeout(timeout, callstate_to_check)
-    except:
+        return doorpi.DoorPi().sipphone.call_timeout(
+            timeout, callstate_to_check
+        )
+    except Exception:
         return False
 
 
@@ -24,7 +24,6 @@ def get(parameters):
         return None
 
     timeout = int(parameter_list[0])
-    callstate_to_check = parameter_list[1:]
     return SipphoneCallTimeoutAction(sipphone_calltimeout, timeout=timeout)
 
 

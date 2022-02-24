@@ -53,9 +53,11 @@ def parse_arguments(argv):
         description=metadata.description,
         epilog=metadata.epilog)
 
-    arg_parser.add_argument('-V', '--version',
-                            action='version',
-                            version='{0} {1}'.format(metadata.project, metadata.version))
+    arg_parser.add_argument(
+        '-V', '--version',
+        action='version',
+        version='{0} {1}'.format(metadata.project, metadata.version))
+
     arg_parser.add_argument('--debug', action='store_true')
     arg_parser.add_argument('--trace', action='store_true')
     arg_parser.add_argument('--test', action='store_true')
@@ -65,7 +67,8 @@ def parse_arguments(argv):
 
     try:
         # if first argv is deamon control argv - interpret just the other argvs
-        if len(sys.argv) > 1 and sys.argv[1] in ['start', 'stop', 'restart', 'status']:
+        deamon_commands = ['start', 'stop', 'restart', 'status']
+        if len(sys.argv) > 1 and sys.argv[1] in deamon_commands:
             return arg_parser.parse_args(args=sys.argv[2:])
         else:
             return arg_parser.parse_args(args=sys.argv[1:])
@@ -127,17 +130,24 @@ def main_as_daemon(argv):
     from daemon.runner import DaemonRunnerStartFailureError
     from daemon.runner import DaemonRunnerStopFailureError
 
-    daemon_runner = runner.DaemonRunner(doorpi.DoorPi(parsed_arguments))
-    # This ensures that the logger file handle does not get closed during daemonization
+    daemon_runner = runner.DaemonRunner(
+        doorpi.DoorPi(parsed_arguments)
+    )
+    # This ensures that the logger file handle does not get closed
+    # during daemonization
     daemon_runner.daemon_context.files_preserve = files_preserve_by_path(
         log_file)
     try:
         daemon_runner.do_action()
     except DaemonRunnerStopFailureError as ex:
-        print(('stop DoorPi daemon failed - not running? (Message: {})').format(ex))
+        print((
+            'stop DoorPi daemon failed - not running? (Message: {})'
+        ).format(ex))
         return 1
     except DaemonRunnerStartFailureError as ex:
-        print(('start DoorPi daemon failed - already running? (Message: {})').format(ex))
+        print((
+            'start DoorPi daemon failed - already running? (Message: {})'
+        ).format(ex))
         return 1
     except Exception as ex:
         print(('Exception NameError: {}').format(ex))
@@ -167,7 +177,8 @@ def entry_point():
     init_logger(sys.argv)
 
     """Zero-argument entry point for use with setuptools/distribute."""
-    if len(sys.argv) > 1 and sys.argv[1] in ['start', 'stop', 'restart', 'reload']:
+    daemon_commands = ['start', 'stop', 'restart', 'reload']
+    if len(sys.argv) > 1 and sys.argv[1] in daemon_commands:
         raise SystemExit(main_as_daemon(sys.argv))
     else:
         raise SystemExit(main_as_application(sys.argv))

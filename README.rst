@@ -2,7 +2,7 @@
 DoorPi: Open Source VoIP Türsprechanlage
 ****************************************************
 
-|pypi_License| |pypi_latest_version| |travis_status_master| |code_climate_badge| |scrutinizer_status_master|
+|pypi_License| |pypi_latest_version| |CodeQL_status_master| |code_climate_badge| |scrutinizer_status_master|
 
 .. contents::
     :local:
@@ -72,7 +72,7 @@ Mittlerweile gibt es auch Video-Support, so dass an der Haustür eine Kamera ins
 Installation
 -----------------
 
-Die Installationen werden `hier beschrieben <http://www.doorpi.org/forum/board/21-installation/>`_
+Die Installationen werden `hier beschrieben <https://www.doorpi.org/lexicon/lexicon/7-installation/>`_
 
 
 -----------------
@@ -155,7 +155,7 @@ Meanwhile there is also video support, so that a camera can be installed at the 
 -----------------
 Installation
 -----------------
-Installations are `described here <http://www.doorpi.org/forum/board/21-installation/>`_
+Installations are `described here <https://www.doorpi.org/lexicon/lexicon/7-installation/>`_
 
 
 =============
@@ -165,8 +165,8 @@ Changelog
 see `changelog.txt <https://github.com/motom001/DoorPi/blob/master/changelog.txt>`_
 
 
-.. |travis_status_master| image:: https://travis-ci.org/motom001/DoorPi.svg?branch=master
-    :target: https://travis-ci.org/motom001/DoorPi
+.. |CodeQL_status_master| image:: https://github.com/motom001/DoorPi/actions/workflows/codeql.yml/badge.svg?branch=master
+    :target: https://github.com/motom001/DoorPi/actions/workflows/codeql.yml
 
 .. |scrutinizer_status_master| image:: https://codeclimate.com/github/motom001/DoorPi/badges/gpa.svg
    :target: https://codeclimate.com/github/motom001/DoorPi

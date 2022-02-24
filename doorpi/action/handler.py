@@ -180,8 +180,7 @@ class EventHandler:
         event_fire_id = id_generator()
         start_time = time.time()
         if not silent:
-            self.db.insert_event_log(
-                event_fire_id, event_source, event_name, start_time, kwargs)
+            self.db.insert_event_log()
 
         if event_source not in self.__Sources:
             logger.warning('source %s unknown - skip fire_event %s',
@@ -231,10 +230,9 @@ class EventHandler:
                 logger.trace('[%s] try to fire action %s',
                              event_fire_id, action)
             try:
-                result = action.run(silent)
+                action.run(silent)
                 if not silent:
-                    self.db.insert_action_log(
-                        event_fire_id, action.name, start_time, result)
+                    self.db.insert_action_log()
                 if action.single_fire_action is True:
                     del action
             except SystemExit as exp:

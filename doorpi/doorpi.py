@@ -1,12 +1,8 @@
 
-#from pickle import NONE
-import sys
-import argparse
 import time  # used by: DoorPi.run
 import os  # used by: DoorPi.load_config
 import datetime  # used by: parse_string
 import html  # used by: parse_string
-import tempfile
 import signal
 
 from . import metadata
@@ -218,7 +214,7 @@ class DoorPi(object, metaclass=Singleton):
 
         # register keep_alive_led
         is_alive_led = self.config.get('DoorPi', 'is_alive_led', '')
-        if is_alive_led is not '':
+        if is_alive_led != '':
             self.event_handler.register_action(
                 'OnTimeSecondEvenNumber', ('out:{},HIGH,False').format(is_alive_led))
             self.event_handler.register_action(

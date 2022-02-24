@@ -22,7 +22,7 @@ class KeyboardAbstractBaseClass(object):
         return doorpi.DoorPi().event_handler.register_action('OnShutdown', KeyboardDestroyAction(destroy_function))
 
     # -------------methods to implement--------------
-    def __init__(self): 
+    def __init__(self):
         raise NotImplementedError("Subclasses should implement this!")
 
     # def destroy(self): pass #logger.warning("Subclasses should implement this!")
@@ -45,7 +45,7 @@ class KeyboardAbstractBaseClass(object):
 
     @property
     def name(self):
-        if self.keyboard_name is '':
+        if self.keyboard_name == '':
             return '%s Keyboard' % self.keyboard_typ
         else:
             return '%s (Typ: %s) Keyboard' % (self.keyboard_name, self.keyboard_typ)
@@ -63,8 +63,6 @@ class KeyboardAbstractBaseClass(object):
     @property
     def output_status(self): return self._OutputStatus
     last_key = None
-    # @property
-    #def last_key(self): return self._last_key
 
     @property
     def additional_info(self): return {
@@ -126,4 +124,3 @@ class KeyboardAbstractBaseClass(object):
     get_output = status_output
     get_last_key = last_key
     which_keys_are_pressed = pressed_keys
-    #__del__ = destroy

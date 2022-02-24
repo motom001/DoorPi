@@ -51,10 +51,11 @@ class ConfigObject():
         for possible_default_file in default_files:
             try:
                 possible_default_file = doorpi.DoorPi().parse_string(possible_default_file)
+
                 open(possible_default_file, 'r').close()
                 return possible_default_file
-            except:
-                pass
+            except Exception as exp:
+                logger.debug(possible_default_file+' failed with '+exp)
 
         return None
 
@@ -116,16 +117,19 @@ class ConfigObject():
         if section not in list(self.__sections.keys()):
             self.__sections[section] = {}
 
-        password_friendly_value = "*******" if key is 'password' or password else value
+        password_friendly_value = value
+        if key == 'password' or password is True:
+            password_friendly_value = "*******"
 
         if key not in list(self.__sections[section].keys()):
             if log:
-                logger.debug('create new key %s in section %s with value "%s"',
-                             key, section, password_friendly_value)
+                logger.debug('create new key %s in section %s with value "%s"', key, section, password_friendly_value)
         else:
             if log:
-                logger.debug('overwrite key %s in section %s from "%s" to "%s"',
-                             key, section, self.__sections[section][key], password_friendly_value)
+                logger.debug(
+                    'overwrite key %s in section %s from "%s" to "%s"',
+                    key, section, self.__sections[section][key], password_friendly_value
+                )
 
         self.__sections[section][key] = value
         return True
@@ -204,7 +208,7 @@ class ConfigObject():
     def get_float(self, section, key, default=-1, log=True, store_if_not_exists=True):
         value = self.get_string(section, key, str(
             default), log=False, store_if_not_exists=store_if_not_exists)
-        if value is not '':
+        if value != '':
             value = float(value)
         else:
             value = default
@@ -216,7 +220,7 @@ class ConfigObject():
     def get_integer(self, section, key, default=-1, log=True, store_if_not_exists=True):
         value = self.get(section, key, str(default), log=False,
                          store_if_not_exists=store_if_not_exists)
-        if value is not '':
+        if value != '':
             value = int(value)
         else:
             value = default
@@ -237,7 +241,7 @@ class ConfigObject():
     def get_list(self, section, key, default=[], separator=',', log=True, store_if_not_exists=True):
         value = self.get(section, key, str(default), log=False,
                          store_if_not_exists=store_if_not_exists)
-        if value is not '':
+        if value != '':
             value = value.split(separator)
         else:
             value = default

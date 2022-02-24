@@ -3,9 +3,8 @@ from doorpi.keyboard.AbstractBaseClass import KeyboardAbstractBaseClass, HIGH_LE
 
 import os
 import ntpath
-from time import sleep
 from watchdog.observers import Observer
-import watchdog.events
+from watchdog.events import FileModifiedEvent, FileSystemEventHandler
 
 import logging
 logger = logging.getLogger(__name__)
@@ -44,11 +43,9 @@ class FileSystem(KeyboardAbstractBaseClass, FileSystemEventHandler):
             section_name, 'base_path_output')
 
         if not self.__base_path_input:
-            raise MissingMandatoryParameter(
-                ('base_path_input in {}').format(section_name))
+            raise MissingMandatoryParameter(('base_path_input in {}').format(section_name))
         if not self.__base_path_output:
-            raise MissingMandatoryParameter(
-                ('base_path_output in {}}').format(section_name))
+            raise MissingMandatoryParameter(('base_path_output in {}').format(section_name))
 
         os.makedirs(os.path.dirname(self.__base_path_input), exist_ok=True)
         os.makedirs(os.path.dirname(self.__base_path_output), exist_ok=True)
@@ -100,14 +97,14 @@ class FileSystem(KeyboardAbstractBaseClass, FileSystemEventHandler):
             return False
         with open(os.path.join(self.__base_path_input, pin), 'r') as file:
             plain_value = file.readline().rstrip()
-            if self._polarity is 0:
+            if self._polarity == 0:
                 return str(plain_value).lower() in HIGH_LEVEL
             return str(plain_value).lower() in LOW_LEVEL
 
     def __write_file(self, file, value=False):
         with open(file, 'w') as f:
             value = str(value).lower() in HIGH_LEVEL
-            if self._polarity is 1:
+            if self._polarity == 1:
                 value = not value
             f.write(str(value) + '\r\n')
         return value
@@ -136,7 +133,7 @@ class FileSystem(KeyboardAbstractBaseClass, FileSystemEventHandler):
         return True
 
     def on_modified(self, event):
-        if not isinstance(event, watchdog.events.FileModifiedEvent):
+        if not isinstance(event, FileModifiedEvent):
             return
         if self.__reset_file:
             if self.__reset_file == event.src_path:

@@ -4,13 +4,18 @@ from doorpi.action.base import SingleAction
 import os
 from mimetypes import guess_type
 from http.server import BaseHTTPRequestHandler
-import cgi  # for parsing POST
 from urllib.parse import urlparse, parse_qs  # parsing parameters and url
 import re  # regex for area
 import json  # for virtual resources
 from urllib.request import urlopen as load_online_fallback
 from urllib.parse import unquote_plus
-from .request_handler_static_functions import *
+from .request_handler_static_functions import (
+    control_config_delete_key,
+    control_config_get_configfile,
+    control_config_get_value,
+    control_config_save,
+    control_config_set_value
+)
 
 import logging
 logger = logging.getLogger(__name__)
@@ -74,8 +79,6 @@ class DoorPiWebRequestHandler(BaseHTTPRequestHandler):
             return
 
         parsed_path = urlparse(self.path)
-        # doorpi.DoorPi().event_handler('OnWebServerRequest', __name__, {'header': self.headers.items(), 'path': parsed_path})
-        # doorpi.DoorPi().event_handler('OnWebServerRequestGet', __name__, {'header': self.headers.items(), 'path': parsed_path})
 
         if parsed_path.path == '/':
             return self.return_redirection('dashboard/pages/index.html')
@@ -188,9 +191,15 @@ class DoorPiWebRequestHandler(BaseHTTPRequestHandler):
         if return_type in ['json', 'default']:
             return self.return_message(json.dumps(prepared_object), 'application/json; charset=utf-8')
         if return_type in ["json_parsed", "json.parsed"]:
-            return self.return_message(self.parse_content(json.dumps(prepared_object)), 'application/json; charset=utf-8')
+            return self.return_message(
+                self.parse_content(json.dumps(prepared_object)),
+                'application/json; charset=utf-8'
+            )
         elif return_type in ['json_beautified', 'json.beautified', 'beautified.json']:
-            return self.return_message(json.dumps(prepared_object, sort_keys=True, indent=4), 'application/json; charset=utf-8')
+            return self.return_message(
+                json.dumps(prepared_object, sort_keys=True, indent=4),
+                'application/json; charset=utf-8'
+            )
         elif return_type in ['json_beautified_parsed', 'json.beautified.parsed', 'beautified.json.parsed', '']:
             return self.return_message(self.parse_content(json.dumps(prepared_object, sort_keys=True, indent=4)),
                                        'application/json; charset=utf-8')
@@ -198,12 +207,12 @@ class DoorPiWebRequestHandler(BaseHTTPRequestHandler):
             return self.return_message(str(prepared_object))
         elif return_type in ['repr']:
             return self.return_message(repr(prepared_object))
-        elif return_type is 'html':
+        elif return_type == 'html':
             return self.return_message(prepared_object, 'text/html; charset=utf-8')
         else:
             try:
                 return self.return_message(repr(prepared_object))
-            except:
+            except:  # noqa E722
                 return self.return_message(str(prepared_object))
         pass
 

@@ -1,9 +1,6 @@
 from doorpi import DoorPi
 from .AbstractBaseClass import SipphoneAbstractBaseClass, RecorderAbstractBaseClass, PlayerAbstractBaseClass
 
-import datetime
-from time import sleep
-
 import logging
 logger = logging.getLogger(__name__)
 logger.debug('%s loaded', __name__)
@@ -91,8 +88,8 @@ class DummyRecorder(RecorderAbstractBaseClass):
     def destroy(self):
         try:
             self.stop()
-        except:
-            pass
+        except Exception as exp:
+            logger.info(exp)
         DoorPi().event_handler.unregister_source(__name__, True)
 
 
@@ -120,11 +117,3 @@ class DummyPlayer(PlayerAbstractBaseClass):
         DoorPi().event_handler.register_event('OnPlayerStopped', __name__)
         DoorPi().event_handler.register_event('OnPlayerCreated', __name__)
         DoorPi().event_handler('OnPlayerCreated', __name__)
-
-    def start(self): DoorPi().event_handler('OnPlayerStarted', __name__)
-
-    def stop(self):  DoorPi().event_handler('OnPlayerStopped', __name__)
-
-    def destroy(self):
-        self.stop()
-        DoorPi().event_handler.unregister_source(__name__, True)

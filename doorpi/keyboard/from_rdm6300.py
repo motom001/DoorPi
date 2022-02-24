@@ -62,7 +62,7 @@
 #
 #  RFID data: http://kampis-elektroecke.de/?page_id=3248
 import doorpi
-from doorpi.keyboard.AbstractBaseClass import KeyboardAbstractBaseClass, HIGH_LEVEL, LOW_LEVEL
+from doorpi.keyboard.AbstractBaseClass import KeyboardAbstractBaseClass
 
 import threading
 import serial

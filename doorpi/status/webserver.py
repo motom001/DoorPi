@@ -5,7 +5,6 @@ from doorpi.status.webserver_lib.request_handler import DoorPiWebRequestHandler
 
 from http.server import HTTPServer
 from socketserver import ThreadingMixIn
-from random import randrange
 import os
 
 import logging
@@ -135,7 +134,7 @@ class DoorPiWeb(ThreadingMixIn, HTTPServer):
 
     @property
     def own_url(self):
-        if self.server_port is 80:
+        if self.server_port == 80:
             return ('http://{0}/').format(self.server_name)
         else:
             return ('http://{0}:{1}/').format(self.server_name, self.server_port)
@@ -187,9 +186,8 @@ class DoorPiWeb(ThreadingMixIn, HTTPServer):
     def fake_request(self):
         try:
             from urllib.request import urlopen as fake_request
-            fake_request(
-                ('http://{0}:{1}/').format(self.server_name, self.server_port), timeout=0)
-        except:
+            fake_request(('http://{0}:{1}/').format(self.server_name, self.server_port), timeout=0)
+        except:  # noqa E722
             pass
 
     def init_shutdown(self):

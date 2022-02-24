@@ -321,9 +321,7 @@ class EventHandler:
             logger.error('action_object is None')
             return False
 
-        single_fire = kwargs['single_fire_action'] is True
-        if ('single_fire_action' in list(kwargs.keys()) and single_fire):
-
+        if ('single_fire_action' in list(kwargs.keys()) and kwargs['single_fire_action'] is True):
             action_object.single_fire_action = True
             del kwargs['single_fire_action']
 

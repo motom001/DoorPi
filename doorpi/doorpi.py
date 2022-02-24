@@ -50,6 +50,9 @@ class DoorPi(object, metaclass=Singleton):
     __config = None
 
     @property
+    def meta(self): return metadata
+
+    @property
     def config(self): return self.__config
 
     __keyboard = None
@@ -92,8 +95,7 @@ class DoorPi(object, metaclass=Singleton):
     def name(self): return str(metadata.package)
 
     @property
-    def name_and_version(self): return str(
-        metadata.package) + ' - version: ' + metadata.version
+    def name_and_version(self): return str(metadata.package) + ' - version: ' + metadata.version
 
     __shutdown = False
 
@@ -106,10 +108,8 @@ class DoorPi(object, metaclass=Singleton):
     def base_path(self):
         if self._base_path is None:
             try:
-                self._base_path = os.path.join(
-                    os.path.expanduser('~'), metadata.package)
-                assert os.access(
-                    self._base_path, os.W_OK), 'use fallback for base_path (see tmp path)'
+                self._base_path = os.path.join(os.path.expanduser('~'), metadata.package)
+                assert os.access(self._base_path, os.W_OK), 'use fallback for base_path (see tmp path)'
             except Exception as exp:
                 logger.error(exp)
                 import tempfile
@@ -152,14 +152,12 @@ class DoorPi(object, metaclass=Singleton):
         self.__event_handler = EventHandler()
 
         if self.config.config_file is None:
-            self.event_handler.register_action(
-                'AfterStartup', self.config.save_config)
+            self.event_handler.register_action('AfterStartup', self.config.save_config)
             self.config.get('EVENT_OnStartup', '10', 'sleep:1')
 
         if 'test' in parsed_arguments and parsed_arguments.test is True:
             logger.warning('using only test-mode and destroy after 5 seconds')
-            self.event_handler.register_action(
-                'AfterStartup', DoorPiShutdownAction(self.doorpi_shutdown))
+            self.event_handler.register_action('AfterStartup', DoorPiShutdownAction(self.doorpi_shutdown))
 
         # register own events
         self.event_handler.register_event('BeforeStartup', __name__)

@@ -74,7 +74,7 @@ class PiFace(KeyboardAbstractBaseClass):
                 self._fire_OnKeyPressed(event.pin_num, __name__)
 
     def status_input(self, pin):
-        if self._polarity is 0:
+        if self._polarity == 0:
             return str(p.digital_read(int(pin))).lower() in HIGH_LEVEL
         else:
             return str(p.digital_read(int(pin))).lower() in LOW_LEVEL
@@ -86,7 +86,7 @@ class PiFace(KeyboardAbstractBaseClass):
 
         pin = int(pin)
         value = str(value).lower() in HIGH_LEVEL
-        if self._polarity is 1:
+        if self._polarity == 1:
             value = not value
         log_output = str(log_output).lower() in HIGH_LEVEL
 

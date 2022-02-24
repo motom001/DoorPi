@@ -2,7 +2,6 @@ import doorpi
 from doorpi.keyboard.AbstractBaseClass import KeyboardAbstractBaseClass, HIGH_LEVEL, LOW_LEVEL
 
 import os
-import ntpath
 from watchdog.observers import Observer
 from watchdog.events import FileModifiedEvent, FileSystemEventHandler
 
@@ -12,8 +11,8 @@ logger.debug('%s loaded', __name__)
 
 
 def path_leaf(path):
-    head, tail = ntpath.split(path)
-    return tail or ntpath.basename(head)
+    head, tail = os.path.split(path)
+    return tail or os.path.basename(head)
 
 
 class MissingMandatoryParameter(Exception):

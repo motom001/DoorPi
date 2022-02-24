@@ -2,7 +2,6 @@ from doorpi import DoorPi
 from doorpi.sipphone.linphone_lib.CallBacks import LinphoneCallbacks
 from doorpi.sipphone.linphone_lib.Player import LinphonePlayer
 from doorpi.sipphone.linphone_lib.Recorder import LinphoneRecorder
-from doorpi.media.CreateDialTone import generate_dial_tone
 
 from .AbstractBaseClass import SipphoneAbstractBaseClass, SIPPHONE_SECTION
 import linphone as lin

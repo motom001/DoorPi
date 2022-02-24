@@ -1,9 +1,8 @@
-from doorpi.keyboard.AbstractBaseClass import KeyboardAbstractBaseClass, HIGH_LEVEL, LOW_LEVEL
+from doorpi.keyboard.AbstractBaseClass import KeyboardAbstractBaseClass
 import doorpi
 
 import threading
 import serial
-import time
 from os import linesep as OS_LINESEP
 
 import logging

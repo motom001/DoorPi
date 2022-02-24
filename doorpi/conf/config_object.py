@@ -55,7 +55,7 @@ class ConfigObject():
                 open(possible_default_file, 'r').close()
                 return possible_default_file
             except Exception as exp:
-                logger.debug(possible_default_file+' failed with '+exp)
+                logger.debug(possible_default_file+' failed with %s' % exp)
 
         return None
 

@@ -1,4 +1,3 @@
-
 import logging
 logger = logging.getLogger(__name__)
 logger.debug("%s loaded", __name__)

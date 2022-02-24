@@ -1,5 +1,4 @@
 import doorpi
-from doorpi.action.base import SingleAction
 
 import time  # session timestamp
 

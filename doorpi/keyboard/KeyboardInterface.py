@@ -128,7 +128,7 @@ class KeyboardHandler(KeyboardAbstractBaseClass):
                                    )
                 self.__OutputMappingTable[output_pin_name] = keyboard_name
 
-        if len(self.__keyboards) is 0:
+        if len(self.__keyboards) == 0:
             logger.error('No Keyboards loaded - load dummy!')
             self.__keyboards['dummy'] = load_single_keyboard('dummy')
 
@@ -136,8 +136,8 @@ class KeyboardHandler(KeyboardAbstractBaseClass):
         try:
             for Keyboard in self.__keyboards:
                 self.__keyboards[Keyboard].destroy()
-        except:
-            pass
+        except Exception as exp:
+            logger.info(exp)
 
     def set_output(self, pin, value, log_output=True):
         if pin not in self.__OutputMappingTable:

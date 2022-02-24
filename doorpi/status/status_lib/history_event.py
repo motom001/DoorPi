@@ -1,4 +1,3 @@
-
 import logging
 logger = logging.getLogger(__name__)
 logger.debug("%s loaded", __name__)
@@ -14,7 +13,7 @@ def get(*args, **kwargs):
         filter = kwargs['name'][0]
         try:
             max_count = int(kwargs['value'][0])
-        except:
+        except:  # noqa: E722
             max_count = 100
 
         return kwargs['DoorPiObject'].event_handler.db.get_event_log_entries(max_count, filter)

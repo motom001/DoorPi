@@ -1,7 +1,6 @@
 """provide intercomstation to the doorstation by VoIP"""
 
-from .doorpi import metadata, DoorPi
-
+from .doorpi import DoorPi, metadata  # noqa F401
 
 __version__ = metadata.version
 __author__ = metadata.authors[0]

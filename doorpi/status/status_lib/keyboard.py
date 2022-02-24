@@ -1,5 +1,3 @@
-from datetime import datetime
-
 import logging
 logger = logging.getLogger(__name__)
 logger.debug("%s loaded", __name__)
@@ -43,5 +41,5 @@ def get(*args, **kwargs):
 def is_active(doorpi_object):
     try:
         return True if doorpi_object.keyboard.name else False
-    except:
+    except:  # noqa: E722
         return False

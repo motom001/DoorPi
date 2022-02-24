@@ -1,4 +1,4 @@
-from doorpi.keyboard.AbstractBaseClass import KeyboardAbstractBaseClass, HIGH_LEVEL, LOW_LEVEL
+from doorpi.keyboard.AbstractBaseClass import KeyboardAbstractBaseClass
 import doorpi
 
 import RPi.GPIO as RPiGPIO
@@ -26,12 +26,9 @@ class Wiegand(KeyboardAbstractBaseClass):
 
         # read config file
         section_name = conf_pre + 'keyboard' + conf_post
-        self._data0 = doorpi.DoorPi().config.get(
-            section_name, 'data0')  # w0 - data signal
-        self._data1 = doorpi.DoorPi().config.get(
-            section_name, 'data1')  # w1 - data signal
-        self._timeout = doorpi.DoorPi().config.get(section_name, 'timeout',
-                                                   0.25)  # time for reading data signal
+        self._data0 = doorpi.DoorPi().config.get(section_name, 'data0')  # w0 - data signal
+        self._data1 = doorpi.DoorPi().config.get(section_name, 'data1')  # w1 - data signal
+        self._timeout = doorpi.DoorPi().config.get(section_name, 'timeout', 0.25)  # time for reading data signal
 
         # init vars
         self._nextInput = ''  # stores input until timeout
@@ -122,7 +119,8 @@ class Wiegand(KeyboardAbstractBaseClass):
         # reset input signal
         self._nextInput = ''
 
-    def _verifyParity(evenParity, oddParity):
+    @staticmethod
+    def verifyParity(evenParity, oddParity):
         bitsEven = evenParity.count('1')
         bitsOdd = oddParity.count('1')
         return (bitsEven % 2 == 0) and (bitsOdd % 2 == 1)
@@ -130,23 +128,24 @@ class Wiegand(KeyboardAbstractBaseClass):
     def _verify37Bit(input):
         # even parity (start: 0, length: 19)
         # odd parity (start: 18, length: 19)
-        return _verifyParity(input[0:19], input[18:])
+        return Wiegand.verifyParity(input[0:19], input[18:])
 
     def _verify34Bit(input):
         # even parity (start 0, length: 17)
         # odd parity (start: 17, length: 17)
-        return _verifyParity(input[0:17], input[17:])
+        return Wiegand.verifyParity(input[0:17], input[17:])
 
     def _verify26Bit(input):
         # even parity (start: 0, length: 13)
         # odd parity (start: 13, length: 13)
-        return _verifyParity(input[0:13], input[13:])
+        return Wiegand.verifyParity(input[0:13], input[13:])
 
     def _verify8Bit(input):
         # first 4bits equal reverse last 4 bits
         return (int(input[0:4], 2) == ~int(input[4:], 2))
 
-    def _removeParityBits(input):
+    @staticmethod
+    def removeParityBits(input):
         # remove parity bits
         input = input[1:-1]
         # dual to decimal
@@ -154,12 +153,12 @@ class Wiegand(KeyboardAbstractBaseClass):
 
     def _interpret8Bit(input):
         # IIIICCCC signal format (I = inverse)
-        value = int(intput, 2) & 0x0F
+        value = int(input, 2) & 0x0F
         return {'fc': -1, 'value': value}
 
     def _interpret26Bit(input):
         # PFFFFFFFFCCCCCCCCCCCCCCCCP signal format
-        temp = _removeParityBits(input)
+        temp = Wiegand.removeParityBits(input)
         # mask: 000000001111111111111111
         cardNumber = temp & 0x00FFFF
         # mask: 111111110000000000000000
@@ -172,14 +171,14 @@ class Wiegand(KeyboardAbstractBaseClass):
 
     def _interpret34Bit(input):
         # PFFFFFFFFFFFFFFFFCCCCCCCCCCCCCCCCP signal format
-        temp = _removeParityBits(input)
+        temp = Wiegand.removeParityBits(input)
         cardNumber = temp & 0x000FFFF
         facilityCode = (temp & 0x7FFF80000) >> 16
         return {'fc': facilityCode, 'value': cardNumber}
 
     def _interpret37Bit(input):
         # PFFFFFFFFFFFFFFFFCCCCCCCCCCCCCCCCCCCP signal format
-        temp = _removeParityBits(input)
+        temp = Wiegand.removeParityBits(input)
         cardNumber = temp & 0x0007FFFF
         facilityCode = (temp & 0x7FFF80000) >> 19
         return {'fc': facilityCode, 'value': cardNumber}
@@ -189,8 +188,8 @@ class Wiegand(KeyboardAbstractBaseClass):
             return
 
         self._shutdown = True
-        GPIO.remove_event_detect(self._data0)
-        GPIO.remove_event_detect(self._data1)
+        RPiGPIO.remove_event_detect(self._data0)
+        RPiGPIO.remove_event_detect(self._data1)
         doorpi.DoorPi().event_handler.unregister_source(__name__, True)
         self.__destroyed = True
 

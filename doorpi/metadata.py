@@ -35,6 +35,7 @@ license = 'CC BY-NC 4.0'
 url = 'https://github.com/motom001/DoorPi'
 url_raw = 'https://raw.githubusercontent.com/motom001/DoorPi'
 
+# flake8: noqa W605
 # created with: http://patorjk.com/software/taag/#p=display&f=Ogre&t=DoorPi
 epilog = '''
     ___                  ___ _

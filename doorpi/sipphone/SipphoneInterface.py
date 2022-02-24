@@ -15,8 +15,7 @@ def load_sipphone():
     conf_post = ''
 
     # read selected sipphone from config file
-    sipphone_name = doorpi.DoorPi().config.get('SIP-Phone', 'sipphonetyp',
-                                               find_first_installed_sipphone())
+    sipphone_name = doorpi.DoorPi().config.get('SIP-Phone', 'sipphonetyp', find_first_installed_sipphone())
 
     # try to load selected sipphone or fall back to dummy
     try:

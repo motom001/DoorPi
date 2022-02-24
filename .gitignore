@@ -44,15 +44,8 @@ coverage.xml
 *.mo
 *.pot
 
-# Django stuff:
-*.log
-
-# Sphinx documentation
-docs/_build/
-
 # PyBuilder
 target/
 
 .pypirc
-doorpi/docs/service/doorpi
 .vscode/launch.json

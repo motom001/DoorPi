@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
 import doorpi
 from doorpi.action.base import SingleAction
 

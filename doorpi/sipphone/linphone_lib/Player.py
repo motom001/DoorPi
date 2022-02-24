@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
 
 from doorpi.sipphone.AbstractBaseClass import PlayerAbstractBaseClass, SIPPHONE_SECTION
 from doorpi.media.CreateDialTone import generate_dial_tone

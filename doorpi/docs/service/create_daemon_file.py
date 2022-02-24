@@ -1,5 +1,3 @@
-#!/usr/bin/python
-# -*- coding: utf-8 -*-
 import doorpi.metadata as metadata
 import os
 import urllib.request

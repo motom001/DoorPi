@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
 import doorpi
 from .backward_compatibility import BACKWARD_COMPATIBILITY_KEYS
 

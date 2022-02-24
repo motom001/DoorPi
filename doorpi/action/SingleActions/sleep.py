@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from doorpi.action.base import SingleAction
 
 from time import sleep as callback_function

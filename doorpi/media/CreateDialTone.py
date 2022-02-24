@@ -1,4 +1,3 @@
-#!/usr/bin/python
 
 
 # Stolen from this source - thx to FB36:

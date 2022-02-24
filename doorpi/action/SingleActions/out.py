@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import doorpi
 from doorpi.action.base import SingleAction
 from doorpi.action.SingleActions.out_triggered import get as fallback

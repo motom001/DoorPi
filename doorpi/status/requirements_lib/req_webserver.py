@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
 from doorpi.status.webserver import DOORPIWEB_SECTION, CONF_AREA_PREFIX
 
 import logging

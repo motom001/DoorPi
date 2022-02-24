@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import doorpi
 from doorpi.action.base import SingleAction
 from doorpi.status.status_class import DoorPiStatus

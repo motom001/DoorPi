@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
 from doorpi.sipphone.AbstractBaseClass import SIPPHONE_SECTION
 
 import logging

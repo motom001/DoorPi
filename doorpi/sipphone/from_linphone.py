@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
 from doorpi import DoorPi
 from doorpi.sipphone.linphone_lib.CallBacks import LinphoneCallbacks
 from doorpi.sipphone.linphone_lib.Player import LinphonePlayer
